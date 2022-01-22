@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-Associated US: [User Story Name](https://github.com/srauph/390-team-project/issues/#)
+Associated US: #?
 
 To complete this task, (such), (such), and (such) needs to be completed.
 
