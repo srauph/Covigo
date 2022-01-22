@@ -7,11 +7,11 @@ assignees: ''
 
 ---
 
-[Associated Epic Name](link_to_epic)
+[Associated Epic Name](https://github.com/srauph/390-team-project/issues/#)
 
 As a (user), I (would like to...)
 
 Associated tasks:
 
-- [ ] [Task 1 Name](link_to_task)
-- [ ] [Task 2 name](link_to_task)
+- [ ] [Task 1 Name](https://github.com/srauph/390-team-project/issues/#)
+- [ ] [Task 2 name](https://github.com/srauph/390-team-project/issues/#)
