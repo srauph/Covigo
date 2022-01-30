@@ -10,9 +10,15 @@
 	</head>
 
 	<body class="bg-gray-50 font-serif leading-normal tracking-normal">
+    <div id="header">
+        {% include "header.html" %}
+    </div>
 		<div class="container mx-auto">
 			<section class="flex items-center justify-center h-screen">
-				<h1 class="text-5xl">Django + Tailwind = ❤️</h1>
+{#				<h1 class="text-5xl">Django + Tailwind = ❤️</h1>#}
+                {% block content %}
+                    {{ content }}
+                {% endblock %}
 			</section>
 		</div>
 	</body>
