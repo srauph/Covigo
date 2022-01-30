@@ -4,9 +4,9 @@
         <div @click.away="open = false"
              class="flex flex-col w-full md:w-64 bg-slate-800 text-white flex-shrink-0"
              x-data="{ open: false }">
-            <div class="flex-shrink-0 px-4 py-4 flex flex-row items-center justify-between">
-                <div class="flex-grow md:block pb-4 md:pb-0 md:overflow-y-auto">
-                    <a href="#" class="text-lg font-semibold block px-4 py-2 mt-2 text-sm font-semibold text-slate-200 bg-transparent rounded-lg hover:text-slate-800 focus:text-slate-800 hover:bg-slate-200 focus:bg-slate-200 focus:outline-none focus:shadow-outline">
+            <div class="flex-shrink-0 px-4 md:pt-4 flex flex-row items-center justify-between">
+                <div class="flex-grow md:block md:overflow-y-auto">
+                    <a href="#" class="text-xl font-semibold block px-4 py-4 md:py-2 text-sm font-semibold text-slate-100 bg-transparent rounded-lg md:hover:text-slate-800 md:focus:text-slate-800 md:hover:bg-white md:focus:bg-white focus:outline-none focus:shadow-outline">
                         Dashboard
                     </a>
                 </div>
@@ -22,18 +22,19 @@
                     </svg>
                 </button>
             </div>
-            <nav :class="{'block': open, 'hidden': !open}"
-                 class="flex-grow md:block px-4 pb-4 md:pb-0 md:overflow-y-auto">
-                <a class="block px-4 py-2 mt-2 text-sm font-semibold text-slate-200 bg-transparent rounded-lg hover:text-slate-800 focus:text-slate-800 hover:bg-slate-200 focus:bg-slate-200 focus:outline-none focus:shadow-outline"
-                   href="#">Update Health Status</a>
-                <a class="block px-4 py-2 mt-2 text-sm font-semibold text-slate-200 bg-transparent rounded-lg hover:text-slate-800 focus:text-slate-800 hover:bg-slate-200 focus:bg-slate-200 focus:outline-none focus:shadow-outline"
-                   href="#">Appointments</a>
-                <a class="block px-4 py-2 mt-2 text-sm font-semibold text-slate-200 bg-transparent rounded-lg hover:text-slate-800 focus:text-slate-800 hover:bg-slate-200 focus:bg-slate-200 focus:outline-none focus:shadow-outline"
-                   href="#">Messaging</a>
-                <a class="block px-4 py-2 mt-2 text-sm font-semibold text-slate-200 bg-transparent rounded-lg hover:text-slate-800 focus:text-slate-800 hover:bg-slate-200 focus:bg-slate-200 focus:outline-none focus:shadow-outline"
-                   href="#">Quarantine Status</a>
-                <a class="block px-4 py-2 mt-2 text-sm font-semibold text-slate-200 bg-transparent rounded-lg hover:text-slate-800 focus:text-slate-800 hover:bg-slate-200 focus:bg-slate-200 focus:outline-none focus:shadow-outline"
-                   href="#">About</a>
+            <nav :class="{'block': open, 'hidden': !open}" class="flex-grow md:block px-4 pb-4 md:pb-0 md:overflow-y-auto">
+                <a class="block px-4 py-2 md:mt-2 text-sm font-semibold text-slate-100 bg-transparent rounded-lg hover:text-slate-800 focus:text-slate-800 hover:bg-white focus:bg-white focus:outline-none focus:shadow-outline" href="#">
+                    Update Health Status
+                </a>
+                <a class="block px-4 py-2 mt-2 text-sm font-semibold text-slate-100 bg-transparent rounded-lg hover:text-slate-800 focus:text-slate-800 hover:bg-white focus:bg-white focus:outline-none focus:shadow-outline" href="#">
+                    Appointments
+                </a>
+                <a class="block px-4 py-2 mt-2 text-sm font-semibold text-slate-100 bg-transparent rounded-lg hover:text-slate-800 focus:text-slate-800 hover:bg-white focus:bg-white focus:outline-none focus:shadow-outline" href="#">
+                    Messaging
+                </a>
+                <a class="block px-4 py-2 mt-2 text-sm font-semibold text-slate-100 bg-transparent rounded-lg hover:text-slate-800 focus:text-slate-800 hover:bg-white focus:bg-white focus:outline-none focus:shadow-outline" href="#">
+                    Quarantine Status
+                </a>
             </nav>
         </div>
     </div>
