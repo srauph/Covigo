@@ -1,10 +1,19 @@
 {% block header %}
-<div class="bg-purple-400">
-    <div class="container mx-auto">
-        <section class="flex items-center justify-center">
-            <h1 class="text-9xl">header?</h1>
-        </section>
-    </div>
-</div>
-
+    <nav class="bg-slate-900 text-white flex items-center justify-between bg-teal p-6">
+        <div class="flex items-center flex-no-shrink mr-6">
+            <span class="font-semibold text-3xl tracking-tight">Covigo</span>
+        </div>
+        <div class="flex block text-right">
+            <div class="inline-block text-sm px-2 py-2 leading-none">
+                <a href="#" class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
+                    John Doe
+                </a>
+            </div>
+            <div class="inline-block text-sm px-2 py-2 leading-none">
+                <a href="#" class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
+                    Log out
+                </a>
+            </div>
+        </div>
+    </nav>
 {% endblock %}
