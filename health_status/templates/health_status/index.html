@@ -1,7 +1,11 @@
 {% extends "base.html" %}
+{% load tailwind_tags %}
 
 {% block content %}
-    <div class="min-h-full">
-        <h1 class="text-5xl">health status</h1>
+    <div class="min-h-full bg-slate-100">
+        <div class="block p-4 text-red-400 text-center text-3xl">
+            Deadline to upload the next staus: <b>Today 11.59PM</b>
+        </div>
+        <hr class="mx-4 border-red-400">
     </div>
 {% endblock %}
