@@ -139,4 +139,5 @@ INTERNAL_IPS = [
 
 load_dotenv()
 TAILWIND_APP_NAME = 'theme'
-NPM_BIN_PATH = getenv('NPM_BIN_PATH')
+if getenv('NPM_BIN_PATH') != "":
+    NPM_BIN_PATH = getenv('NPM_BIN_PATH')
