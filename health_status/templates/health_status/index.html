@@ -3,9 +3,50 @@
 
 {% block content %}
     <div class="min-h-full bg-slate-100">
-        <div class="block p-4 text-red-400 text-center text-3xl">
-            Deadline to upload the next staus: <b>Today 11.59PM</b>
+        <div class="block m-4 p-4 rounded bg-red-400 text-white text-center text-3xl">
+            <h1>Deadline to upload the next status: <b>Today 11.59PM</b></h1>
         </div>
-        <hr class="mx-4 border-red-400">
+        <hr class="mx-4 border-slate-400">
+        <div class="flex flex-wrap xl:flex-nowrap">
+            <div class="grow xl:flex-auto">
+                <div class="m-4">
+                    <button class="w-full px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white text-2xl font-bold">
+                        <h2>Create a new Status Update</h2>
+                    </button>
+                </div>
+
+                <hr class="mx-4 xl:mr-24 border-slate-300">
+                <div>
+                    <div class="block m-4 p-4 rounded bg-slate-200 text-slate-800 text-center text-lg font-semibold">
+                        <h3>List of details to provide in your status update</h3>
+                        <hr class="my-2 border-slate-400">
+                        <div class="text-left text-lg font-normal xl:w-96">
+                            <ul class="px-8 list-disc">
+                                <li>Body temperature</li>
+                                <li>Presence/Severity of coughs</li>
+                                <li>Presence/Severity of sore throat</li>
+                                <li>Presence of stomach pain, vomiting, or diarrhea</li>
+                                <li>Presence of runny nose or nasal congestion</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="grow min-h-full w-full xl:w-fit">
+                <div class="block m-4 p-4 rounded bg-slate-200 text-slate-800 text-center text-lg font-semibold">
+                    <h3>Previous status update</h3>
+                    <hr class="my-2 border-slate-400">
+                    <div class="block m-4 p-4 rounded bg-gray-300 text-left text-md font-semibold">
+                        <p>My body temperature was 69 degrees</p>
+                        <p>I have very severe coughs, coupled with an extremely sore throat.</p>
+                        <p>I have some mild stomach pain and nausea. I voted earlier today not too long after waking up. I do not have diarrhea at this time.</p>
+                        <p>I have a fair mount of nasal congestion. I wouldn't desribe my nose as runny but rather as blocked.</p>
+                    </div>
+                    <div class="text-left italic font-normal text-sm px-4">
+                        This update was posted on February 30th, 4:20 PM.
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 {% endblock %}
