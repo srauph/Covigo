@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'dashboard.apps.DashboardConfig',
+    'health_status.apps.HealthStatusConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
