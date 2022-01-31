@@ -1,4 +1,4 @@
-{% load static tailwind_tags %}
+{% load tailwind_tags %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,11 +19,9 @@
         {% include "sidebar.html" %}
     </div>
     <div id="content" class="flex-auto">
-        <section>
-            {% block content %}
-                {{ content }}
-            {% endblock %}
-        </section>
+        {% block content %}
+            {{ content }}
+        {% endblock %}
     </div>
 </div>
 
