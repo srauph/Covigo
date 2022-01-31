@@ -16,7 +16,6 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-from Covigo import views
 
 urlpatterns = [
     path('', include('dashboard.urls')),
