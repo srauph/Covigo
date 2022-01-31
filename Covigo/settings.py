@@ -33,6 +33,9 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'dashboard.apps.DashboardConfig',
     'health_status.apps.HealthStatusConfig',
+    'appointments.apps.AppointmentsConfig',
+    'messaging.apps.MessagingConfig',
+    'quarantine_status.apps.QuarantineStatusConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
