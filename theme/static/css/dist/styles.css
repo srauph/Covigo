@@ -1174,6 +1174,10 @@ select {
     margin-right: 6rem;
   }
 
+  .xl\:min-h-full {
+    min-height: 100%;
+  }
+
   .xl\:w-96 {
     width: 24rem;
   }
