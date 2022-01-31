@@ -20,6 +20,7 @@ from Covigo import views
 
 urlpatterns = [
     path('', include('dashboard.urls')),
+    path('health_status/', include('health_status.urls')),
     path('admin/', admin.site.urls),
     path("__reload__/", include("django_browser_reload.urls")),
 ]
