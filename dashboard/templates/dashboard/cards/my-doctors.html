@@ -1,0 +1,18 @@
+{% extends "dashboard/card-base.html" %}
+{% load tailwind_tags %}
+
+{% block card %}
+    <div class="flex items-center justify-center w-full h-full rounded border bg-blue-100 border-blue-200 hover:bg-blue-200">
+        <div>
+            <h1 class="font-bold text-2xl text-center">My Doctor</h1>
+            <hr class="border-slate-400 my-2">
+            <ul class="list-disc">
+                <li>Jane Doe</li>
+                <li>janedoe@gmail.com</li>
+                <li>(514) 777-9001</li>
+                <li>1000 de la Gauchetiere</li>
+                <li>H3B 4W5</li>
+            </ul>
+        </div>
+    </div>
+{% endblock %}

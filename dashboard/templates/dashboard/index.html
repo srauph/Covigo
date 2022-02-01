@@ -3,6 +3,16 @@
 
 {% block content %}
     <div class="min-h-full bg-slate-100">
-        <h1 class="text-5xl">dashboard</h1>
+        <div class="m-4 flex flex-wrap justify-evenly gap-4">
+            {% include './cards/user-info.html' %}
+            {% include './cards/my-doctors.html' %}
+            {% include './cards/my-patients.html' %}
+            {% include './cards/hospitalizations-total.html' %}
+            {% include './cards/cases-recovered.html' %}
+            {% include './cards/cases-today.html' %}
+            {% include './cards/cases-total.html' %}
+            {% include './cards/cases-montreal.html' %}
+        </div>
+
     </div>
 {% endblock %}
