@@ -1,10 +1,15 @@
 {% extends "dashboard/card-base.html" %}
 {% load tailwind_tags %}
+{% load static %}
 
 {% block card %}
-    <div class="w-full h-full rounded border bg-blue-100 border-blue-200 hover:bg-blue-200">
+    <div class="flex items-center justify-center w-full h-full rounded border bg-orange-100 border-orange-200 hover:bg-orange-200">
         <div class="px-4 py-2">
-            <h1>card</h1>
+            <div>
+                <h1 class="font-bold text-2xl text-center">Hospitalizations</h1>
+                <hr class="border-slate-400 my-2">
+                <img src="{% static 'dashboard/hospitalizations.png' %}" alt="Hospitalizations"/>
+            </div>
         </div>
     </div>
 {% endblock %}
