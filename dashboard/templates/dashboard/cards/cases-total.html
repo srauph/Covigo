@@ -3,16 +3,13 @@
 {% load static %}
 
 {% block card %}
-    <div class="flex items-center justify-center w-full h-full rounded border bg-green-100 border-green-200 hover:bg-green-200">
+    <div class="flex items-center justify-center w-full h-full rounded border bg-amber-100 border-amber-200 hover:bg-amber-200">
         <div class="px-4 py-2">
-            <h1 class="font-bold text-2xl text-center">Total Cases (QC)</h1>
+            <h1 class="font-bold text-2xl text-center">Daily Change in Active Cases</h1>
+            <h1 class="font-light italic text-md text-center">(past 7 days, QC)</h1>
             <hr class="border-slate-400 my-2">
             <dix class="flex items-center justify-center">
-                <img src="{% static 'dashboard/green-arrow-down.png' %}" alt="Green down arrow"/>
-                <div>
-                    <div class="font-bold text-5xl text-center text-green-600">40,199</div>
-                    <div class="font-bold text-md italix text-center text-green-600 mb-12">(-1,415)</div>
-                </div>
+                <img src="{% static 'dashboard/totalqcog.png' %}" alt="Hospitalizations"/>
             </dix>
         </div>
     </div>
