@@ -3,7 +3,7 @@
 ## Pre-requisites:
 
 - Python
-- Nodejs (for tailwind)
+- Nodejs/npm (for tailwind)
 
 ## Running the server
 
