@@ -1,3 +1,2 @@
 django~=4.0.1
-django-tailwind
 python-dotenv
