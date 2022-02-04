@@ -7,7 +7,7 @@
 
 ## Running the server
 
-Simply run `py manage.py runserver` from the project root directory (the same one with `manage.py` to start the development server. You will then be able to connect to it locally.
+Simply run `py manage.py runserver` from the project root directory (the same one with `manage.py`) to start the development server. You will then be able to connect to it locally.
 
 ## Running Tailwind
 
