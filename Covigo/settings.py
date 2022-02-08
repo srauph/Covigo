@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'appointments.apps.AppointmentsConfig',
     'messaging.apps.MessagingConfig',
     'quarantine_status.apps.QuarantineStatusConfig',
-    'symptom.apps.SymptomConfig',
+    'symptoms.apps.SymptomsConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
