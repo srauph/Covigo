@@ -6,11 +6,11 @@
         <div class="flex block text-right">
             <div class="inline-block text-sm px-2 py-2 leading-none">
                 <a href="#" class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
-                    John Doe
+                    {{ user.get_username }}
                 </a>
             </div>
             <div class="inline-block text-sm px-2 py-2 leading-none">
-                <a href="#" class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
+                <a href="{% url 'logout' %}" class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
                     Log out
                 </a>
             </div>

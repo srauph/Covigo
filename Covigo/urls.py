@@ -18,6 +18,8 @@ from django.urls import path, include
 
 
 urlpatterns = [
+    path('', include('dashboard.urls')),
+    path('accounts/', include('django.contrib.auth.urls')),
     path('dashboard/', include('dashboard.urls')),
     path('health_status/', include('health_status.urls')),
     path('appointments/', include('appointments.urls')),
