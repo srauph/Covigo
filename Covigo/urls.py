@@ -26,5 +26,4 @@ urlpatterns = [
     path('messaging/', include('messaging.urls')),
     path('quarantine_status/', include('quarantine_status.urls')),
     path('symptoms/', include('symptoms.urls')),
-    path('admin/', admin.site.urls),
 ]
