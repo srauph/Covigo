@@ -1559,6 +1559,18 @@ Ensure the default browser behavior of the `hidden` attribute.
     width: 66.666667%;
   }
 
+  .xl\:w-1\/4 {
+    width: 25%;
+  }
+
+  .xl\:w-3\/4 {
+    width: 75%;
+  }
+
+  .xl\:w-auto {
+    width: auto;
+  }
+
   .xl\:flex-row {
     flex-direction: row;
   }
