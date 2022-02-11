@@ -1,0 +1,13 @@
+{% extends "Covigo/base.html" %}
+
+{% block content %}
+    <div class="min-h-full bg-slate-100">
+        <div class="m-4 justify-evenly gap-4">
+            <h2>username: {{ staff.user }}</h2>
+            <h2>email: {{ staff.user.email }}</h2>
+            <h2>phone: {{ staff.phone_number }}</h2>
+            <h2>address: {{ staff.address }}</h2>
+            <h2>postal code: {{ staff.postal_code }}</h2>
+        </div>
+    </div>
+{% endblock %}
