@@ -39,6 +39,28 @@ class Patient(models.Model):
     code = models.CharField(max_length=255)
 
 
+class Flag(models.Model):
+    staff = models.ForeignKey(
+        User,
+        related_name="flagged_patients",
+        on_delete=models.CASCADE
+    )
+    patient = models.ForeignKey(
+        User,
+        related_name="staffs_flagged_by",
+        on_delete=models.CASCADE
+    )
+    date_created = models.DateTimeField
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['staff', 'patient'], name='unique_flag')
+        ]
+
+    def __str__(self):
+        return f"{self.patient}_{self.staff}"
+
+
 # @receiver(post_save, sender=User)
 # def save_user_profile(sender, instance, **kwargs):
 #     try:
