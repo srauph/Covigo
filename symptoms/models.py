@@ -5,7 +5,8 @@ from django.contrib.auth.models import User
 class Symptom(models.Model):
     users = models.ManyToManyField(
         User,
-        through="PatientSymptom"
+        related_name="users",
+        through='PatientSymptom'
     )
     name = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
@@ -27,5 +28,9 @@ class PatientSymptom(models.Model):
     date_created = models.DateTimeField(blank=True, null=True)
     date_updated = models.DateTimeField(blank=True, null=True)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint()
+        ]
     def __str__(self):
         return "{}_{}".format(self.user.__str__(), self.symptom.__str__())
