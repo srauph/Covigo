@@ -36,6 +36,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'accounts.apps.AccountsConfig',
     'manager.apps.ManagerConfig',
     'dashboard.apps.DashboardConfig',
     'health_status.apps.HealthStatusConfig',
