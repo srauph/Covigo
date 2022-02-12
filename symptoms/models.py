@@ -1,5 +1,5 @@
 from django.db import models
-from accounts.models import Patient
+from django.contrib.auth.models import User
 
 
 class Symptom:
@@ -11,8 +11,8 @@ class Symptom:
 
 
 class PatientSymptom:
-    patient = models.OneToOneField(
-        Patient,
+    user = models.OneToOneField(
+        User,
         on_delete=models.CASCADE(),
     )
     symptom = models.OneToOneField(
