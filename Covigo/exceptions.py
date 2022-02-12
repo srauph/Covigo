@@ -5,8 +5,3 @@ class UserNotPatientNorStaffException(BaseException):
     def __init__(self):
         self.message = "User is neither staff nor patient"
         super().__init__(self.message)
-
-class UserHasNoProfileException(BaseException):
-    def __init__(self):
-        self.message = "User does not have a profile"
-        super().__init__(self.message)

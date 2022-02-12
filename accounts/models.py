@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from Covigo.exceptions import UserNotPatientNorStaffException, UserHasNoProfileException
+from Covigo.exceptions import UserNotPatientNorStaffException
 
 
 class Profile(models.Model):
@@ -39,16 +39,16 @@ class Patient(models.Model):
     code = models.CharField(max_length=255)
 
 
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    try:
-        instance.profile.save()
-    # TODO change Exception with the proper exception name later
-    except Exception:
-        print("User has no profile")
-    if hasattr(instance, 'patient'):
-        instance.patient.save()
-    elif hasattr(instance, 'staff'):
-        instance.staff.save()
-    else:
-        raise UserNotPatientNorStaffException
+# @receiver(post_save, sender=User)
+# def save_user_profile(sender, instance, **kwargs):
+#     try:
+#         instance.profile.save()
+#     # TODO change Exception with the proper exception name later
+#     except Exception:
+#         print("User has no profile")
+#     if hasattr(instance, 'patient'):
+#         instance.patient.save()
+#     elif hasattr(instance, 'staff'):
+#         instance.staff.save()
+#     else:
+#         raise UserNotPatientNorStaffException
