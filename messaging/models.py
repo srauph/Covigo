@@ -34,3 +34,4 @@ class MessageContent(models.Model):
     date_created = models.DateTimeField(blank=True, null=True)
     date_updated = models.DateTimeField(blank=True, null=True)
 
+    # TODO make str method
