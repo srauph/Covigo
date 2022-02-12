@@ -3,11 +3,28 @@
 {% block content %}
     <div class="min-h-full bg-slate-100">
         <div class="m-4 justify-evenly gap-4">
-            <h2>username: {{ staff.user }}</h2>
-            <h2>email: {{ staff.user.email }}</h2>
-            <h2>phone: {{ staff.phone_number }}</h2>
-            <h2>address: {{ staff.address }}</h2>
-            <h2>postal code: {{ staff.postal_code }}</h2>
+            {% for user in users %}
+                <h2>username: {{ user.username }}</h2>
+                <h2>email: {{ user.email }}</h2>
+                <h2>phone: {{ user.profile.phone_number }}</h2>
+                <h2>address: {{ user.profile.address }}</h2>
+                <h2>postal code: {{ user.profile.postal_code }}</h2>
+                <h2>staff (display name if user is staff): {{ user.staff.user }}</h2>
+                <h2>staff's assigned patients (display name if user is staff):</h2>
+                    <ul class="list-disc">
+                        {% for patient in user.staff.patient_set.all %}
+                            <li><h3>{{ patient.user.username }}</h3></li>
+                        {% endfor %}
+                    </ul>
+                <h2>patient (display name if user is patient): {{ user.patient.user }}</h2>
+                <h2>patient's asigned staff': {{ user.patient.staff.user }}</h2>
+                <h2>patient is_confirmed: {{ user.patient.is_confirmed }}</h2>
+                <h2>patient is_recovered: {{ user.patient.is_recovered }}</h2>
+                <h2>patient is_flagged: {{ user.patient.is_flagged }}</h2>
+                <h2>patient is_quarantining: {{ user.patient.is_quarantining }}</h2>
+                <h2>patient code: {{ user.patient.code }}</h2>
+                <br/>
+            {% endfor %}
         </div>
     </div>
 {% endblock %}
