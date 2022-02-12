@@ -2,26 +2,30 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
-class Symptom:
-    name = models.CharField(max_length=255)
-    description = models.TextField()
-    is_active = models.BooleanField()
-    date_created = models.DateTimeField()
-    date_updated = models.DateTimeField()
-
-
-class PatientSymptom:
-    user = models.OneToOneField(
+class Symptom(models.Model):
+    users = models.ManyToManyField(
         User,
-        on_delete=models.CASCADE(),
+        through="PatientSymptom"
     )
-    symptom = models.OneToOneField(
-        Symptom,
-        on_delete=models.CASCADE()
-    )
-    data = models.TextField()
-    is_hidden = models.BooleanField()
-    is_viewed = models.BooleanField()
-    due_date = models.DateTimeField()
-    date_created = models.DateTimeField()
-    date_updated = models.DateTimeField()
+    name = models.CharField(max_length=255, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(blank=True, null=True)
+    date_created = models.DateTimeField(blank=True, null=True)
+    date_updated = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
+class PatientSymptom(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    symptom = models.ForeignKey(Symptom, on_delete=models.CASCADE)
+    data = models.TextField(blank=True, null=True)
+    is_hidden = models.BooleanField(blank=True, null=True)
+    is_viewed = models.BooleanField(blank=True, null=True)
+    due_date = models.DateTimeField(blank=True, null=True)
+    date_created = models.DateTimeField(blank=True, null=True)
+    date_updated = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return "{}_{}".format(self.user.__str__(), self.symptom.__str__())
