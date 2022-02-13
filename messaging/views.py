@@ -7,6 +7,11 @@ def index(request):
     return render(request, 'messaging/index.html')
 
 
+def viewMessage(request):
+    return render(request, 'messaging/view-message.html')
+
+
 @never_cache
 def composeMessage(request):
     return render(request, 'messaging/composeMessage.html')
+
