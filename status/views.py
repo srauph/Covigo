@@ -6,4 +6,4 @@ from django.views.decorators.cache import never_cache
 @login_required
 @never_cache
 def index(request):
-    return render(request, 'health_status/index.html')
+    return render(request, 'status/index.html')

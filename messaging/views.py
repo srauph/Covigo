@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 
@@ -6,7 +6,13 @@ from django.views.decorators.cache import never_cache
 @login_required
 @never_cache
 def index(request):
-    return render(request, 'messaging/index.html')
+    return redirect('messaging:list_messages')
+
+
+@login_required
+@never_cache
+def list_messages(request):
+    return render(request, 'messaging/list_messages.html')
 
 
 @login_required

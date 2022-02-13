@@ -4,7 +4,8 @@ from . import views
 
 app_name = 'symptoms'
 urlpatterns = [
-    path('list/', views.list_symptoms, name='list'),
-    path('create/', views.create, name='create'),
-    path('assign/user_id/', views.assign, name='assign'),
+    path('', views.index, name='index'),
+    path('list/', views.list_symptoms, name='list_symptoms'),
+    path('create/', views.create_symptom, name='create_symptom'),
+    path('assign/user_id/', views.assign_symptom, name='assign_symptom'),
 ]

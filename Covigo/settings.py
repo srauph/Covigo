@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'manager.apps.ManagerConfig',
     'dashboard.apps.DashboardConfig',
-    'health_status.apps.HealthStatusConfig',
+    'status.apps.StatusConfig',
     'appointments.apps.AppointmentsConfig',
     'messaging.apps.MessagingConfig',
     'symptoms.apps.SymptomsConfig',
