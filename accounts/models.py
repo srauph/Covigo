@@ -30,11 +30,11 @@ class Patient(models.Model):
     )
     staff = models.ForeignKey(
         Staff,
+        related_name="patients",
         on_delete=models.CASCADE,
     )
     is_confirmed = models.BooleanField(default=False)
     is_recovered = models.BooleanField(default=False)
-    is_flagged = models.BooleanField(default=False)
     is_quarantining = models.BooleanField(default=False)
     code = models.CharField(max_length=255)
 
@@ -47,10 +47,12 @@ class Flag(models.Model):
     )
     patient = models.ForeignKey(
         User,
-        related_name="staffs_flagged_by",
+        related_name="flagger_staffs",
         on_delete=models.CASCADE
     )
-    date_created = models.DateTimeField
+    is_active = models.BooleanField(default=False)
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_updated = models.DateTimeField(auto_now=True)
 
     class Meta:
         constraints = [
