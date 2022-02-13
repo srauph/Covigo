@@ -17,5 +17,5 @@ def create(request):
 
 @login_required
 @never_cache
-def userid(request):
-    return render(request, 'symptoms/userid.html')
+def assign(request):
+    return render(request, 'symptoms/assign.html')
