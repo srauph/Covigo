@@ -16,3 +16,10 @@ def list_users(request):
     return render(request, 'accounts/list.html', {
         'users': User.objects.all()
     })
+
+@login_required
+@never_cache
+def add_group(request):
+    return render(request, 'accounts/access_control/add_group.html')
+
+
