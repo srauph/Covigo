@@ -5,7 +5,7 @@ from . import views
 app_name = 'messaging'
 urlpatterns = [
     path('', views.index, name='index'),
+    path('list/', views.list_messages, name='list_messages'),
+    path('compose/', views.compose_message, name='compose_message'),
     path('view/user_id/', views.view_message, name='view_message'),
-    path('compose_message/', views.compose_message, name='compose_message'),
-
 ]
