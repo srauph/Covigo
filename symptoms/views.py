@@ -3,7 +3,7 @@ from django.views.decorators.cache import never_cache
 
 
 @never_cache
-def list(request):
+def list_symptoms(request):
     return render(request, 'symptoms/list.html')
 
 
