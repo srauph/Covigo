@@ -42,12 +42,12 @@ class Patient(models.Model):
 class Flag(models.Model):
     staff = models.ForeignKey(
         User,
-        related_name="flagged_patients",
+        related_name="staffs_created_flags",
         on_delete=models.CASCADE
     )
     patient = models.ForeignKey(
         User,
-        related_name="flagger_staffs",
+        related_name="patients_assigned_flags",
         on_delete=models.CASCADE
     )
     is_active = models.BooleanField(default=False)
