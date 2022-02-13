@@ -36,12 +36,12 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'accounts.apps.AccountsConfig',
     'manager.apps.ManagerConfig',
     'dashboard.apps.DashboardConfig',
     'health_status.apps.HealthStatusConfig',
     'appointments.apps.AppointmentsConfig',
     'messaging.apps.MessagingConfig',
-    'quarantine_status.apps.QuarantineStatusConfig',
     'symptoms.apps.SymptomsConfig',
     'django.contrib.admin',
     'django.contrib.auth',
