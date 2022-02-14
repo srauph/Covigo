@@ -8,6 +8,11 @@
         <!--FOR DEVELOPER: Add dynamic subject title here -->
         <h1 class="text-5xl p-8">Subject: Question about my Fever</h1>
 
+        {% for message in context %}
+
+            <p>{{ message.content }}</p>
+        {% endfor %}
+
         <!-- Card that contains the messages. These cards will be generated dynamically -->
         <div class="p-8 block">
             <div class="pb-1">
