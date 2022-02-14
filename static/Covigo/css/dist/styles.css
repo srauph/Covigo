@@ -1,5 +1,5 @@
 /*
-! tailwindcss v3.0.18 | MIT License | https://tailwindcss.com
+! tailwindcss v3.0.19 | MIT License | https://tailwindcss.com
 */
 
 /*
@@ -1158,6 +1158,11 @@ Ensure the default browser behavior of the `hidden` attribute.
 .bg-orange-100 {
   --tw-bg-opacity: 1;
   background-color: rgb(255 237 213 / var(--tw-bg-opacity));
+}
+
+.bg-red-600 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(220 38 38 / var(--tw-bg-opacity));
 }
 
 .fill-current {
