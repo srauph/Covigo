@@ -7,15 +7,16 @@
 {% block content %}
 
     <div class="min-h-full bg-slate-100">
-        {#    {{  permissions }}#}
+
         <h1 class="text-5xl p-4">Add a group</h1>
         <div class="flex ">
             <form action="" method="post" class="w-3/4">
-            {% csrf_token %}
+                {% csrf_token %}
                 <div class="">
                     <div class="w-full bg-gray-50 p-4 m-4 rounded-2xl">
                         <label for="">Group Name:</label>
-                        <input type="text" class="bg-neutral-300 py-2 text-black  px-2 rounded-xl" name="name">
+                        <input type="text" class="bg-neutral-300 py-2 text-black  px-2 rounded-xl" name="name"
+                               value="{{ group.name }}">
                     </div>
                     <div class="w-full bg-gray-50 p-4 m-4 rounded-2xl">
                         <p class="text-lg">Add Permissions</p>
@@ -23,8 +24,14 @@
                         <div class="mt-4">
                             <select class=" multiselect" multiple name="perms">
                                 {% for permission in permissions %}
-                                    <option value="{{ permission.codename }}">{{ permission.content_type }}
-                                        | {{ permission.name }}</option>
+                                    {% if permission in group.permissions.all %}
+                                        <option selected
+                                                value="{{ permission.codename }}">{{ permission.content_type }}
+                                            | {{ permission.name }}</option>
+                                    {% else %}
+                                        <option value="{{ permission.codename }}">{{ permission.content_type }}
+                                            | {{ permission.name }}</option>
+                                    {% endif %}
                                 {% endfor %}
                             </select>
                         </div>
