@@ -1,16 +1,24 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
-
 from symptoms.models import Symptom
 
 
+@login_required
+@never_cache
+def index(request):
+    return redirect('symptoms:list_symptoms')
+
+
+@login_required
 @never_cache
 def list_symptoms(request):
-    return render(request, 'symptoms/list.html')
+    return render(request, 'symptoms/list_symptoms.html')
 
 
+@login_required
 @never_cache
-def create(request):
+def create_symptom(request):
     if request.method == 'POST':
         symptom = Symptom()
         symptom.name = request.POST.get('symptom_name')
@@ -18,38 +26,18 @@ def create(request):
         symptom.save()
 
         if request.POST.get('submit_and_return'):
-            return redirect('symptoms:list')
+            return redirect('symptoms:list_symptoms')
 
         else:
-            return render(request, 'symptoms/create.html', {
+            return render(request, 'symptoms/create_symptom.html', {
                 'previous_symptom': symptom
             })
 
     else:
-        return render(request, 'symptoms/create.html')
-
-    # if request.method == 'POST' and 'submit_and_return' in request.POST:
-    #     new_symptom = Symptom(name=request.session['symptom_name'],
-    #                           description=request.session['symptom_description'],
-    #                           is_active=False,
-    #                           date_created=True,
-    #                           date_updated=True)
-    #     new_symptom.save()
-    #
-    # elif request.method == 'POST' and 'submit_and_duplicate' in request.POST:
-    #     new_symptom = Symptom(name=request.session['symptom_name'],
-    #                           description=request.session['symptom_description'],
-    #                           is_active=False,
-    #                           date_created=True,
-    #                           date_updated=True)
-    #     new_symptom.save()
-    #     new_symptom.pk = None
-    #     new_symptom.state.adding = True
-    #     new_symptom.save()
-
-    # return render(request, 'symptoms/create.html')
+        return render(request, 'symptoms/create_symptom.html')
 
 
+@login_required
 @never_cache
-def userid(request):
-    return render(request, 'symptoms/userid.html')
+def assign_symptom(request):
+    return render(request, 'symptoms/assign_symptom.html')
