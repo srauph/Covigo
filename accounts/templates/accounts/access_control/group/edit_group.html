@@ -1,0 +1,56 @@
+{% extends "Covigo/base.html" %}
+{% load static %}
+
+{% block styles %}
+    <link href="{% static 'accounts/css/dual-listbox.css' %}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+
+    <div class="min-h-full bg-slate-100">
+
+        <h1 class="text-5xl p-4">Add a group</h1>
+        <div class="flex ">
+            <form action="" method="post" class="w-3/4">
+            {% csrf_token %}
+                <div class="">
+                    <div class="w-full bg-gray-50 p-4 m-4 rounded-2xl">
+                        <label for="">Group Name:</label>
+                        <input type="text" class="bg-neutral-300 py-2 text-black  px-2 rounded-xl" name="name" value="{{ group.name }}">
+                    </div>
+                    <div class="w-full bg-gray-50 p-4 m-4 rounded-2xl">
+                        <p class="text-lg">Add Permissions</p>
+                        <hr>
+                        <div class="mt-4">
+                            <select class=" multiselect" multiple name="perms">
+{#                            # I wrote a o^n algorithm, I know but what do you want to do? #}
+                                {% for permission in permissions %}
+                                    {% for selected_permission in  group.permissions.all  %}
+                                        {% if permission.name == selected_permission.name %}
+                                            <option selected value="{{ permission.codename }}">{{ permission.content_type }}
+                                        | {{ permission.name }}</option>
+                                        {% else %}
+                                            <option value="{{ permission.codename }}">{{ permission.content_type }}
+                                        | {{ permission.name }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <input type="submit"
+                               class="px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white mt-4"
+                               value="submit">
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'accounts/js/dual-listbox.js' %}"></script>
+    <script>
+        demo = new DualListbox('.multiselect');
+    </script>
+{% endblock %}

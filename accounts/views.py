@@ -28,11 +28,7 @@ def add_group(request):
 
         group = Group(name=request.POST['name'])
         group.save()
-        permission_array = []
-
-        for perm in request.POST.getlist('perms'):
-            permission_id = Permission.objects.filter(codename=perm).get().id
-            permission_array.append(permission_id)
+        permission_array = convert_permission_name_to_id(request)
 
         group.permissions.set(permission_array)
 
@@ -50,3 +46,31 @@ def list_group(request):
     return render(request, 'accounts/access_control/group/list_group.html', {
         'groups': Group.objects.all()
     })
+
+
+@login_required
+@never_cache
+def edit_group(request, group_id):
+    group = Group.objects.filter(id=group_id).get()
+
+    if request.method == "POST":
+        group.name = request.POST['name']
+        group.save()
+        permission_array = convert_permission_name_to_id(request)
+        group.permissions.clear()
+        group.permissions.set(permission_array)
+
+        return redirect('accounts:list_group')
+    else:
+        return render(request, 'accounts/access_control/group/edit_group.html', {
+            'permissions': Permission.objects.all(),
+            'group': group
+        })
+
+
+def convert_permission_name_to_id(request):
+    permission_array = []
+    for perm in request.POST.getlist('perms'):
+        permission_id = Permission.objects.filter(codename=perm).get().id
+        permission_array.append(permission_id)
+    return permission_array
