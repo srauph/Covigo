@@ -36,6 +36,11 @@ def create_symptom(request):
     else:
         return render(request, 'symptoms/create_symptom.html')
 
+@login_required
+@never_cache
+def edit_symptom(request):
+    return render(request, 'symptoms/edit_symptom.html')
+
 
 @login_required
 @never_cache
