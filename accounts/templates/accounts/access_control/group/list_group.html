@@ -1,36 +1,36 @@
 {% extends "Covigo/base.html" %}
 
 {% block content %}
-
-
     <div class="min-h-full bg-slate-100">
         <h1 class="text-5xl p-4">Groups</h1>
-
         <div class="flex ">
             <div class="w-3/4">
-
-                 <div class="w-full bg-gray-50 p-4 m-4 rounded-2xl">
-                      <a href="{% url 'accounts:add_group' %}"><button class="bg-green-600 text-white px-4 py-1 rounded-xl ">+ New Group</button></a>
-                     <table class="table-auto w-full text-left">
-                    <tr class="border-b">
+                <div class="w-full bg-gray-50 p-4 m-4 rounded-2xl">
+                    <a href="{% url 'accounts:add_group' %}">
+                        <button class="bg-green-600 text-white px-4 py-1 rounded-xl ">+ New Group</button>
+                    </a>
+                    <table class="table-auto w-full text-left">
+                        <tr class="border-b">
                             <th class="p-2">Group Name</th>
                             <th class="p-2">Actions</th>
-                    </tr>
+                        </tr>
 
-                    <tr class="hover:bg-gray-200 border-b">
                         {% for group in groups %}
-                         <td class="p-2">{{ group.name}}</td>
-                        <td class="p-2">
-                            <button class="bg-blue-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">Edit Group</button>
-                            <button class="bg-red-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">Delete Group</button>
-                        </td>
+                            <tr class="hover:bg-gray-200 border-b">
+                                <td class="p-2">{{ group.name }}</td>
+                                <td class="p-2">
+                                    <a href="{% url 'accounts:edit_group' group_id=group.id %}">
+                                        <button class="bg-blue-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">
+                                            Edit Group
+                                        </button>
+                                    </a>
+
+                                </td>
+                            </tr>
                         {% endfor %}
 
-                    </tr>
-
-                </table>
+                    </table>
                 </div>
-
             </div>
         </div>
     </div>
