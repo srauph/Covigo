@@ -1,5 +1,37 @@
 {% extends "Covigo/base.html" %}
+{% load static %}
 
+{% block styles %}
+    <link href="{% static 'accounts/css/dual-listbox.css' %}" rel="stylesheet">
+{% endblock %}
 {% block content %}
 
+    <div class="min-h-full bg-slate-100">
+        <h1 class="text-5xl p-4">Add a group</h1>
+        <div class="flex ">
+            <div class="w-3/4">
+                <div class="w-full bg-gray-50 p-4 m-4 rounded-2xl">
+                <label for="">Group Name:</label>
+                <input type="text" class="bg-neutral-300 py-2 text-black  px-2 rounded-xl">
+            </div>
+            <div class="w-full bg-gray-50 p-4 m-4 rounded-2xl">
+                <p class="text-lg">Add Permissions</p>
+                <hr>
+                <div class="mt-4">
+                    <select class=" multiselect" multiple>
+
+                </select>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'accounts/js/dual-listbox.js' %}"></script>
+    <script>
+    demo = new DualListbox('.multiselect');
+    </script>
 {% endblock %}
