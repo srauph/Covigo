@@ -7,6 +7,7 @@
 {% block content %}
 
     <div class="min-h-full bg-slate-100">
+{#    {{  permissions }}#}
         <h1 class="text-5xl p-4">Add a group</h1>
         <div class="flex ">
             <div class="w-3/4">
@@ -19,9 +20,12 @@
                 <hr>
                 <div class="mt-4">
                     <select class=" multiselect" multiple>
-
-                </select>
+                        {% for permission in permissions %}
+                            <option value="{{ permission.codename }}">{{ permission.content_type }} | {{ permission.name }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
+                <input type="submit" class="px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white mt-4" value="submit">
             </div>
             </div>
         </div>
