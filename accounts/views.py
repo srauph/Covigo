@@ -29,7 +29,7 @@ def add_group(request):
 @never_cache
 def list_group(request):
     return render(request, 'accounts/access_control/group/list_group.html', {
-        'permissions': Group.objects.all()
+        'groups': Group.objects.all()
     })
 
 

@@ -4,47 +4,30 @@
 
 
     <div class="min-h-full bg-slate-100">
-        <h1 class="text-5xl p-4">Messages</h1>
+        <h1 class="text-5xl p-4">Groups</h1>
+
         <div class="flex ">
-            <div class="w-full">
+            <div class="w-3/4">
 
                  <div class="w-full bg-gray-50 p-4 m-4 rounded-2xl">
+                      <a href="{% url 'accounts:add_group' %}"><button class="bg-green-600 text-white px-4 py-1 rounded-xl ">+ New Group</button></a>
                      <table class="table-auto w-full text-left">
                     <tr class="border-b">
-                        <th class="p-2">ID</th>
-                        <th class="p-2">Sender</th>
-                        <th class="p-2">Subject</th>
-                        <th class="p-2">Sent On</th>
-                        <th class="p-2">Opened On</th>
-                        <th class="p-2">Last Reply On</th>
-                        <th class="p-2">Actions</th>
+                            <th class="p-2">Group Name</th>
+                            <th class="p-2">Actions</th>
                     </tr>
 
                     <tr class="hover:bg-gray-200 border-b">
-                        <td class="p-2">100001</td>
-                        <td class="p-2">John Doe</td>
-                        <td class="p-2">Question about my Fever</td>
-                        <td class="p-2">02/02/2022 22:22</td>
-                        <td class="p-2">02/02/2022 22:22</td>
-                        <td class="p-2">02/02/2022 22:22</td>
+                        {% for group in groups %}
+                         <td class="p-2">{{ group.name}}</td>
                         <td class="p-2">
-                            <button class="bg-blue-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">View Message</button>
-                            <button class="bg-blue-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">Mark as Unread</button>
+                            <button class="bg-blue-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">Edit Group</button>
+                            <button class="bg-red-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">Delete Group</button>
                         </td>
+                        {% endfor %}
+
                     </tr>
 
-                    <tr class="hover:bg-gray-200 font-bold border-b">
-                        <td class="p-2">100001</td>
-                        <td class="p-2">John Doe</td>
-                        <td class="p-2">Question about my Fever</td>
-                        <td class="p-2">02/02/2022 22:22</td>
-                        <td class="p-2">02/02/2022 22:22</td>
-                        <td class="p-2">02/02/2022 22:22</td>
-                        <td class="p-2">
-                            <button class="bg-blue-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">View Message</button>
-                            <button class="bg-blue-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">Mark as Read</button>
-                        </td>
-                    </tr>
                 </table>
                 </div>
 
