@@ -1,4 +1,5 @@
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Permission
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
@@ -19,7 +20,23 @@ def list_users(request):
         'users': User.objects.all()
     })
 
+  
+@login_required
+@never_cache
+def add_group(request):
+    return render(request, 'accounts/access_control/group/add_group.html', {
+        'permissions': Permission.objects.all()
+    })
 
+  
+@login_required
+@never_cache
+def list_group(request):
+    return render(request, 'accounts/access_control/group/list_group.html', {
+        'groups': Group.objects.all()
+    })
+
+  
 @login_required
 def flaguser(request, user_id):
     user_staff = request.user
@@ -37,7 +54,7 @@ def flaguser(request, user_id):
 
     return redirect("accounts:list_users")
 
-
+  
 @login_required
 def unflaguser(request, user_id):
     user_staff = request.user
