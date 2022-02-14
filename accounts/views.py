@@ -22,7 +22,6 @@ def list_users(request):
 
 @login_required
 def flaguser(request, user_id):
-
     user_staff = request.user
     user_patient = User.objects.get(id=user_id)
 
@@ -30,12 +29,24 @@ def flaguser(request, user_id):
 
     if flag:
         flag = flag.get()
-        print(f"Flag exists")
         flag.is_active = True
         flag.save()
     else:
-        print("doesnt exist")
         flag = Flag(staff=user_staff, patient=user_patient, is_active=True)
+        flag.save()
+
+    return redirect("accounts:list_users")
+
+
+@login_required
+def unflaguser(request, user_id):
+    user_staff = request.user
+    user_patient = User.objects.get(id=user_id)
+
+    flag = user_staff.staffs_created_flags.filter(patient=user_patient)
+    if flag:
+        flag = flag.get()
+        flag.is_active = False
         flag.save()
 
     return redirect("accounts:list_users")
