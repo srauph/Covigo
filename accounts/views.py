@@ -21,7 +21,7 @@ def list_users(request):
 @login_required
 @never_cache
 def add_group(request):
-    return render(request, 'accounts/access_control/add_group.html',{
+    return render(request, 'accounts/access_control/group/add_group.html', {
         'permissions': Permission.objects.all()
     })
 
