@@ -23,18 +23,15 @@
                         <hr>
                         <div class="mt-4">
                             <select class=" multiselect" multiple name="perms">
-                                {#                            # I wrote a o^n algorithm, I know but what do you want to do? #}
                                 {% for permission in permissions %}
-                                    {% for selected_permission in  group.permissions.all %}
-                                        {% if permission.name == selected_permission.name %}
-                                            <option selected
-                                                    value="{{ permission.codename }}">{{ permission.content_type }}
-                                                | {{ permission.name }}</option>
-                                        {% else %}
-                                            <option value="{{ permission.codename }}">{{ permission.content_type }}
-                                                | {{ permission.name }}</option>
-                                        {% endif %}
-                                    {% endfor %}
+                                    {% if permission in group.permissions.all %}
+                                        <option selected
+                                                value="{{ permission.codename }}">{{ permission.content_type }}
+                                            | {{ permission.name }}</option>
+                                    {% else %}
+                                        <option value="{{ permission.codename }}">{{ permission.content_type }}
+                                            | {{ permission.name }}</option>
+                                    {% endif %}
                                 {% endfor %}
                             </select>
                         </div>
