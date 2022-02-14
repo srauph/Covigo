@@ -19,12 +19,12 @@
                             <tr class="hover:bg-gray-200 border-b">
                                 <td class="p-2">{{ group.name }}</td>
                                 <td class="p-2">
-                                    <button class="bg-blue-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">
+                                    <a href="{% url 'accounts:edit_group' group_id=group.id %}">
+                                        <button class="bg-blue-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">
                                         Edit Group
                                     </button>
-                                    <button class="bg-red-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">
-                                        Delete Group
-                                    </button>
+                                    </a>
+
                                 </td>
                             </tr>
                         {% endfor %}
