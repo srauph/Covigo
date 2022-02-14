@@ -6,7 +6,7 @@
             Symptom Creation
         </h1>
         <div class="block bg-gray-50 m-4 p-4 rounded">
-            <form action="{% url 'symptoms:create' %}" method="post" id="symptom_creation" class="text-3xl">
+            <form action="{% url 'symptoms:create_symptom' %}" method="post" id="symptom_creation" class="text-3xl">
                 {% csrf_token %}
                 <div class="flex flex-wrap justify-evenly px-4 m-4 font-semibold">
                     <div class="w-full flex flex-wrap items-center px-4 m-4 font-semibold">
