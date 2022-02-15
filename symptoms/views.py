@@ -13,7 +13,10 @@ def index(request):
 @login_required
 @never_cache
 def list_symptoms(request):
-    return render(request, 'symptoms/list_symptoms.html')
+
+    return render(request, 'symptoms/list_symptoms.html', {
+        'symptoms': Symptom.objects.all()
+    })
 
 
 @login_required
@@ -30,7 +33,7 @@ def create_symptom(request):
 
         else:
             return render(request, 'symptoms/create_symptom.html', {
-                'previous_symptom': symptom
+                'duplicate_symptom': symptom
             })
 
     else:
@@ -38,8 +41,19 @@ def create_symptom(request):
 
 @login_required
 @never_cache
-def edit_symptom(request):
-    return render(request, 'symptoms/edit_symptom.html')
+def edit_symptom(request, symptom_id):
+    symptom = Symptom.objects.get(id=symptom_id)
+    if request.method == 'POST':
+        symptom.name=request.POST.get('symptom_name')
+        symptom.description=request.POST.get('symptom_description')
+        symptom.save()
+
+        return redirect('symptoms:list_symptoms')
+
+    else:
+        return render(request, 'symptoms/edit_symptom.html', {
+            'editable_symptom': symptom
+        })
 
 
 @login_required
