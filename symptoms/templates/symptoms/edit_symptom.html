@@ -3,10 +3,10 @@
 {% block content %}
     <div class="min-h-full bg-slate-100">
         <h1 class="text-5xl p-4 font-semibold text-center">
-            Symptom Creation
+            Symptom Edition
         </h1>
         <div class="block bg-gray-50 m-4 p-4 rounded">
-            <form action="{% url 'symptoms:create_symptom' %}" method="post" id="symptom_creation" class="text-3xl">
+            <form action="{% url 'symptoms:list_symptoms' %}" method="post" id="symptom_edition" class="text-3xl">
                 {% csrf_token %}
                 <div class="flex flex-wrap justify-evenly px-4 m-4 font-semibold">
                     <div class="w-full flex flex-wrap items-center px-4 m-4 font-semibold">
@@ -34,11 +34,6 @@
                     <div class="w-full xl:w-auto px-4 m-4 text-center">
                         <button type="submit" value="submit_and_return" name="submit_and_return" class="px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white text-3xl font-bold">
                             Submit and return
-                        </button>
-                    </div>
-                    <div class="w-full xl:w-auto px-4 m-4 text-center">
-                        <button type="submit" value="submit_and_duplicate" name="submit_and_duplicate" class="px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white text-3xl font-bold">
-                            Submit and duplicate
                         </button>
                     </div>
                 </div>
