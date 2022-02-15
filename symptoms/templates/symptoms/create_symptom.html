@@ -16,7 +16,7 @@
                             </label>
                         </div>
                         <div class="w-full xl:w-3/4">
-                            <input type="text" value="{{ previous_symptom.name }}" id="symptom_name" name="symptom_name" placeholder="e.g. fever, cough, cold, etc." required="true" class="w-full text-2xl px-4 py-2 rounded border" size="50"/>
+                            <input type="text" value="{{ duplicate_symptom.name }}" id="symptom_name" name="symptom_name" placeholder="e.g. fever, cough, cold, etc." required="true" class="w-full text-2xl px-4 py-2 rounded border" size="50"/>
                         </div>
                     </div>
                     <div class="w-full flex flex-wrap items-center px-4 m-4 font-semibold">
@@ -26,7 +26,7 @@
                             </label>
                         </div>
                         <div class="w-full xl:w-2/3">
-                           <textarea id="symptom_description" name="symptom_description" maxlength="100" placeholder="e.g. individual may lose sense of smell and/or taste, etc." required="true" rows="3" cols="50" class="w-full text-2xl px-4 py-2 rounded border align-middle">{{ previous_symptom.description }}</textarea>
+                           <textarea id="symptom_description" name="symptom_description" maxlength="100" placeholder="e.g. individual may lose sense of smell and/or taste, etc." required="true" rows="3" cols="50" class="w-full text-2xl px-4 py-2 rounded border align-middle">{{ duplicate_symptom.description }}</textarea>
                         </div>
                     </div>
                 </div>
