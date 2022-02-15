@@ -13,16 +13,15 @@
         <div class="p-8 block">
 
             {% for message in messages %}
-
                 <!-- CURRENT USER MESSAGES -->
-                {% if sender.id == message.author_id %}
+                {% if user.id == message.author_id %}
 
                     <div class="pb-1">
                         <div class="bg-blue-100 hover:bg-blue-200 shadow w-full bg-gray-50 p-4 m-2 rounded-2xl border-b flex items-center">
 
                             <!-- message info (name, date, time) -->
                             <div class="w-3/12">
-                                <div class="font-bold text-lg mb-2">{{ sender.first_name }} {{ sender.last_name }}</div>
+                                <div class="font-bold text-lg mb-2">{{ message.author.first_name }} {{ message.author.last_name }}</div>
                                 <!-- Date -->
                                 <p class="text-sm text-gray-600 flex items-center pb-1">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="pr-1 h-5 w-5 float-left"
@@ -70,7 +69,7 @@
 
                             <!-- message info (name, date, time) -->
                             <div class="w-3/12">
-                                <div class="font-bold text-lg mb-2">{{ receiver.first_name }} {{ receiver.last_name }} </div>
+                                <div class="font-bold text-lg mb-2">{{ message.author.first_name }} {{  message.author.last_name }} </div>
                                 <!-- Date -->
                                 <p class="text-sm text-gray-600 flex items-center pb-1">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="pr-1 h-5 w-5 float-left"
