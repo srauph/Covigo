@@ -21,9 +21,9 @@ def list_messages(request):
 @login_required
 @never_cache
 def view_message(request, message_group_id=3):
-    # Check if user is authorized to view the messages with a specific message_group_id
     current_user_id = request.user.id
-    # Where conditions for the queries
+    # Where conditions for the queries to check if user is authorized to view the messages with a specific
+    # message_group_id
     where1 = Q(id=message_group_id)
     where2 = Q(author_id=current_user_id) | Q(recipient_id=current_user_id)
     message_group = MessageGroup.objects.filter(where1 & where2).first()
@@ -34,7 +34,7 @@ def view_message(request, message_group_id=3):
 
         # Identify the sender (current user) and receiver
         # This is needed to get the Users names and decide the color of message boxes
-        sender = User.objects.get(id=current_user_id)
+        sender = request.user
         if message_group.author_id == current_user_id:
             receiver = User.objects.get(id=message_group.recipient_id)
         else:
