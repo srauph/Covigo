@@ -25,6 +25,14 @@ def list_users(request):
 
 @login_required
 @never_cache
+def create_user(request):
+    return render(request, 'accounts/create_user.html', {
+        'users': "meep"
+    })
+
+
+@login_required
+@never_cache
 def add_group(request):
     if request.method == 'POST':
 
