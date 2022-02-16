@@ -1,14 +1,16 @@
 {% extends "Covigo/base.html" %}
 
 {% block content %}
-    <div class="min-h-full bg-slate-100">
-        <h1 class="text-5xl p-4">Accounts List</h1>
-        <div class="m-4 justify-evenly gap-4">
-            <div class="flex justify-between gap-6 m-4 p-4 bg-white rounded-lg">
+    <div class="min-h-full bg-slate-100 flex flex-col">
+        <div class="bg-slate-700 border-b">
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">Accounts List</h1>
+        </div>
+        <div class="m-8 justify-evenly gap-4 grow flex flex-col">
+            <div class="flex justify-between gap-6 p-4 bg-white rounded-lg">
                 <div class="flex gap-4">
                     <div class="flex flex-wrap gap-1 justify-center">
                         <label class="px-1 font-semibold text-xl">Filters</label>
-                        <select name="" id="" class="bg-slate-300 text-black px-2 h-8 rounded-lg">
+                        <select name="" id="" class="bg-slate-300 text-black font-semibold rounded-lg px-2 py-1">
                             <option value="">All</option>
                             <option value="">Role</option>
                         </select>
@@ -16,52 +18,88 @@
 
                     <div class="flex flex-wrap gap-1 justify-center">
                         <label class="px-1 font-semibold text-xl">Ordering</label>
-                        <select name="" id="" class="bg-slate-300 text-black px-2 h-8 rounded-lg">
+                        <select name="" id="" class="bg-slate-300 text-black font-semibold rounded-lg px-2 py-1">
                             <option value="">Alphabetical</option>
                             <option value="">Date Added</option>
                         </select>
                     </div>
                 </div>
-                <div class="flex flex-wrap items-center">
-                    <button class="object-right bg-green-500 hover:bg-green-600 border-green-600 text-white px-4 h-8 rounded-lg">Apply</button>
+                <div class="flex items-center">
+                    <button class="object-right bg-green-500 hover:bg-green-600 border-green-600 text-white font-bold rounded-md px-4 py-1">
+                        Apply
+                    </button>
                 </div>
             </div>
 
-            <div class="hidden xl:block m-4 p-4 bg-white rounded-lg">
-                <table class="w-full table-auto">
-                    <h2 class="p-2 text-2xl font-bold">Accounts</h2>
-                    <hr class="mb-8">
-                    <thead>
+            <div class="hidden lg:flex flex-col justify-between grow gap-4 p-4 bg-white rounded-lg">
+                <div>
+                    <table class="w-full table-auto">
+                        <h2 class="p-2 text-2xl font-bold">Accounts</h2>
+                        <hr class="mb-8">
+                        <thead>
                         <tr class="border-b">
                             <th class="p-2 text-left">Username</th>
                             <th class="p-2 text-left">Email</th>
                             <th class="p-2 text-left">Phone number</th>
                             <th class="p-2 text-left">Role</th>
                         </tr>
-                    </thead>
-                    <tbody>
+                        </thead>
+                        <tbody>
                         {% for usr in users %}
-                            <tr class="border-b hover:bg-slate-200">
+                            <tr></tr>
+                            <tr class="border-0 even:bg-blue-50 2xl:border-b 2xl:hover:bg-slate-200">
                                 <td class="p-2">{{ usr.username }}</td>
                                 <td class="p-2">{{ usr.email }}</td>
                                 <td class="p-2">{{ usr.profile.phone_number }}</td>
                                 <td class="p-2">{{ usr.groups }}</td>
-                                <td class="px-2 py-1 text-right">
-                                    <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-1 mx-1">Send Message</button>
-                                    <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-1 mx-1">View Profile</button>
+                                <td class="hidden 2xl:table-cell px-2 py-1 text-right">
+                                    <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-1 mx-1">
+                                        Send Message
+                                    </button>
+                                    <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-1 mx-1">
+                                        View Profile
+                                    </button>
+                                    <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-1 mx-1">
+                                        Edit Account
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="2xl:hidden odd:bg-blue-50 border-b">
+                                <td colspan="4" class="pb-4">
+                                    <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-1 mx-1">
+                                        Send Message
+                                    </button>
+                                    <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-1 mx-1">
+                                        View Profile
+                                    </button>
+                                    <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-1 mx-1">
+                                        Edit Account
+                                    </button>
                                 </td>
                             </tr>
                         {% endfor %}
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="w-full mt-8 md:mt-0 text-right">
+                    <button class="w-full sm:w-auto bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-1">
+                        Create New Account
+                    </button>
+                </div>
             </div>
 
-            <div class="xl:hidden m-4 p-4 bg-white rounded-lg">
-                <table class="w-full table-auto">
-                    <h2 class="p-2 text-2xl font-bold">Accounts</h2>
-                    <hr class="mb-8">
-                    {% for usr in users %}
-                        <tbody>
+            <div class="lg:hidden">
+                <button class="mb-4 w-full sm:w-auto bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-2">
+                    Create New Account
+                </button>
+
+                <div class="p-4 bg-white rounded-lg">
+                    <table class="w-full table-auto">
+                        <h2 class="p-2 text-2xl font-bold">Accounts</h2>
+                        <hr class="mb-8">
+                        {% for usr in users %}
+                            <tbody>
                             <tr class="border-b hover:bg-slate-200">
                                 <td class="font-semibold p-2">Username</td>
                                 <td class="p-2">{{ usr.username }}</td>
@@ -79,14 +117,24 @@
                                 <td class="p-2">{{ usr.groups }}</td>
                             </tr>
                             <tr>
-                                <td colspan="2" class="text-center md:text-left pt-2 pb-16">
-                                    <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-2 mx-1">Send Message</button>
-                                    <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-2 mx-1">View Profile</button>
+                                <td colspan="2" class="text-left pt-2 pb-16">
+                                    <div class="flex gap-2">
+                                        <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-2">
+                                            Send Message
+                                        </button>
+                                        <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-2">
+                                            View Profile
+                                        </button>
+                                        <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-2">
+                                            Edit Account
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
-                        </tbody>
-                    {% endfor %}
-                </table>
+                            </tbody>
+                        {% endfor %}
+                    </table>
+                </div>
             </div>
         </div>
     </div>
