@@ -4,9 +4,9 @@
     <div class="min-h-full bg-slate-100">
         <h1 class="text-5xl p-4">Accounts List</h1>
         <div class="m-4 justify-evenly gap-4">
-            <div class="flex justify-between m-4 p-4 bg-white rounded-lg">
+            <div class="flex justify-between gap-6 m-4 p-4 bg-white rounded-lg">
                 <div class="flex gap-4">
-                    <div>
+                    <div class="flex flex-wrap justify-center">
                         <label class="px-2 font-semibold text-xl">Filters</label>
                         <select name="" id="" class="bg-slate-300 text-black px-2 h-8 rounded-lg">
                             <option value="">All</option>
@@ -14,7 +14,7 @@
                         </select>
                     </div>
 
-                    <div>
+                    <div class="flex flex-wrap justify-center">
                         <label class="px-2 font-semibold text-xl">Ordering</label>
                         <select name="" id="" class="bg-slate-300 text-black px-2 h-8 rounded-lg">
                             <option value="">Alphabetical</option>
@@ -22,7 +22,9 @@
                         </select>
                     </div>
                 </div>
-                <button class="object-right bg-green-500 hover:bg-green-600 border-green-600 text-white px-4 h-8 rounded-lg">Apply</button>
+                <div class="flex flex-wrap items-center">
+                    <button class="object-right bg-green-500 hover:bg-green-600 border-green-600 text-white px-4 h-8 rounded-lg">Apply</button>
+                </div>
             </div>
 
             <div class="hidden xl:block m-4 p-4 bg-white rounded-lg">
@@ -56,7 +58,7 @@
 
             <div class="xl:hidden m-4 p-4 bg-white rounded-lg">
                 <table class="w-full table-auto">
-                    <h2 class="p-2 text-2xl font-bold">Users</h2>
+                    <h2 class="p-2 text-2xl font-bold">Accounts</h2>
                     <hr class="mb-8">
                     {% for usr in users %}
                         <tbody>
