@@ -1,10 +1,7 @@
-from django.contrib.auth.models import User, Group
-from django.contrib.auth.models import Permission
-from django.http import HttpResponse
+from django.contrib.auth.models import User, Group, Permission
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
-from django.utils.html import escape
 
 from accounts.models import Flag
 
@@ -18,7 +15,7 @@ def index(request):
 @login_required
 @never_cache
 def list_users(request):
-    return render(request, 'accounts/list.html', {
+    return render(request, 'accounts/list_users.html', {
         'users': User.objects.all()
     })
 
