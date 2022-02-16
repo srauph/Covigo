@@ -1,56 +1,56 @@
 {% extends "Covigo/base.html" %}
 
 {% block content %}
-    <div class="min-h-full bg-slate-100">
+    <div class="min-h-full bg-slate-100 flex flex-col">
         <h1 class="text-5xl p-4">Create Account</h1>
-        <div class="m-8 p-4 bg-white rounded-lg">
-            <div class="w-full mb-16">
-                <h2 class="p-2 text-2xl font-bold">Account Information</h2>
-                <hr class="mb-8">
-                <div class="grid grid-cols-1 md:grid-cols-2">
-                    <div>
-                        <label>Username:</label>
-                    </div>
-                    <div>
-                        <label>Role:</label>
-                    </div>
-                    <div>
-                        <label>Staff:</label>
-                    </div>
-                    <div>
-                        <label>Active:</label>
+        <div class="flex flex-col justify-between grow m-8 p-4 min-h-full bg-white rounded-lg">
+            <div>
+                <div class="w-full mb-16">
+                    <h2 class="p-2 text-2xl font-bold">Account Information</h2>
+                    <hr class="mb-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2">
+                        <div>
+                            <label>Username:</label>
+                        </div>
+                        <div>
+                            <label>Role:</label>
+                        </div>
+                        <div>
+                            <label>Staff:</label>
+                        </div>
+                        <div>
+                            <label>Active:</label>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="w-full mb-16">
-                <h2 class="p-2 text-2xl font-bold">Account Profile Information</h2>
-                <hr class="mb-8">
-                <div class="grid grid-cols-1 md:grid-cols-2">
-                    <div>
-                        <label>First Name:</label>
-                    </div>
-                    <div>
-                        <label>Last Name:</label>
-                    </div>
-                    <div>
-                        <label>Email:</label>
-                    </div>
-                    <div>
-                        <label>Phone Number:</label>
-                    </div>
-                    <div>
-                        <label>Address:</label>
-                    </div>
-                    <div>
-                        <label>Postal Code:</label>
+                <div class="w-full mb-16">
+                    <h2 class="p-2 text-2xl font-bold">Account Profile Information</h2>
+                    <hr class="mb-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2">
+                        <div>
+                            <label>First Name:</label>
+                        </div>
+                        <div>
+                            <label>Last Name:</label>
+                        </div>
+                        <div>
+                            <label>Email:</label>
+                        </div>
+                        <div>
+                            <label>Phone Number:</label>
+                        </div>
+                        <div>
+                            <label>Address:</label>
+                        </div>
+                        <div>
+                            <label>Postal Code:</label>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="w-full">
-                <h2 class="p-2 text-2xl font-bold">Actions</h2>
-                <hr class="mb-4">
                 <div class="text-center md:text-right">
                     <button class="bg-slate-400 border-slate-500 hover:bg-slate-500 text-white font-bold rounded-md px-4 py-1 mx-1">Cancel</button>
                     <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-1 mx-1">Submit and Return to list</button>
