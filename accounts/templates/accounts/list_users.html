@@ -1,0 +1,76 @@
+{% extends "Covigo/base.html" %}
+
+{% block content %}
+    <div class="min-h-full bg-slate-100">
+        <div class="m-4 justify-evenly gap-4">
+{#            TODO: fetch other user attributes (first name, etc) #}
+            <div class="m-4 p-4 bg-white rounded-lg">
+                filters
+            </div>
+
+            <div class="hidden xl:block m-4 p-4 bg-white rounded-lg">
+                <table class="w-full table-auto">
+                    <h2 class="mb-4 text-2xl font-bold">Users</h2>
+                    <hr class="mb-2">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Phone number</th>
+                            <th>Role</th>
+                            <th>Send Message</th>
+                            <th>View Profile</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for usr in users %}
+                            <tr>
+                                <td>{{ usr.username }}</td>
+                                <td>{{ usr.email }}</td>
+                                <td>{{ usr.profile.phone_number }}</td>
+                                <td>{{ usr.groups }}</td>
+                                <td><button>Message</button></td>
+                                <td><button>Profile</button></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="xl:hidden m-4 p-4 bg-white rounded-lg">
+                <table class="w-full table-auto">
+                    <h2 class="mb-4 text-2xl font-bold">Users</h2>
+                    <hr class="mb-2">
+                    <tbody>
+                        {% for usr in users %}
+                            <tr>
+                                <td class="font-semibold">Username</td>
+                                <td>{{ usr.username }}</td>
+                            </tr>
+                            <tr>
+                                <td class="font-semibold">Email</td>
+                                <td>{{ usr.email }}</td>
+                            </tr>
+                            <tr>
+                                <td class="font-semibold">Phone number</td>
+                                <td>{{ usr.profile.phone_number }}</td>
+                            </tr>
+                            <tr>
+                                <td class="font-semibold">Role</td>
+                                <td>{{ usr.groups }}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="text-center">
+                                    <button>Message</button>
+                                    <button>Profile</button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+
+        </div>
+    </div>
+{% endblock %}
