@@ -83,7 +83,7 @@
                 </div>
 
                 <div class="w-full mt-8 md:mt-0 text-right">
-                    <button class="w-full sm:w-auto bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-1">
+                    <button class="w-full sm:w-auto bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-2">
                         Create New Account
                     </button>
                 </div>
@@ -100,19 +100,19 @@
                         <hr class="mb-8">
                         {% for usr in users %}
                             <tbody>
-                            <tr class="border-b hover:bg-slate-200">
+                            <tr class="border-b even:bg-blue-50 hover:bg-slate-200">
                                 <td class="font-semibold p-2">Username</td>
                                 <td class="p-2">{{ usr.username }}</td>
                             </tr>
-                            <tr class="border-b hover:bg-slate-200">
+                            <tr class="border-b even:bg-blue-50 hover:bg-slate-200">
                                 <td class="font-semibold p-2">Email</td>
                                 <td class="p-2">{{ usr.email }}</td>
                             </tr>
-                            <tr class="border-b hover:bg-slate-200">
+                            <tr class="border-b even:bg-blue-50 hover:bg-slate-200">
                                 <td class="font-semibold p-2">Phone number</td>
                                 <td class="p-2">{{ usr.profile.phone_number }}</td>
                             </tr>
-                            <tr class="border-b hover:bg-slate-200">
+                            <tr class="border-b even:bg-blue-50 hover:bg-slate-200">
                                 <td class="font-semibold p-2">Role</td>
                                 <td class="p-2">{{ usr.groups }}</td>
                             </tr>
