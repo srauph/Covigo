@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 
-from accounts.models import Staff, Patient, Flag
+from accounts.models import Flag
 
 
 @login_required
@@ -15,9 +15,8 @@ def index(request):
 @login_required
 @never_cache
 def list_users(request):
-    return render(request, 'accounts/list.html', {
-        'staffs': Staff.objects.all(),
-        'patients': Patient.objects.all()
+    return render(request, 'accounts/list_users.html', {
+        'users': User.objects.all()
     })
 
 
