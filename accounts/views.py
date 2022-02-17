@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 
+from accounts.forms import UserForm
 from accounts.models import Flag
 
 
@@ -23,8 +24,16 @@ def list_users(request):
 @login_required
 @never_cache
 def create_user(request):
+    if request.method == "POST":
+        form = UserForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('accounts:list_users')
+    else:
+        print("no")
+        form = UserForm()
     return render(request, 'accounts/create_user.html', {
-        'users': "meep"
+        'form': form
     })
 
 

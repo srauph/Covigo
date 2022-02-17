@@ -1,7 +1,8 @@
 {% extends "Covigo/base.html" %}
 
 {% block content %}
-    <div class="min-h-full bg-slate-100 flex flex-col">
+    <form method="post" class="min-h-full bg-slate-100 flex flex-col">
+        {% csrf_token %}
         <div class="bg-slate-700 border-b">
             <h1 class="text-2xl text-white font-semibold px-8 py-4">Create Account</h1>
         </div>
@@ -11,44 +12,16 @@
                 <div class="w-full mb-8">
                     <h2 class="p-2 text-2xl font-bold">Account Information</h2>
                     <hr class="mb-4">
-                    <div class="p-2 grid grid-cols-1 md:grid-cols-2">
-                        <div>
-                            <label>Username:</label>
-                        </div>
-                        <div>
-                            <label>Staff:</label>
-                        </div>
-                        <div>
-                            <label>Active:</label>
-                        </div>
-                        <div>
-                            <label>Role:</label>
-                        </div>
+                    {{ form.non_field_errors }}
+                    <div class="p-2 w-full">
+                        {{ form.email.errors }}
+                        <label>Email:</label>
+                        {{ form.email }}
                     </div>
-                </div>
-
-                <div class="w-full">
-                    <h2 class="p-2 text-2xl font-bold">Account Profile Information</h2>
-                    <hr class="mb-4">
-                    <div class="p-2 grid grid-cols-1 md:grid-cols-2">
-                        <div>
-                            <label>First Name:</label>
-                        </div>
-                        <div>
-                            <label>Last Name:</label>
-                        </div>
-                        <div>
-                            <label>Email:</label>
-                        </div>
-                        <div>
-                            <label>Phone Number:</label>
-                        </div>
-                        <div>
-                            <label>Address:</label>
-                        </div>
-                        <div>
-                            <label>Postal Code:</label>
-                        </div>
+                    <div class="p-2 w-full">
+                        {{ form.groups.errors }}
+                        <label>Role:</label>
+                        {{ form.groups }}
                     </div>
                 </div>
             </div>
@@ -56,10 +29,10 @@
             <div class="w-full mt-8 md:mt-0">
                 <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
                     <button class="w-full sm:w-auto bg-slate-400 border border-gray-500 hover:bg-gray-500 text-white font-bold rounded-md px-4 py-2">Cancel</button>
-                    <button class="w-full sm:w-auto bg-blue-400 border border-blue-500 hover:bg-blue-500 text-white font-bold rounded-md px-4 py-2">Create</button>
-                    <button class="w-full sm:w-auto bg-blue-400 border border-blue-500 hover:bg-blue-500 text-white font-bold rounded-md px-4 py-2">Create and Return</button>
+                    <button type="submit" class="w-full sm:w-auto bg-blue-400 border border-blue-500 hover:bg-blue-500 text-white font-bold rounded-md px-4 py-2">Create</button>
+                    <button type="submit" class="w-full sm:w-auto bg-blue-400 border border-blue-500 hover:bg-blue-500 text-white font-bold rounded-md px-4 py-2">Create and Return</button>
                 </div>
             </div>
         </div>
-    </div>
+    </form>
 {% endblock %} 
