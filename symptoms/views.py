@@ -60,14 +60,14 @@ def edit_symptom(request, symptom_id):
 
             else:
                 return render(request, 'symptoms/edit_symptom.html', {
-                    'edit_symptom_form': edit_symptom_form
+                    'form': edit_symptom_form
                 })
 
     else:
         edit_symptom_form = CreateSymptomForm(instance=symptom)
 
     return render(request, 'symptoms/edit_symptom.html', {
-        'edit_symptom_form': edit_symptom_form
+        'form': edit_symptom_form
     })
 
 
