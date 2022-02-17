@@ -23,24 +23,24 @@ def list_symptoms(request):
 @never_cache
 def create_symptom(request):
     if request.method == 'POST':
-        form = CreateSymptomForm(request.POST)
+        create_symptom_form = CreateSymptomForm(request.POST)
 
-        if form.is_valid():
-            form.save()
+        if create_symptom_form.is_valid():
+            create_symptom_form.save()
 
             if request.POST.get('Submit and return'):
                 return redirect('symptoms:list_symptoms')
 
             else:
                 return render(request, 'symptoms/create_symptom.html', {
-                    'form': form
+                    'form': create_symptom_form
                 })
 
     else:
-        form = CreateSymptomForm()
+        create_symptom_form = CreateSymptomForm()
 
     return render(request, 'symptoms/create_symptom.html', {
-        'form': form
+        'form': create_symptom_form
     })
 
 
@@ -50,24 +50,24 @@ def edit_symptom(request, symptom_id):
     symptom = Symptom.objects.get(id=symptom_id)
 
     if request.method == 'POST':
-        form = CreateSymptomForm(request.POST, instance=symptom)
+        edit_symptom_form = CreateSymptomForm(request.POST, instance=symptom)
 
-        if form.is_valid():
-            form.save()
+        if edit_symptom_form.is_valid():
+            edit_symptom_form.save()
 
-            if request.POST.get('Submit and return'):
+            if request.POST.get('Update and return'):
                 return redirect('symptoms:list_symptoms')
 
             else:
                 return render(request, 'symptoms/edit_symptom.html', {
-                    'form': form
+                    'edit_symptom_form': edit_symptom_form
                 })
 
     else:
-        form = CreateSymptomForm(instance=symptom)
+        edit_symptom_form = CreateSymptomForm(instance=symptom)
 
     return render(request, 'symptoms/edit_symptom.html', {
-        'form': form
+        'edit_symptom_form': edit_symptom_form
     })
 
 
@@ -75,3 +75,13 @@ def edit_symptom(request, symptom_id):
 @never_cache
 def assign_symptom(request):
     return render(request, 'symptoms/assign_symptom.html')
+
+
+@login_required
+@never_cache
+def toggle_symptom(request, symptom_id):
+    symptom = Symptom.objects.get(id=symptom_id)
+    symptom.is_active = not symptom.is_active
+    symptom.save()
+
+    return redirect('symptoms:list_symptoms')
