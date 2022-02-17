@@ -7,11 +7,6 @@ class UserForm(ModelForm):
     class Meta:
         model = User
         fields = [
-            'username',
-            'is_staff',
-            'is_active',
-            'groups',
-            'first_name',
-            'last_name',
-            'email'
+            'email',
+            'groups'
         ]
