@@ -34,20 +34,18 @@ class CountSymptomsByIDTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        symptom_1 = Symptom.objects.create(id=1)
-        symptom_2 = Symptom.objects.create(id=2)
-        symptom_3 = Symptom.objects.create(id=3)
-        user_1 = User.objects.create(id=1, username="Bob")
-        user_2 = User.objects.create(id=2, username="Steve")
-        user_3 = User.objects.create(id=3, username="Jessica")
-        PatientSymptom.objects.create(symptom_id=symptom_1.id, user_id=user_1.id)
-        PatientSymptom.objects.create(symptom_id=symptom_2.id, user_id=user_1.id)
-        PatientSymptom.objects.create(symptom_id=symptom_3.id, user_id=user_1.id)
-        PatientSymptom.objects.create(symptom_id=symptom_1.id, user_id=user_2.id)
-        PatientSymptom.objects.create(symptom_id=symptom_2.id, user_id=user_2.id)
-        PatientSymptom.objects.create(symptom_id=symptom_3.id, user_id=user_2.id)
-        PatientSymptom.objects.create(symptom_id=symptom_1.id, user_id=user_3.id)
-        PatientSymptom.objects.create(symptom_id=symptom_3.id, user_id=user_3.id)
+        for i in range(1, 4):
+            Symptom.objects.create(id=i)
+            User.objects.create(id=i, username=f"User{i}")
+
+        for i in range(1, 4):
+            # Assign all symptoms to users 1 and 2
+            PatientSymptom.objects.create(symptom_id=i, user_id=1)
+            PatientSymptom.objects.create(symptom_id=i, user_id=2)
+
+        # Assign symptoms 1 and 3 to user 3 ONLY (do not assign symptom 2 to user 3)
+        PatientSymptom.objects.create(symptom_id=1, user_id=3)
+        PatientSymptom.objects.create(symptom_id=3, user_id=3)
 
     def test_count_id(self):
         cases = [
