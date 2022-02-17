@@ -60,3 +60,13 @@ def edit_symptom(request, symptom_id):
 @never_cache
 def assign_symptom(request):
     return render(request, 'symptoms/assign_symptom.html')
+
+
+@login_required
+@never_cache
+def toggle_symptom(request, symptom_id):
+    symptom = Symptom.objects.get(id=symptom_id)
+    symptom.is_active = not symptom.is_active
+    symptom.save()
+
+    return redirect('symptoms:list_symptoms')
