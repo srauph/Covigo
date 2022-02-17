@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from symptoms.models import Symptom
+from .forms import CreateSymptomForm
 
 
 @login_required
@@ -13,33 +14,61 @@ def index(request):
 @login_required
 @never_cache
 def list_symptoms(request):
-    return render(request, 'symptoms/list_symptoms.html')
+    return render(request, 'symptoms/list_symptoms.html', {
+        'symptoms': Symptom.objects.all()
+    })
 
 
 @login_required
 @never_cache
 def create_symptom(request):
     if request.method == 'POST':
-        symptom = Symptom()
-        symptom.name = request.POST.get('symptom_name')
-        symptom.description = request.POST.get('symptom_description')
-        symptom.save()
+        form = CreateSymptomForm(request.POST)
 
-        if request.POST.get('submit_and_return'):
-            return redirect('symptoms:list_symptoms')
+        if form.is_valid():
+            form.save()
 
-        else:
-            return render(request, 'symptoms/create_symptom.html', {
-                'previous_symptom': symptom
-            })
+            if request.POST.get('Submit and return'):
+                return redirect('symptoms:list_symptoms')
+
+            else:
+                return render(request, 'symptoms/create_symptom.html', {
+                    'form': form
+                })
 
     else:
-        return render(request, 'symptoms/create_symptom.html')
+        form = CreateSymptomForm()
+
+    return render(request, 'symptoms/create_symptom.html', {
+        'form': form
+    })
+
 
 @login_required
 @never_cache
-def edit_symptom(request):
-    return render(request, 'symptoms/edit_symptom.html')
+def edit_symptom(request, symptom_id):
+    symptom = Symptom.objects.get(id=symptom_id)
+
+    if request.method == 'POST':
+        form = CreateSymptomForm(request.POST, instance=symptom)
+
+        if form.is_valid():
+            form.save()
+
+            if request.POST.get('Submit and return'):
+                return redirect('symptoms:list_symptoms')
+
+            else:
+                return render(request, 'symptoms/edit_symptom.html', {
+                    'form': form
+                })
+
+    else:
+        form = CreateSymptomForm(instance=symptom)
+
+    return render(request, 'symptoms/edit_symptom.html', {
+        'form': form
+    })
 
 
 @login_required

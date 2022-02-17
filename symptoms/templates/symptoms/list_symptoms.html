@@ -1,78 +1,62 @@
 {% extends 'Covigo/base.html' %}
 
 {% block content %}
-
     <div class="min-h-full bg-slate-100">
         <h1 class="text-5xl p-3">Symptoms List</h1>
         <div class="flex">
             <div class="w-full xl:w-3/4">
                 <div class="bg-gray-50 p-4 m-2 rounded-2xl border-b">
+                    <button class="bg-green-600 text-white ml-4 px-4 py-1 rounded-xl right-2">
+                            Create a new symptom
+                    </button>
                     <form action="">
                         <input name="" id="" class=" bg-neutral-300 py-2 text-black px-2 rounded-xl right-2"
                                placeholder="Search by Symptom...">
-                        <button class="bg-green-600 text-white ml-4 px-4 py-1 rounded-xl left-2">Search</button>
+                        <button class="bg-green-600 text-white ml-4 px-4 py-1 rounded-xl left-2">
+                            Search
+                        </button>
                     </form>
                 </div>
                 <div class="bg-gray-50 p-4 m-2 rounded-2xl">
                     <table class="table-auto w-full text-left">
                         <tr class="border-b">
-                            <th class="p-2">ID</th>
                             <th class="p-2">Name</th>
+                            <th class="p-2">Description</th>
                             <th class="p-2">Edit</th>
                             <th class="p-2">Enable/Disable</th>
                         </tr>
 
                         <!-- Data entries start here -->
-                        <tr class="hover:bg-gray-200 border-b">
-                            <td class="p-2">1</td>
-                            <td class="p-2">Cough</td>
-                            <td class="p-2">
-                                <a href="#">
-                                    <svg onclick="{% url 'symptoms:edit_symptom' %}" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-400" fill="none"
-                                         viewBox="0 0 24 24" stroke="currentColor">
-                                        <title>Edit the Symptom name.</title>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                    </svg>
-                                </a>
-                            </td>
-                            <td class="p-2">
-                                <a href="#">
-                                    <button class="bg-blue-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">
-                                        Disable
-                                    </button>
-                                </a>
-                            </td>
-                        </tr>
-                        <tr class="hover:bg-gray-200 border-b">
-                            <td class="p-2">2</td>
-                            <td class="p-2">Fever</td>
-                            <td class="p-2">
-                                <a href="#">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-400" fill="none"
-                                         viewBox="0 0 24 24" stroke="currentColor">
-                                        <title>Edit the Symptom name.</title>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                    </svg>
-                                </a>
-                            </td>
-                            <td class="p-2">
-                                <div class="flex">
-                                    <div>
-                                        <a href="#">
-                                            <button class="bg-blue-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">
-                                                Enable
-                                            </button>
-                                        </a>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
+                        {% for symptom in symptoms %}
+                            <tr class="hover:bg-gray-200 border-b">
+                                <td name="Symptom Name" class="p-2">{{ symptom.name }}</td>
+                                <td name="Symptom Description" class="p-2">{{ symptom.description }}</td>
+                                <td class="p-2">
+                                    <a href="{% url 'symptoms:edit_symptom' symptom.id %}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-400" fill="none"
+                                             viewBox="0 0 24 24" stroke="currentColor">
+                                            <title>Edit this symptom</title>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                    </a>
+                                </td>
+                                <td class="p-2">
+                                    <a href="{% url 'symptoms:list_symptoms' %}">
+                                        <button value="toggle" name="toggle_symptom_is_active" class="bg-blue-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">
+                                            {% if symptom.is_active %}
+                                                disable
+                                            {% else %}
+                                                enable
+                                            {% endif %}
+                                        </button>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
                     </table>
                 </div>
             </div>
         </div>
     </div>
-
 {% endblock %}
