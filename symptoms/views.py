@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from symptoms.models import Symptom
-from .forms import CreateSymptomForm
+from symptoms.forms import CreateSymptomForm
 
 
 @login_required
