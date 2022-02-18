@@ -2,8 +2,7 @@ from django.contrib.auth.models import User, Group, Permission
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
-
-from accounts.forms import UserForm
+from accounts.forms import UserForm, ProfileForm
 from accounts.models import Flag
 
 
@@ -24,16 +23,27 @@ def list_users(request):
 @login_required
 @never_cache
 def create_user(request):
+    # Process forms
     if request.method == "POST":
-        form = UserForm(request.POST)
-        if form.is_valid():
-            form.save()
+        user_form = UserForm(request.POST, instance=request.user)
+        profile_form = ProfileForm(request.POST, instance=request.user.profile)
+
+        if user_form.is_valid() and profile_form.is_valid():
+
+            user_form.save()
+            profile_form.save()
             return redirect('accounts:list_users')
+        else:
+            pass # TODO figure out what actually goes here. im 99% sure an error msg should be passed to template here
+
+    # Create forms
     else:
-        print("no")
-        form = UserForm()
+        user_form = UserForm()
+        profile_form = ProfileForm()
+
     return render(request, 'accounts/create_user.html', {
-        'form': form
+        'user_form': user_form,
+        'profile_form': profile_form
     })
 
 
@@ -56,7 +66,6 @@ def add_group(request):
         })
 
 
-  
 @login_required
 @never_cache
 def list_group(request):
