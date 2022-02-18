@@ -25,9 +25,9 @@ def view_message(request, message_group_id):
     # Filters for the queries to check if user is authorized to view the messages with a specific message_group_id
     filter1 = Q(id=message_group_id)
     filter2 = Q(author_id=current_user.id) | Q(recipient_id=current_user.id)
-    message_group = MessageGroup.objects.filter(filter1 & filter2).get()
+    if MessageGroup.objects.filter(filter1 & filter2):
+        message_group = MessageGroup.objects.filter(filter1 & filter2).get()
 
-    if message_group:
         messages = MessageContent.objects.filter(message_id=message_group_id)
 
         if request.method == 'POST':
