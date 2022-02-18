@@ -85,16 +85,20 @@
                 </div>
 
                 <div class="w-full mt-8 md:mt-0 text-right">
-                    <button class="w-full sm:w-auto bg-blue-400 border border-blue-500 hover:bg-blue-500 text-white font-bold rounded-md px-4 py-2">
-                        Create New Account
-                    </button>
+                    <a href="{% url 'accounts:create_user' %}">
+                        <button class="w-full sm:w-auto bg-blue-400 border border-blue-500 hover:bg-blue-500 text-white font-bold rounded-md px-4 py-2">
+                            Create New Account
+                        </button>
+                    </a>
                 </div>
             </div>
 
             <div class="lg:hidden">
-                <button class="mb-4 w-full sm:w-auto bg-blue-400 border border-blue-500 hover:bg-blue-500 text-white font-bold rounded-md px-4 py-2">
-                    Create New Account
-                </button>
+                <a href="{% url 'accounts:create_user' %}">
+                    <button class="mb-4 w-full sm:w-auto bg-blue-400 border border-blue-500 hover:bg-blue-500 text-white font-bold rounded-md px-4 py-2">
+                        Create New Account
+                    </button>
+                </a>
 
                 <div class="p-4 bg-white rounded-lg">
                     <table class="w-full table-auto">

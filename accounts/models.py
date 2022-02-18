@@ -63,16 +63,9 @@ class Flag(models.Model):
         return f"{self.patient}_{self.staff}"
 
 
-# @receiver(post_save, sender=User)
-# def save_user_profile(sender, instance, **kwargs):
-#     try:
-#         instance.profile.save()
-#     # TODO change Exception with the proper exception name later
-#     except Exception:
-#         print("User has no profile")
-#     if hasattr(instance, 'patient'):
-#         instance.patient.save()
-#     elif hasattr(instance, 'staff'):
-#         instance.staff.save()
-#     else:
-#         raise UserNotPatientNorStaffException
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+    else:
+        instance.profile.save()

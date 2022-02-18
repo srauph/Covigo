@@ -12,16 +12,27 @@
                 <div class="w-full mb-8">
                     <h2 class="p-2 text-2xl font-bold">Account Information</h2>
                     <hr class="mb-4">
-                    {{ form.non_field_errors }}
+                    {{ user_form.non_field_errors }}
+                    {{ profile_form.non_field_errors }}
                     <div class="p-2 w-full">
-                        {{ form.email.errors }}
-                        <label>Email:</label>
-                        {{ form.email }}
+                        {{ user_form.username.errors }}
+                        <label>Username:</label>
+                        {{ user_form.username }}
                     </div>
                     <div class="p-2 w-full">
-                        {{ form.groups.errors }}
+                        {{ user_form.email.errors }}
+                        <label>Email:</label>
+                        {{ user_form.email }}
+                    </div>
+                    <div class="p-2 w-full">
+                        {{ profile_form.phone_number.errors }}
+                        <label>Phone Number:</label>
+                        {{ profile_form.phone_number }}
+                    </div>
+                    <div class="p-2 w-full">
+                        {{ user_form.groups.errors }}
                         <label>Role:</label>
-                        {{ form.groups }}
+                        {{ user_form.groups }}
                     </div>
                 </div>
             </div>
