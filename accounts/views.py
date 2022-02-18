@@ -8,6 +8,22 @@ from accounts.models import Flag
 
 @login_required
 @never_cache
+def two_factor_authentication(request):
+    return render(request, 'accounts/authentication/2FA.html')
+
+
+@never_cache
+def forgot_password(request):
+    return render(request, 'accounts/authentication/forgotpassword.html')
+
+
+@never_cache
+def reset_password(request):
+    return render(request, 'accounts/authentication/resetpassword.html')
+
+
+@login_required
+@never_cache
 def index(request):
     return redirect('accounts:list_users')
 
