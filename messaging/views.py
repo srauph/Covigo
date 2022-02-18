@@ -43,6 +43,11 @@ def view_message(request, message_group_id):
 
                 # Reset the form
                 reply_form = ReplyForm()
+
+                # Update the message group
+                message_group.date_updated = new_reply.date_updated
+                message_group.save()
+
         # Initialize the reply form
         else:
             reply_form = ReplyForm()
