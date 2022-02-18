@@ -30,3 +30,10 @@ class MessagingTests(TestCase):
     def test_view_message_page_failure(self):
         response = self.client.get('/messaging/view/150/')
         self.assertTemplateNotUsed(response, 'messaging/view_message.html')
+
+    # Checks if user can reply to a message
+    def test_reply_message(self):
+        response = self.client.post('/messaging/view/1/', {
+            'content': 'Another message reply!!!'
+        })
+        self.assertEqual(MessageContent.objects.get(id=3).content, 'Another message reply!!!')
