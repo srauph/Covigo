@@ -26,14 +26,20 @@ def view_message(request, message_group_id):
     filter1 = Q(id=message_group_id)
     filter2 = Q(author_id=current_user.id) | Q(recipient_id=current_user.id)
     if MessageGroup.objects.filter(filter1 & filter2):
-        message_group = MessageGroup.objects.filter(filter1 & filter2).get()
 
-        # The message group is now "Seen" since the message is opened at this point
-        message_group.seen = True
-        message_group.save()
+        message_group = MessageGroup.objects.filter(filter1 & filter2).get()
 
         messages = MessageContent.objects.filter(message_id=message_group_id)
 
+        # Verify who sent the most recent message
+        most_recent_message_sender_id = messages.order_by('-date_updated').first().author_id
+
+        # If it's not the current user then they are reading an unopened message and making it "Seen".
+        if most_recent_message_sender_id != current_user.id:
+            message_group.seen = True
+            message_group.save()
+
+        # If user sent a reply
         if request.method == 'POST':
             reply_form = ReplyForm(request.POST)
 
