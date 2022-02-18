@@ -28,6 +28,10 @@ def view_message(request, message_group_id):
     if MessageGroup.objects.filter(filter1 & filter2):
         message_group = MessageGroup.objects.filter(filter1 & filter2).get()
 
+        # The message group is now "Seen" since the message is opened at this point
+        message_group.seen = True
+        message_group.save()
+
         messages = MessageContent.objects.filter(message_id=message_group_id)
 
         if request.method == 'POST':
@@ -46,6 +50,7 @@ def view_message(request, message_group_id):
 
                 # Update the message group
                 message_group.date_updated = new_reply.date_updated
+                message_group.seen = False
                 message_group.save()
 
         # Initialize the reply form
