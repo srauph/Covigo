@@ -11,6 +11,9 @@ from accounts.models import Flag
 def index(request):
     return redirect('accounts:list_users')
 
+def profile(request):
+    return render(request, 'accounts/profile.html')
+
 
 @login_required
 @never_cache
