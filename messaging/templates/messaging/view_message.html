@@ -8,6 +8,33 @@
         <!-- MESSAGE GROUP SUBJECT TITLE -->
         <h1 class="text-5xl p-8">Subject: {{ message_group.title }}</h1>
 
+        {% if recipient_seen == False %}
+            <!-- Seen status -->
+            <div class="pl-10">
+                <p class="text-sm text-gray-600 flex items-center float-left px-2">
+                    <svg class="h-4 w-4 text-gray-500 pr-1" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Recipient has not read the latest message(s)
+                </p>
+            </div>
+        {% endif %}
+
+        {% if recipient_seen == True %}
+            <!-- Seen status -->
+            <div class="pl-10">
+                <p class="text-sm text-gray-600 flex items-center float-left px-2">
+                    <svg class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clip-rule="evenodd"/>
+                    </svg>
+                    Recipient has read the latest message(s)
+                </p>
+            </div>
+        {% endif %}
 
         <!-- Card that contains the messages. These cards will be generated dynamically -->
         <div class="p-8 block">
@@ -111,7 +138,7 @@
                 <div class="shadow w-full bg-gray-50 p-4 m-2 rounded-2xl border-b flex items-center">
 
                     <div class="w-full">
-                       {{ form.content }}
+                        {{ form.content }}
                     </div>
                     <div class="flex flex-wrap justify-center float-right">
                         <div class="w-full xl:w-auto m-4 text-center ">

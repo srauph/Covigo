@@ -31,6 +31,8 @@ def view_message(request, message_group_id):
 
         messages = MessageContent.objects.filter(message_id=message_group_id)
 
+        recipient_seen = None
+
         # Verify who sent the most recent message
         most_recent_message_sender_id = messages.order_by('-date_updated').first().author_id
 
@@ -38,6 +40,9 @@ def view_message(request, message_group_id):
         if most_recent_message_sender_id != current_user.id:
             message_group.seen = True
             message_group.save()
+        else:
+            recipient_seen = has_recipient_seen_sent_message(current_user.id, message_group.id)
+
 
         # If user sent a reply
         if request.method == 'POST':
@@ -66,11 +71,21 @@ def view_message(request, message_group_id):
         return render(request, 'messaging/view_message.html', {
             'message_group': message_group,
             'messages': messages,
-            'form': reply_form
+            'form': reply_form,
+            'recipient_seen': recipient_seen
         })
     # User is not authorized to view this message group
     else:
         return redirect('messaging:list_messages')
+
+
+def has_recipient_seen_sent_message(current_user_id, message_group_id):
+    most_recent_message_sender_id = MessageContent.objects.filter(message_id=message_group_id).order_by(
+        '-date_updated').first().author_id
+    if current_user_id == most_recent_message_sender_id:
+        return MessageGroup.objects.filter(id=message_group_id).get().seen
+    else:
+        return None
 
 
 @login_required
