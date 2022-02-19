@@ -1,5 +1,6 @@
 module.exports = {
-  content: ["../**/*.html"],
+  mode: 'jit',
+  content: ["../**/*.html", "../**/forms.py"],
   theme: {
     extend: {},
   },
