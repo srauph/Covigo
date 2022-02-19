@@ -87,7 +87,7 @@ def edit_group(request, group_id):
     group = Group.objects.filter(id=group_id).get()
 
     if request.method == "POST":
-        group.name = request.POST['name']
+        group.symptom_name = request.POST['name']
         group.save()
         permission_array = convert_permission_name_to_id(request)
         group.permissions.clear()
