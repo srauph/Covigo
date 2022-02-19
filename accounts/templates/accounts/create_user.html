@@ -12,36 +12,84 @@
                 <div class="w-full mb-8">
                     <h2 class="p-2 text-2xl font-bold">Account Information</h2>
                     <hr class="mb-4">
-                    {{ user_form.non_field_errors }}
-                    {{ profile_form.non_field_errors }}
-                    <div class="p-2 w-full">
-                        {{ user_form.email.errors }}
-                        <label>Email:</label>
-                        {{ user_form.email }}
+                    <div class="text-red-500 font-semibold mb-2">
+                        {{ user_form.non_field_errors }}
+                        {{ profile_form.non_field_errors }}
                     </div>
-                    <div class="p-2 w-full">
-                        {{ profile_form.phone_number.errors }}
-                        <label>Phone Number:</label>
-                        {{ profile_form.phone_number }}
-                    </div>
-                    <div class="p-2 w-full">
-                        {{ user_form.is_staff.errors }}
-                        <label>User Type:</label>
-                        {{ user_form.is_staff }}
-                    </div>
-                    <div class="p-2 w-full">
-                        {{ user_form.groups.errors }}
-                        <label>Role:</label>
-                        {{ user_form.groups }}
-                    </div>
+
+                    <table>
+                        <tr>
+                            <td class="py-2 align-top">
+                                <label>Email:</label>
+                            </td>
+                            <td>
+                                <div class="p-2 mb-2 w-full">
+                                    {{ user_form.email }}
+                                    <div class="text-red-500 font-semibold">
+                                        {{ user_form.email.errors }}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 align-top">
+                                <label>Phone Number:</label>
+                            </td>
+                            <td>
+                                <div class="p-2 mb-2 w-full">
+                                    {{ profile_form.phone_number }}
+                                    <div class="text-red-500 font-semibold">
+                                        {{ profile_form.phone_number.errors }}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 align-top">
+                                <label>User Type:</label>
+                            </td>
+                            <td>
+                                <div class="p-2 mb-2 w-full">
+                                    {{ user_form.is_staff }}
+                                    <div class="text-red-500 font-semibold">
+                                        {{ user_form.is_staff.errors }}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 align-top">
+                                <label>Role:</label>
+                            </td>
+                            <td>
+                                <div class="p-2 mb-2 w-full">
+                                    {{ user_form.groups }}
+                                    <div class="text-red-500 font-semibold">
+                                        {{ user_form.groups.errors }}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
             </div>
 
             <div class="w-full mt-8 md:mt-0">
                 <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
-                    <button class="w-full sm:w-auto bg-slate-400 border border-gray-500 hover:bg-gray-500 text-white font-bold rounded-md px-4 py-2">Cancel</button>
-                    <button type="submit" class="w-full sm:w-auto bg-blue-400 border border-blue-500 hover:bg-blue-500 text-white font-bold rounded-md px-4 py-2">Create</button>
-                    <button type="submit" class="w-full sm:w-auto bg-blue-400 border border-blue-500 hover:bg-blue-500 text-white font-bold rounded-md px-4 py-2">Create and Return</button>
+                    {# TODO: Fix broken cancel button. #}
+                    <a href="{% url "accounts:list_users" %}">
+                        <button class="w-full sm:w-auto bg-slate-400 border border-gray-500 hover:bg-gray-500 text-white font-bold rounded-md px-4 py-2">
+                            Cancel
+                        </button>
+                    </a>
+                    <button type="submit"
+                            class="w-full sm:w-auto bg-blue-400 border border-blue-500 hover:bg-blue-500 text-white font-bold rounded-md px-4 py-2">
+                        Create
+                    </button>
+                    <button type="submit"
+                            class="w-full sm:w-auto bg-blue-400 border border-blue-500 hover:bg-blue-500 text-white font-bold rounded-md px-4 py-2">
+                        Create and Return
+                    </button>
                 </div>
             </div>
         </div>
