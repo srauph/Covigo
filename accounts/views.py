@@ -73,12 +73,10 @@ def create_user(request):
 
             if new_user.is_staff:
                 Staff.objects.create(user=new_user)
-                pass
             elif not new_user.is_staff:
                 # Since Patient *requires* an assigned staff, set it to the superuser for now.
                 # TODO: discuss if we should keep this behaviour for now or make Patient.staff nullable instead.
                 Patient.objects.create(user=new_user, staff=get_superuser_staff_model())
-                pass
 
             return redirect("accounts:list_users")
 

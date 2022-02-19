@@ -14,9 +14,9 @@ def get_flag(staff_user, patient_user):
 def get_superuser_staff_model():
     try:
         superuser = User.objects.filter(is_superuser=True).get()
-        if superuser.staff:
+        try:
             return superuser.staff
-        else:
+        except User.staff.RelatedObjectDoesNotExist:
             Staff.objects.create(user=superuser)
             return superuser.staff
     # TODO: specify which exception instead of the generic one
