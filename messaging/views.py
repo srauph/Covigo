@@ -15,7 +15,13 @@ def index(request):
 @login_required
 @never_cache
 def list_messages(request):
-    return render(request, 'messaging/list_messages.html')
+    current_user = request.user
+    filter1 = Q(author_id=current_user.id) | Q(recipient_id=current_user.id)
+    message_group = MessageGroup.objects.filter(filter1).all()
+
+    return render(request, 'messaging/list_messages.html', {
+        'message_group': message_group,
+    })
 
 
 @login_required
