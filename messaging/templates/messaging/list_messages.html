@@ -14,7 +14,7 @@
 
         $(document).ready(function () {
             var table = $('#message_list_table').DataTable({
-                "order": [1, "desc"],
+                "order": [2, "desc"],
                 "columnDefs": [
                     {
                         "targets": [1],
@@ -113,9 +113,21 @@
                                     View Message
                                 </button>
                             </a>
-                            <button class="bg-blue-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">
-                                Mark as Unread
-                            </button>
+                            <a href="{% url 'messaging:toggle_read' msg.id %}">
+                                {% if msg.seen %}
+
+                                    <button class="bg-orange-300 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">
+                                        Mark as Read
+                                    </button>
+
+                                {% else %}
+
+                                    <button class="bg-blue-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">
+                                        Mark as Unread
+                                    </button>
+
+                                {% endif %}
+                            </a>
                         </td>
                         </tr>
                         {% endfor %}

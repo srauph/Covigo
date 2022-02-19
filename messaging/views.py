@@ -49,3 +49,13 @@ def view_message(request, message_group_id):
 @never_cache
 def compose_message(request):
     return render(request, 'messaging/compose_message.html')
+
+@login_required
+@never_cache
+def toggle_read(request,message_group_id):
+
+    msg_group = MessageGroup.objects.get(id=message_group_id)
+
+    msg_group.seen = not msg_group.seen
+    msg_group.save()
+    return redirect('messaging:list_messages')
