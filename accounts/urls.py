@@ -12,4 +12,5 @@ urlpatterns = [
     path('access_control/group/edit/<int:group_id>', views.edit_group, name='edit_group'),
     path('flag/<int:user_id>/', views.flaguser, name='flag_user'),
     path('unflag/<int:user_id>/', views.unflaguser, name='unflag_user'),
+    path('profile/', views.profile, name='profile'),
 ]
