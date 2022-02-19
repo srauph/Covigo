@@ -61,14 +61,18 @@
                             <td class="p-2">{{ usr.email }}</td>
                             <td class="p-2">{{ usr.profile.phone_number }}</td>
                             <td class="p-2">{{ usr.groups.all.0 }}</td>
-                            <td class="px-2 py-1 text-right">
-                                <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-1 mx-1">
+                            <td colspan="2" class="text-center md:text-left pt-2 pb-16">
+                                <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-2 mx-1">
                                     Send Message
                                 </button>
-                                <a href="#">
-                                    <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-1 mx-1">
-                                        View Profile
-                                    </button>
+                                <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-2 mx-1">
+                                    View Profile
+                                </button>
+{#                                this is a temprory button, we will move it user profile once user profile is done :) #}
+                                <a href="{% url 'messaging:list_messages' usr.id %}">
+                                    <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-2 mx-1">
+                                    View All Messages
+                                </button>
                                 </a>
                             </td>
                         </tr>
@@ -107,6 +111,11 @@
                                 <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-2 mx-1">
                                     View Profile
                                 </button>
+                                <a href="{% url 'messaging:list_messages' usr.id %}">
+                                    <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-2 mx-1">
+                                    View All Messages
+                                </button>
+                                </a>
                             </td>
                         </tr>
                         </tbody>
