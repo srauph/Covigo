@@ -518,6 +518,10 @@ Ensure the default browser behavior of the `hidden` attribute.
   pointer-events: none;
 }
 
+.visible {
+  visibility: visible;
+}
+
 .static {
   position: static;
 }
@@ -838,6 +842,10 @@ Ensure the default browser behavior of the `hidden` attribute.
 
 .w-3\/4 {
   width: 75%;
+}
+
+.w-5\/6 {
+  width: 83.333333%;
 }
 
 .max-w-md {
