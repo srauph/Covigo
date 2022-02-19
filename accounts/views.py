@@ -49,8 +49,9 @@ def create_user(request):
         user_form = UserForm(request.POST)
         profile_form = ProfileForm(request.POST)
 
-        user_email = user_form.data.get('email')
-        user_phone = profile_form.data.get('phone_number')
+        user_email = user_form.data.get("email")
+        user_phone = profile_form.data.get("phone_number")
+        user_groups = user_form.data.get("groups")
         has_email = user_email != ""
         has_phone = user_phone != ""
 
@@ -63,7 +64,10 @@ def create_user(request):
                 new_user.username = user_phone
 
             new_user.save()
-            new_user.profile.phone_number = profile_form.data.get('phone_number')
+            new_user.profile.phone_number = user_phone
+            # TODO: Discuss the possibility of having no group and remove `if` if we enforce having at least one
+            if user_groups:
+                new_user.groups.set(user_groups)
             new_user.save()
 
             if new_user.is_staff:
@@ -75,7 +79,7 @@ def create_user(request):
                 Patient.objects.create(user=new_user, staff=get_superuser_staff_model())
                 pass
 
-            return redirect('accounts:list_users')
+            return redirect("accounts:list_users")
 
         # else:
         #     pass  # TODO figure out what actually goes here. im 99% sure an error msg should be passed to template here
@@ -85,9 +89,9 @@ def create_user(request):
         user_form = UserForm()
         profile_form = ProfileForm()
 
-    return render(request, 'accounts/create_user.html', {
-        'user_form': user_form,
-        'profile_form': profile_form
+    return render(request, "accounts/create_user.html", {
+        "user_form": user_form,
+        "profile_form": profile_form
     })
 
 
