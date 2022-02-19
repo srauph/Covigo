@@ -34,6 +34,11 @@
                         <label>Role:</label>
                         {{ user_form.groups }}
                     </div>
+                    <div class="p-2 w-full">
+                        {{ profile_form.postal_code.errors }}
+                        <label>postal code:</label>
+                        {{ profile_form.postal_code }}
+                    </div>
                 </div>
             </div>
 
