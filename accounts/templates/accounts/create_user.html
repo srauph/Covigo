@@ -30,14 +30,14 @@
                         {{ profile_form.phone_number }}
                     </div>
                     <div class="p-2 w-full">
+                        {{ user_form.is_staff.errors }}
+                        <label>Is Staff:</label>
+                        {{ user_form.is_staff }}
+                    </div>
+                    <div class="p-2 w-full">
                         {{ user_form.groups.errors }}
                         <label>Role:</label>
                         {{ user_form.groups }}
-                    </div>
-                    <div class="p-2 w-full">
-                        {{ profile_form.postal_code.errors }}
-                        <label>postal code:</label>
-                        {{ profile_form.postal_code }}
                     </div>
                 </div>
             </div>

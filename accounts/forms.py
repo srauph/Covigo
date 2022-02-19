@@ -1,21 +1,28 @@
 from django.core.exceptions import ValidationError
-from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, ModelMultipleChoiceField
+from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, BooleanField, Select
 from django.contrib.auth.models import User
 from accounts.models import Profile
+
+STAFF_PATIENT_CHOICES = (
+    (True, 'Staff User'),
+    (False, 'Patient User')
+)
 
 
 class UserForm(ModelForm):
     class Meta:
         model = User
         fields = [
-            'email',
-            'groups'
+            "email",
+            "groups",
+            "is_staff"
         ]
         widgets = {
-            'email': TextInput(attrs={
-                'class': 'border rounded-md border-slate-600'
+            "email": TextInput(attrs={
+                "class": "border rounded-md border-slate-600"
             }),
-            'groups': CheckboxSelectMultiple()
+            "groups": CheckboxSelectMultiple(),
+            "is_staff": Select(choices=STAFF_PATIENT_CHOICES),
         }
 
     def clean_email(self):
@@ -31,11 +38,11 @@ class ProfileForm(ModelForm):
     class Meta:
         model = Profile
         fields = [
-            'phone_number'
+            "phone_number"
         ]
         widgets = {
-            'phone_number': TextInput(attrs={
-                'class': 'border rounded-md border-slate-600'
+            "phone_number": TextInput(attrs={
+                "class": "border rounded-md border-slate-600"
             })
         }
 
