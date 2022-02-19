@@ -1,4 +1,4 @@
-from django.forms import ModelForm, TextInput, CheckboxSelectMultiple
+from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, ModelMultipleChoiceField
 from django.contrib.auth.models import User
 from accounts.models import Profile
 
@@ -21,6 +21,12 @@ class UserForm(ModelForm):
             'groups': CheckboxSelectMultiple()
         }
 
+    def clean_email(self):
+        cleaned_data = super().clean()
+        if User.objects.filter(email=cleaned_data.get("email")).exists():
+            raise
+
+
 
 class ProfileForm(ModelForm):
     class Meta:
@@ -31,5 +37,6 @@ class ProfileForm(ModelForm):
         widgets = {
             'phone_number': TextInput(attrs={
                 'class': 'border-2 rounded-md border-slate-800'
-            }),
+            })
         }
+

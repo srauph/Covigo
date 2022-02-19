@@ -25,16 +25,19 @@ def list_users(request):
 def create_user(request):
     # Process forms
     if request.method == "POST":
-        user_form = UserForm(request.POST, instance=request.user)
-        profile_form = ProfileForm(request.POST, instance=request.user.profile)
+        user_form = UserForm(request.POST)
+        profile_form = ProfileForm(request.POST)
 
-        if user_form.is_valid() and profile_form.is_valid():
+        has_email = user_form.data.get('email') != ""
+        has_phone = profile_form.data.get('phone_number') != ""
 
-            user_form.save()
-            profile_form.save()
+        if user_form.is_valid() and profile_form.is_valid() and (has_email or has_phone):
+            new_user = user_form.save()
+            new_user.profile.phone_number = profile_form.data.get('phone_number')
+            new_user.save()
             return redirect('accounts:list_users')
-        else:
-            pass # TODO figure out what actually goes here. im 99% sure an error msg should be passed to template here
+        # else:
+        #     pass  # TODO figure out what actually goes here. im 99% sure an error msg should be passed to template here
 
     # Create forms
     else:
