@@ -14,9 +14,14 @@ def index(request):
 
 @login_required
 @never_cache
-def list_messages(request):
+def list_messages(request, user_id=''):
     current_user = request.user
-    filter1 = Q(author_id=current_user.id) | Q(recipient_id=current_user.id)
+
+    if user_id == '':
+        filter1 = Q(author_id=current_user.id) | Q(recipient_id=current_user.id)
+    else:
+        filter1 = Q(author_id=user_id) | Q(recipient_id=user_id)
+
     message_group = MessageGroup.objects.filter(filter1).all()
 
     return render(request, 'messaging/list_messages.html', {
@@ -50,10 +55,10 @@ def view_message(request, message_group_id):
 def compose_message(request):
     return render(request, 'messaging/compose_message.html')
 
+
 @login_required
 @never_cache
-def toggle_read(request,message_group_id):
-
+def toggle_read(request, message_group_id):
     msg_group = MessageGroup.objects.get(id=message_group_id)
 
     msg_group.seen = not msg_group.seen
