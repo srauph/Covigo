@@ -9,4 +9,5 @@ urlpatterns = [
     path('create/', views.create_symptom, name='create_symptom'),
     path('edit/<int:symptom_id>/', views.edit_symptom, name='edit_symptom'),
     path('assign/user_id/', views.assign_symptom, name='assign_symptom'),
+    path('toggle/<int:symptom_id>/', views.toggle_symptom, name='toggle_symptom'),
 ]
