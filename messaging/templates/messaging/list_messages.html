@@ -1,67 +1,141 @@
 {% extends "Covigo/base.html" %}
 
+{% block styles %}
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.4/css/jquery.dataTables.css">
+{% endblock %}
+
+{% block script %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script type="text/javascript" charset="utf8"
+            src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
+    <script>
+
+
+        $(document).ready(function () {
+            var table = $('#message_list_table').DataTable({
+                "order": [2, "desc"],
+                "columnDefs": [
+                    {
+                        "targets": [1],
+                        "visible": false,
+                        "searchable": true
+
+                    }
+                ]
+            });
+
+            $('#toggleRead').change(function () {
+                $.fn.dataTable.ext.search.pop();
+                var value = $(this).val();
+                if (value == "showAll") {
+                    $.fn.dataTable.ext.search.pop();
+                    table.draw();
+                } else {
+                    $.fn.dataTable.ext.search.push(
+                        function (settings, data, dataIndex) {
+                            return $(table.row(dataIndex).node()).attr('data-read') == value;
+                        }
+                    );
+                    table.draw();
+                }
+            })
+        });
+    </script>
+{% endblock %}
+
 {% block content %}
 
 
     <div class="min-h-full bg-slate-100">
         <h1 class="text-5xl p-4">Messages</h1>
         <div class="flex ">
-            <div class="w-full">
+            <div class="w-5/6">
                 <div class="w-full bg-gray-50 p-4 m-4 rounded-2xl">
 
-                    <form action="">
-                        <input name="" id="" class=" bg-neutral-300 py-2 text-black  px-2 rounded-xl" placeholder="Search...">
-                         <button class="bg-green-600 text-white px-4 py-1 rounded-xl ">Search</button>
-                     <span>filters:</span>
-                        <select name="" id="" class=" bg-neutral-300 py-2 text-black  px-2 rounded-xl">
-                            <option >Show All Messages</option>
-                            <option value="">Show Unread Messages</option>
-                            <option value="">Show Read Messages</option>
-                        </select>
-                        <button class="bg-green-600 text-white px-4 py-1 rounded-xl ">Apply</button>
-                       <a href="{% url 'messaging:compose_message' %}"><button class="bg-green-600 text-white px-4 py-1 rounded-xl ">Create A New Message</button></a>
-                </form>
+
+                    <form action="" class="flex justify-between">
+                        <div>
+                            <span>filters:</span>
+                            <select name="" id="toggleRead" class=" bg-neutral-300 py-2 text-black  px-2 rounded-xl">
+                                <option value="showAll">Show All Messages</option>
+                                <option value="unread">Show Unread Messages</option>
+                                <option value="read">Show Read Messages</option>
+                            </select>
+                        </div>
+                        <a href="{% url 'messaging:compose_message' %}" class="block">
+                            <button class="bg-green-600 text-white px-4 py-1 rounded-xl ">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline" fill="none"
+                                     viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                New Message
+                            </button>
+                        </a>
+                    </form>
                 </div>
-                 <div class="w-full bg-gray-50 p-4 m-4 rounded-2xl">
-                     <table class="table-auto w-full text-left">
-                    <tr class="border-b">
-                        <th class="p-2">ID</th>
-                        <th class="p-2">Sender</th>
-                        <th class="p-2">Subject</th>
-                        <th class="p-2">Sent On</th>
-                        <th class="p-2">Opened On</th>
-                        <th class="p-2">Last Reply On</th>
-                        <th class="p-2">Actions</th>
-                    </tr>
+                <div class="w-full bg-gray-50 p-4 m-4 rounded-2xl">
+                    <table class="table-auto w-full text-left" id="message_list_table">
+                        <thead>
+                        <tr class="border-b">
+                            <th class="p-2">ID</th>
+                            <th class="p-2">Status</th>
+                            <th class="p-2">Priority</th>
+                            <th class="p-2">Sender</th>
+                            <th class="p-2">Subject</th>
+                            <th class="p-2">Sent On</th>
+                            <th class="p-2">Opened On</th>
+                            <th class="p-2">Last Reply On</th>
+                            <th class="p-2">Actions</th>
+                        </tr>
+                        </thead>
 
-                    <tr class="hover:bg-gray-200 border-b">
-                        <td class="p-2">100001</td>
-                        <td class="p-2">John Doe</td>
-                        <td class="p-2">Question about my Fever</td>
-                        <td class="p-2">02/02/2022 22:22</td>
-                        <td class="p-2">02/02/2022 22:22</td>
-                        <td class="p-2">02/02/2022 22:22</td>
-                        <td class="p-2">
-                             <!-- TEMPORARY HARDCODED BUTTON. FIX AFTER-->
-                             <a href="{% url 'messaging:view_message' 3 %}"><button class="bg-blue-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">View Message</button></a>
-                            <button class="bg-blue-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">Mark as Unread</button>
-                        </td>
-                    </tr>
-
-                    <tr class="hover:bg-gray-200 font-bold border-b">
-                        <td class="p-2">100001</td>
-                        <td class="p-2">John Doe</td>
-                        <td class="p-2">Question about my Fever</td>
-                        <td class="p-2">02/02/2022 22:22</td>
-                        <td class="p-2">02/02/2022 22:22</td>
-                        <td class="p-2">02/02/2022 22:22</td>
+                        <tbody>
+                        {% for msg in message_group %}
+                            {% if msg.seen %}
+                                <tr class="hover:bg-gray-200 font-bold border-b" data-read="unread">
+                                    {% else %}
+                                <tr class="hover:bg-gray-200 border-b" data-read="read">
+                            {% endif %}
+                        <td class="p-2">{{ msg.id }}</td>
+                        <td class="p-2">{{ msg.seen }}</td>
+                        <td class="p-2">{% if msg.priority == 0 %} Normal {% else %} Urgent {% endif %}</td>
+                        <td class="p-2">{{ msg.author.username }}</td>
+                        <td class="p-2">{{ msg.title }}</td>
+                        <td class="p-2">{{ msg.date_created }}</td>
+                        <td class="p-2">{{ msg.date_updated }}</td>
+                        {#                                to be changed#}
+                        <td class="p-2">{{ msg.date_updated }}</td>
                         <td class="p-2">
                             <!-- TEMPORARY HARDCODED BUTTON. FIX AFTER-->
-                            <a href="{% url 'messaging:view_message' 3 %}"><button class="bg-blue-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">View Message</button></a>
-                            <button class="bg-blue-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">Mark as Read</button>
+                            <a href="{% url 'messaging:view_message' msg.id %}">
+                                <button class="bg-blue-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">
+                                    View Message
+                                </button>
+                            </a>
+                            <a href="{% url 'messaging:toggle_read' msg.id %}">
+                                {% if msg.seen %}
+
+                                    <button class="bg-orange-300 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">
+                                        Mark as Read
+                                    </button>
+
+                                {% else %}
+
+                                    <button class="bg-blue-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">
+                                        Mark as Unread
+                                    </button>
+
+                                {% endif %}
+                            </a>
                         </td>
-                    </tr>
-                </table>
+                        </tr>
+                        {% endfor %}
+
+
+                        </tbody>
+                    </table>
                 </div>
 
             </div>
