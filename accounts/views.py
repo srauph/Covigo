@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib.auth.models import User, Group, Permission
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -81,8 +82,10 @@ def create_user(request):
 
             return redirect("accounts:list_users")
 
-        # else:
-        #     pass  # TODO figure out what actually goes here. im 99% sure an error msg should be passed to template here
+        else:
+            if not (has_email or has_phone):
+                user_form.add_error(None, "Please enter an email address or a phone number.")
+            # pass  # TODO figure out what actually goes here. im 99% sure an error msg should be passed to template here
 
     # Create forms
     else:

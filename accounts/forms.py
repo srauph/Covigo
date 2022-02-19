@@ -20,7 +20,7 @@ class UserForm(ModelForm):
         widgets = {
             "email": TextInput(
                 attrs={
-                    "class": "border rounded-md border-slate-600"
+                    "class": "border rounded-md  border-slate-600 }}"
                 }
             ),
             "groups": CheckboxSelectMultiple(),
@@ -62,6 +62,7 @@ class ProfileForm(ModelForm):
         }
 
     def clean_phone_number(self):
+        # TODO: Sanitize to a "valid" phone number like 5141112222
         cleaned_phone_number = self.cleaned_data.get("phone_number")
         if cleaned_phone_number != "" and Profile.objects.filter(phone_number=cleaned_phone_number).exists():
             raise ValidationError(

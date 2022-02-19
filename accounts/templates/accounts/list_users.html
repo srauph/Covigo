@@ -39,8 +39,15 @@
 
 {% block content %}
     <div class="min-h-full bg-slate-100">
-        <div class="bg-slate-700 border-b">
+        <div class="flex justify-between bg-slate-700 border-b">
             <h1 class="text-2xl text-white font-semibold px-8 py-4">Accounts List</h1>
+            <div class="flex items-center mr-8">
+                <a href="{% url 'accounts:create_user' %}">
+                    <button class="w-full sm:w-auto bg-white hover:bg-blue-500 text-slate-800 hover:text-white font-bold rounded-md px-4 py-2">
+                        Create New Account
+                    </button>
+                </a>
+            </div>
         </div>
         <div class="m-4 justify-evenly gap-4">
             <div class="hidden xl:block m-4 p-4 bg-white rounded-lg">
