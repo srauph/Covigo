@@ -18,11 +18,15 @@ class UserForm(ModelForm):
             "is_staff"
         ]
         widgets = {
-            "email": TextInput(attrs={
-                "class": "border rounded-md border-slate-600"
-            }),
+            "email": TextInput(
+                attrs={
+                    "class": "border rounded-md border-slate-600"
+                }
+            ),
             "groups": CheckboxSelectMultiple(),
-            "is_staff": Select(choices=STAFF_PATIENT_CHOICES),
+            "is_staff": Select(
+                choices=STAFF_PATIENT_CHOICES
+            ),
         }
 
     def clean_email(self):
@@ -41,9 +45,11 @@ class ProfileForm(ModelForm):
             "phone_number"
         ]
         widgets = {
-            "phone_number": TextInput(attrs={
-                "class": "border rounded-md border-slate-600"
-            })
+            "phone_number": TextInput(
+                attrs={
+                    "class": "border rounded-md border-slate-600"
+                }
+            )
         }
 
     def clean_phone_number(self):
@@ -53,4 +59,3 @@ class ProfileForm(ModelForm):
                 "Phone number already in use by another user."
             )
         return cleaned_phone_number
-
