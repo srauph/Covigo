@@ -11,6 +11,7 @@ from accounts.models import Flag
 def index(request):
     return redirect('accounts:list_users')
 
+
 def profile(request):
     return render(request, 'accounts/profile.html')
 
@@ -31,14 +32,25 @@ def create_user(request):
         user_form = UserForm(request.POST)
         profile_form = ProfileForm(request.POST)
 
-        has_email = user_form.data.get('email') != ""
-        has_phone = profile_form.data.get('phone_number') != ""
+        user_email = user_form.data.get('email')
+        user_phone = profile_form.data.get('phone_number')
+        has_email = user_email != ""
+        has_phone = user_phone != ""
 
         if user_form.is_valid() and profile_form.is_valid() and (has_email or has_phone):
-            new_user = user_form.save()
+            new_user = user_form.save(commit=False)
+
+            if has_email:
+                new_user.username = user_email
+            else:
+                new_user.username = user_phone
+
+            new_user.save()
             new_user.profile.phone_number = profile_form.data.get('phone_number')
             new_user.save()
+
             return redirect('accounts:list_users')
+
         # else:
         #     pass  # TODO figure out what actually goes here. im 99% sure an error msg should be passed to template here
 

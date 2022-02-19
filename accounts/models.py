@@ -11,9 +11,9 @@ class Profile(models.Model):
         User,
         on_delete=models.CASCADE,
     )
-    phone_number = models.CharField(max_length=255)
-    address = models.TextField()
-    postal_code = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=255, blank=True)
+    address = models.TextField(blank=True)
+    postal_code = models.CharField(max_length=255, blank=True)
 
 
 class Staff(models.Model):
