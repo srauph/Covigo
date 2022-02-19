@@ -14,11 +14,6 @@
                     <hr class="mb-4">
                     {{ user_form.non_field_errors }}
                     {{ profile_form.non_field_errors }}
-{#                    <div class="p-2 w-full">#}
-{#                        {{ user_form.username.errors }}#}
-{#                        <label>Username:</label>#}
-{#                        {{ user_form.username }}#}
-{#                    </div>#}
                     <div class="p-2 w-full">
                         {{ user_form.email.errors }}
                         <label>Email:</label>
@@ -31,7 +26,7 @@
                     </div>
                     <div class="p-2 w-full">
                         {{ user_form.is_staff.errors }}
-                        <label>Is Staff:</label>
+                        <label>User Type:</label>
                         {{ user_form.is_staff }}
                     </div>
                     <div class="p-2 w-full">
