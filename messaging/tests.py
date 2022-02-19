@@ -43,13 +43,10 @@ class MessagingTests(TestCase):
         self.assertEqual(MessageContent.objects.get(id=3).content, 'Another message reply!!!')
 
     # Check if seen status becomes true when recipient opens message
-    def test_seen(self):
+    def test_seen_recipient(self):
 
         # Get the current logged-in user (self)
         user_1 = User.objects.get(id=1)
-
-        # Get the doctor the current user is having a conversation with
-        doctor_1 = User.objects.get(id=2)
 
         # Get message group
         msg_group_1 = MessageGroup.objects.get(id=1)
@@ -70,3 +67,25 @@ class MessagingTests(TestCase):
         # Check if doctor has seen the new message
         msg_group_1.refresh_from_db()
         self.assertTrue(msg_group_1.seen)
+
+    # Check if seen status is unchanged after sender re-opens the message group after replying
+    def test_seen_sender(self):
+        # Get the current logged-in user (self)
+        user_1 = User.objects.get(id=1)
+
+        # Get message group
+        msg_group_1 = MessageGroup.objects.get(id=1)
+
+        # Send a message to doctor_1
+        MessageContent.objects.create(message=msg_group_1, author=user_1,
+                                      content="My fever is now 150 degrees bruh")
+
+        # Check if doctor has seen the new message
+        self.assertFalse(msg_group_1.seen)
+
+        # Make current user re-open the message group
+        self.client.get('/messaging/view/1/')
+
+        # Check seen status of message
+        msg_group_1.refresh_from_db()
+        self.assertFalse(msg_group_1.seen)
