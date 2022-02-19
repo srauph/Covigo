@@ -518,6 +518,10 @@ Ensure the default browser behavior of the `hidden` attribute.
   pointer-events: none;
 }
 
+.visible {
+  visibility: visible;
+}
+
 .static {
   position: static;
 }
@@ -838,6 +842,10 @@ Ensure the default browser behavior of the `hidden` attribute.
 
 .w-3\/4 {
   width: 75%;
+}
+
+.w-5\/6 {
+  width: 83.333333%;
 }
 
 .max-w-md {
@@ -1290,6 +1298,11 @@ Ensure the default browser behavior of the `hidden` attribute.
 .bg-orange-100 {
   --tw-bg-opacity: 1;
   background-color: rgb(255 237 213 / var(--tw-bg-opacity));
+}
+
+.bg-orange-300 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(253 186 116 / var(--tw-bg-opacity));
 }
 
 .fill-current {
