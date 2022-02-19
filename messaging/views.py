@@ -15,6 +15,7 @@ def index(request):
 @login_required
 @never_cache
 def list_messages(request, user_id=''):
+    #TODO: access control for messages
     current_user = request.user
 
     if user_id == '':
