@@ -102,7 +102,7 @@ def has_recipient_seen_sent_message(current_user_id, message_group_id):
 
 @login_required
 @never_cache
-def compose_message(request):
+def compose_message(request, user_id=''):
 
     initial_data = {
         'recipient': "TEST"
