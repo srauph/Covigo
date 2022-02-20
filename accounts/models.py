@@ -11,9 +11,9 @@ class Profile(models.Model):
         User,
         on_delete=models.CASCADE,
     )
-    phone_number = models.CharField(max_length=255)
-    address = models.TextField()
-    postal_code = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=255, blank=True)
+    address = models.TextField(blank=True)
+    postal_code = models.CharField(max_length=255, blank=True)
 
 
 class Staff(models.Model):
@@ -63,16 +63,15 @@ class Flag(models.Model):
         return f"{self.patient}_{self.staff}"
 
 
-# @receiver(post_save, sender=User)
-# def save_user_profile(sender, instance, **kwargs):
-#     try:
-#         instance.profile.save()
-#     # TODO change Exception with the proper exception name later
-#     except Exception:
-#         print("User has no profile")
-#     if hasattr(instance, 'patient'):
-#         instance.patient.save()
-#     elif hasattr(instance, 'staff'):
-#         instance.staff.save()
-#     else:
-#         raise UserNotPatientNorStaffException
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, created, **kwargs):
+    try:
+        instance.profile.save()
+    except Profile.DoesNotExist:
+        Profile.objects.create(user=instance)
