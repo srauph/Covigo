@@ -14,8 +14,20 @@ def index(request):
 
 @login_required
 @never_cache
-def list_messages(request):
-    return render(request, 'messaging/list_messages.html')
+def list_messages(request, user_id=''):
+    #TODO: access control for messages
+    current_user = request.user
+
+    if user_id == '':
+        filter1 = Q(author_id=current_user.id) | Q(recipient_id=current_user.id)
+    else:
+        filter1 = Q(author_id=user_id) | Q(recipient_id=user_id)
+
+    message_group = MessageGroup.objects.filter(filter1).all()
+
+    return render(request, 'messaging/list_messages.html', {
+        'message_group': message_group,
+    })
 
 
 @login_required
@@ -43,3 +55,13 @@ def view_message(request, message_group_id):
 @never_cache
 def compose_message(request):
     return render(request, 'messaging/compose_message.html')
+
+
+@login_required
+@never_cache
+def toggle_read(request, message_group_id):
+    msg_group = MessageGroup.objects.get(id=message_group_id)
+
+    msg_group.seen = not msg_group.seen
+    msg_group.save()
+    return redirect('messaging:list_messages')
