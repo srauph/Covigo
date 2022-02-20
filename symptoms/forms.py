@@ -1,11 +1,15 @@
 from django import forms
-from symptoms.models import Symptom
+from django.contrib.auth.models import User
+
+from accounts.models import Patient
+from symptoms.models import Symptom, PatientSymptom
 
 
 class CreateSymptomForm(forms.ModelForm):
     class Meta:
         model = Symptom
         fields = ['name', 'description']
+
     name = forms.CharField(
         label='Symptom Name',
         widget=forms.TextInput(attrs={
