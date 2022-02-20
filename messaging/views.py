@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.db.models import Q
 from messaging.models import MessageGroup, MessageContent
-from messaging.forms import ReplyForm
+from messaging.forms import ReplyForm, CreateMessageForm
 
 
 @login_required
@@ -102,8 +102,21 @@ def has_recipient_seen_sent_message(current_user_id, message_group_id):
 
 @login_required
 @never_cache
-def compose_message(request):
-    return render(request, 'messaging/compose_message.html')
+def compose_message(request, user_id=''):
+
+    initial_data = {
+        'recipient': "TEST"
+    }
+
+    if request.method == 'POST':
+        create_message_form = CreateMessageForm(request.POST, initial=initial_data)
+
+    else:
+        create_message_form = CreateMessageForm(initial=initial_data)
+
+    return render(request, 'messaging/compose_message.html', {
+        'form': create_message_form
+    })
 
 
 @login_required
