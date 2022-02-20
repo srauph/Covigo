@@ -20,7 +20,7 @@ class UserForm(ModelForm):
         widgets = {
             "email": TextInput(
                 attrs={
-                    "class": "w-full h-8 px-2 bg-slate-100 rounded-md border border-slate-600"
+                    "class": "w-full h-8 px-2 bg-slate-100 rounded-md border border-slate-400"
                 }
             ),
             "groups": CheckboxSelectMultiple(
@@ -31,7 +31,7 @@ class UserForm(ModelForm):
             "is_staff": Select(
                 choices=STAFF_PATIENT_CHOICES,
                 attrs={
-                    "class": "w-full h-8 px-1 bg-slate-100 rounded-md border border-slate-600"
+                    "class": "w-full h-8 px-1 bg-slate-100 rounded-md border border-slate-400"
                 }
             ),
         }
@@ -63,7 +63,7 @@ class ProfileForm(ModelForm):
         widgets = {
             "phone_number": TextInput(
                 attrs={
-                    "class": "w-full h-8 px-2 bg-slate-100 rounded-md border border-slate-600"
+                    "class": "w-full h-8 px-2 bg-slate-100 rounded-md border border-slate-400"
                 }
             )
         }
