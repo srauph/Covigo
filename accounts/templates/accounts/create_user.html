@@ -18,8 +18,8 @@
                     </div>
                 </div>
 
-                <div class="w-full lg:w-3/4 xl:w-1/2 2xl:w-2/5 px-2 flex flex-col items-start">
-                    <label>Email:</label>
+                <div class="w-full lg:w-2/3 xl:w-1/2 2xl:w-2/5 px-2 flex flex-col items-start">
+                    <label class="mb-1">Email:</label>
                     {{ user_form.email }}
                     <div class="text-red-500 text-sm font-semibold">
                         <div class="absolute">
@@ -28,8 +28,8 @@
                     </div>
                 </div>
 
-                <div class="w-full lg:w-3/4 xl:w-1/2 2xl:w-2/5 px-2 flex flex-col items-start">
-                    <label>Phone Number:</label>
+                <div class="w-full lg:w-2/3 xl:w-1/2 2xl:w-2/5 px-2 flex flex-col items-start">
+                    <label class="mb-1">Phone Number:</label>
                     {{ profile_form.phone_number }}
                     <div class="text-red-500 text-sm font-semibold">
                         <div class="absolute">
@@ -38,18 +38,21 @@
                     </div>
                 </div>
 
-                <div class="w-full lg:w-3/4 xl:w-1/2 2xl:w-2/5 px-2 lex flex-col items-start">
+                <div class="w-full lg:w-2/3 xl:w-1/2 2xl:w-2/5 px-2 lex flex-col items-start">
                     <label>User Type:</label>
-                    {{ user_form.is_staff }}
+                    <div class="mt-1">
+                        {{ user_form.is_staff }}
+                    </div>
                     <div class="text-red-500 text-sm font-semibold">
                         <div class="absolute">
                             {{ user_form.is_staff.errors }}
                         </div>
                     </div>
                 </div>
-                <div class="w-full lg:w-3/4 xl:w-1/2 2xl:w-2/5 px-2 flex flex-col items-start">
-                    <label>Role:</label>
-                    <div class="w-full bg-slate-100 rounded-md border border-slate-600">
+
+                <div class="w-full lg:w-2/3 xl:w-1/2 2xl:w-2/5 px-2 flex flex-col items-start">
+                    <label class="mb-1">Role:</label>
+                    <div class="w-full bg-slate-100 rounded-md border border-slate-400">
                         {{ user_form.groups }}
                     </div>
                     <div class="text-red-500 text-sm font-semibold">
