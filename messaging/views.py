@@ -3,7 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.models import User
 from django.db.models import Q
-from messaging.models import MessageGroup, MessageContent
+from messaging.models import MessageGroup
+from messaging.models import MessageContent
+from messaging.forms import CreateMessageForm
 
 
 @login_required
@@ -15,7 +17,7 @@ def index(request):
 @login_required
 @never_cache
 def list_messages(request, user_id=''):
-    #TODO: access control for messages
+    # TODO: access control for messages
     current_user = request.user
 
     if user_id == '':
@@ -54,7 +56,20 @@ def view_message(request, message_group_id):
 @login_required
 @never_cache
 def compose_message(request):
-    return render(request, 'messaging/compose_message.html')
+
+    initial_data = {
+        'recipient': "TEST"
+    }
+
+    if request.method == 'POST':
+        create_message_form = CreateMessageForm(request.POST, initial=initial_data)
+
+    else:
+        create_message_form = CreateMessageForm(initial=initial_data)
+
+    return render(request, 'messaging/compose_message.html', {
+        'form': create_message_form
+    })
 
 
 @login_required
