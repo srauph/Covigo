@@ -1,7 +1,9 @@
+from django.contrib.auth.models import User
+from django.db.models import Q
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
-from symptoms.models import Symptom
+from symptoms.models import Symptom, PatientSymptom
 from symptoms.forms import CreateSymptomForm
 
 
@@ -73,8 +75,25 @@ def edit_symptom(request, symptom_id):
 
 @login_required
 @never_cache
-def assign_symptom(request):
-    return render(request, 'symptoms/assign_symptom.html')
+def assign_symptom(request, user_id):
+    user = User.objects.get(pk=user_id)
+    data = []
+
+    if request.method == 'POST':
+
+        for symptom_id in request.POST.getlist('symptom'):
+            filter1 = Q(symptom_id=symptom_id) & Q(user_id=user.id)
+            # to not override the existing patient_symptom instance, will make it more robust in next srpints
+            if not PatientSymptom.objects.filter(filter1):
+                patient_symptom = PatientSymptom(symptom_id=symptom_id, user_id=user.id)
+                patient_symptom.save()
+            # TODO: we need to discuss the edit feature and the case when a doctor wants to remove a symptom from a patient.
+        return redirect('accounts:list_users')
+
+    return render(request, 'symptoms/assign_symptom.html', {
+        'symptoms': Symptom.objects.all(),
+        'user': user
+    })
 
 
 @login_required
