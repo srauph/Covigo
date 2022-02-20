@@ -8,20 +8,17 @@
             <div class="bg-white rounded-2xl mt-4">
                 <table class="table-auto w-full mb-4">
                     <tr>
-                        <td><h3 class="text-xl px-4 mx-4 my-2">Patient Name: Light Yagami</h3></td>
-                        <td>
-                            <a href="#">
-                            <button class="bg-green-600 hover:bg-green-200 rounded-xl
-                            text-sm text-white px-3 py-1 float-right mx-4 my-2">Submit</button>
-                            </a>
-                        </td>
+                        <td><h3 class="text-xl px-4 mx-4 my-2">Patient Name: {{ user.first_name}} {{ user.last_name }}</h3></td>
+
                     </tr>
                     </h3>
                 </table>
                 </a>
             </div>
             <div class="bg-white mt-2 rounded-2xl text-center">
-                <table class="table-auto w-full text-center mb-4">
+                <form method="post">
+                {% csrf_token %}
+                    <table class="table-auto w-full text-center mb-4">
                     <thead>
                         <tr class="border-b">
                             <th><h3 class="text-lg p-2 text-center">Checkboxes</h3></th>
@@ -29,17 +26,20 @@
                         </tr>
                     </thead>
                     <tbody>
+                    {% for sym in symptoms %}
                         <tr class="hover:bg-gray-200 border-b">
-                            <td class="p-2"><input type="checkbox"></td>
-                            <td class="w-3/4 p-2">Cough</td>
+                            <td class="p-2"><input type="checkbox" name="symptom" value="{{ sym.id }}"></td>
+                            <td class="w-3/4 p-2">{{ sym.name }}</td>
                         </tr>
-                        <tr class="hover:bg-gray-200 border-b">
-                            <td class="p-2"><input type="checkbox"></td>
-                            <td class="w-3/4 p-2">Fever</td>
-                        </tr>
+                    {% endfor %}
                     </tbody>
                     <tfoot></tfoot>
                 </table>
+                <input type="submit" class="bg-green-600 hover:bg-green-200 rounded-xl
+                            text-sm text-white px-3 py-1 float-right mx-4 my-2" value="submit">
+
+                </form>
+
             </div>
         </div>
     </div>
