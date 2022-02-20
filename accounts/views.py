@@ -3,7 +3,7 @@ from django.contrib.auth.models import User, Group, Permission
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
-from accounts.forms import UserForm, ProfileForm
+from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
 from accounts.utils import get_superuser_staff_model
 
@@ -91,6 +91,50 @@ def create_user(request):
         profile_form = ProfileForm()
 
     return render(request, "accounts/create_user.html", {
+        "user_form": user_form,
+        "profile_form": profile_form
+    })
+
+
+@login_required
+@never_cache
+def edit_user(request, user_id):
+    user = User.objects.get(id=user_id)
+    # Process forms
+    if request.method == "POST":
+        user_form = EditUserForm(request.POST, instance=user, user_id=user_id)
+        profile_form = EditProfileForm(request.POST, instance=user.profile, user_id=user_id)
+
+        user_email = user_form.data.get("email")
+        user_phone = profile_form.data.get("phone_number")
+        user_groups = user_form.data.get("groups")
+        has_email = user_email != ""
+        has_phone = user_phone != ""
+
+        if user_form.is_valid() and profile_form.is_valid() and (has_email or has_phone):
+
+            edited_user = user_form.save(commit=False)
+
+            # TODO: Discuss the possibility of having no group and remove `if` if we enforce having at least one
+            if user_groups:
+                edited_user.groups.set(user_groups)
+
+            edited_user.save()
+            profile_form.save()
+
+            return redirect("accounts:list_users")
+
+        else:
+            if not (has_email or has_phone):
+                user_form.add_error(None, "Please enter an email address or a phone number.")
+            # pass  # TODO figure out what actually goes here. im 99% sure an error msg should be passed to template here
+
+    # Create forms
+    else:
+        user_form = EditUserForm(instance=user, user_id=user_id)
+        profile_form = EditProfileForm(instance=user.profile, user_id=user_id)
+
+    return render(request, "accounts/edit_user.html", {
         "user_form": user_form,
         "profile_form": profile_form
     })
