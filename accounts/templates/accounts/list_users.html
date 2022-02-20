@@ -81,6 +81,13 @@
                                     View All Messages
                                 </button>
                                 </a>
+
+{#                                 this is a temprory button, we will move it user profile once user profile is done :) #}
+                                <a href="{% url 'symptoms:assign_symptom' usr.id %}">
+                                    <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-2 mx-1">
+                                    Assign Symptoms
+                                </button>
+                                </a>
                             </td>
                         </tr>
                     {% endfor %}
