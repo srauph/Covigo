@@ -90,8 +90,7 @@ class EditUserForm(ModelForm):
             "email",
             "first_name",
             "last_name",
-            "groups",
-            "is_staff"
+            "groups"
         ]
         widgets = {
             "username": TextInput(
@@ -118,12 +117,6 @@ class EditUserForm(ModelForm):
             "groups": CheckboxSelectMultiple(
                 attrs={
                     "class": "p-2"
-                }
-            ),
-            "is_staff": Select(
-                choices=STAFF_PATIENT_CHOICES,
-                attrs={
-                    "class": "w-full h-8 px-1 bg-slate-100 rounded-md border border-slate-400"
                 }
             ),
         }
