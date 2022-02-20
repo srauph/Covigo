@@ -8,72 +8,57 @@
         </div>
 
         <div class="flex flex-col justify-between grow m-8 p-4 min-h-full bg-white rounded-lg">
-            <div>
-                <div class="w-full mb-8">
+            <div class="w-full flex flex-col gap-8 mb-8">
+                <div class="w-full">
                     <h2 class="p-2 text-2xl font-bold">Account Information</h2>
-                    <hr class="mb-4">
-                    <div class="text-red-500 font-semibold mb-2">
+                    <hr>
+                    <div class="px-2 absolute text-red-500 text-sm font-semibold">
                         {{ user_form.non_field_errors }}
                         {{ profile_form.non_field_errors }}
                     </div>
+                </div>
 
-                    <table>
-                        <tr>
-                            <td class="py-2 align-top">
-                                <label>Email:</label>
-                            </td>
-                            <td>
-                                <div class="p-2 mb-2 w-full">
-                                    {{ user_form.email }}
-                                    <div class="text-red-500 font-semibold">
-                                        {{ user_form.email.errors }}
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="py-2 align-top">
-                                <label>Phone Number:</label>
-                            </td>
-                            <td>
-                                <div class="p-2 mb-2 w-full">
-                                    {{ profile_form.phone_number }}
-                                    <div class="text-red-500 font-semibold">
-                                        {{ profile_form.phone_number.errors }}
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="py-2 align-top">
-                                <label>User Type:</label>
-                            </td>
-                            <td>
-                                <div class="p-2 mb-2 w-full">
-                                    {{ user_form.is_staff }}
-                                    <div class="text-red-500 font-semibold">
-                                        {{ user_form.is_staff.errors }}
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="py-2 align-top">
-                                <label>Role:</label>
-                            </td>
-                            <td>
-                                <div class="p-2 mb-2 w-full">
-                                    {{ user_form.groups }}
-                                    <div class="text-red-500 font-semibold">
-                                        {{ user_form.groups.errors }}
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
+                <div class="w-full lg:w-3/4 xl:w-1/2 2xl:w-2/5 px-2 flex flex-col items-start">
+                    <label>Email:</label>
+                    {{ user_form.email }}
+                    <div class="text-red-500 text-sm font-semibold">
+                        <div class="absolute">
+                            {{ user_form.email.errors }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full lg:w-3/4 xl:w-1/2 2xl:w-2/5 px-2 flex flex-col items-start">
+                    <label>Phone Number:</label>
+                    {{ profile_form.phone_number }}
+                    <div class="text-red-500 text-sm font-semibold">
+                        <div class="absolute">
+                            {{ profile_form.phone_number.errors }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full lg:w-3/4 xl:w-1/2 2xl:w-2/5 px-2 lex flex-col items-start">
+                    <label>User Type:</label>
+                    {{ user_form.is_staff }}
+                    <div class="text-red-500 text-sm font-semibold">
+                        <div class="absolute">
+                            {{ user_form.is_staff.errors }}
+                        </div>
+                    </div>
+                </div>
+                <div class="w-full lg:w-3/4 xl:w-1/2 2xl:w-2/5 px-2 flex flex-col items-start">
+                    <label>Role:</label>
+                    <div class="w-full bg-slate-100 rounded-md border border-slate-600">
+                        {{ user_form.groups }}
+                    </div>
+                    <div class="text-red-500 text-sm font-semibold">
+                        <div class="absolute">
+                            {{ user_form.groups.errors }}
+                        </div>
+                    </div>
                 </div>
             </div>
-
             <div class="w-full mt-8 md:mt-0">
                 <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
                     {# TODO: Fix broken cancel button. #}
@@ -93,5 +78,7 @@
                 </div>
             </div>
         </div>
+
+
     </form>
 {% endblock %} 
