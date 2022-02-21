@@ -83,7 +83,8 @@
                 <table class="w-full table-auto" id="message_list_table">
                     <thead>
                     <tr class="border-b">
-                        <th class="p-2">ID</th>
+{#                        Do we need ID here? #}
+{#                        <th class="p-2">ID</th>#}
                         <th class="p-2">Priority</th>
                         <th class="p-2">Sender</th>
                         <th class="p-2">Subject</th>
@@ -97,12 +98,14 @@
                     <tbody>
                     {% for msg in message_group %}
                         {% if msg.seen %}
-                            <tr class="hover:bg-gray-200 font-bold border-b" data-read="unread">
+                            <tr class="hover:bg-slate-200 font-semibold border-b" data-read="unread">
                                 {% else %}
-                            <tr class="hover:bg-gray-200 border-b" data-read="read">
+                            <tr class="hover:bg-slate-200 border-b" data-read="read">
                         {% endif %}
-                                <td class="p-2">{{ msg.id }}</td>
+{#                                Do we eed ID here? #}
+{#                                <td class="p-2">{{ msg.id }}</td>#}
                                 <td class="p-2">{% if msg.priority == 0 %} Normal {% else %} Urgent {% endif %}</td>
+{#                                TODO: Fix bug where second column disappears.#}
                                 <td class="p-2">{{ msg.author.username }}</td>
                                 <td class="p-2">{{ msg.title }}</td>
                                 <td class="p-2">{{ msg.date_created }}</td>
