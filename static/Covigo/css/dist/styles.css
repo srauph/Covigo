@@ -1010,6 +1010,10 @@ Ensure the default browser behavior of the `hidden` attribute.
   align-items: center;
 }
 
+.items-baseline {
+  align-items: baseline;
+}
+
 .justify-end {
   justify-content: flex-end;
 }
