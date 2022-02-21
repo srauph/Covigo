@@ -107,7 +107,7 @@ def compose_message(request, user_id):
     recipient_name = f"{recipient_user.first_name} {recipient_user.last_name}"
 
     if request.method == 'POST':
-        msg_group_form = CreateMessageGroupForm(request.POST)
+        msg_group_form = CreateMessageGroupForm(request.POST, recipient=recipient_name)
         msg_content_form = CreateMessageContentForm(request.POST)
 
         if msg_group_form.is_valid() and msg_content_form.is_valid():

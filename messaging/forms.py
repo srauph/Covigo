@@ -18,7 +18,7 @@ class CreateMessageContentForm(forms.ModelForm):
                 'required': True,
                 'rows': 3,
                 'cols': 50,
-                'class': 'w-full bg-slate-100 text-base px-4 py-2 rounded border border-slate-400 align-middle'
+                'class': 'w-full bg-slate-100 text-base px-2 py-1 rounded border border-slate-400 align-middle'
             }
         )
     )
