@@ -1,9 +1,10 @@
+from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.db.models import Q
 from messaging.models import MessageGroup, MessageContent
-from messaging.forms import ReplyForm, CreateMessageForm
+from messaging.forms import ReplyForm, CreateMessageContentForm, CreateMessageGroupForm
 
 
 @login_required
@@ -15,7 +16,7 @@ def index(request):
 @login_required
 @never_cache
 def list_messages(request, user_id=''):
-    #TODO: access control for messages
+    # TODO: access control for messages
     current_user = request.user
 
     if user_id == '':
@@ -54,7 +55,6 @@ def view_message(request, message_group_id):
             message_group.save()
         else:
             recipient_seen = has_recipient_seen_sent_message(current_user.id, message_group.id)
-
 
         # If user sent a reply
         if request.method == 'POST':
@@ -102,20 +102,28 @@ def has_recipient_seen_sent_message(current_user_id, message_group_id):
 
 @login_required
 @never_cache
-def compose_message(request, user_id=''):
-
-    initial_data = {
-        'recipient': "TEST"
-    }
-
+def compose_message(request, user_id):
     if request.method == 'POST':
-        create_message_form = CreateMessageForm(request.POST, initial=initial_data)
+        msg_group_form = CreateMessageGroupForm(request.POST)
+        msg_content_form = CreateMessageContentForm(request.POST)
+
+        if msg_group_form.is_valid() and msg_content_form.is_valid():
+            new_msg_group = msg_group_form.save(commit=False)
+            new_msg_group.author = request.user
+            new_msg_group.recipient = User.objects.get(id=user_id)
+            new_msg_group.save()
+            MessageContent.objects.create(author=new_msg_group.author,
+                                          message=new_msg_group,
+                                          content=msg_content_form.data.get('content'))
+            return redirect("messaging:list_messages", user_id)
 
     else:
-        create_message_form = CreateMessageForm(initial=initial_data)
+        msg_group_form = CreateMessageGroupForm()
+        msg_content_form = CreateMessageContentForm()
 
     return render(request, 'messaging/compose_message.html', {
-        'form': create_message_form
+        'msg_group_form': msg_group_form,
+        'msg_content_form': msg_content_form
     })
 
 
