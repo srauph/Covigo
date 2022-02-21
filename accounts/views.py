@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
-from accounts.utils import get_superuser_staff_model
+from accounts.utils import get_superuser_staff_model, sendMailToUser
 
 
 @login_required
@@ -77,6 +77,12 @@ def create_user(request):
                 # Since Patient *requires* an assigned staff, set it to the superuser for now.
                 # TODO: discuss if we should keep this behaviour for now or make Patient.staff nullable instead.
                 Patient.objects.create(user=new_user, staff=get_superuser_staff_model())
+
+            subject = "Welcome to Covigo!"
+            message = "Love, Shahd - Mo - Amir - Nizar - Shu - Avg - Isaac - Justin - Aseel"
+
+            if has_email:
+                sendMailToUser(new_user, subject, message)
 
             return redirect("accounts:list_users")
 
