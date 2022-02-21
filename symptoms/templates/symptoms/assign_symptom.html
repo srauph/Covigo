@@ -12,10 +12,6 @@
                 <div class="w-full">
                     <h2 class="p-2 text-2xl font-bold">Assign Symptoms to {{ patient_name }}</h2>
                     <hr>
-                    {# <div class="px-2 absolute text-red-500 text-sm font-semibold"> #}
-                    {# {{ msg_group_form.non_field_errors }} #}
-                    {# {{ msg_content_form.non_field_errors }} #}
-                    {# </div>#}
                 </div>
 
                 <div class="w-full max-w-2xl px-2">
@@ -25,18 +21,14 @@
                             <tbody>
                             {% for sym in symptoms %}
                                 <tr class="hover:bg-gray-200">
-                                    <td class="px-2 w-8"><input type="checkbox" name="symptom" value="{{ sym.id }}"></td>
+                                    <td class="px-2 w-8"><input type="checkbox" name="symptom" value="{{ sym.id }}"
+                                            {% if sym in assigned_symptoms %}checked disabled{% endif %} ></td>
                                     <td class="text-left">{{ sym.name }}</td>
                                 </tr>
                             {% endfor %}
                             </tbody>
                         </table>
                     </div>
-                    {# <div class="text-red-500 text-sm font-semibold"> #}
-                    {# <div class="absolute"> #}
-                    {# {{ msg_group_form.priority.errors }} #}
-                    {# </div> #}
-                    {#  </div> #}
                 </div>
             </div>
 
