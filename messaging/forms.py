@@ -52,7 +52,7 @@ class ReplyForm(forms.ModelForm):
     content = forms.CharField(
         required=True,
         widget=forms.Textarea(
-            attrs={'class': "w-full text-base px-4 py-2 rounded border align-middle",
+            attrs={'class': "w-full bg-slate-100 text-base px-4 py-2 rounded border border-slate-400 align-middle",
                    'rows': 3,
                    'cols': 50,
                    'placeholder': "Reply..."})
