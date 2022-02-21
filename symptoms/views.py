@@ -81,21 +81,22 @@ def assign_symptom(request, user_id):
         patient_name = patient
     else:
         patient_name = f"{patient.first_name} {patient.last_name}"
-    data = []
+    assigned_symptoms = patient.symptoms.all()
 
     if request.method == 'POST':
 
         for symptom_id in request.POST.getlist('symptom'):
-            filter1 = Q(symptom_id=symptom_id) & Q(user_id=user.id)
+            filter1 = Q(symptom_id=symptom_id) & Q(user_id=patient.id)
             # to not override the existing patient_symptom instance, will make it more robust in next srpints
             if not PatientSymptom.objects.filter(filter1):
-                patient_symptom = PatientSymptom(symptom_id=symptom_id, user_id=user.id)
+                patient_symptom = PatientSymptom(symptom_id=symptom_id, user_id=patient.id)
                 patient_symptom.save()
             # TODO: we need to discuss the edit feature and the case when a doctor wants to remove a symptom from a patient.
         return redirect('accounts:list_users')
 
     return render(request, 'symptoms/assign_symptom.html', {
         'symptoms': Symptom.objects.all(),
+        'assigned_symptoms': assigned_symptoms,
         'patient': patient,
         'patient_name': patient_name
     })
