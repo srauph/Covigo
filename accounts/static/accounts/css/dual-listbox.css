@@ -37,16 +37,20 @@
 }
 
 .dual-listbox .dual-listbox__button {
-    background-color: blue;
+    background-color: #2563EB;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    margin-top: 0.125rem;
+    margin-bottom: 0.125rem;
     border: 0;
     color: #fff;
-    margin-bottom: 5px;
-    padding: 5px;
-    border-radius: 5px;
+    font-weight: 600;
+    border-radius: 0.375rem;
 }
 
 .dual-listbox .dual-listbox__button:hover {
-    background-color: #ddd
+    background-color: #1E40AF;
 }
 
 .dual-listbox .dual-listbox__title {

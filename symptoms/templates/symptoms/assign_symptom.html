@@ -1,47 +1,65 @@
 {% extends 'Covigo/base.html' %}
 
 {% block content %}
+    <form method="POST" class="min-h-full bg-slate-100 flex flex-col">
+        {% csrf_token %}
+        <div class="bg-slate-700 border-b">
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">Assign Symptoms</h1>
+        </div>
 
-    <div class="min-h-full bg-slate-100">
-        <h1 class="text-5xl p-3 text-center">Assign Symptoms</h1>
-        <div class="w-3/4 mx-auto">
-            <div class="bg-white rounded-2xl mt-4">
-                <table class="table-auto w-full mb-4">
-                    <tr>
-                        <td><h3 class="text-xl px-4 mx-4 my-2">Patient Name: {{ user.first_name}} {{ user.last_name }}</h3></td>
+        <div class="flex flex-col justify-between grow m-8 p-4 min-h-full bg-white shadow rounded-lg">
+            <div class="w-full flex flex-col gap-8 mb-8">
+                <div class="w-full">
+                    <h2 class="p-2 text-2xl font-bold">Assign Symptoms to {{ patient_name }}</h2>
+                    <hr>
+                </div>
 
-                    </tr>
-                    </h3>
-                </table>
-                </a>
+                <div class="w-full max-w-2xl px-2">
+                    <label>Symptoms:</label>
+                    <div class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400">
+                        <table class="table-auto w-full text-center my-2">
+                            <tbody>
+                            {% for sym in symptoms %}
+                                <tr class="hover:bg-gray-200">
+                                    <td class="px-2 w-8"><input type="checkbox" name="symptom" value="{{ sym.id }}"
+                                            {% if sym in assigned_symptoms %}checked disabled{% endif %} ></td>
+                                    <td class="text-left">{{ sym.name }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-            <div class="bg-white mt-2 rounded-2xl text-center">
-                <form method="post">
-                {% csrf_token %}
-                    <table class="table-auto w-full text-center mb-4">
-                    <thead>
-                        <tr class="border-b">
-                            <th><h3 class="text-lg p-2 text-center">Checkboxes</h3></th>
-                            <th><h3 class="text-lg p-2 text-center">Symptoms</h3></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for sym in symptoms %}
-                        <tr class="hover:bg-gray-200 border-b">
-                            <td class="p-2"><input type="checkbox" name="symptom" value="{{ sym.id }}"></td>
-                            <td class="w-3/4 p-2">{{ sym.name }}</td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                    <tfoot></tfoot>
-                </table>
-                <input type="submit" class="bg-green-600 hover:bg-green-200 rounded-xl
-                            text-sm text-white px-3 py-1 float-right mx-4 my-2" value="submit">
 
-                </form>
-
+            <div class="w-full mt-8 md:mt-0">
+                <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
+                    <a href="{% url "accounts:list_users" %}">
+                        <button type="button"
+                                class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                 stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </span>
+                            <span>Cancel</span>
+                        </button>
+                    </a>
+                    <button type="submit"
+                            class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                 stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                            </svg>
+                        </span>
+                        <span>Assign</span>
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
-
+    </form>
 {% endblock %}

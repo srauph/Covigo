@@ -1,40 +1,88 @@
 {% extends 'Covigo/base.html' %}
 
 {% block content %}
-    <div class="min-h-full bg-slate-100">
-        <h1 class="text-5xl p-4 font-semibold text-center">
-            Symptom Creation
-        </h1>
-        <div class="block bg-gray-50 m-4 p-4 rounded">
-            <form action="{% url 'symptoms:create_symptom' %}" method="post" class="text-3xl">
-                {% csrf_token %}
-                <div class="flex flex-wrap justify-evenly px-4 m-4 font-semibold">
-                    <div class="w-full flex flex-wrap items-center px-4 m-4 font-semibold">
-                        <div class="w-full xl:w-1/4">
-                            {{ form.name.label_tag }}
-                        </div>
-                        <div class="w-full xl:w-3/4 text-2xl rounded border">
-                            {{ form.name }}
-                        </div>
-                    </div>
-                    <div class="w-full flex flex-wrap items-center px-4 m-4 font-semibold">
-                        <div class="w-full xl:w-1/3">
-                            {{ form.description.label_tag }}
-                        </div>
-                        <div class="w-full xl:w-2/3 text-2xl rounded border align-middle">
-                           {{ form.description }}
-                        </div>
-                    </div>
-                </div>
-                <div class="flex flex-wrap justify-center">
-                    <div class="w-full xl:w-auto px-4 m-4 text-center">
-                        <input type="submit" value="Submit and return" name="Submit and return" class="px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white text-3xl font-bold"/>
-                    </div>
-                    <div class="w-full xl:w-auto px-4 m-4 text-center">
-                        <input type="submit" value="Submit and duplicate" name="Submit and duplicate" class="px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white text-3xl font-bold"/>
-                    </div>
-                </div>
-            </form>
+    <form method="POST" class="min-h-full bg-slate-100 flex flex-col">
+        {% csrf_token %}
+        <div class="bg-slate-700 border-b">
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">Create Symptom</h1>
         </div>
-    </div>
+
+        <div class="flex flex-col justify-between grow m-8 p-4 min-h-full bg-white shadow rounded-lg">
+            <div class="w-full flex flex-col gap-8 mb-8">
+                <div class="w-full">
+                    <h2 class="p-2 text-2xl font-bold">Symptom Details</h2>
+                    <hr>
+                    <div class="px-2 absolute text-red-500 text-sm font-semibold">
+                        {{ form.non_field_errors }}
+                    </div>
+                </div>
+
+                <div class="w-full max-w-2xl px-2">
+                    <label>Symptom Name:</label>
+                    <div class="mt-1">
+                        {{ form.name }}
+                    </div>
+                    <div class="text-red-500 text-sm font-semibold">
+                        <div class="absolute">
+                            {{ form.name.errors }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full max-w-2xl px-2">
+                    <label>Description:</label>
+                    <div class="mt-1">
+                        {{ form.description }}
+                    </div>
+                    <div class="text-red-500 text-sm font-semibold">
+                        <div class="absolute">
+                            {{ form.description.errors }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full mt-8 md:mt-0">
+                <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
+                    <a href="{% url "symptoms:list_symptoms" %}">
+                        <button type="button"
+                                class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                 stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </span>
+                            <span>Cancel</span>
+                        </button>
+                    </a>
+                    {# TODO: Refactor "Submit and duplicate" name #}
+                    <button type="submit" value="Submit and duplicate" name="Submit and duplicate"
+                            class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                 viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </span>
+                        <span>Create</span>
+                    </button>
+                    {# TODO: Refactor "Submit and return" name #}
+                    <button type="submit" value="Submit and return" name="Submit and return"
+                            class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                 viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </span>
+                        <span>Create and Return</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
 {% endblock %}
