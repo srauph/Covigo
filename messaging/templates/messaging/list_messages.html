@@ -52,7 +52,7 @@
             <h1 class="text-2xl text-white font-semibold px-8 py-4">Messages</h1>
         </div>
 
-        <div class="bg-white m-8 rounded-xl">
+        <div class="bg-white shadow m-8 rounded-xl">
             <div class="w-full flex justify-between items-center p-4">
                 <div>
                     <span class="font-semibold px-2">Filters:</span>
@@ -64,7 +64,7 @@
                 </div>
 
                 <div class="flex gap-2">
-                    <a href="{% url 'messaging:compose_message' %}"">
+                    <a href="{% url 'messaging:compose_message' %}">
                         <button class="bg-green-600 hover:bg-green-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                             <span>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -79,7 +79,7 @@
         </div>
 
         <div class="m-4">
-            <div class="m-4 p-4 bg-white rounded-lg">
+            <div class="m-4 p-4 bg-white shadow rounded-lg">
                 <table class="w-full table-auto" id="message_list_table">
                     <thead>
                     <tr class="border-b">
@@ -98,9 +98,9 @@
                     <tbody>
                     {% for msg in message_group %}
                         {% if msg.seen %}
-                            <tr class="hover:bg-slate-200 font-semibold border-b" data-read="unread">
-                                {% else %}
                             <tr class="hover:bg-slate-200 border-b" data-read="read">
+                        {% else %}
+                            <tr class="hover:bg-slate-200 font-semibold border-b" data-read="unread">
                         {% endif %}
 {#                                Do we eed ID here? #}
 {#                                <td class="p-2">{{ msg.id }}</td>#}
@@ -139,9 +139,9 @@
                                             </span>
                                             <span>
                                                 {% if msg.seen %}
-                                                    Mark Read
-                                                {% else %}
                                                     Mark Unread
+                                                {% else %}
+                                                    Mark Read
                                                 {% endif %}
                                             </span>
                                         </button>
