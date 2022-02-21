@@ -18,7 +18,7 @@
                     </div>
                 </div>
 
-                <div class="w-full lg:w-2/3 xl:w-1/2 2xl:w-2/5 px-2 flex flex-col items-start">
+                <div class="w-full max-w-2xl px-2">
                     <label class="mb-1">Email:</label>
                     {{ user_form.email }}
                     <div class="text-red-500 text-sm font-semibold">
@@ -28,7 +28,7 @@
                     </div>
                 </div>
 
-                <div class="w-full lg:w-2/3 xl:w-1/2 2xl:w-2/5 px-2 flex flex-col items-start">
+                <div class="w-full max-w-2xl px-2">
                     <label class="mb-1">Phone Number:</label>
                     {{ profile_form.phone_number }}
                     <div class="text-red-500 text-sm font-semibold">
@@ -38,7 +38,7 @@
                     </div>
                 </div>
 
-                <div class="w-full lg:w-2/3 xl:w-1/2 2xl:w-2/5 px-2 lex flex-col items-start">
+                <div class="w-full max-w-2xl px-2">
                     <label>User Type:</label>
                     <div class="mt-1">
                         {{ user_form.is_staff }}
@@ -50,7 +50,7 @@
                     </div>
                 </div>
 
-                <div class="w-full lg:w-2/3 xl:w-1/2 2xl:w-2/5 px-2 flex flex-col items-start">
+                <div class="w-full max-w-2xl px-2">
                     <label class="mb-1">Role:</label>
                     <div class="w-full bg-slate-100 rounded-md border border-slate-400">
                         {{ user_form.groups }}
