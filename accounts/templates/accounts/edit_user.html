@@ -19,8 +19,10 @@
                 </div>
 
                 <div class="w-full max-w-2xl px-2">
-                    <label class="mb-1">Username:</label>
-                    {{ user_form.username }}
+                    <label>Username:</label>
+                    <div class="mt-1">
+                        {{ user_form.username }}
+                    </div>
                     <div class="text-red-500 text-sm font-semibold">
                         <div class="absolute">
                             {{ user_form.username.errors }}
@@ -29,8 +31,10 @@
                 </div>
 
                 <div class="w-full max-w-2xl px-2">
-                    <label class="mb-1">Email:</label>
-                    {{ user_form.email }}
+                    <label>Email:</label>
+                    <div class="mt-1">
+                        {{ user_form.email }}
+                    </div>
                     <div class="text-red-500 text-sm font-semibold">
                         <div class="absolute">
                             {{ user_form.email.errors }}
@@ -39,8 +43,10 @@
                 </div>
 
                 <div class="w-full max-w-2xl px-2">
-                    <label class="mb-1">First Name:</label>
-                    {{ user_form.first_name }}
+                    <label>First Name:</label>
+                    <div class="mt-1">
+                        {{ user_form.first_name }}
+                    </div>
                     <div class="text-red-500 text-sm font-semibold">
                         <div class="absolute">
                             {{ user_form.first_name.errors }}
@@ -49,8 +55,10 @@
                 </div>
 
                 <div class="w-full max-w-2xl px-2">
-                    <label class="mb-1">Last Name:</label>
-                    {{ user_form.last_name }}
+                    <label>Last Name:</label>
+                    <div class="mt-1">
+                        {{ user_form.last_name }}
+                    </div>
                     <div class="text-red-500 text-sm font-semibold">
                         <div class="absolute">
                             {{ user_form.last_name.errors }}
@@ -59,8 +67,10 @@
                 </div>
 
                 <div class="w-full max-w-2xl px-2">
-                    <label class="mb-1">Phone Number:</label>
-                    {{ profile_form.phone_number }}
+                    <label>Phone Number:</label>
+                    <div class="mt-1">
+                        {{ profile_form.phone_number }}
+                    </div>
                     <div class="text-red-500 text-sm font-semibold">
                         <div class="absolute">
                             {{ profile_form.phone_number.errors }}
@@ -69,8 +79,10 @@
                 </div>
 
                 <div class="w-full max-w-2xl px-2">
-                    <label class="mb-1">Address:</label>
-                    {{ profile_form.address }}
+                    <label>Address:</label>
+                    <div class="mt-1">
+                        {{ profile_form.address }}
+                    </div>
                     <div class="text-red-500 text-sm font-semibold">
                         <div class="absolute">
                             {{ profile_form.address.errors }}
@@ -79,8 +91,10 @@
                 </div>
 
                 <div class="w-full max-w-2xl px-2">
-                    <label class="mb-1">Postal Code:</label>
-                    {{ profile_form.postal_code }}
+                    <label>Postal Code:</label>
+                    <div class="mt-1">
+                        {{ profile_form.postal_code }}
+                    </div>
                     <div class="text-red-500 text-sm font-semibold">
                         <div class="absolute">
                             {{ profile_form.postal_code.errors }}
@@ -89,8 +103,8 @@
                 </div>
 
                 <div class="w-full max-w-2xl px-2">
-                    <label class="mb-1">Role:</label>
-                    <div class="w-full bg-slate-100 rounded-md border border-slate-400">
+                    <label>Role:</label>
+                    <div class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400">
                         {{ user_form.groups }}
                     </div>
                     <div class="text-red-500 text-sm font-semibold">
