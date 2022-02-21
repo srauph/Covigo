@@ -77,10 +77,12 @@ def create_user(request):
                 # Since Patient *requires* an assigned staff, set it to the superuser for now.
                 # TODO: discuss if we should keep this behaviour for now or make Patient.staff nullable instead.
                 Patient.objects.create(user=new_user, staff=get_superuser_staff_model())
-            message = "This is a test message"
+
+            subject = "Welcome to Covigo!"
+            message = "Love, Shahd - Mo - Amir - Nizar - Shu - Avg - Isaac - Justin - Aseel"
 
             if has_email:
-                sendMailToUser(new_user, message)
+                sendMailToUser(new_user, subject, message)
 
             return redirect("accounts:list_users")
 

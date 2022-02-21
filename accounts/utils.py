@@ -24,4 +24,12 @@ def get_superuser_staff_model():
     except Exception:
         return None
 
-def sendMailToUser(user, message):
+def sendMailToUser(user, subject, message):
+    s = smtplib.SMTP('smtp.gmail.com', 525)
+    s.starttls()
+    email = 'shahdextra@gmail.com'
+    pwd = 'roses12345!%'
+    s.login(email,pwd)
+    s.sendmail(email, user.username, f"Subject: {subject}\n{message}")
+    s.quit()
+    return None
