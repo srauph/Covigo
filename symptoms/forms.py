@@ -11,22 +11,20 @@ class CreateSymptomForm(forms.ModelForm):
         fields = ['name', 'description']
 
     name = forms.CharField(
-        label='Symptom Name',
         widget=forms.TextInput(attrs={
             'placeholder': 'e.g. fever, cough, cold, etc.',
             'required': True,
             'size': 50,
-            'class': 'w-full rounded border px-4 py-2'
+            'class': 'w-full h-8 px-2 bg-slate-100 rounded-md border border-slate-400'
         })
     )
     description = forms.CharField(
-        label='Symptom Description',
         widget=forms.Textarea(attrs={
             'placeholder': 'e.g. individual may lose sense of smell and/or taste, etc.',
             'max_length': 100,
             'required': True,
             'rows': 3,
             'cols': 50,
-            'class': 'w-full px-4 py-2 rounded border align-middle'
+            'class': 'w-full bg-slate-100 text-base px-2 py-1 rounded border border-slate-400 align-middle'
         })
     )
