@@ -16,7 +16,7 @@ def get_superuser_staff_model():
         superuser = User.objects.filter(is_superuser=True).get()
         try:
             return superuser.staff
-        except User.staff.RelatedObjectDoesNotExist:
+        except Staff.DoesNotExist:
             Staff.objects.create(user=superuser)
             return superuser.staff
     # TODO: specify which exception instead of the generic one
