@@ -47,24 +47,34 @@
             <div class="w-full flex justify-between items-center p-4">
                 <div>
                     {# TODO: Filters hould go HERE #}
-                    <span>filters:</span>
+                    <span class="font-semibold">Filters:</span>
                     <select name="" id="toggleRead"
                             class=" bg-slate-300 border border-slate-300 py-1 text-black px-2 rounded-md">
                         <option value="showAll">Show All Roles</option>
                     </select>
                 </div>
-                <a href="{% url 'accounts:create_user' %}">
-                    <button class="bg-green-600 hover:bg-green-800 text-white px-2 py-1 rounded-md flex items-center gap-1">
-                        <span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline" fill="none"
-                                 viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </span>
-                        <span>New Account</span>
-                    </button>
-                </a>
+                <div class="flex gap-2">
+                    <a href="{% url 'accounts:list_group' %}">
+                        <button class="bg-green-600 hover:bg-green-800 text-white px-2 py-1 rounded-md flex items-center gap-1">
+                            <span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                            </span>
+                            <span>List/Edit Roles</span>
+                        </button>
+                    </a>
+                    <a href="{% url 'accounts:create_user' %}">
+                        <button class="bg-green-600 hover:bg-green-800 text-white px-2 py-1 rounded-md flex items-center gap-1">
+                            <span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                </svg>
+                            </span>
+                            <span>New Account</span>
+                        </button>
+                    </a>
+                </div>
             </div>
         </div>
         <div class="m-4 justify-evenly gap-4">
@@ -88,7 +98,7 @@
                             <td class="p-2">{{ usr.groups.all.0 }}</td>
                             <td class="flex justify-end gap-2">
                                 <a href="{% url 'messaging:compose_message' usr.id %}">
-                                    <button class="bg-blue-600 hover:bg-blue-800 text-white px-2 py-1 rounded-md flex items-center gap-1 font-semibold md:font-normal">
+                                    <button class="bg-blue-600 hover:bg-blue-800 text-white px-2 py-1 rounded-md flex items-center gap-1 font-semibold md:font-normal flex items-center gap-1">
                                         <span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
                                                  viewBox="0 0 24 24" stroke="currentColor">
@@ -99,19 +109,21 @@
                                         <span>Message</span>
                                     </button>
                                 </a>
-                                <button class="bg-blue-600 hover:bg-blue-800 text-white px-2 py-1 rounded-md flex items-center gap-1 font-semibold md:font-normal">
-                                        <span>
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                                 viewBox="0 0 24 24" stroke="currentColor">
-                                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                            </svg>
-                                        </span>
-                                    <span>Profile</span>
-                                </button>
-                                {#                                this is a temprory button, we will move it user profile once user profile is done :) #}
+                                {# this is a temprory button, we will move it user profile once user profile is done :) #}
+                                <a href="{% url 'accounts:profile' %}">
+                                    <button class="bg-blue-600 hover:bg-blue-800 text-white px-2 py-1 rounded-md flex items-center gap-1 font-semibold md:font-normal flex items-center gap-1">
+                                            <span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                     viewBox="0 0 24 24" stroke="currentColor">
+                                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                                </svg>
+                                            </span>
+                                        <span>Profile</span>
+                                    </button>
+                                </a>
                                 <a href="{% url 'messaging:list_messages' usr.id %}">
-                                    <button class="bg-blue-600 hover:bg-blue-800 text-white px-2 py-1 rounded-md flex items-center gap-1 font-semibold md:font-normal">
+                                    <button class="bg-blue-600 hover:bg-blue-800 text-white px-2 py-1 rounded-md flex items-center gap-1 font-semibold md:font-normal flex items-center gap-1">
                                         <span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
                                                  viewBox="0 0 24 24" stroke="currentColor">
@@ -124,7 +136,7 @@
                                 </a>
                                 {#                                 this is a temprory button, we will move it user profile once user profile is done :) #}
                                 <a href="{% url 'symptoms:assign_symptom' usr.id %}">
-                                    <button class="bg-blue-600 hover:bg-blue-800 text-white pl-1 pr-2 py-1 rounded-md flex items-center gap-1 font-semibold md:font-normal">
+                                    <button class="bg-blue-600 hover:bg-blue-800 text-white pl-1 pr-2 py-1 rounded-md flex items-center gap-1 font-semibold md:font-normal flex items-center gap-1">
                                         <span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
                                                  viewBox="0 0 24 24" stroke="currentColor">
@@ -136,7 +148,7 @@
                                     </button>
                                 </a>
                                 <a href="{% url 'accounts:edit_user' usr.id %}">
-                                    <button class="bg-blue-600 hover:bg-blue-800 text-white px-2 py-1 rounded-md flex items-center gap-1 font-semibold md:font-normal">
+                                    <button class="bg-blue-600 hover:bg-blue-800 text-white px-2 py-1 rounded-md flex items-center gap-1 font-semibold md:font-normal flex items-center gap-1">
                                         <span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
                                                  viewBox="0 0 24 24" stroke="currentColor">
