@@ -8,6 +8,33 @@
         <!-- MESSAGE GROUP SUBJECT TITLE -->
         <h1 class="text-5xl p-8">Subject: {{ message_group.title }}</h1>
 
+        {% if recipient_seen == False %}
+            <!-- Seen status -->
+            <div class="pl-10">
+                <p class="text-sm text-gray-600 flex items-center float-left px-2">
+                    <svg class="h-4 w-4 text-gray-500 pr-1" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Recipient has not read the latest message(s)
+                </p>
+            </div>
+        {% endif %}
+
+        {% if recipient_seen == True %}
+            <!-- Seen status -->
+            <div class="pl-10">
+                <p class="text-sm text-gray-600 flex items-center float-left px-2">
+                    <svg class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clip-rule="evenodd"/>
+                    </svg>
+                    Recipient has read the latest message(s)
+                </p>
+            </div>
+        {% endif %}
 
         <!-- Card that contains the messages. These cards will be generated dynamically -->
         <div class="p-8 block">
@@ -23,7 +50,7 @@
                             <div class="w-3/12">
                                 <div class="font-bold text-lg mb-2">{{ message.author.first_name }} {{ message.author.last_name }}</div>
                                 <!-- Date -->
-                                <p class="text-sm text-gray-600 flex items-center pb-1">
+                                <p class="text-sm text-gray-600 items-center pb-1">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="pr-1 h-5 w-5 float-left"
                                          viewBox="0 0 20 20"
                                          fill="currentColor">
@@ -32,7 +59,7 @@
                                               clip-rule="evenodd"/>
                                         <title>Date sent</title>
                                     </svg>
-                                    {{ message.date_created|date:"SHORT_DATE_FORMAT"}}
+                                    {{ message.date_created|date:"SHORT_DATE_FORMAT" }}
                                 </p>
                                 <!-- Time -->
                                 <p class="text-sm text-gray-600 flex items-center pb-1">
@@ -43,22 +70,13 @@
                                               clip-rule="evenodd"/>
                                         <title>Time</title>
                                     </svg>
-                                    {{ message.date_created|time:"H:i"}}
+                                    {{ message.date_created|time:"H:i" }}
                                 </p>
                             </div>
 
                             <!-- message content -->
-                            <div class="w-auto">
-                                <p>{{ message.content }}</p>
-                                <!-- Seen status -->
-                                <p class="text-sm text-gray-600 flex items-center float-right px-2">
-                                    <svg class="h-4 w-4 text-gray-500 pr-1" fill="none" viewBox="0 0 24 24"
-                                         stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    Delivered
-                                </p>
+                            <div class="w-9/12">
+                                <p class="text-left">{{ message.content }}</p>
                             </div>
                         </div>
                     </div>
@@ -69,7 +87,7 @@
 
                             <!-- message info (name, date, time) -->
                             <div class="w-3/12">
-                                <div class="font-bold text-lg mb-2">{{ message.author.first_name }} {{  message.author.last_name }} </div>
+                                <div class="font-bold text-lg mb-2">{{ message.author.first_name }} {{ message.author.last_name }} </div>
                                 <!-- Date -->
                                 <p class="text-sm text-gray-600 flex items-center pb-1">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="pr-1 h-5 w-5 float-left"
@@ -80,7 +98,7 @@
                                               clip-rule="evenodd"/>
                                         <title>Date sent</title>
                                     </svg>
-                                    {{ message.date_created|date:"SHORT_DATE_FORMAT"}}
+                                    {{ message.date_created|date:"SHORT_DATE_FORMAT" }}
                                 </p>
                                 <!-- Time -->
                                 <p class="text-sm text-gray-600 flex items-center pb-1">
@@ -91,22 +109,13 @@
                                               clip-rule="evenodd"/>
                                         <title>Time</title>
                                     </svg>
-                                    {{ message.date_created|time:"H:i"}}
+                                    {{ message.date_created|time:"H:i" }}
                                 </p>
                             </div>
 
                             <!-- message content -->
-                            <div>
-                                <p>{{ message.content }}</p>
-                                <!-- Seen status -->
-                                <p class="text-sm text-gray-600 flex items-center float-right px-2">
-                                    <svg class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd"
-                                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                              clip-rule="evenodd"/>
-                                    </svg>
-                                    Seen
-                                </p>
+                            <div class="w-9/12">
+                                <p class="text-left">{{ message.content }}</p>
                             </div>
                         </div>
                     </div>
@@ -124,22 +133,23 @@
 
 
             <!-- Input text box -->
-            <div class="shadow w-full bg-gray-50 p-4 m-2 rounded-2xl border-b flex items-center">
+            <form action="{% url 'messaging:view_message' message_group.id %}" method="post">
+                {% csrf_token %}
+                <div class="shadow w-full bg-gray-50 p-4 m-2 rounded-2xl border-b flex items-center">
 
-                <div class="w-full">
-                <textarea id="symptom description" name="symptom description"
-                          placeholder="Reply..." required="true"
-                          rows="3" cols="50" class="w-full text-base px-4 py-2 rounded border align-middle"></textarea>
-                </div>
-                <div class="flex flex-wrap justify-center float-right">
-                    <div class="w-full xl:w-auto m-4 text-center ">
-                        <button type="submit" value="Submit"
-                                class="px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white text-base font-bold">
-                            Reply
-                        </button>
+                    <div class="w-full">
+                        {{ form.content }}
+                    </div>
+                    <div class="flex flex-wrap justify-center float-right">
+                        <div class="w-full xl:w-auto m-4 text-center ">
+                            <button type="submit" value="Submit"
+                                    class="px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white text-base font-bold">
+                                Reply
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </form>
 
 
         </div>
