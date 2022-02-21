@@ -118,7 +118,7 @@ def compose_message(request, user_id):
             MessageContent.objects.create(author=new_msg_group.author,
                                           message=new_msg_group,
                                           content=msg_content_form.data.get('content'))
-            return redirect("messaging:list_messages", user_id)
+            return redirect("messaging:list_messages", request.user.id)
 
     else:
         msg_group_form = CreateMessageGroupForm(recipient=recipient_name)
