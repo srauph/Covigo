@@ -104,7 +104,10 @@ def has_recipient_seen_sent_message(current_user_id, message_group_id):
 @never_cache
 def compose_message(request, user_id):
     recipient_user = User.objects.get(id=user_id)
-    recipient_name = f"{recipient_user.first_name} {recipient_user.last_name}"
+    if recipient_user.first_name == "" and recipient_user.last_name == "":
+        recipient_name = recipient_user
+    else:
+        recipient_name = f"{recipient_user.first_name} {recipient_user.last_name}"
 
     if request.method == 'POST':
         msg_group_form = CreateMessageGroupForm(request.POST, recipient=recipient_name)

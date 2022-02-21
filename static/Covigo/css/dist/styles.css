@@ -861,6 +861,20 @@ Ensure the default browser behavior of the `hidden` attribute.
   width: 75%;
 }
 
+.w-min {
+  width: -webkit-min-content;
+  width: -moz-min-content;
+  width: min-content;
+}
+
+.w-1\/12 {
+  width: 8.333333%;
+}
+
+.w-8 {
+  width: 2rem;
+}
+
 .max-w-md {
   max-width: 28rem;
 }
