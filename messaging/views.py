@@ -103,6 +103,9 @@ def has_recipient_seen_sent_message(current_user_id, message_group_id):
 @login_required
 @never_cache
 def compose_message(request, user_id):
+    recipient_user = User.objects.get(id=user_id)
+    recipient_name = f"{recipient_user.first_name} {recipient_user.last_name}"
+
     if request.method == 'POST':
         msg_group_form = CreateMessageGroupForm(request.POST)
         msg_content_form = CreateMessageContentForm(request.POST)
@@ -110,7 +113,7 @@ def compose_message(request, user_id):
         if msg_group_form.is_valid() and msg_content_form.is_valid():
             new_msg_group = msg_group_form.save(commit=False)
             new_msg_group.author = request.user
-            new_msg_group.recipient = User.objects.get(id=user_id)
+            new_msg_group.recipient = recipient_user
             new_msg_group.save()
             MessageContent.objects.create(author=new_msg_group.author,
                                           message=new_msg_group,
@@ -118,7 +121,7 @@ def compose_message(request, user_id):
             return redirect("messaging:list_messages", user_id)
 
     else:
-        msg_group_form = CreateMessageGroupForm()
+        msg_group_form = CreateMessageGroupForm(recipient=recipient_name)
         msg_content_form = CreateMessageContentForm()
 
     return render(request, 'messaging/compose_message.html', {
