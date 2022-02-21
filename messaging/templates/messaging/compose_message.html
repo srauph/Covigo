@@ -10,17 +10,12 @@
         <div class="flex flex-col justify-between grow m-8 p-4 min-h-full bg-white shadow rounded-lg">
             <div class="w-full flex flex-col gap-8 mb-8">
                 <div class="w-full">
-                    <h2 class="p-2 text-2xl font-bold">Message Details</h2>
+                    <h2 class="p-2 text-2xl font-bold">Send Message to {{ msg_group_form.recipient }}</h2>
                     <hr>
                     <div class="px-2 absolute text-red-500 text-sm font-semibold">
                         {{ msg_group_form.non_field_errors }}
                         {{ msg_content_form.non_field_errors }}
                     </div>
-                </div>
-
-                <div class="w-full max-w-2xl px-2">
-                    <label>Recipient:</label>
-                    <h3 class="text-xl font-semibold">{{ msg_group_form.recipient }}</h3>
                 </div>
 
                 <div class="w-full max-w-2xl px-2">

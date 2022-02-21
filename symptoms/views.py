@@ -76,7 +76,11 @@ def edit_symptom(request, symptom_id):
 @login_required
 @never_cache
 def assign_symptom(request, user_id):
-    user = User.objects.get(pk=user_id)
+    patient = User.objects.get(pk=user_id)
+    if patient.first_name == "" and patient.last_name == "":
+        patient_name = patient
+    else:
+        patient_name = f"{patient.first_name} {patient.last_name}"
     data = []
 
     if request.method == 'POST':
@@ -92,7 +96,8 @@ def assign_symptom(request, user_id):
 
     return render(request, 'symptoms/assign_symptom.html', {
         'symptoms': Symptom.objects.all(),
-        'user': user
+        'patient': patient,
+        'patient_name': patient_name
     })
 
 
