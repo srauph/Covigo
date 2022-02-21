@@ -1,4 +1,6 @@
-from accounts.models import Flag
+from accounts.models import Flag, Staff
+from django.contrib.auth.models import User
+import smtplib
 
 
 # Returns the flag assigned to a patient_user by a staff_user
@@ -8,3 +10,18 @@ def get_flag(staff_user, patient_user):
         return flag
     except Flag.DoesNotExist:
         return None
+
+
+def get_superuser_staff_model():
+    try:
+        superuser = User.objects.filter(is_superuser=True).get()
+        try:
+            return superuser.staff
+        except Staff.DoesNotExist:
+            Staff.objects.create(user=superuser)
+            return superuser.staff
+    # TODO: specify which exception instead of the generic one
+    except Exception:
+        return None
+
+def sendMailToUser(user, message):

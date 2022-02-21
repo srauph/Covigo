@@ -53,7 +53,8 @@
             <div class="w-5/6">
                 <div class="w-full bg-gray-50 p-4 m-4 rounded-2xl">
 
-                    <form action="" class="flex justify-between">
+
+                    <div class="flex justify-between">
                         <div>
                             <span>filters:</span>
                             <select name="" id="toggleRead" class=" bg-neutral-300 py-2 text-black  px-2 rounded-xl">
@@ -62,17 +63,7 @@
                                 <option value="read">Show Read Messages</option>
                             </select>
                         </div>
-                        <a href="{% url 'messaging:compose_message' %}" class="block">
-                            <button class="bg-green-600 text-white px-4 py-1 rounded-xl ">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline" fill="none"
-                                     viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                New Message
-                            </button>
-                        </a>
-                    </form>
+                    </div>
                 </div>
                 <div class="w-full bg-gray-50 p-4 m-4 rounded-2xl">
                     <table class="table-auto w-full text-left" id="message_list_table">
