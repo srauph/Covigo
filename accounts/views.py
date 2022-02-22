@@ -1,6 +1,6 @@
-from django.contrib.auth.models import User, Group, Permission
+from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.tokens import default_token_generator
-from django.db.models import Q
+from django.core.exceptions import MultipleObjectsReturned
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
@@ -25,24 +25,25 @@ def forgot_password(request):
         password_reset_form = PasswordResetForm(request.POST)
         if password_reset_form.is_valid():
             data = password_reset_form.cleaned_data['email']
-            associated_users = User.objects.filter(Q(email=data))
-            if associated_users.exists():
-                for user in associated_users:
-                    subject = "Password Reset Requested"
-                    email_template_name = "accounts/authentication/reset_password_email.txt"
-                    c = {
-                        "email": user.email,
-                        'domain': '127.0.0.1:8000',
-                        'site_name': 'Website',
-                        "uid": urlsafe_base64_encode(force_bytes(user.pk)),
-                        "user": user,
-                        'token': default_token_generator.make_token(user),
-                        'protocol': 'http',
-                    }
-                    email = render_to_string(email_template_name, c)
-                    send_email_to_user(user, subject, email)
-                    return redirect("accounts:forgot_password_done")
-            else:
+            try:
+                associated_user = User.objects.get(email=data)
+                subject = "Password Reset Requested"
+                email_template_name = "accounts/authentication/reset_password_email.txt"
+                c = {
+                    "email": associated_user.email,
+                    'domain': '127.0.0.1:8000',
+                    'site_name': 'Website',
+                    "uid": urlsafe_base64_encode(force_bytes(associated_user.pk)),
+                    "user": associated_user,
+                    'token': default_token_generator.make_token(associated_user),
+                    'protocol': 'http',
+                }
+                email = render_to_string(email_template_name, c)
+                send_email_to_user(associated_user, subject, email)
+                return redirect("accounts:forgot_password_done")
+            except MultipleObjectsReturned:
+                password_reset_form.add_error(None, "More than one user with the given email address could be found. Please contact the system administrators to fix this issue.")
+            except User.DoesNotExist:
                 password_reset_form.add_error(None, "No user with the given email address could be found.")
         else:
             password_reset_form.add_error(None, "Please enter a valid email address or phone number.")
