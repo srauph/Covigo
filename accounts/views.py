@@ -10,7 +10,7 @@ from django.views.decorators.cache import never_cache
 from django.contrib.auth.forms import PasswordResetForm
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
-from accounts.utils import get_superuser_staff_model, sendMailToUser
+from accounts.utils import get_superuser_staff_model, send_email_to_user
 
 
 @login_required
@@ -59,7 +59,7 @@ def two_factor_authentication(request):
 #     return redirect(auth_views.PasswordResetCompleteView.as_view())
 
 @never_cache
-def reset_password_request(request):
+def forgot_password(request):
     if request.method == "POST":
         password_reset_form = PasswordResetForm(request.POST)
         if password_reset_form.is_valid():
@@ -80,10 +80,10 @@ def reset_password_request(request):
                         'protocol': 'http',
                     }
                     email = render_to_string(email_template_name, c)
-                    sendMailToUser(user, subject, email)
+                    send_email_to_user(user, subject, email)
                     return redirect("accounts:forgot_password_done")
     password_reset_form = PasswordResetForm()
-    return render(request=request, template_name="accounts/authentication/forgot_password.html", context={"password_reset_form": password_reset_form})
+    return render(request=request, template_name="accounts/authentication/forgot_password.html", context={"form": password_reset_form})
 
 
 @login_required
@@ -144,7 +144,7 @@ def create_user(request):
             message = "Love, Shahd - Mo - Amir - Nizar - Shu - Avg - Isaac - Justin - Aseel"
 
             if has_email:
-                sendMailToUser(new_user, subject, message)
+                send_email_to_user(new_user, subject, message)
 
             return redirect("accounts:list_users")
 

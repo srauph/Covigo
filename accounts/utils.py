@@ -25,7 +25,7 @@ def get_superuser_staff_model():
         return None
 
 
-def sendMailToUser(user, subject, message):
+def send_email_to_user(user, subject, message):
     s = smtplib.SMTP('smtp.gmail.com', 587)
     s.starttls()
     email = 'shahdextra@gmail.com'
@@ -33,4 +33,3 @@ def sendMailToUser(user, subject, message):
     s.login(email,pwd)
     s.sendmail(email, user.email, f"Subject: {subject}\n{message}")
     s.quit()
-    return None
