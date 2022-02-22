@@ -36,7 +36,7 @@ def two_factor_authentication(request):
 #
 # @never_cache
 # def forgot_password_done(request):
-#     return redirect(auth_views.PasswordResetDoneView.as_view())
+#     return render(request, 'accounts/authentication/forgot_password_done.html')
 #
 #
 # @never_cache
@@ -64,7 +64,6 @@ def forgot_password(request):
         password_reset_form = PasswordResetForm(request.POST)
         if password_reset_form.is_valid():
             data = password_reset_form.cleaned_data['email']
-            print(data)
             associated_users = User.objects.filter(Q(email=data))
             if associated_users.exists():
                 for user in associated_users:
@@ -82,7 +81,12 @@ def forgot_password(request):
                     email = render_to_string(email_template_name, c)
                     send_email_to_user(user, subject, email)
                     return redirect("accounts:forgot_password_done")
-    password_reset_form = PasswordResetForm()
+            else:
+                password_reset_form.add_error(None, "No user with the given email address could be found.")
+        else:
+            password_reset_form.add_error(None, "Please enter a valid email address or phone number.")
+    else:
+        password_reset_form = PasswordResetForm()
     return render(request=request, template_name="accounts/authentication/forgot_password.html", context={"form": password_reset_form})
 
 
@@ -151,8 +155,6 @@ def create_user(request):
         else:
             if not (has_email or has_phone):
                 user_form.add_error(None, "Please enter an email address or a phone number.")
-            # pass  # TODO figure out what actually goes here. im 99% sure an error msg should be passed to template here
-
     # Create forms
     else:
         user_form = UserForm()
@@ -195,7 +197,6 @@ def edit_user(request, user_id):
         else:
             if not (has_email or has_phone):
                 user_form.add_error(None, "Please enter an email address or a phone number.")
-            # pass  # TODO figure out what actually goes here. im 99% sure an error msg should be passed to template here
 
     # Create forms
     else:
