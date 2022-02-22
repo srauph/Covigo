@@ -1,11 +1,12 @@
-from django import forms
-from django.contrib.auth.models import User, Group, Permission
+from django.contrib.auth.models import Group, Permission
+from django.core.exceptions import MultipleObjectsReturned
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
+from django.contrib.auth.forms import PasswordResetForm
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
-from accounts.utils import get_superuser_staff_model, sendMailToUser
+from accounts.utils import get_superuser_staff_model, send_email_to_user, reset_password_email_generator
 
 
 @login_required
@@ -16,12 +17,25 @@ def two_factor_authentication(request):
 
 @never_cache
 def forgot_password(request):
-    return render(request, 'accounts/authentication/forgotpassword.html')
-
-
-@never_cache
-def reset_password(request):
-    return render(request, 'accounts/authentication/resetpassword.html')
+    if request.method == "POST":
+        password_reset_form = PasswordResetForm(request.POST)
+        if password_reset_form.is_valid():
+            data = password_reset_form.cleaned_data['email']
+            try:
+                user = User.objects.get(email=data)
+                subject = "Password Reset Requested"
+                template = "accounts/authentication/reset_password_email.txt"
+                reset_password_email_generator(user, subject, template)
+                return redirect("accounts:forgot_password_done")
+            except MultipleObjectsReturned:
+                password_reset_form.add_error(None, "More than one user with the given email address could be found. Please contact the system administrators to fix this issue.")
+            except User.DoesNotExist:
+                password_reset_form.add_error(None, "No user with the given email address could be found.")
+        else:
+            password_reset_form.add_error(None, "Please enter a valid email address or phone number.")
+    else:
+        password_reset_form = PasswordResetForm()
+    return render(request=request, template_name="accounts/authentication/forgot_password.html", context={"form": password_reset_form})
 
 
 @login_required
@@ -82,15 +96,13 @@ def create_user(request):
             message = "Love, Shahd - Mo - Amir - Nizar - Shu - Avg - Isaac - Justin - Aseel"
 
             if has_email:
-                sendMailToUser(new_user, subject, message)
+                send_email_to_user(new_user, subject, message)
 
             return redirect("accounts:list_users")
 
         else:
             if not (has_email or has_phone):
                 user_form.add_error(None, "Please enter an email address or a phone number.")
-            # pass  # TODO figure out what actually goes here. im 99% sure an error msg should be passed to template here
-
     # Create forms
     else:
         user_form = UserForm()
@@ -133,7 +145,6 @@ def edit_user(request, user_id):
         else:
             if not (has_email or has_phone):
                 user_form.add_error(None, "Please enter an email address or a phone number.")
-            # pass  # TODO figure out what actually goes here. im 99% sure an error msg should be passed to template here
 
     # Create forms
     else:
