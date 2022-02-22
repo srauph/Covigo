@@ -1,8 +1,13 @@
-from django import forms
 from django.contrib.auth.models import User, Group, Permission
+from django.contrib.auth.tokens import default_token_generator
+from django.db.models import Q
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.template.loader import render_to_string
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from django.views.decorators.cache import never_cache
+from django.contrib.auth.forms import PasswordResetForm
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
 from accounts.utils import get_superuser_staff_model, sendMailToUser
@@ -14,14 +19,70 @@ def two_factor_authentication(request):
     return render(request, 'accounts/authentication/2FA.html')
 
 
-@never_cache
-def forgot_password(request):
-    return render(request, 'accounts/authentication/forgotpassword.html')
+# @never_cache
+# def login(request):
+#     return auth_views.LoginView.as_view(template_name='accounts/authentication/login.html')
+#
+#
+# @never_cache
+# def logout(request):
+#     return auth_views.LogoutView.as_view()
+#
+#
+# @never_cache
+# def forgot_password(request):
+#     return redirect(auth_views.PasswordResetView.as_view(template_name='accounts/authentication/forgot_password.html'))
+#
+#
+# @never_cache
+# def forgot_password_done(request):
+#     return redirect(auth_views.PasswordResetDoneView.as_view())
+#
+#
+# @never_cache
+# def change_password(request):
+#     return redirect(auth_views.PasswordChangeView.as_view(template_name='accounts/authentication/reset_password.html'))
+#
+#
+# @never_cache
+# def change_password_done(request):
+#     return redirect(auth_views.PasswordChangeDoneView.as_view())
+#
+#
+# @never_cache
+# def reset_password(request):
+#     return redirect(auth_views.PasswordResetConfirmView.as_view(template_name='accounts/authentication/reset_password.html'))
+#
+#
+# @never_cache
+# def reset_password_done(request):
+#     return redirect(auth_views.PasswordResetCompleteView.as_view())
 
-
 @never_cache
-def reset_password(request):
-    return render(request, 'accounts/authentication/resetpassword.html')
+def reset_password_request(request):
+    if request.method == "POST":
+        password_reset_form = PasswordResetForm(request.POST)
+        if password_reset_form.is_valid():
+            data = password_reset_form.cleaned_data['email']
+            associated_users = User.objects.filter(Q(email=data))
+            if associated_users.exists():
+                for user in associated_users:
+                    subject = "Password Reset Requested"
+                    email_template_name = "main/password/password_reset_email.txt"
+                    c = {
+                        "email": user.email,
+                        'domain': '127.0.0.1:8000',
+                        'site_name': 'Website',
+                        "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+                        "user": user,
+                        'token': default_token_generator.make_token(user),
+                        'protocol': 'http',
+                    }
+                    email = render_to_string(email_template_name, c)
+                    sendMailToUser(user, subject, email)
+                    return redirect("/password_reset/done/")
+    password_reset_form = PasswordResetForm()
+    return render(request=request, template_name="main/password/password_reset.html", context={"password_reset_form": password_reset_form})
 
 
 @login_required
