@@ -1,3 +1,8 @@
+from django.contrib.auth.tokens import default_token_generator
+from django.template.loader import render_to_string
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+
 from accounts.models import Flag, Staff
 from django.contrib.auth.models import User
 import smtplib
@@ -24,12 +29,26 @@ def get_superuser_staff_model():
     except Exception:
         return None
 
-def sendMailToUser(user, subject, message):
+
+def reset_password_email_generator(user, subject, template):
+    c = {
+        "email": user.email,
+        'domain': '127.0.0.1:8000',
+        'site_name': 'Website',
+        "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+        "user": user,
+        'token': default_token_generator.make_token(user),
+        'protocol': 'http',
+    }
+    email = render_to_string(template, c)
+    send_email_to_user(user, subject, email)
+
+
+def send_email_to_user(user, subject, message):
     s = smtplib.SMTP('smtp.gmail.com', 587)
     s.starttls()
     email = 'shahdextra@gmail.com'
     pwd = 'roses12345!%'
     s.login(email,pwd)
-    s.sendmail(email, user.username, f"Subject: {subject}\n{message}")
+    s.sendmail(email, user.email, f"Subject: {subject}\n{message}")
     s.quit()
-    return None
