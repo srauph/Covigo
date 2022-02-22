@@ -1,16 +1,12 @@
 from django.contrib.auth.models import Group, Permission
-from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import MultipleObjectsReturned
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.template.loader import render_to_string
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.forms import PasswordResetForm
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
-from accounts.utils import get_superuser_staff_model, send_email_to_user
+from accounts.utils import get_superuser_staff_model, send_email_to_user, reset_password_email_generator
 
 
 @login_required
@@ -26,20 +22,10 @@ def forgot_password(request):
         if password_reset_form.is_valid():
             data = password_reset_form.cleaned_data['email']
             try:
-                associated_user = User.objects.get(email=data)
+                user = User.objects.get(email=data)
                 subject = "Password Reset Requested"
-                email_template_name = "accounts/authentication/reset_password_email.txt"
-                c = {
-                    "email": associated_user.email,
-                    'domain': '127.0.0.1:8000',
-                    'site_name': 'Website',
-                    "uid": urlsafe_base64_encode(force_bytes(associated_user.pk)),
-                    "user": associated_user,
-                    'token': default_token_generator.make_token(associated_user),
-                    'protocol': 'http',
-                }
-                email = render_to_string(email_template_name, c)
-                send_email_to_user(associated_user, subject, email)
+                template = "accounts/authentication/reset_password_email.txt"
+                reset_password_email_generator(user, subject, template)
                 return redirect("accounts:forgot_password_done")
             except MultipleObjectsReturned:
                 password_reset_form.add_error(None, "More than one user with the given email address could be found. Please contact the system administrators to fix this issue.")
