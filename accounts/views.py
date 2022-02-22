@@ -64,11 +64,12 @@ def reset_password_request(request):
         password_reset_form = PasswordResetForm(request.POST)
         if password_reset_form.is_valid():
             data = password_reset_form.cleaned_data['email']
+            print(data)
             associated_users = User.objects.filter(Q(email=data))
             if associated_users.exists():
                 for user in associated_users:
                     subject = "Password Reset Requested"
-                    email_template_name = "main/password/password_reset_email.txt"
+                    email_template_name = "accounts/authentication/reset_password_email.txt"
                     c = {
                         "email": user.email,
                         'domain': '127.0.0.1:8000',
@@ -80,9 +81,9 @@ def reset_password_request(request):
                     }
                     email = render_to_string(email_template_name, c)
                     sendMailToUser(user, subject, email)
-                    return redirect("/password_reset/done/")
+                    return redirect("accounts:forgot_password_done")
     password_reset_form = PasswordResetForm()
-    return render(request=request, template_name="main/password/password_reset.html", context={"password_reset_form": password_reset_form})
+    return render(request=request, template_name="accounts/authentication/forgot_password.html", context={"password_reset_form": password_reset_form})
 
 
 @login_required
