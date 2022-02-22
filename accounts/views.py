@@ -19,45 +19,6 @@ def two_factor_authentication(request):
     return render(request, 'accounts/authentication/2FA.html')
 
 
-# @never_cache
-# def login(request):
-#     return auth_views.LoginView.as_view(template_name='accounts/authentication/login.html')
-#
-#
-# @never_cache
-# def logout(request):
-#     return auth_views.LogoutView.as_view()
-#
-#
-# @never_cache
-# def forgot_password(request):
-#     return redirect(auth_views.PasswordResetView.as_view(template_name='accounts/authentication/forgot_password.html'))
-#
-#
-# @never_cache
-# def forgot_password_done(request):
-#     return render(request, 'accounts/authentication/forgot_password_done.html')
-#
-#
-# @never_cache
-# def change_password(request):
-#     return redirect(auth_views.PasswordChangeView.as_view(template_name='accounts/authentication/reset_password.html'))
-#
-#
-# @never_cache
-# def change_password_done(request):
-#     return redirect(auth_views.PasswordChangeDoneView.as_view())
-#
-#
-# @never_cache
-# def reset_password(request):
-#     return redirect(auth_views.PasswordResetConfirmView.as_view(template_name='accounts/authentication/reset_password.html'))
-#
-#
-# @never_cache
-# def reset_password_done(request):
-#     return redirect(auth_views.PasswordResetCompleteView.as_view())
-
 @never_cache
 def forgot_password(request):
     if request.method == "POST":
