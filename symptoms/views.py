@@ -26,15 +26,19 @@ def create_symptom(request):
         create_symptom_form = CreateSymptomForm(request.POST)
 
         if create_symptom_form.is_valid():
-            create_symptom_form.save()
+            if not Symptom.objects.filter(name=create_symptom_form.data.get('name')).exists():
+                create_symptom_form.save()
 
-            if request.POST.get('Submit and return'):
-                return redirect('symptoms:list_symptoms')
+                if request.POST.get('Submit and return'):
+                    return redirect('symptoms:list_symptoms')
+
+                else:
+                    return render(request, 'symptoms/create_symptom.html', {
+                        'form': create_symptom_form
+                    })
 
             else:
-                return render(request, 'symptoms/create_symptom.html', {
-                    'form': create_symptom_form
-                })
+                create_symptom_form.add_error('name', "This symptom name already exists for a given symptom.")
 
     else:
         create_symptom_form = CreateSymptomForm()
