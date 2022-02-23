@@ -39,11 +39,47 @@
 
 {% block content %}
     <div class="min-h-full bg-slate-100">
-        <h1 class="text-5xl p-4">Accounts List</h1>
+        <div class="flex justify-between bg-slate-700">
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">Accounts</h1>
+        </div>
+
+        <div class="bg-white shadow m-8 rounded-xl">
+            <div class="w-full flex justify-between items-center p-4">
+                <div>
+                    {# TODO: Filters hould go HERE #}
+                    <span class="font-semibold px-2">Filters:</span>
+                    <select name="" id="toggleRead"
+                            class=" bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md">
+                        <option value="showAll">Show All Roles</option>
+                    </select>
+                </div>
+                <div class="flex gap-2">
+                    <a href="{% url 'accounts:list_group' %}">
+                        <button class="bg-green-600 hover:bg-green-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                            <span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                            </span>
+                            <span>List/Edit Roles</span>
+                        </button>
+                    </a>
+                    <a href="{% url 'accounts:create_user' %}">
+                        <button class="bg-green-600 hover:bg-green-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                            <span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                </svg>
+                            </span>
+                            <span>New Account</span>
+                        </button>
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <div class="m-4 justify-evenly gap-4">
-
-
-            <div class="hidden xl:block m-4 p-4 bg-white rounded-lg">
+            <div class="m-4 p-4 bg-white shadow rounded-lg">
                 <table class="w-full table-auto" id="user_list_table">
                     <thead>
                     <tr class="border-b">
@@ -61,56 +97,70 @@
                             <td class="p-2">{{ usr.email }}</td>
                             <td class="p-2">{{ usr.profile.phone_number }}</td>
                             <td class="p-2">{{ usr.groups.all.0 }}</td>
-                            <td class="px-2 py-1 text-right">
-                                <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-1 mx-1">
-                                    Send Message
-                                </button>
-                                <a href="#">
-                                    <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-1 mx-1">
-                                        View Profile
+                            <td class="flex justify-end gap-2">
+                                {# this is a temprory button, we will move it user profile once user profile is done :) #}
+                                <a href="{% url 'accounts:profile' %}">
+                                    <button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                                            <span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                     viewBox="0 0 24 24" stroke="currentColor">
+                                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                                </svg>
+                                            </span>
+                                        <span>Profile</span>
+                                    </button>
+                                </a>
+                                <a href="{% url 'messaging:list_messages' usr.id %}">
+                                    <button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                                        <span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                 viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                      d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
+                                            </svg>
+                                        </span>
+                                        <span>View All Messages</span>
+                                    </button>
+                                </a>
+                                <a href="{% url 'messaging:compose_message' usr.id %}">
+                                    <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                                        <span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                 viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                            </svg>
+                                        </span>
+                                        <span>Message</span>
+                                    </button>
+                                </a>
+                                <a href="{% url 'symptoms:assign_symptom' usr.id %}">
+                                    <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white pl-1 pr-2 py-1 rounded-md flex items-center gap-1">
+                                        <span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                            </svg>
+                                        </span>
+                                        <span>Assign Symptoms</span>
+                                    </button>
+                                </a>
+                                <a href="{% url 'accounts:edit_user' usr.id %}">
+                                    <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                                        <span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                 viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                            </svg>
+                                        </span>
+                                        <span>Edit</span>
                                     </button>
                                 </a>
                             </td>
                         </tr>
                     {% endfor %}
                     </tbody>
-                </table>
-            </div>
-
-            <div class="xl:hidden m-4 p-4 bg-white rounded-lg">
-                <table class="w-full table-auto">
-                    <h2 class="p-2 text-2xl font-bold">Accounts</h2>
-                    <hr class="mb-8">
-                    {% for usr in users %}
-                        <tbody>
-                        <tr class="border-b hover:bg-slate-200">
-                            <td class="font-semibold p-2">Username</td>
-                            <td class="p-2">{{ usr.username }}</td>
-                        </tr>
-                        <tr class="border-b hover:bg-slate-200">
-                            <td class="font-semibold p-2">Email</td>
-                            <td class="p-2">{{ usr.email }}</td>
-                        </tr>
-                        <tr class="border-b hover:bg-slate-200">
-                            <td class="font-semibold p-2">Phone number</td>
-                            <td class="p-2">{{ usr.profile.phone_number }}</td>
-                        </tr>
-                        <tr class="border-b hover:bg-slate-200">
-                            <td class="font-semibold p-2">Role</td>
-                            <td class="p-2">{{ usr.groups }}</td>
-                        </tr>
-                        <tr>
-                            <td colspan="2" class="text-center md:text-left pt-2 pb-16">
-                                <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-2 mx-1">
-                                    Send Message
-                                </button>
-                                <button class="bg-blue-400 border-blue-600 hover:bg-blue-600 text-white font-bold rounded-md px-4 py-2 mx-1">
-                                    View Profile
-                                </button>
-                            </td>
-                        </tr>
-                        </tbody>
-                    {% endfor %}
                 </table>
             </div>
         </div>
