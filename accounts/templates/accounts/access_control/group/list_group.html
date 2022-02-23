@@ -2,35 +2,68 @@
 
 {% block content %}
     <div class="min-h-full bg-slate-100">
-        <h1 class="text-5xl p-4">Groups</h1>
-        <div class="flex ">
-            <div class="w-3/4">
-                <div class="w-full bg-gray-50 p-4 m-4 rounded-2xl">
-                    <a href="{% url 'accounts:add_group' %}">
-                        <button class="bg-green-600 text-white px-4 py-1 rounded-xl ">+ New Group</button>
-                    </a>
-                    <table class="table-auto w-full text-left">
-                        <tr class="border-b">
-                            <th class="p-2">Group Name</th>
-                            <th class="p-2">Actions</th>
-                        </tr>
+        <div class="flex justify-between bg-slate-700">
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">Roles</h1>
+        </div>
 
-                        {% for group in groups %}
-                            <tr class="hover:bg-gray-200 border-b">
-                                <td class="p-2">{{ group.name }}</td>
-                                <td class="p-2">
-                                    <a href="{% url 'accounts:edit_group' group_id=group.id %}">
-                                        <button class="bg-blue-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">
-                                            Edit Group
-                                        </button>
-                                    </a>
-
-                                </td>
-                            </tr>
-                        {% endfor %}
-
-                    </table>
+        <div class="bg-white shadow m-8 rounded-xl">
+            <div class="w-full flex justify-between items-center p-4">
+                <div>
+                    {# TODO: Filters hould go HERE #}
+                    <span class="font-semibold px-2">Filters:</span>
+                    <select name="" id="toggleRead"
+                            class=" bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md">
+                        <option value="showAll">Show All Roles</option>
+                    </select>
                 </div>
+                <div class="flex gap-2">
+                    <a href="{% url 'accounts:add_group' %}">
+                        <button class="bg-green-600 hover:bg-green-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                            <span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                     stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </span>
+                            <span>New Role</span>
+                        </button>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="m-4 justify-evenly gap-4">
+            <div class="m-4 p-4 bg-white shadow rounded-lg">
+                <table class="w-full table-auto" id="user_list_table">
+                    <thead>
+                    <tr class="border-b">
+                        <th class="p-2 text-left">Group Name</th>
+                        <th class="p-2 text-left"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for group in groups  %}
+                        <tr class="hover:bg-slate-200">
+                            <td class="p-2">{{ group.name }}</td>
+                            <td class="p-2 flex justify-end items-center gap-2">
+                                <a href="{% url 'accounts:edit_group' group.id %}">
+                                    <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                                        <span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                 viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                            </svg>
+                                        </span>
+                                        <span>Edit</span>
+                                    </button>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
