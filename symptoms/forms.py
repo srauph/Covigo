@@ -1,8 +1,5 @@
 from django import forms
-from django.contrib.auth.models import User
-
-from accounts.models import Patient
-from symptoms.models import Symptom, PatientSymptom
+from symptoms.models import Symptom
 
 
 class CreateSymptomForm(forms.ModelForm):

@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import password_validation
 from django.contrib.auth.forms import SetPasswordForm
 from django.core.exceptions import ValidationError
-from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, BooleanField, Select
+from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, Select
 from django.contrib.auth.models import User
 from accounts.models import Profile
 
