@@ -13,6 +13,8 @@
                     <h2 class="p-2 text-2xl font-bold">Symptom Details</h2>
                     <hr>
                     <div class="px-2 absolute text-red-500 text-sm font-semibold">
+
+                        {# this will show any form errors that are unrelated to the symptom name and description form fields (generic request errors for example) #}
                         {{ form.non_field_errors }}
                     </div>
                 </div>
@@ -20,10 +22,15 @@
                 <div class="w-full max-w-2xl px-2">
                     <label>Symptom Name:</label>
                     <div class="mt-1">
+
+                        {# this captures the new "value" of the edited symptom name as the name field of the form when it gets used/submitted #}
                         {{ form.name }}
                     </div>
                     <div class="text-red-500 text-sm font-semibold">
                         <div class="absolute">
+
+                            {# this will show any form errors that are related to the symptom name form field #}
+                            {# this has not been implemented yet as it is still a potential design decision to make later on on whether or not we want to check for form errors on solely symptom names by themselves instead of the form as a whole #}
                             {{ form.name.errors }}
                         </div>
                     </div>
@@ -32,10 +39,15 @@
                 <div class="w-full max-w-2xl px-2">
                     <label>Description:</label>
                     <div class="mt-1">
+
+                        {# this captures the new "value" of the edited symptom description as the description field of the form when it gets used/submitted #}
                         {{ form.description }}
                     </div>
                     <div class="text-red-500 text-sm font-semibold">
                         <div class="absolute">
+
+                            {# this will show any form errors that are related to the symptom description form field #}
+                            {# this has not been implemented yet as it is still a potential design decision to make later on on whether or not we want to check for form errors on solely symptom descriptions by themselves instead of the form as a whole #}
                             {{ form.description.errors }}
                         </div>
                     </div>
@@ -58,7 +70,7 @@
                         </button>
                     </a>
                     {# TODO: Refactor "Submit and return" name #}
-                    <button type="submit" value="Submit and return" name="Update and return"
+                    <button type="submit" value="Edit and Return" name="Edit and Return"
                             class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
                         <span>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
