@@ -137,8 +137,6 @@ class SymptomTestCase(TransactionTestCase):
             list(Symptom.objects.values("description"))
         )
 
-# Create your tests here.
-
 
 class ToggleSymptomTests(TestCase):
     @classmethod

@@ -1,6 +1,5 @@
 from django.contrib.auth.models import User
 from django.test import TestCase, Client, RequestFactory
-
 from messaging.models import MessageGroup, MessageContent
 from messaging.views import toggle_read
 

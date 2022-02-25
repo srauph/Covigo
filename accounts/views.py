@@ -35,7 +35,11 @@ def forgot_password(request):
             password_reset_form.add_error(None, "Please enter a valid email address or phone number.")
     else:
         password_reset_form = PasswordResetForm()
-    return render(request=request, template_name="accounts/authentication/forgot_password.html", context={"form": password_reset_form})
+    return render(
+        request=request,
+        template_name="accounts/authentication/forgot_password.html",
+        context={"form": password_reset_form}
+    )
 
 
 @login_required
