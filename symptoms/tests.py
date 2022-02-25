@@ -64,6 +64,14 @@ class SymptomTestCase(TransactionTestCase):
         # we expect two symptoms to be added to the database here since proper
         # form data has been inputted in the form fields
         self.assertTrue(Symptom.objects.all().count() == 2)
+
+        # here, I am testing for the form error by making sure that it works: If I
+        # copy the same mocked form data and try to call a POST request on it, I should expect the error to be shown
+        # on the view and prevent me from creating a duplicate symptom in the database, thus my database symptom count
+        # should not increase (intended behaviour)
+        self.mocked_form_data4 = self.mocked_form_data3
+        self.response = self.client.post(reverse('symptoms:create_symptom'), self.mocked_form_data4)
+        self.assertTrue(Symptom.objects.all().count() == 2)
         self.response = self.client.get(reverse('symptoms:list_symptoms'))
         self.assertEqual(self.response.status_code, 200)
 
@@ -119,6 +127,19 @@ class SymptomTestCase(TransactionTestCase):
                     ),
             self.edited_mocked_form_data3
         )
+
+        # here, I am testing for the form error by making sure that it works: If I
+        # try to submit the same mocked form data with no edits on both the symptom name and description
+        # by calling a POST request on it, I should expect the error to be shown
+        # on the view as the form should return the error (intended behaviour)
+        self.edited_mocked_form_data4 = {'name': Symptom.objects.get(id=2).name, 'description': Symptom.objects.get(id=2).description}
+        self.response = self.client.post(
+            reverse('symptoms:edit_symptom',
+                    kwargs={'symptom_id': Symptom.objects.get(id=2).id}
+                    ),
+            self.edited_mocked_form_data4
+        )
+        self.assertEqual('No edits made on this symptom. If you wish to make no changes, please click the "Cancel" button to go back to the list of symptoms.', list(self.response.context['form'].errors.values())[0][0])
 
         # this just makes sure that the database still contains
         # the same number of symptoms in it as it did earlier, thus
