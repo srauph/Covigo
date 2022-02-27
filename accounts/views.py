@@ -35,7 +35,11 @@ def forgot_password(request):
             password_reset_form.add_error(None, "Please enter a valid email address or phone number.")
     else:
         password_reset_form = PasswordResetForm()
-    return render(request=request, template_name="accounts/authentication/forgot_password.html", context={"form": password_reset_form})
+    return render(
+        request=request,
+        template_name="accounts/authentication/forgot_password.html",
+        context={"form": password_reset_form}
+    )
 
 
 @login_required
@@ -223,7 +227,7 @@ def edit_group(request, group_id):
     group = Group.objects.filter(id=group_id).get()
 
     if request.method == "POST":
-        group.name = request.POST['name']
+        group.symptom_name = request.POST['name']
         group.save()
         permission_array = convert_permission_name_to_id(request)
         group.permissions.clear()
