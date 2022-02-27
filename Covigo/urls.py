@@ -22,7 +22,6 @@ urlpatterns = [
     path('', lambda request: redirect('dashboard:index'), name='index'),
     path('admin/', admin.site.urls),
     path('manager/', include('manager.urls')),
-    # path('accounts/', include('django.contrib.auth.urls')),
     path('accounts/', include('accounts.urls')),
     path('dashboard/', include('dashboard.urls')),
     path('status/', include('status.urls')),

@@ -18,7 +18,6 @@ class Symptom(models.Model):
         return self.name
 
 
-
 class PatientSymptom(models.Model):
     user = models.ForeignKey(
         User,

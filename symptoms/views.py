@@ -13,6 +13,8 @@ def index(request):
     return redirect('symptoms:list_symptoms')
 
 
+# this function simply renders the "Symptoms" list page with all
+# the symptoms present in the database along with their respective details
 @login_required
 @never_cache
 def list_symptoms(request):
@@ -21,6 +23,8 @@ def list_symptoms(request):
     })
 
 
+# this function allows form data from the "Create Symptom" page to be submitted and handled properly
+# in such a manner as to dynamically change the view depending on what request method is detected and used
 @login_required
 @never_cache
 def create_symptom(request):
@@ -28,15 +32,19 @@ def create_symptom(request):
         create_symptom_form = CreateSymptomForm(request.POST)
 
         if create_symptom_form.is_valid():
-            create_symptom_form.save()
+            if not Symptom.objects.filter(name=create_symptom_form.data.get('name')).exists():
+                create_symptom_form.save()
 
-            if request.POST.get('Submit and return'):
-                return redirect('symptoms:list_symptoms')
+                if request.POST.get('Create and Return'):
+                    return redirect('symptoms:list_symptoms')
+
+                else:
+                    return render(request, 'symptoms/create_symptom.html', {
+                        'form': create_symptom_form
+                    })
 
             else:
-                return render(request, 'symptoms/create_symptom.html', {
-                    'form': create_symptom_form
-                })
+                create_symptom_form.add_error('name', "This symptom name already exists for a given symptom.")
 
     else:
         create_symptom_form = CreateSymptomForm()
@@ -46,6 +54,9 @@ def create_symptom(request):
     })
 
 
+# this function allows form data from the "Edit Symptom" page to be submitted and handled properly
+# in such a manner as to dynamically change the database symptom contents, depending on what request
+# method is detected and used, by making edits to it
 @login_required
 @never_cache
 def edit_symptom(request, symptom_id):
@@ -54,10 +65,13 @@ def edit_symptom(request, symptom_id):
     if request.method == 'POST':
         edit_symptom_form = CreateSymptomForm(request.POST, instance=symptom)
 
+        if symptom.name == edit_symptom_form.data.get('name') and symptom.description == edit_symptom_form.data.get('description'):
+            edit_symptom_form.add_error(None, "No edits made on this symptom. If you wish to make no changes, please click the \"Cancel\" button to go back to the list of symptoms.")
+
         if edit_symptom_form.is_valid():
             edit_symptom_form.save()
 
-            if request.POST.get('Update and return'):
+            if request.POST.get('Edit and Return'):
                 return redirect('symptoms:list_symptoms')
 
             else:
@@ -87,7 +101,7 @@ def assign_symptom(request, user_id):
 
         for symptom_id in request.POST.getlist('symptom'):
             filter1 = Q(symptom_id=symptom_id) & Q(user_id=patient.id)
-            # to not override the existing patient_symptom instance, will make it more robust in next srpints
+            # to not override the existing patient_symptom instance, will make it more robust in next sprints
             if not PatientSymptom.objects.filter(filter1):
                 patient_symptom = PatientSymptom(symptom_id=symptom_id, user_id=patient.id)
                 patient_symptom.save()

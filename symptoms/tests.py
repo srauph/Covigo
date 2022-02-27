@@ -1,12 +1,177 @@
-from django.contrib.auth.models import AnonymousUser, User
-from django.test import TestCase, Client, RequestFactory
-
-# Create your tests here.
-from django.utils.decorators import method_decorator
-
+from django.urls import reverse
+from symptoms.views import toggle_symptom
 from symptoms.models import Symptom, PatientSymptom
 from symptoms.utils import symptom_count_by_id
-from symptoms.views import toggle_symptom
+from django.contrib.auth.models import User
+from django.test import TestCase, TransactionTestCase, Client, RequestFactory
+
+
+class SymptomTestCase(TransactionTestCase):
+
+    # this makes sure that the database ids reset to 1 for every test (especially important for
+    # the test "test_user_can_edit_symptom_and_return" when dealing with fetching symptom ids from the database)
+    reset_sequences = True
+
+    # initialization of data to be run before every test. Note that not all data initialized here is used
+    # necessarily in all tests and the decision to include "all" of them here was more for readability choice
+    # than anything else (for example, "edited_mocked_form_data2" and "edited_mocked_form_data3" are only ever
+    # used in one test: "test_user_can_edit_symptom_and_return")
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create(username='admin')
+        self.user.set_password('admin')
+        self.user.save()
+        self.client.login(username='admin', password='admin')
+        self.mocked_form_data1 = {'name': '', 'description': ''}
+        self.mocked_form_data2 = {'name': 'Fever', 'description': 'A fever is a temperature problem.'}
+        self.mocked_form_data3 = {'name': 'Cold', 'description': 'A cold is a virus that attacks the thing.'}
+        self.edited_mocked_form_data2 = {'name': 'Runny Nose', 'description': 'A runny nose is a joke of a problem.'}
+        self.edited_mocked_form_data3 = {'name': 'Cough', 'description': 'A cough is air that attacks the lungs.'}
+        self.response = self.client.get(reverse('symptoms:create_symptom'))
+
+    # this test allows us to test directly for form fields when dealing with empty forms
+    def test_empty_forms(self):
+
+        # this insures that the specific GET request has succeeded (OK) through
+        # the reverse URL naming attribute for the "create_symptom.html" page
+        self.assertEqual(self.response.status_code, 200)
+        self.assertTrue(Symptom.objects.all().count() == 0)
+        self.response = self.client.post(reverse('symptoms:create_symptom'), self.mocked_form_data1)
+
+        # we expect no symptoms to be added to the database here since nothing has been inputted
+        # in the form fields so there's no "real" post data submission
+        self.assertTrue(Symptom.objects.all().count() == 0)
+        self.assertEqual('This field is required.', list(self.response.context['form'].errors.values())[0][0])
+
+    # this test allows us to test for if a symptom that is submitted through a form
+    # (with the "submit and duplicate button") ends up actually being indeed added to the database or not
+    def test_user_can_create_symptom(self):
+        self.assertEqual(self.response.status_code, 200)
+        self.assertTrue(Symptom.objects.all().count() == 0)
+        self.response = self.client.post(reverse('symptoms:create_symptom'), self.mocked_form_data2)
+
+        # we expect one symptom to be added to the database here, since proper
+        # form data has been inputted in the form fields, and the form data to still
+        # be shown on the view
+        self.assertTrue(Symptom.objects.all().count() == 1)
+        self.assertEqual(self.mocked_form_data2['name'], self.response.context['form']['name'].value())
+        self.assertEqual(self.mocked_form_data2['description'], self.response.context['form']['description'].value())
+
+        # here, I am testing for the form error by making sure that it works: If I
+        # use the same mocked form data and try to call a POST request on it, I should expect the error to be shown
+        # on the view and prevent me from creating a duplicate symptom in the database, thus my database symptom count
+        # should not increase (intended behaviour)
+        self.response = self.client.post(reverse('symptoms:create_symptom'), self.mocked_form_data2)
+        self.assertTrue(Symptom.objects.all().count() == 1)
+        self.assertEqual('This symptom name already exists for a given symptom.', list(self.response.context['form'].errors.values())[0][0])
+        self.assertEqual(self.mocked_form_data2['name'], self.response.context['form']['name'].value())
+        self.assertEqual(self.mocked_form_data2['description'], self.response.context['form']['description'].value())
+
+    # this test allows us to test for if a symptom that is submitted through a form
+    # (with the "submit and return button") ends up actually being indeed added to the database or not
+    def test_user_can_create_symptom_and_return(self):
+        self.assertEqual(self.response.status_code, 200)
+        self.assertTrue(Symptom.objects.all().count() == 0)
+        self.response = self.client.post(reverse('symptoms:create_symptom'), self.mocked_form_data2)
+        self.response = self.client.post(reverse('symptoms:create_symptom'), self.mocked_form_data3)
+
+        # we expect two symptoms to be added to the database here since proper
+        # form data has been inputted in the form fields
+        self.assertTrue(Symptom.objects.all().count() == 2)
+
+        # here, I am testing for the form error by making sure that it works: If I
+        # use the same mocked form data and try to call a POST request on it, I should expect the error to be shown
+        # on the view and prevent me from creating a duplicate symptom in the database, thus my database symptom count
+        # should not increase (intended behaviour)
+        self.response = self.client.post(reverse('symptoms:create_symptom'), self.mocked_form_data3)
+        self.assertTrue(Symptom.objects.all().count() == 2)
+        self.assertEqual('This symptom name already exists for a given symptom.', list(self.response.context['form'].errors.values())[0][0])
+        self.response = self.client.get(reverse('symptoms:list_symptoms'))
+        self.assertEqual(self.response.status_code, 200)
+
+        # these two assertions below check that the list of symptoms page actually shows
+        # the two posted symptoms in its context
+        self.assertEqual(set(self.response.context['symptoms']), set(Symptom.objects.all()))
+        self.assertEqual(
+            list(self.response.context['symptoms'].values("description")),
+            list(Symptom.objects.values("description"))
+        )
+
+    # this test allows us to test for if a symptom that is edited and submitted through a form
+    # ends up actually being indeed properly edited in the list of symptoms and in the database or not
+    def test_user_can_edit_symptom_and_return(self):
+        self.assertEqual(self.response.status_code, 200)
+
+        # we should expect to have no symptoms in the database if we start with an empty database
+        self.assertTrue(Symptom.objects.all().count() == 0)
+        self.response = self.client.post(reverse('symptoms:create_symptom'), self.mocked_form_data2)
+        self.response = self.client.post(reverse('symptoms:create_symptom'), self.mocked_form_data3)
+        self.response = self.client.get(reverse('symptoms:list_symptoms'))
+        self.assertEqual(self.response.status_code, 200)
+        self.assertTrue(Symptom.objects.all().count() == 2)
+
+        # for lack of details, this following statement would translate to the "edit_symptom.html" page
+        # opening up with a specific symptom from the symptom list already loaded on its form on the view
+        # and ready to be edited
+        self.response = self.client.get(
+            reverse('symptoms:edit_symptom',
+                    kwargs={'symptom_id': Symptom.objects.get(id=1).id}
+                    )
+        )
+        self.assertEqual(self.response.status_code, 200)
+
+        # for lack of details, this following statement would translate to an administrator making a change/edit
+        # to the form data of an existing symptom taken from the symptom list and "posting" that new symptom back
+        # to the view of the "list_symptoms.html" page
+        self.response = self.client.post(
+            reverse('symptoms:edit_symptom',
+                    kwargs={'symptom_id': Symptom.objects.get(id=1).id}
+                    ),
+            self.edited_mocked_form_data2
+        )
+        self.response = self.client.get(
+            reverse('symptoms:edit_symptom',
+                    kwargs={'symptom_id': Symptom.objects.get(id=2).id}
+                    )
+        )
+        self.assertEqual(self.response.status_code, 200)
+        self.response = self.client.post(
+            reverse('symptoms:edit_symptom',
+                    kwargs={'symptom_id': Symptom.objects.get(id=2).id}
+                    ),
+            self.edited_mocked_form_data3
+        )
+
+        # here, I am testing for the form error by making sure that it works: If I
+        # try to submit the same mocked form data with no edits on both the symptom name and description
+        # by calling a POST request on it, I should expect the error to be shown
+        # on the view as the form should return the error (intended behaviour)
+        self.response = self.client.post(
+            reverse('symptoms:edit_symptom',
+                    kwargs={'symptom_id': Symptom.objects.get(id=2).id}
+                    ),
+            self.edited_mocked_form_data3
+        )
+        self.assertEqual('No edits made on this symptom. If you wish to make no changes, please click the "Cancel" button to go back to the list of symptoms.', list(self.response.context['form'].errors.values())[0][0])
+        self.assertEqual(self.edited_mocked_form_data3['name'], self.response.context['form']['name'].value())
+        self.assertEqual(self.edited_mocked_form_data3['description'], self.response.context['form']['description'].value())
+
+        # this just makes sure that the database still contains
+        # the same number of symptoms in it as it did earlier, thus
+        # showing that the contents of existing symptoms
+        # were changed, rather than the changes showing up
+        # as new symptoms in the database entirely
+        self.assertTrue(Symptom.objects.all().count() == 2)
+        self.response = self.client.get(reverse('symptoms:list_symptoms'))
+        self.assertEqual(self.response.status_code, 200)
+
+        # these two assertions below check that the list of symptoms page actually shows
+        # the two posted symptoms with changes in its context
+        self.assertEqual(set(self.response.context['symptoms']), set(Symptom.objects.all()))
+        self.assertEqual(
+            list(self.response.context['symptoms'].values("description")),
+            list(Symptom.objects.values("description"))
+        )
 
 
 class ToggleSymptomTests(TestCase):
@@ -31,7 +196,6 @@ class ToggleSymptomTests(TestCase):
 
 
 class CountSymptomsByIDTests(TestCase):
-
     @classmethod
     def setUpTestData(cls):
         for i in range(1, 4):

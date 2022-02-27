@@ -1,6 +1,4 @@
 from django import forms
-from django.forms import ModelForm
-
 from messaging.models import MessageContent, MessageGroup
 
 
