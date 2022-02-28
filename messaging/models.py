@@ -15,7 +15,8 @@ class MessageGroup(models.Model):
     )
     title = models.TextField(blank=True, null=True)
     priority = models.IntegerField(blank=True, null=True)
-    seen = models.BooleanField(default=False)
+    author_seen = models.BooleanField(default=False)
+    recipient_seen = models.BooleanField(default=False)
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
 
