@@ -75,11 +75,15 @@ def edit_symptom(request, symptom_id):
             })
 
         if edit_symptom_form.is_valid():
-            edit_symptom_form.save()
+            if not Symptom.objects.filter(name=edit_symptom_form.data.get('name')).exists():
+                edit_symptom_form.save()
 
-            if request.POST.get('Edit and Return'):
-                messages.success(request, 'The symptom was created successfully.')
-                return redirect('symptoms:list_symptoms')
+                if request.POST.get('Edit and Return'):
+                    messages.success(request, 'The symptom was edited successfully.')
+                    return redirect('symptoms:list_symptoms')
+
+            else:
+                messages.error(request, 'The symptom was not edited successfully: This symptom name already exists for a given symptom. Please change the symptom name.')
 
     else:
         edit_symptom_form = CreateSymptomForm(instance=symptom)
