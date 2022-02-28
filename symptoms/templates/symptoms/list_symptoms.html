@@ -9,7 +9,7 @@
         <div class="bg-white shadow m-8 rounded-xl">
             <div class="w-full flex justify-between items-center p-4">
                 <div>
-                    {# TODO: Filters hould go HERE #}
+                    {# TODO: Filters should go HERE #}
                     <form action="" class="flex justify-between items-center gap-2">
                         <input name="" id="" class="bg-slate-100 border border-slate-400 h-8 text-sm text-black px-2 rounded-md"
                                placeholder="Search by Symptom...">
@@ -24,6 +24,8 @@
                     </form>
                 </div>
                 <div class="flex gap-2">
+
+                    {# clicking on this button creates a GET request and redirects the user to the "Create Symptom" page #}
                     <a href="{% url 'symptoms:create_symptom' %}">
                         <button class="bg-green-600 hover:bg-green-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                             <span>
@@ -48,11 +50,11 @@
                         <th class="p-2 text-left">Name</th>
                         <th class="p-2 text-left">Description</th>
                         <th class=></th>
-{#                        <th class="p-2 text-left">Edit</th>#}
-{#                        <th class="p-2 text-left">Enable/Disable</th>#}
                     </tr>
                     </thead>
                     <tbody>
+
+                    {# this for loop will check for every symptom present in the database and display/return all of them in table/row form to generate the list of symptoms on the view #}
                     {% for symptom in symptoms %}
                             <tr class="hover:bg-gray-200">
                                 <td name="Symptom Name" class="p-2">{{ symptom.name }}</td>
@@ -79,6 +81,8 @@
                                             </button>
                                         {% endif %}
                                     </a>
+
+                                    {# if this button is chosen/clicked, the specific symptom associated with it will be fetched from the database using the symptom id, at which point the view will redirect the user to the "Edit Symptom" page and allow them to edit the symptom details of that symptom before submitting the form change/update back to the database to be reflected on the view of this page #}
                                     <a href="{% url 'symptoms:edit_symptom' symptom.id %}">
                                         <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                                             <span>
