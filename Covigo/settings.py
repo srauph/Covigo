@@ -88,12 +88,16 @@ WSGI_APPLICATION = 'Covigo.wsgi.application'
 
 
 DATABASE_PASSWORD = getenv("DATABASE_PASSWORD")
+if getenv("DATABASE_USER"):
+    DATABASE_USER = getenv("DATABASE_USER")
+else:
+    DATABASE_USER = 'root'
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'Covigo',
-        'USER': 'root',
+        'USER': DATABASE_USER,
         'PASSWORD': DATABASE_PASSWORD,
         'HOST': 'localhost',
         'PORT': '3306',
