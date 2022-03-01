@@ -44,17 +44,16 @@ def view_message(request, message_group_id):
 
         messages = MessageContent.objects.filter(message_id=message_group_id)
 
-        recipient_seen = None
-
-        # Verify who sent the most recent message
-        most_recent_message_sender_id = messages.order_by('-date_updated').first().author_id
-
-        # If it's not the current user then they are reading an unopened message and making it "Seen".
-        if most_recent_message_sender_id != current_user.id:
-            message_group.seen = True
-            message_group.save()
+        # Check if we are author or recipient
+        if message_group.author.id == current_user.id:
+            message_group.author_seen = True
+        elif message_group.recipient.id == current_user.id:
+            message_group.recipient_seen = True
         else:
-            recipient_seen = has_recipient_seen_sent_message(current_user.id, message_group.id)
+            # TODO: Proper exception handling
+            raise Exception("Logged in user is neither author nor recipient")
+        message_group.save()
+
 
         # If user sent a reply
         if request.method == 'POST':
@@ -73,31 +72,38 @@ def view_message(request, message_group_id):
 
                 # Update the message group
                 message_group.date_updated = new_reply.date_updated
-                message_group.seen = False
+
+                # Check if we are author or recipient
+                if message_group.author.id == current_user.id:
+                    message_group.recipient_seen = False
+                elif message_group.recipient.id == current_user.id:
+                    message_group.author_seen = False
+                else:
+                    # TODO: Proper exception handling
+                    raise Exception("Logged in user is neither author nor recipient")
                 message_group.save()
 
         # Initialize the reply form
         else:
             reply_form = ReplyForm()
 
+        if message_group.author.id == current_user.id:
+            seen = message_group.recipient_seen
+        elif message_group.recipient.id == current_user.id:
+            seen = message_group.author_seen
+        else:
+            # TODO: Proper exception handling
+            raise Exception("Logged in user is neither author nor recipient")
+
         return render(request, 'messaging/view_message.html', {
             'message_group': message_group,
             'messages': messages,
             'form': reply_form,
-            'recipient_seen': recipient_seen
+            'seen': seen
         })
     # User is not authorized to view this message group
     else:
         return redirect('messaging:list_messages')
-
-
-def has_recipient_seen_sent_message(current_user_id, message_group_id):
-    most_recent_message_sender_id = MessageContent.objects.filter(message_id=message_group_id).order_by(
-        '-date_updated').first().author_id
-    if current_user_id == most_recent_message_sender_id:
-        return MessageGroup.objects.filter(id=message_group_id).get().seen
-    else:
-        return None
 
 
 @login_required
@@ -117,10 +123,13 @@ def compose_message(request, user_id):
             new_msg_group = msg_group_form.save(commit=False)
             new_msg_group.author = request.user
             new_msg_group.recipient = recipient_user
+            new_msg_group.author_seen = True
             new_msg_group.save()
-            MessageContent.objects.create(author=new_msg_group.author,
-                                          message=new_msg_group,
-                                          content=msg_content_form.data.get('content'))
+            MessageContent.objects.create(
+                author=new_msg_group.author,
+                message=new_msg_group,
+                content=msg_content_form.data.get('content'),
+            )
             return redirect("messaging:list_messages", request.user.id)
 
     else:
@@ -136,8 +145,18 @@ def compose_message(request, user_id):
 @login_required
 @never_cache
 def toggle_read(request, message_group_id):
-    msg_group = MessageGroup.objects.get(id=message_group_id)
+    current_user = request.user
+    message_group = MessageGroup.objects.get(id=message_group_id)
 
-    msg_group.seen = not msg_group.seen
-    msg_group.save()
+    # Check if we are author or recipient
+    if message_group.author.id == current_user.id:
+        message_group.author_seen = not message_group.author_seen
+    elif message_group.recipient.id == current_user.id:
+        message_group.recipient_seen = not message_group.recipient_seen
+    else:
+        # TODO: Proper exception handling
+        raise Exception("Logged in user is neither author nor recipient")
+
+    message_group.save()
+
     return redirect('messaging:list_messages')
