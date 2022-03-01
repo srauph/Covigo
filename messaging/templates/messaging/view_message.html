@@ -16,10 +16,10 @@
                     <h1 class="text-2xl font-semibold px-2">Subject: {{ message_group.title }}</h1>
                 </div>
             </div>
-            {% if not recipient_seen == None %}
+            {% if not seen == None %}
                 <div class="w-full flex justify-between items-center pt-4 px-2">
                     <div>
-                        {% if recipient_seen == False %}
+                        {% if seen == False %}
                             <p class="text-sm text-gray-600 flex items-center gap-1">
                                 <svg class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24"
                                      stroke="currentColor">
@@ -30,7 +30,7 @@
                             </p>
                         {% endif %}
 
-                        {% if recipient_seen == True %}
+                        {% if seen == True %}
                             <!-- Seen status -->
                             <p class="text-sm text-blue-600 flex items-center gap-1">
                                 <svg class="h-4 w-4 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
@@ -43,7 +43,7 @@
                         {% endif %}
                     </div>
                 </div>
-        {% endif %}
+            {% endif %}
         </div>
 
         <!-- Card that contains the messages. These cards will be generated dynamically -->
