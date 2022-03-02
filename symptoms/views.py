@@ -101,7 +101,7 @@ def assign_symptom(request, user_id):
     patient_information = patient.patient
 
     if request.method == 'POST':
-
+        # Assigns symptoms selected for patient
         for symptom_id in request.POST.getlist('symptom'):
             filter1 = Q(symptom_id=symptom_id) & Q(user_id=patient.id)
             # to not override the existing patient_symptom instance, will make it more robust in next sprints
@@ -110,6 +110,7 @@ def assign_symptom(request, user_id):
                 patient_symptom.save()
             # TODO: we need to discuss the edit feature and the case when a doctor wants to remove a symptom from a patient.
 
+        # Assigns quarantine status for patient
         quarantine_status_changed = request.POST.get('should_quarantine') is not None
         if patient_information.is_quarantining is not quarantine_status_changed:
             patient_information.is_quarantining = quarantine_status_changed
