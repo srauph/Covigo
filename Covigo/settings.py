@@ -32,6 +32,7 @@ if getenv("PRODUCTION_MODE") == "True":
     DEBUG = False
     # TODO: Limit the ALLOWED_HOSTS
     ALLOWED_HOSTS = ['*']
+    STATIC_ROOT = getenv("STATIC_ROOT")
 else:
     DEBUG = True
     ALLOWED_HOSTS = []
@@ -85,8 +86,6 @@ TEMPLATES = [
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
-
-STATIC_ROOT = "/var/www/covigo/static/"
 
 WSGI_APPLICATION = 'Covigo.wsgi.application'
 
