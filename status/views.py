@@ -7,3 +7,11 @@ from django.views.decorators.cache import never_cache
 @never_cache
 def index(request):
     return render(request, 'status/index.html')
+
+
+@login_required
+@never_cache
+def patient_reports(request):
+    return render(request, 'status/patient-reports.html', {
+        'patient_reports': []
+    })
