@@ -44,13 +44,17 @@
                     </thead>
                     <tbody>
                     {% for reports in patient_reports %}
-                        <tr class="border-b hover:bg-slate-200">
-                            <td class="p-2">{{ reports.user__first_name }} {{ reports.user__last_name }}</td>
-                            <td class="p-2">{{ reports.date_updated }}</td>
-                            <td class="flex justify-middle gap-2">
-                                {# this is a temprory button, we will move it user profile once user profile is done :) #}
-                                <a href="">
-                                    <button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                        {% if reports.is_viewed == True %}
+                            <tr class="hover:bg-slate-200 border-b" data-read="read">
+                                {% else %}
+                            <tr class="hover:bg-slate-200 font-semibold border-b" data-read="unread">
+                        {% endif %}
+                    <td class="p-2">{{ reports.user__first_name }} {{ reports.user__last_name }}</td>
+                    <td class="p-2">{{ reports.date_updated }}</td>
+                    <td class="flex justify-middle gap-2">
+                        {# this is a temprory button, we will move it user profile once user profile is done :) #}
+                        <a href="">
+                            <button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                                         <span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
                                                  viewBox="0 0 24 24" stroke="currentColor">
@@ -58,11 +62,11 @@
                                                       d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                             </svg>
                                         </span>
-                                        <span>View Report</span>
-                                    </button>
-                                </a>
-                            </td>
-                        </tr>
+                                <span>View Report</span>
+                            </button>
+                        </a>
+                    </td>
+                    </tr>
                     {% endfor %}
                     </tbody>
                 </table>

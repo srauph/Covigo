@@ -29,7 +29,7 @@ def patient_reports(request):
     # Return a QuerySet with all distinct reports from the doctors patients based on their updated date
     # TODO filter it based on flagging first priority
     dates = PatientSymptom.objects.select_related('user') \
-        .values('date_updated', 'user_id', 'user__first_name', 'user__last_name') \
+        .values('date_updated', 'user_id', 'is_viewed', 'user__first_name', 'user__last_name') \
         .filter(user_id__in=patient_ids).order_by('date_updated').distinct().reverse()
 
     return render(request, 'status/patient-reports.html', {
