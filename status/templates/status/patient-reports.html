@@ -11,9 +11,32 @@
             src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
     <script>
         $(document).ready(function () {
-            $('#patient_reports_table').DataTable({
-                "bSort": false
+            var table = $('#patient_reports_table').DataTable({
+                "bSort": false,
+                "order": [2, "desc"],
+                "columnDefs": [
+                    {
+                        "visible": false,
+                        "searchable": true
+                    }
+                ]
             });
+
+            $('#toggleRead').change(function () {
+                $.fn.dataTable.ext.search.pop();
+                let value = $(this).val();
+                if (value == "showAll") {
+                    $.fn.dataTable.ext.search.pop();
+                    table.draw();
+                } else {
+                    $.fn.dataTable.ext.search.push(
+                        function (settings, data, dataIndex) {
+                            return $(table.row(dataIndex).node()).attr('data-read') == value;
+                        }
+                    );
+                    table.draw();
+                }
+            })
         });
     </script>
 {% endblock %}
@@ -27,7 +50,13 @@
         <div class="bg-white shadow m-8 rounded-xl">
             <div class="w-full flex justify-between items-center p-4">
                 <div>
-                    <span class="font-semibold px-2">Filter By Date:</span>
+                    <span class="font-semibold px-2">Filters:</span>
+                    <select name="" id="toggleRead"
+                            class="bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md">
+                        <option value="showAll">Show All Messages</option>
+                        <option value="unread">Show Unread Messages</option>
+                        <option value="read">Show Read Messages</option>
+                    </select>
                 </div>
             </div>
         </div>
