@@ -1,0 +1,32 @@
+{% extends 'Covigo/base.html' %}
+
+{% block content %}
+    <div class="bg-slate-700 border-b">
+        <h1 class="text-2xl text-white font-semibold px-8 py-4">Edit Availabilities</h1>
+    </div>
+    <form method="post" class="min-h-full bg-slate-100 flex flex-col">
+    {% csrf_token %}
+        <div class="w-full flex flex-col gap-8 mb-8">
+
+            <div class="w-full max-w-2xl px-2">
+                <label>Time slot</label>
+                <div class="mt-1">
+                    {{ form.availability_slot_time }}
+                </div>
+            </div>
+
+            <div class="w-full max-w-2xl px-2">
+                <label>Advance</label>
+                <div class="mt-1">
+                    {{ form.availability_advance }}
+                </div>
+            </div>
+            <button type="submit">
+                <span>Submit</span>
+            </button>
+        </div>
+    </form>
+
+
+
+{% endblock %}
