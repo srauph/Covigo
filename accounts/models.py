@@ -19,6 +19,7 @@ class Staff(models.Model):
         User,
         on_delete=models.CASCADE,
     )
+    availability_slot_generator = models.IntegerField(blank=True, null=True)
 
 
 class Patient(models.Model):
