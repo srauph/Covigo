@@ -26,12 +26,15 @@ def patient_reports(request):
         if users.staff_id == doctor.id:
             patient_ids.append(users.user_id)
 
-    # Return a QuerySet with all distinct reports from the doctors patients based on their updated date
-    # TODO filter it based on flagging first priority
-    dates = PatientSymptom.objects.select_related('user') \
-        .values('date_updated', 'user_id', 'is_viewed', 'user__first_name', 'user__last_name') \
-        .filter(user_id__in=patient_ids).order_by('date_updated').distinct().reverse()
-
+    # Return a QuerySet with all distinct reports from the doctors patients based on their updated date,
+    # if it's viewed and if the patient is flagged
+    # TODO see if any edge cases exists that break it
+    reports = PatientSymptom.objects.select_related('user') \
+        .values('date_updated', 'user_id', 'is_viewed', 'user__first_name', 'user__last_name',
+                'user__patients_assigned_flags__is_active') \
+        .filter(user_id__in=patient_ids).order_by('is_viewed', '-user__patients_assigned_flags__is_active',
+                                                  '-date_updated').distinct()
+    
     return render(request, 'status/patient-reports.html', {
-        'patient_reports': dates
+        'patient_reports': reports
     })
