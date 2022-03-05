@@ -45,6 +45,7 @@ def patient_reports(request):
 @never_cache
 def patient_report_modal(request):  # , user_id, date_updated):
 
+    # Temporarily here to test the page until the modal can function properly
     reports = PatientSymptom.objects.select_related('user') \
         .values('date_updated', 'user_id', 'is_viewed', 'user__first_name', 'user__last_name',
                 'user__patients_assigned_flags__is_active') \
@@ -55,13 +56,12 @@ def patient_report_modal(request):  # , user_id, date_updated):
 
     ################################################
 
-    report_symptom_list = PatientSymptom.objects.select_related('symptom').values('symptom_id', 'data',
-                                                                                  'symptom__name').filter(
-        user_id=user_id,
-        date_updated=date_updated)
+    report_symptom_list = PatientSymptom.objects.select_related('symptom') \
+        .values('symptom_id', 'data', 'symptom__name') \
+        .filter(user_id=user_id, date_updated=date_updated)
 
-    #print(report_symptom_list.query)
-    #print(report_symptom_list)
     return render(request, 'status/patient-report-modal.html', {
-        'report_symptom_list': report_symptom_list
+        'user_id': user_id,
+        'date': date_updated,
+        'report_symptom_list': report_symptom_list,
     })

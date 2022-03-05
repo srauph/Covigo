@@ -28,8 +28,32 @@
 
         <div class="bg-white shadow m-8 rounded-xl">
             <div class="w-full flex justify-between items-center p-4">
-                <div>
-                    <span class="font-semibold px-2">Filters:</span>
+                <div></div>
+                <div class="flex gap-2">
+                    <a href="#">
+                        <button class="bg-green-600 hover:bg-green-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                            <span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                     stroke-width="2">
+                                  <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>
+                                </svg>
+                            </span>
+                            <span>Flag Patient</span>
+                        </button>
+                    </a>
+                    <a href="{% url 'messaging:compose_message' user_id %}">
+                        <button class="bg-green-600 hover:bg-green-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                            <span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                     stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                                </svg>
+                            </span>
+                            <span>Send Message</span>
+                        </button>
+                    </a>
                 </div>
             </div>
         </div>
@@ -59,7 +83,7 @@
                                                       d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                             </svg>
                                         </span>
-                                        <span>View Report</span>
+                                        <span>Resubmit</span>
                                     </button>
                                 </a>
                             </td>
