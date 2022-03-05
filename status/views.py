@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.generic import UpdateView
 
-from accounts.models import Patient, Staff
+from accounts.models import Patient, Staff, Flag
 from symptoms.models import PatientSymptom
 
 
@@ -56,12 +56,19 @@ def patient_report_modal(request):  # , user_id, date_updated):
 
     ################################################
 
-    report_symptom_list = PatientSymptom.objects.select_related('symptom') \
-        .values('symptom_id', 'data', 'symptom__name') \
+    report_symptom_list = PatientSymptom.objects.select_related('symptom', 'user') \
+        .values('symptom_id', 'data', 'symptom__name', 'user__patients_assigned_flags__is_active') \
         .filter(user_id=user_id, date_updated=date_updated)
+    # print(report_symptom_list)
+    try:
+        is_patient_flagged = Flag.objects.filter(patient_id=user_id).get(is_active=1)
+    except Exception:
+        is_patient_flagged = False
 
+    print(is_patient_flagged)
     return render(request, 'status/patient-report-modal.html', {
         'user_id': user_id,
         'date': date_updated,
         'report_symptom_list': report_symptom_list,
+        'is_flagged': is_patient_flagged,
     })
