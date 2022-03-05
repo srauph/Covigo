@@ -22,13 +22,21 @@
                             {% for sym in symptoms %}
                                 <tr class="hover:bg-gray-200">
                                     <td class="px-2 w-8"><input type="checkbox" name="symptom" value="{{ sym.id }}"
-                                            {% if sym in assigned_symptoms %}checked disabled{% endif %} ></td>
+                                                                {% if sym in assigned_symptoms %}checked
+                                                                disabled{% endif %}></td>
                                     <td class="text-left">{{ sym.name }}</td>
                                 </tr>
                             {% endfor %}
                             </tbody>
                         </table>
                     </div>
+                </div>
+
+                <div class="w-full max-w-2xl px-2">
+                    <input type="checkbox" name="should_quarantine"
+                           value="quarantine" title="Recommend the patient to quarantine."
+                            {% if patient_is_quarantining %} checked{% endif %} >
+                    Patient should Quarantine
                 </div>
             </div>
 
