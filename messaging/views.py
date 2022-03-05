@@ -109,37 +109,43 @@ def view_message(request, message_group_id):
 @login_required
 @never_cache
 def compose_message(request, user_id):
-    recipient_user = User.objects.get(id=user_id)
-    if recipient_user.first_name == "" and recipient_user.last_name == "":
-        recipient_name = recipient_user
+
+    # To prevent users from being able to send messages to themselves
+    if request.user.id != user_id:
+
+        recipient_user = User.objects.get(id=user_id)
+        if recipient_user.first_name == "" and recipient_user.last_name == "":
+            recipient_name = recipient_user
+        else:
+            recipient_name = f"{recipient_user.first_name} {recipient_user.last_name}"
+
+        if request.method == 'POST':
+            msg_group_form = CreateMessageGroupForm(request.POST, recipient=recipient_name)
+            msg_content_form = CreateMessageContentForm(request.POST)
+
+            if msg_group_form.is_valid() and msg_content_form.is_valid():
+                new_msg_group = msg_group_form.save(commit=False)
+                new_msg_group.author = request.user
+                new_msg_group.recipient = recipient_user
+                new_msg_group.author_seen = True
+                new_msg_group.save()
+                MessageContent.objects.create(
+                    author=new_msg_group.author,
+                    message=new_msg_group,
+                    content=msg_content_form.data.get('content'),
+                )
+                return redirect("messaging:list_messages", request.user.id)
+
+        else:
+            msg_group_form = CreateMessageGroupForm(recipient=recipient_name)
+            msg_content_form = CreateMessageContentForm()
+
+        return render(request, 'messaging/compose_message.html', {
+            'msg_group_form': msg_group_form,
+            'msg_content_form': msg_content_form
+        })
     else:
-        recipient_name = f"{recipient_user.first_name} {recipient_user.last_name}"
-
-    if request.method == 'POST':
-        msg_group_form = CreateMessageGroupForm(request.POST, recipient=recipient_name)
-        msg_content_form = CreateMessageContentForm(request.POST)
-
-        if msg_group_form.is_valid() and msg_content_form.is_valid():
-            new_msg_group = msg_group_form.save(commit=False)
-            new_msg_group.author = request.user
-            new_msg_group.recipient = recipient_user
-            new_msg_group.author_seen = True
-            new_msg_group.save()
-            MessageContent.objects.create(
-                author=new_msg_group.author,
-                message=new_msg_group,
-                content=msg_content_form.data.get('content'),
-            )
-            return redirect("messaging:list_messages", request.user.id)
-
-    else:
-        msg_group_form = CreateMessageGroupForm(recipient=recipient_name)
-        msg_content_form = CreateMessageContentForm()
-
-    return render(request, 'messaging/compose_message.html', {
-        'msg_group_form': msg_group_form,
-        'msg_content_form': msg_content_form
-    })
+        return redirect("messaging:list_messages")
 
 
 @login_required
