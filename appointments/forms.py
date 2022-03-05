@@ -50,6 +50,6 @@ ADVANCE = [
 ]
 
 
-class AvailabilitySlotForm(forms.Form):
+class AvailabilityForm(forms.Form):
     availability_slot_time = forms.CharField(label='Time slot', widget=forms.Select(choices=TIME_SLOTS))
     availability_advance = forms.CharField(label='Advance', widget=forms.Select(choices=ADVANCE))
