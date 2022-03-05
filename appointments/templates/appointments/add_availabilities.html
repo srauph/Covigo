@@ -5,16 +5,17 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.formset/1.2.2/jquery.formset.min.js"></script>
 <script>
     $('.time-formset').formset({
+                deleteCssClass: 'bg-red-600 ',
         addText: 'Insert break',
         deleteText: 'Remove',
-        addCssClass: 'bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1'
+        addCssClass: 'bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md',
     });
 </script>
 {% endblock %}
 
 {% block content %}
     <div class="bg-slate-700 border-b">
-        <h1 class="text-2xl text-white font-semibold px-8 py-4">Edit Availabilities</h1>
+        <h1 class="text-2xl text-white font-semibold px-8 py-4">Add Availabilities</h1>
     </div>
     <form method="post" class="min-h-full bg-slate-100 flex flex-col">
         {% csrf_token %}
@@ -51,21 +52,26 @@
                         <div class="time-formset">
                         <div class="w-full px-2 py-2 inline-flex">
                             <label>Start time</label>
-                             {{ time_form.start_time_hour }}
+                             {{ time_form.start_time_hour }}:
                         {{ time_form.start_time_minute }}
-                        {{ time_form.start_time_am_pm }}
                         </div>
 
                                                 <div class="w-full px-2 py-2 inline-flex">
                             <label>End time</label>
-                             {{ time_form.end_time_hour }}
+                             {{ time_form.end_time_hour }}:
                         {{ time_form.end_time_minute }}
-                        {{ time_form.end_time_am_pm }}
                         </div>
 
 
                     </div>
                     {% endfor %}
+
+                    <div class="w-full px-2 py-2 inline-flex">
+                        <label>Maintain this schedule until</label>
+                        <div class="mt-1 pl-5 pr-5">
+                            {{ availability_form.date_until }}
+                        </div>
+                    </div>
 
                     <button type="submit" class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
                         <span>Submit</span>
