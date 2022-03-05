@@ -25,17 +25,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # TODO: Make the SECRET_KEY secret
-SECRET_KEY = 'django-insecure-)hrxs16w-%lr2@k@!rfq!lwem55i%uv$7qhiktrme63j!2+1(f'
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 if getenv("PRODUCTION_MODE") == "True":
     DEBUG = False
-    # TODO: Limit the ALLOWED_HOSTS
-    ALLOWED_HOSTS = ['*']
+    ALLOWED_HOSTS = [".covigo.ddns.net"]
     STATIC_ROOT = getenv("STATIC_ROOT")
+    SECRET_KEY = getenv("SECRET_KEY")
 else:
     DEBUG = True
     ALLOWED_HOSTS = []
+    SECRET_KEY = 'django-insecure-)hrxs16w-%lr2@k@!rfq!lwem55i%uv$7qhiktrme63j!2+1(f'
 
 # Application definition
 
@@ -94,6 +95,7 @@ WSGI_APPLICATION = 'Covigo.wsgi.application'
 
 
 DATABASE_PASSWORD = getenv("DATABASE_PASSWORD")
+
 if getenv("DATABASE_USER"):
     DATABASE_USER = getenv("DATABASE_USER")
 else:
