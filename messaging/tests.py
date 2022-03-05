@@ -56,7 +56,7 @@ class MessagingViewReplyTests(TestCase):
                                       content="I have a fever of 100 degrees")
 
         # Check if doctor has seen the new message
-        self.assertFalse(msg_group_1.seen)
+        self.assertFalse(msg_group_1.recipient_seen)
 
         # Login as doctor_1
         doctor_client = Client()
@@ -66,29 +66,7 @@ class MessagingViewReplyTests(TestCase):
         doctor_client.get('/messaging/view/1/')
         # Check if doctor has seen the new message
         msg_group_1.refresh_from_db()
-        self.assertTrue(msg_group_1.seen)
-
-    # Check if seen status is unchanged after sender re-opens the message group after replying
-    def test_seen_sender(self):
-        # Get the current logged-in user (self)
-        user_1 = User.objects.get(id=1)
-
-        # Get message group
-        msg_group_1 = MessageGroup.objects.get(id=1)
-
-        # Send a message to doctor_1
-        MessageContent.objects.create(message=msg_group_1, author=user_1,
-                                      content="My fever is now 150 degrees bruh")
-
-        # Check if doctor has seen the new message
-        self.assertFalse(msg_group_1.seen)
-
-        # Make current user re-open the message group
-        self.client.get('/messaging/view/1/')
-
-        # Check seen status of message
-        msg_group_1.refresh_from_db()
-        self.assertFalse(msg_group_1.seen)
+        self.assertTrue(msg_group_1.recipient_seen)
 
 
 class MessagingList(TestCase):
@@ -119,16 +97,16 @@ class MessagingList(TestCase):
         # Toggle the seen status to be True
         toggle_read(self.request, 1)
         msg_group_1 = MessageGroup.objects.get(id=1)
-        self.assertTrue(msg_group_1.seen)
+        self.assertTrue(msg_group_1.author_seen)
 
         # Toggle it again to be False
         toggle_read(self.request, 1)
         msg_group_1.refresh_from_db()
-        self.assertFalse(msg_group_1.seen)
+        self.assertFalse(msg_group_1.author_seen)
 
         # Toggle it again to be True
         toggle_read(self.request, 1)
         msg_group_1.refresh_from_db()
-        self.assertTrue(msg_group_1.seen)
+        self.assertTrue(msg_group_1.author_seen)
 
 
