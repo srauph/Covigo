@@ -116,3 +116,4 @@ class AvailabilityForm(forms.Form):
             raise ValidationError(
                 "Invalid slot duration"
             )
+        return self.data.get('slot_duration_hours')
