@@ -4,6 +4,8 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from accounts.models import Flag, Staff
 from django.contrib.auth.models import User
+# from django.shortcuts import render
+
 import smtplib
 
 
@@ -51,3 +53,13 @@ def send_email_to_user(user, subject, message):
     s.login(email,pwd)
     s.sendmail(email, user.email, f"Subject: {subject}\n{message}")
     s.quit()
+
+# Implementation of method not needed yet
+
+# def generate_qr(patient_id):
+    # patient = User.objects.get(id=patient_id)
+    # Generates the unique "text code"
+    # patient.code = text_code
+    # patient.save()
+    # Generate QR code of form /profile/{text_code}
+    # qr_code = QRGENERATOR.generate(f"covigo.ddns.net/profile/{text_code}")

@@ -1,5 +1,5 @@
 {% extends "Covigo/base.html" %}
-
+{% load qr_code %}
 {% block content %}
     <div class="container mx-auto my-5 p-5">
         <div class="md:flex no-wrap md:-mx-2 ">
@@ -7,10 +7,9 @@
             <div class="w-full md:w-2/12 md:mx-2">
                 <!-- Profile Card -->
                 <div class="bg-white p-3 border-t-4 border-black">
-                    <div class="image overflow-hidden">
-                        <img class="h-auto w-full mx-auto"
-                             src="https://www.researchgate.net/profile/Hafiza-Abas/publication/288303807/figure/fig1/AS:311239419940864@1451216668048/An-example-of-QR-code.png"
-                             alt="">
+                    <div class="image object-fill">
+                        <!-- QR Code Implementation -->
+                        {% qr_from_text "Hello World!" size=12 version=5 border=0 %}
                     </div>
                     <h1 class="text-gray-900 font-bold text-xl  text-cetner pl-5">Jane Doe #ABC123</h1>
 
