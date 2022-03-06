@@ -27,16 +27,26 @@
                     </h2>
                     <hr>
 
-
+                    <div class="text-red-500 text-sm font-semibold">
+                        <div class="absolute">
+                            {{ availability_form.availability_days.errors }}
+                        </div>
+                    </div>
                     <div class="w-full max-w-2xl px-2 py-2">
                         <label>Select days to create availabilities for</label>
                         <div class="mt-1">
                             {{ availability_form.availability_days }}
                         </div>
                     </div>
+                    <div class="text-red-500 text-sm font-semibold">
+                        <div class="absolute">
+                            {{ availability_form.slot_duration_hours.errors }}
+                        </div>
+                    </div>
 
                     <div class="w-full px-2 py-2 inline-flex">
                         <label>Slot Duration</label>
+
                         <div class="mt-1 pl-5 pr-5">
                             {{ availability_form.slot_duration_hours }}
                             hours
@@ -46,6 +56,7 @@
                             minutes
                         </div>
                     </div>
+
 
                     {{ time_formset.management_form }}
 
