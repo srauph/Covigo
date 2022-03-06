@@ -30,7 +30,7 @@ def add_availabilities(request):
                 print(availability_form.cleaned_data.get('slot_duration_minutes'))
 
                 for time_form in time_formset:
-                    print('start time: %d : %d', time_form.cleaned_data.get('start_time_hour'), time_form.cleaned_data.get('start_time_minute'))
+                    print('start time: ', time_form.cleaned_data.get('start_time_hour'), ':', time_form.cleaned_data.get('start_time_minute'))
         else:
             availability_form = AvailabilityForm()
             time_formset = TimeFormSet()
