@@ -37,6 +37,7 @@ class TimeForm(forms.Form):
 
 # This class is for custom form validation
 class BaseTimeFormSet(BaseFormSet):
+
     def clean(self):
 
         if any(self.errors):
@@ -45,10 +46,9 @@ class BaseTimeFormSet(BaseFormSet):
         # Validate start and end times with the slot duration time
         slot_duration_in_minutes = int(self.data.get('slot_duration_hours')) * 60 + int(
             self.data.get('slot_duration_minutes'))
+        # Validation error is handled by the AvailabilityForm. This check is just to prevent modulo division by 0
         if slot_duration_in_minutes == 0:
-            raise ValidationError(
-                "Invalid slot duration"
-            )
+            raise ValidationError("")
 
         for index, element in enumerate(self.forms):
             if element.cleaned_data:
@@ -107,3 +107,12 @@ class AvailabilityForm(forms.Form):
 
     date_until = forms.DateField(initial=date_today.strftime("%Y-%m-%d"), required=True, widget=forms.widgets.DateInput(
         attrs={'type': 'date', 'min': date_today.strftime("%Y-%m-%d"), 'max': date_one_year.strftime("%Y-%m-%d")}))
+
+    # Validate start and end times with the slot duration time
+    def clean_slot_duration_hours(self):
+        slot_duration_in_minutes = int(self.data.get('slot_duration_hours')) * 60 + int(
+            self.data.get('slot_duration_minutes'))
+        if slot_duration_in_minutes == 0:
+            raise ValidationError(
+                "Invalid slot duration"
+            )
