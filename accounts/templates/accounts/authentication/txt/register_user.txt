@@ -1,0 +1,12 @@
+{% autoescape off %}
+Welcome to Covigo!
+
+A new Covigo account is being created for you. To complete the registration of your account, please click the link below.
+
+{{ protocol }}://{{ domain }}{% url 'accounts:register_account' uidb64=uid token=token %}
+
+
+Covigo
+2022 Soen Squad
+
+{% endautoescape %}

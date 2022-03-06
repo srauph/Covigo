@@ -1,12 +1,58 @@
 from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.views import PasswordResetConfirmView, INTERNAL_RESET_SESSION_TOKEN
 from django.core.exceptions import MultipleObjectsReturned
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse_lazy
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.forms import PasswordResetForm
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
-from accounts.utils import get_superuser_staff_model, send_email_to_user, reset_password_email_generator
+from accounts.utils import get_superuser_staff_model, send_email_to_user, reset_password_email_generator, \
+    get_user_from_uidb64
+
+
+class RegisterPasswordResetConfirmView(PasswordResetConfirmView):
+    def dispatch(self, *args, **kwargs):
+        # user = get_user_from_uidb64(kwargs['uidb64'])
+        # token = default_token_generator.make_token(user)
+        # success_kwargs = {
+        #     'uidb64': kwargs['uidb64'],
+        #     'token': token,
+        # }
+        # self.success_url = reverse_lazy('accounts:register_user_details', kwargs=success_kwargs)
+        self.success_url = reverse_lazy('accounts:register_user_password_done', kwargs={'uidb64': kwargs['uidb64']})
+        return super(RegisterPasswordResetConfirmView, self).dispatch(*args, **kwargs)
+
+
+class RegisterUserDetailsConfirmView(PasswordResetConfirmView):
+
+
+def process_register_or_edit_user_form(request, user_form, profile_form, mode=None):
+    user_email = user_form.data.get("email")
+    user_phone = profile_form.data.get("phone_number")
+    user_groups = user_form.data.get("groups")
+    has_email = user_email != ""
+    has_phone = user_phone != ""
+
+    if user_form.is_valid() and profile_form.is_valid() and (has_email or has_phone):
+
+        edited_user = user_form.save(commit=False)
+
+        # TODO: Discuss possibility of having no group and adjust `if` to enforce at least one when editing
+        if user_groups:
+            edited_user.groups.set(user_groups)
+
+        edited_user.save()
+        profile_form.save()
+
+        return True
+
+    else:
+        if mode == "Edit" and not (has_email or has_phone):
+            user_form.add_error(None, "Please enter an email address or a phone number.")
+        return False
 
 
 @login_required
@@ -24,7 +70,7 @@ def forgot_password(request):
             try:
                 user = User.objects.get(email=data)
                 subject = "Password Reset Requested"
-                template = "accounts/authentication/reset_password_email.txt"
+                template = "accounts/authentication/txt/reset_password_email.txt"
                 reset_password_email_generator(user, subject, template)
                 return redirect("accounts:forgot_password_done")
             except MultipleObjectsReturned:
@@ -40,6 +86,75 @@ def forgot_password(request):
         template_name="accounts/authentication/forgot_password.html",
         context={"form": password_reset_form}
     )
+
+
+# FOR DEV ONLY -- IF I FORGOT TO REMOVE THIS VIEW PLEASE REMIND ME TO
+@never_cache
+def register(request):
+    from django.utils.http import urlsafe_base64_encode
+    from django.utils.encoding import force_bytes
+
+    user = User.objects.first()
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    return redirect("accounts:register_user_password", uidb64=uid, token=token)
+
+
+def register_user_password_done(request, uidb64):
+    user = get_user_from_uidb64(uidb64)
+    token = default_token_generator.make_token(user)
+    # details_kwargs = {
+    #     'uidb64': uidb64,
+    #     'token': token,
+    # }
+    return redirect('accounts:register_user_details', uidb64, token, False)
+
+@never_cache
+def register_user_details(request, uidb64, token, validlink):
+    user = get_user_from_uidb64(uidb64)
+    user_id = user.id
+    print(default_token_generator.check_token(user, token))
+
+    if user is not None:
+        print("b")
+        if token == 'set-details':
+            print("ba")
+            session_token = request.session.get(INTERNAL_RESET_SESSION_TOKEN)
+            if default_token_generator.check_token(user, session_token):
+                print("baa")
+                # If the token is valid, display the password reset form.
+                validlink = True
+                return redirect("accounts:register_user_details", uidb64, token, True)
+        else:
+            print("bo")
+            if default_token_generator.check_token(user, token):
+                print("boo")
+                # Store the token in the session and redirect to the
+                # password reset form at a URL without the token. That
+                # avoids the possibility of leaking the token in the
+                # HTTP Referer header.
+                request.session[INTERNAL_RESET_SESSION_TOKEN] = token
+                redirect_url = request.path.replace(token, 'set-details')
+                return redirect(redirect_url, uidb64, token, False)
+
+    # Process forms
+    if request.method == "POST":
+        user_form = RegisterUserForm(request.POST, instance=user, user_id=user_id)
+        profile_form = RegisterProfileForm(request.POST, instance=user.profile, user_id=user_id)
+
+        if process_register_or_edit_user_form(request, user_form, profile_form):
+            return redirect("accounts:register_user_done")
+
+    # Create forms
+    else:
+        user_form = RegisterUserForm(instance=user, user_id=user_id, initial={"username": None})
+        profile_form = RegisterProfileForm(instance=user.profile, user_id=user_id)
+
+    return render(request, "accounts/register_user_details.html", {
+        "user_form": user_form,
+        "profile_form": profile_form,
+        "validlink": validlink
+    })
 
 
 @login_required
@@ -65,8 +180,8 @@ def list_users(request):
 def create_user(request):
     # Process forms
     if request.method == "POST":
-        user_form = UserForm(request.POST)
-        profile_form = ProfileForm(request.POST)
+        user_form = CreateUserForm(request.POST)
+        profile_form = CreateProfileForm(request.POST)
 
         user_email = user_form.data.get("email")
         user_phone = profile_form.data.get("phone_number")
@@ -109,8 +224,8 @@ def create_user(request):
                 user_form.add_error(None, "Please enter an email address or a phone number.")
     # Create forms
     else:
-        user_form = UserForm()
-        profile_form = ProfileForm()
+        user_form = CreateUserForm()
+        profile_form = CreateProfileForm()
 
     return render(request, "accounts/create_user.html", {
         "user_form": user_form,
@@ -122,33 +237,14 @@ def create_user(request):
 @never_cache
 def edit_user(request, user_id):
     user = User.objects.get(id=user_id)
+
     # Process forms
     if request.method == "POST":
         user_form = EditUserForm(request.POST, instance=user, user_id=user_id)
         profile_form = EditProfileForm(request.POST, instance=user.profile, user_id=user_id)
 
-        user_email = user_form.data.get("email")
-        user_phone = profile_form.data.get("phone_number")
-        user_groups = user_form.data.get("groups")
-        has_email = user_email != ""
-        has_phone = user_phone != ""
-
-        if user_form.is_valid() and profile_form.is_valid() and (has_email or has_phone):
-
-            edited_user = user_form.save(commit=False)
-
-            # TODO: Discuss the possibility of having no group and remove `if` if we enforce having at least one
-            if user_groups:
-                edited_user.groups.set(user_groups)
-
-            edited_user.save()
-            profile_form.save()
-
+        if process_register_or_edit_user_form(request, user_form, profile_form, mode="Edit"):
             return redirect("accounts:list_users")
-
-        else:
-            if not (has_email or has_phone):
-                user_form.add_error(None, "Please enter an email address or a phone number.")
 
     # Create forms
     else:
@@ -189,7 +285,7 @@ def list_group(request):
 
   
 @login_required
-def flaguser(request, user_id):
+def flag_user(request, user_id):
     user_staff = request.user
     user_patient = User.objects.get(id=user_id)
 
@@ -207,7 +303,7 @@ def flaguser(request, user_id):
 
   
 @login_required
-def unflaguser(request, user_id):
+def unflag_user(request, user_id):
     user_staff = request.user
     user_patient = User.objects.get(id=user_id)
 

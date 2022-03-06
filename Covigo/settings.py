@@ -23,14 +23,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# TODO: Make the SECRET_KEY secret
-
-
-# SECURITY WARNING: don't run with debug turned on in production!
+# Configure settings based on "dev mode" or "production mode"
 if getenv("PRODUCTION_MODE") == "True":
+    PRODUCTION_MODE = True
+else:
+    PRODUCTION_MODE = False
+
+if PRODUCTION_MODE:
     DEBUG = False
-    ALLOWED_HOSTS = [".covigo.ddns.net"]
+    ALLOWED_HOSTS = getenv("ALLOWED_HOSTS")
     STATIC_ROOT = getenv("STATIC_ROOT")
     SECRET_KEY = getenv("SECRET_KEY")
 else:
@@ -85,7 +86,7 @@ TEMPLATES = [
 ]
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
+    BASE_DIR / 'static',
 ]
 
 WSGI_APPLICATION = 'Covigo.wsgi.application'

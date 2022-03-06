@@ -1,7 +1,7 @@
 from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
 from . import views
-from .forms import ResetPasswordForm
+from .forms import SetPasswordForm
 
 app_name = 'accounts'
 urlpatterns = [
@@ -14,8 +14,8 @@ urlpatterns = [
     path('access_control/group/list', views.list_group, name='list_group'),
     path('access_control/group/edit/<int:group_id>', views.edit_group, name='edit_group'),
 
-    path('flag/<int:user_id>/', views.flaguser, name='flag_user'),
-    path('unflag/<int:user_id>/', views.unflaguser, name='unflag_user'),
+    path('flag/<int:user_id>/', views.flag_user, name='flag_user'),
+    path('unflag/<int:user_id>/', views.unflag_user, name='unflag_user'),
 
     path('two_factor_authentication/', views.two_factor_authentication, name='two_factor_authentication'),
     path('profile/', views.profile, name='profile'),
@@ -53,7 +53,7 @@ urlpatterns = [
     path(
         'reset_password/<uidb64>/<token>/',
         auth_views.PasswordResetConfirmView.as_view(
-            form_class=ResetPasswordForm,
+            form_class=SetPasswordForm,
             template_name='accounts/authentication/reset_password.html',
             success_url=reverse_lazy('accounts:reset_password_done')
         ),
@@ -63,5 +63,34 @@ urlpatterns = [
         'reset_password/done/',
         auth_views.PasswordResetCompleteView.as_view(template_name='accounts/authentication/reset_password_done.html'),
         name='reset_password_done'
+    ),
+    # FOR DEV ONLY -- IF I FORGOT TO REMOVE THIS PLEASE REMIND ME TO
+    path(
+        'register/',
+        views.register,
+        name='register'
+    ),
+    path(
+        'register/<uidb64>/<token>/',
+        views.RegisterPasswordResetConfirmView.as_view(
+            form_class=SetPasswordForm,
+            template_name='accounts/authentication/register_user_password.html',
+        ),
+        name='register_user_password'
+    ),
+    path(
+        'register/<uidb64>/password_done',
+        views.register_user_password_done,
+        name="register_user_password_done"
+    ),
+    path(
+        'register/details/<uidb64>/<token>/',
+        views.register_user_details,
+        name='register_user_details'
+    ),
+    path(
+        'register/done/',
+        auth_views.PasswordResetCompleteView.as_view(template_name='accounts/register_user_done.html'),
+        name='register_user_done'
     ),
 ]

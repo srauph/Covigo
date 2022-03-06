@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.test import TestCase, RequestFactory
 from accounts.utils import get_flag
-from accounts.views import flaguser, unflaguser
+from accounts.views import flag_user, unflag_user
 from accounts.models import Flag
 
 
@@ -14,20 +14,20 @@ class FlagAssigningTests(TestCase):
 
     def test_previously_flagged_user(self):
         Flag.objects.create(staff=self.request.user, patient=self.previously_flagged_patient)
-        response = flaguser(self.request, self.previously_flagged_patient.id)
+        response = flag_user(self.request, self.previously_flagged_patient.id)
         self.assertions(response, True, self.previously_flagged_patient)
 
     def test_never_flagged_user(self):
-        response = flaguser(self.request, self.never_flagged_patient.id)
+        response = flag_user(self.request, self.never_flagged_patient.id)
         self.assertions(response, True, self.never_flagged_patient)
 
     def test_unflag_user(self):
         Flag.objects.create(staff=self.request.user, patient=self.previously_flagged_patient, is_active=True)
-        response = unflaguser(self.request, self.previously_flagged_patient.id)
+        response = unflag_user(self.request, self.previously_flagged_patient.id)
         self.assertions(response, False, self.previously_flagged_patient)
 
     def test_unflag_never_flagged_user(self):
-        response = unflaguser(self.request, self.never_flagged_patient.id)
+        response = unflag_user(self.request, self.never_flagged_patient.id)
         self.assertIsNone(get_flag(self.request.user, self.never_flagged_patient))
         self.assertEqual(response.status_code, 302)
 
