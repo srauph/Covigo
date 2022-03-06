@@ -1,16 +1,16 @@
 {% extends 'Covigo/base.html' %}
 
 {% block script %}
-<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.formset/1.2.2/jquery.formset.min.js"></script>
-<script>
-    $('.time-formset').formset({
-                deleteCssClass: 'bg-red-600 ',
-        addText: 'Insert break',
-        deleteText: 'Remove',
-        addCssClass: 'bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md',
-    });
-</script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.formset/1.2.2/jquery.formset.min.js"></script>
+    <script>
+        $('.time-formset').formset({
+            deleteCssClass: 'bg-red-600 ',
+            addText: 'Insert break',
+            deleteText: 'Remove',
+            addCssClass: 'bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md',
+        });
+    </script>
 {% endblock %}
 
 {% block content %}
@@ -26,6 +26,7 @@
                         Availability details
                     </h2>
                     <hr>
+
 
                     <div class="w-full max-w-2xl px-2 py-2">
                         <label>Select days to create availabilities for</label>
@@ -48,22 +49,29 @@
 
                     {{ time_formset.management_form }}
 
+                    <div class="px-2 absolute text-red-500 text-sm font-semibold">
+                        {{ time_formset.non_form_errors }}
+                    </div>
                     {% for time_form in time_formset %}
                         <div class="time-formset">
-                        <div class="w-full px-2 py-2 inline-flex">
-                            <label>Start time</label>
-                             {{ time_form.start_time_hour }}:
-                        {{ time_form.start_time_minute }}
+                            <div class="w-full px-2 py-2 inline-flex">
+                                <label>Start time</label>
+                                {{ time_form.start_time_hour }}:
+                                {{ time_form.start_time_minute }}
+                            </div>
+
+                            <div class="w-full px-2 py-2 inline-flex">
+                                <label>End time</label>
+                                {{ time_form.end_time_hour }}:
+                                {{ time_form.end_time_minute }}
+                            </div>
+                            <div class="text-red-500 text-sm font-semibold">
+                                <div class="absolute">
+                                    {{ time_form.errors }}
+                                </div>
+                            </div>
+
                         </div>
-
-                                                <div class="w-full px-2 py-2 inline-flex">
-                            <label>End time</label>
-                             {{ time_form.end_time_hour }}:
-                        {{ time_form.end_time_minute }}
-                        </div>
-
-
-                    </div>
                     {% endfor %}
 
                     <div class="w-full px-2 py-2 inline-flex">
@@ -73,7 +81,8 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                    <button type="submit"
+                            class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
                         <span>Submit</span>
                     </button>
                 </div>
