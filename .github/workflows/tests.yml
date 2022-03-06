@@ -1,4 +1,4 @@
-name: Django CI
+name: Django Tests CI
 on:
   push:
     branches: [ master ]
@@ -24,10 +24,10 @@ jobs:
         pip3 install --upgrade pip
         pip3 install django
         if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
-    - name: Setup .env
-      run: |
-        cp ../covigo.env Covigo/.env
     - name: Run Tests
+      env:
+        DATABASE_USER: ${{ secrets.DATABASE_USER }}
+        DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
       run: |
         python3.10 manage.py test
     - name: Deactivate venv
