@@ -44,27 +44,54 @@ class BaseTimeFormSet(BaseFormSet):
 
         # Validate start and end times with the slot duration time
         slot_duration_in_minutes = int(self.data.get('slot_duration_hours')) * 60 + int(
-                                    self.data.get('slot_duration_minutes'))
-        for form in self.forms:
-            if form.cleaned_data:
-                start_time_hour = form.cleaned_data['start_time_hour']
-                start_time_minute = form.cleaned_data['start_time_minute']
-                end_time_hour = form.cleaned_data['end_time_hour']
-                end_time_minute = form.cleaned_data['end_time_minute']
+            self.data.get('slot_duration_minutes'))
+        if slot_duration_in_minutes == 0:
+            raise ValidationError(
+                "Invalid slot duration"
+            )
+
+        for index, element in enumerate(self.forms):
+            if element.cleaned_data:
+                start_time_hour = element.cleaned_data['start_time_hour']
+                start_time_minute = element.cleaned_data['start_time_minute']
+                end_time_hour = element.cleaned_data['end_time_hour']
+                end_time_minute = element.cleaned_data['end_time_minute']
 
                 # Ensure that start and end times are valid
-                if start_time_hour > end_time_hour:
+                if start_time_hour > end_time_hour or (
+                        start_time_hour == end_time_hour and start_time_minute == end_time_minute):
                     raise ValidationError(
                         "Start and end times are not valid"
                     )
 
                 # Validate start and end time duration can be divisible by the slot duration
-                start_in_minutes = start_time_hour*60 + start_time_minute
-                end_time_minutes = end_time_hour*60 + end_time_minute
-                if (end_time_minutes-start_in_minutes) % slot_duration_in_minutes != 0:
+                start_in_minutes = start_time_hour * 60 + start_time_minute
+                end_in_minutes = end_time_hour * 60 + end_time_minute
+                if (end_in_minutes - start_in_minutes) % slot_duration_in_minutes != 0:
                     raise ValidationError(
                         "Start and end times do not fall within the selected timeslot duration"
                     )
+
+                # Check if start and end times do not overlap
+                if index + 1 < len(self.forms):
+                    next_element = self.forms[index + 1]
+                    next_start_time_hour = next_element.cleaned_data['start_time_hour']
+                    next_start_time_minute = next_element.cleaned_data['start_time_minute']
+                    next_end_time_hour = next_element.cleaned_data['end_time_hour']
+                    next_end_time_minute = next_element.cleaned_data['end_time_minute']
+
+                    next_start_in_minutes = next_start_time_hour * 60 + next_start_time_minute
+                    next_end_in_minutes = next_end_time_hour * 60 + next_end_time_minute
+
+                    if start_in_minutes == next_start_in_minutes and end_in_minutes == next_end_in_minutes:
+                        raise ValidationError(
+                            "Duplicate start and end times"
+                        )
+
+                    if start_in_minutes < next_start_in_minutes < end_in_minutes or start_in_minutes < next_end_in_minutes < end_in_minutes:
+                        raise ValidationError(
+                            "Start and end times are overlapping"
+                        )
 
 
 class AvailabilityForm(forms.Form):
