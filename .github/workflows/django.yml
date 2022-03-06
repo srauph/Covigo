@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  test:
     name: Test
     runs-on: self-hosted
     strategy:
@@ -22,10 +22,15 @@ jobs:
         source venv/bin/activate
     - name: Install Dependencies
       run: |
-        
         pip3 install --upgrade pip
         pip3 install django
         if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
+    - name: Setup .env
+      run: |
+        cp ../covigo.env Covigo/.env
     - name: Run Tests
       run: |
         python3.10 manage.py test
+    - name: Deactivate venv
+      run: |
+        deactivate
