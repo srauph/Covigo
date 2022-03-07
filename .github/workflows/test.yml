@@ -13,4 +13,14 @@ jobs:
         python-version: ['3.10']
     steps:
     - uses: actions/checkout@v2
-    - uses: ./.github/workflows/tests
+    - name: Run Tests
+      env:
+        DATABASE_USER: ${{ secrets.DATABASE_USER }}
+        DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+      run: |
+        if [ ! -d "/venv/" ]; then virtualenv venv; fi
+        source venv/bin/activate
+        pip3 install --upgrade pip
+        pip3 install django
+        if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
+        python3.10 manage.py test
