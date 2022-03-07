@@ -7,10 +7,12 @@
             <div class="w-full md:w-2/12 md:mx-2">
                 <!-- Profile Card -->
                 <div class="bg-white p-3 border-t-4 border-black">
-                    <div class="image object-fill">
-                        <!-- QR Code Implementation -->
-                        <img src="{% static qr %}" alt="QR Code">
-                    </div>
+                    {% if not usr.is_staff %}
+                        <div class="image object-fill">
+                            <!-- QR Code Implementation -->
+                            <img src="{% static qr %}" alt="QR Code">
+                        </div>
+                    {% endif %}
                     <!-- Patient Name and Patient Code -->
                     <h1 class="text-gray-900 font-bold text-xl text-center pl-5">{{ usr.first_name }} {{ usr.last_name }}</h1>
                     <h3 class="text-gray-900 font-bold text-sm text-center pl-5">{{ usr.patient.code }}</h3>
