@@ -1,3 +1,5 @@
+import os.path
+
 from django.contrib.auth.tokens import default_token_generator
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
@@ -93,9 +95,12 @@ def generate_profile_qr(user_id):
         path = f"accounts/qrs/{str(patient_code)}.png"
         Path("accounts/static/accounts/qrs").mkdir(parents=True, exist_ok=True)
 
-        # Generate the qr code
-        img = make(data)
-        img.save("accounts/static/"+path)
-        return path
+        if os.path.exists(path):
+            return path
+        else:
+            # Generate the qr code
+            img = make(data)
+            img.save("accounts/static/"+path)
+            return path
     else:
         return None
