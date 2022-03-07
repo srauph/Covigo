@@ -10,6 +10,7 @@ from qrcode import *
 
 import uuid
 import smtplib
+import shortuuid
 
 
 # Returns the flag assigned to a patient_user by a staff_user
@@ -58,19 +59,41 @@ def send_email_to_user(user, subject, message):
     s.quit()
 
 
-def profile_qr(user_id):
+def get_or_generate_code(patient):
+    # Shortuuid docs recommends removing characters (like 0 and O) that can be confused.
+    # It sounds reasonable so I decided to do that.
+    shortuuid.set_alphabet("23456789ABCDEFGHJKLMNPQRSTUVWXYZ")
+    if not patient.code:
+        code = shortuuid.uuid()[:9]
+
+        # Regenerate the code if it exists
+        while Patient.objects.filter(code=code).exists():
+            code = shortuuid.uuid()[:9]
+
+        patient.code = code
+        patient.save()
+        return patient.code
+    else:
+        return patient.code
+
+
+def generate_profile_qr(user_id):
     user = User.objects.get(id = user_id)
+
+    # Only generate qr codes for patient users
     if not user.is_staff:
-        patient = Patient.objects.get(user = user)
-        if not patient.code:
-            code = uuid.uuid4()
-            patient.code = code
-            patient.save()
-        else:
-            code = patient.code
-        data = f"{HOST_NAME}/accounts/profile/{str(code)}"
-        path = f"accounts/qrs/{str(code)}.png"
+        # Get or generate the unique patient code
+        patient = Patient.objects.get(user=user)
+        patient_code = get_or_generate_code(patient)
+
+        # Link to store in the qr code
+        data = f"{HOST_NAME}/accounts/profile/{str(patient_code)}"
+
+        # Create path to store generated qr code image
+        path = f"accounts/qrs/{str(patient_code)}.png"
         Path("accounts/static/accounts/qrs").mkdir(parents=True, exist_ok=True)
+
+        # Generate the qr code
         img = make(data)
         img.save("accounts/static/"+path)
         return path

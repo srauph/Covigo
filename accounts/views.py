@@ -6,7 +6,7 @@ from django.views.decorators.cache import never_cache
 from django.contrib.auth.forms import PasswordResetForm
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
-from accounts.utils import get_superuser_staff_model, send_email_to_user, reset_password_email_generator, profile_qr
+from accounts.utils import get_superuser_staff_model, send_email_to_user, reset_password_email_generator, generate_profile_qr
 
 
 @login_required
@@ -52,7 +52,7 @@ def index(request):
 @never_cache
 def profile(request, user_id):
     user = User.objects.get(id = user_id)
-    image = profile_qr(user_id)
+    image = generate_profile_qr(user_id)
     return render(request, 'accounts/profile.html', {"qr": image, "usr": user, "full_view": True})
 
 
@@ -60,7 +60,7 @@ def profile(request, user_id):
 def profile_from_code(request, code):
     patient = Patient.objects.get(code = code)
     user = User.objects.get(patient = patient)
-    image = profile_qr(user.id)
+    image = generate_profile_qr(user.id)
     return render(request, 'accounts/profile.html', {"qr": image, "usr": user, "full_view": False})
 
 
