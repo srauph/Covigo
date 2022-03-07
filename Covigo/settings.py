@@ -24,12 +24,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-)hrxs16w-%lr2@k@!rfq!lwem55i%uv$7qhiktrme63j!2+1(f'
+# TODO: Make the SECRET_KEY secret
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
+if getenv("PRODUCTION_MODE") == "True":
+    DEBUG = False
+    ALLOWED_HOSTS = [".covigo.ddns.net"]
+    STATIC_ROOT = getenv("STATIC_ROOT")
+    SECRET_KEY = getenv("SECRET_KEY")
+    HOST_NAME = 'covigo.ddns.net'
+else:
+    DEBUG = True
+    ALLOWED_HOSTS = []
+    SECRET_KEY = 'django-insecure-)hrxs16w-%lr2@k@!rfq!lwem55i%uv$7qhiktrme63j!2+1(f'
+    HOST_NAME = '127.0.0.1:8000'
 
 # Application definition
 
@@ -89,11 +98,16 @@ WSGI_APPLICATION = 'Covigo.wsgi.application'
 
 DATABASE_PASSWORD = getenv("DATABASE_PASSWORD")
 
+if getenv("DATABASE_USER"):
+    DATABASE_USER = getenv("DATABASE_USER")
+else:
+    DATABASE_USER = 'root'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'Covigo',
-        'USER': 'root',
+        'USER': DATABASE_USER,
         'PASSWORD': DATABASE_PASSWORD,
         'HOST': 'localhost',
         'PORT': '3306',
