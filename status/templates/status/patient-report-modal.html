@@ -1,18 +1,9 @@
 {% load static %}
 
-{% block styles %}
-    <link rel="stylesheet" type="text/css" href="{% static 'Covigo/css/dist/styles.css' %}">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.4/css/jquery.dataTables.css">
-{% endblock %}
-
 {% block script %}
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
-            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-    <script type="text/javascript" charset="utf8"
-            src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
     <script>
         $(document).ready(function () {
-            var table = $('#patient_reports_table').DataTable({
+            $('#patient_reports__modal_table').DataTable({
                 "bSort": false,
                 "bFilter": false,
             });
@@ -23,14 +14,14 @@
 {% block content %}
     <div class="min-h-full bg-slate-100">
         <div class="flex justify-between bg-slate-700">
-            <h1 class="text-2xl text-white font-semibold px-8 py-4">Patient Reports</h1>
+            <h1 id="patient-name" class="text-2xl text-white font-semibold px-8 py-4">Patient: Name </h1>
         </div>
 
         <div class="bg-white shadow m-8 rounded-xl">
             <div class="w-full flex justify-between items-center p-4">
-                <div></div>
+                <div><span>{{ date }}</span></div>
                 <div class="flex gap-2">
-                <!-- TODO: These unflag/flag cause a redirect to account list page-->
+                    <!-- TODO: These unflag/flag cause a redirect to account list page-->
                     {% if is_flagged %}
                         <a href="{% url 'accounts:unflag_user' user_id %}">
                     {% else %}
@@ -70,7 +61,7 @@
 
         <div class="m-4">
             <div class="m-4 p-4 bg-white shadow rounded-lg text-center">
-                <table class="w-full table-auto" id="patient_reports_table">
+                <table class="w-full table-auto" id="patient_reports__modal_table">
                     <thead>
                     <tr class="border-b">
                         <th class="p-2">Symptom Name</th>
