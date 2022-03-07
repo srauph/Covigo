@@ -67,7 +67,13 @@ def edit_symptom(request, symptom_id):
 
     if request.method == 'POST':
         edit_symptom_form = CreateSymptomForm(request.POST, instance=symptom)
-
+        
+        # TODO: See what happened here (old code from merge conflict)
+        # if symptom.name == edit_symptom_form.data.get('name') and symptom.description == edit_symptom_form.data.get(
+        #         'description'):
+        #     edit_symptom_form.add_error(None,
+        #                                 "No edits made on this symptom. If you wish to make no changes, please click the \"Cancel\" button to go back to the list of symptoms.")
+        
         if not edit_symptom_form.has_changed():
             messages.error(request, "The symptom was not edited successfully: No edits made on this symptom. If you wish to make no changes, please click the \"Cancel\" button to go back to the list of symptoms.")
             return render(request, 'symptoms/edit_symptom.html', {
@@ -102,9 +108,10 @@ def assign_symptom(request, user_id):
     else:
         patient_name = f"{patient.first_name} {patient.last_name}"
     assigned_symptoms = patient.symptoms.all()
+    patient_information = patient.patient
 
     if request.method == 'POST':
-
+        # Assigns symptoms selected for patient
         for symptom_id in request.POST.getlist('symptom'):
             filter1 = Q(symptom_id=symptom_id) & Q(user_id=patient.id)
             # to not override the existing patient_symptom instance, will make it more robust in next sprints
@@ -112,13 +119,21 @@ def assign_symptom(request, user_id):
                 patient_symptom = PatientSymptom(symptom_id=symptom_id, user_id=patient.id)
                 patient_symptom.save()
             # TODO: we need to discuss the edit feature and the case when a doctor wants to remove a symptom from a patient.
+
+        # Assigns quarantine status for patient
+        quarantine_status_changed = request.POST.get('should_quarantine') is not None
+        if patient_information.is_quarantining is not quarantine_status_changed:
+            patient_information.is_quarantining = quarantine_status_changed
+            patient_information.save()
+
         return redirect('accounts:list_users')
 
     return render(request, 'symptoms/assign_symptom.html', {
         'symptoms': Symptom.objects.all(),
         'assigned_symptoms': assigned_symptoms,
         'patient': patient,
-        'patient_name': patient_name
+        'patient_name': patient_name,
+        'patient_is_quarantining': patient_information.is_quarantining,
     })
 
 
