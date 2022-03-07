@@ -1,0 +1,33 @@
+name: Django CI & CD
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  test:
+    name: Test
+    runs-on: self-hosted
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: ['3.10']
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/workflows/tests
+  
+  build:
+    needs: test
+    name: Build
+    runs-on: self-hosted
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: ['3.10']
+    steps:
+    - uses: actions/checkout@v2
+    - name: Deploy
+      env:
+        DATABASE_USER: ${{ secrets.DATABASE_USER }}
+        DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+      run: |
+        echo hi
