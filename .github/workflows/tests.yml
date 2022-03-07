@@ -22,17 +22,18 @@ jobs:
         echo "VIRTUAL ENV:" $VIRTUAL_ENV
     - name: Install Dependencies
       run: |
+        echo "VIRTUAL ENV:" $VIRTUAL_ENV
         pip3 install --upgrade pip
         pip3 install django
         if [ -f requirements.txt ]; then pip3 install -r requirements.txt; 
-        echo "VIRTUAL ENV:" $VIRTUAL_ENV
+        
     - name: Run Tests
       env:
         DATABASE_USER: ${{ secrets.DATABASE_USER }}
         DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
       run: |
-        python3.10 manage.py test
         echo "VIRTUAL ENV:" $VIRTUAL_ENV
+        python3.10 manage.py test
     - name: Deactivate venv
       run: |
         deactivate
