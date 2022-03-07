@@ -15,18 +15,8 @@ from accounts.utils import get_superuser_staff_model, send_email_to_user, reset_
 
 class RegisterPasswordResetConfirmView(PasswordResetConfirmView):
     def dispatch(self, *args, **kwargs):
-        # user = get_user_from_uidb64(kwargs['uidb64'])
-        # token = default_token_generator.make_token(user)
-        # success_kwargs = {
-        #     'uidb64': kwargs['uidb64'],
-        #     'token': token,
-        # }
-        # self.success_url = reverse_lazy('accounts:register_user_details', kwargs=success_kwargs)
         self.success_url = reverse_lazy('accounts:register_user_password_done', kwargs={'uidb64': kwargs['uidb64']})
         return super(RegisterPasswordResetConfirmView, self).dispatch(*args, **kwargs)
-
-
-class RegisterUserDetailsConfirmView(PasswordResetConfirmView):
 
 
 def process_register_or_edit_user_form(request, user_form, profile_form, mode=None):
@@ -103,58 +93,57 @@ def register(request):
 def register_user_password_done(request, uidb64):
     user = get_user_from_uidb64(uidb64)
     token = default_token_generator.make_token(user)
-    # details_kwargs = {
-    #     'uidb64': uidb64,
-    #     'token': token,
-    # }
-    return redirect('accounts:register_user_details', uidb64, token, False)
+    return redirect('accounts:register_user_details', uidb64, token)
 
 @never_cache
-def register_user_details(request, uidb64, token, validlink):
+def register_user_details(request, uidb64, token):
     user = get_user_from_uidb64(uidb64)
     user_id = user.id
-    print(default_token_generator.check_token(user, token))
+    valid = False
 
     if user is not None:
-        print("b")
         if token == 'set-details':
-            print("ba")
             session_token = request.session.get(INTERNAL_RESET_SESSION_TOKEN)
             if default_token_generator.check_token(user, session_token):
-                print("baa")
                 # If the token is valid, display the password reset form.
-                validlink = True
-                return redirect("accounts:register_user_details", uidb64, token, True)
+                valid = True
         else:
-            print("bo")
             if default_token_generator.check_token(user, token):
-                print("boo")
                 # Store the token in the session and redirect to the
                 # password reset form at a URL without the token. That
                 # avoids the possibility of leaking the token in the
                 # HTTP Referer header.
                 request.session[INTERNAL_RESET_SESSION_TOKEN] = token
                 redirect_url = request.path.replace(token, 'set-details')
-                return redirect(redirect_url, uidb64, token, False)
+                return redirect(redirect_url, uidb64, token)
 
-    # Process forms
-    if request.method == "POST":
-        user_form = RegisterUserForm(request.POST, instance=user, user_id=user_id)
-        profile_form = RegisterProfileForm(request.POST, instance=user.profile, user_id=user_id)
+    # Process/Create forms if the link is valid
+    if valid:
+        # Process forms
+        if request.method == "POST":
+            user_form = RegisterUserForm(request.POST, instance=user, user_id=user_id)
+            profile_form = RegisterProfileForm(request.POST, instance=user.profile, user_id=user_id)
 
-        if process_register_or_edit_user_form(request, user_form, profile_form):
-            return redirect("accounts:register_user_done")
+            if process_register_or_edit_user_form(request, user_form, profile_form):
+                request.session[INTERNAL_RESET_SESSION_TOKEN] = None
+                return redirect("accounts:register_user_done")
 
-    # Create forms
+        # Create forms
+        else:
+            user_form = RegisterUserForm(instance=user, user_id=user_id, initial={"username": None})
+            profile_form = RegisterProfileForm(instance=user.profile, user_id=user_id)
+
+        return render(request, "accounts/register_user_details.html", {
+            "user_form": user_form,
+            "profile_form": profile_form,
+            "validlink": True
+        })
+
+    # Don't process/create forms if the link is expired or invalid
     else:
-        user_form = RegisterUserForm(instance=user, user_id=user_id, initial={"username": None})
-        profile_form = RegisterProfileForm(instance=user.profile, user_id=user_id)
-
-    return render(request, "accounts/register_user_details.html", {
-        "user_form": user_form,
-        "profile_form": profile_form,
-        "validlink": validlink
-    })
+        return render(request, "accounts/register_user_details.html", {
+            "validlink": False
+        })
 
 
 @login_required
