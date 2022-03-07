@@ -2,10 +2,13 @@ from django.contrib.auth.tokens import default_token_generator
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from accounts.models import Flag, Staff
+from accounts.models import Flag, Staff, Profile, Patient
 from django.contrib.auth.models import User
-# from django.shortcuts import render
+from Covigo.settings import HOST_NAME
+from pathlib import Path
+from qrcode import *
 
+import uuid
 import smtplib
 
 
@@ -54,12 +57,22 @@ def send_email_to_user(user, subject, message):
     s.sendmail(email, user.email, f"Subject: {subject}\n{message}")
     s.quit()
 
-# Implementation of method not needed yet
 
-# def generate_qr(patient_id):
-    # patient = User.objects.get(id=patient_id)
-    # Generates the unique "text code"
-    # patient.code = text_code
-    # patient.save()
-    # Generate QR code of form /profile/{text_code}
-    # qr_code = QRGENERATOR.generate(f"covigo.ddns.net/profile/{text_code}")
+def profile_qr(user_id):
+    user = User.objects.get(id = user_id)
+    if not user.is_staff:
+        patient = Patient.objects.get(user = user)
+        if not patient.code:
+            code = uuid.uuid4()
+            patient.code = code
+            patient.save()
+        else:
+            code = patient.code
+        data = f"{HOST_NAME}/accounts/profile/{str(code)}"
+        path = f"accounts/qrs/{str(code)}.png"
+        Path("accounts/static/accounts/qrs").mkdir(parents=True, exist_ok=True)
+        img = make(data)
+        img.save("accounts/static/"+path)
+        return path
+    else:
+        return None
