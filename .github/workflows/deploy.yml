@@ -26,7 +26,7 @@ jobs:
         python3.10 manage.py test
   
   build:
-  needs: test
+    needs: test
     name: Build
     runs-on: self-hosted
     strategy:
