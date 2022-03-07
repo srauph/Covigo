@@ -1,5 +1,5 @@
 {% extends "Covigo/base.html" %}
-{% load qr_code %}
+{% load static %}
 {% block content %}
     <div class="container mx-auto my-5 p-5">
         <div class="md:flex no-wrap md:-mx-2 ">
@@ -9,7 +9,7 @@
                 <div class="bg-white p-3 border-t-4 border-black">
                     <div class="image object-fill">
                         <!-- QR Code Implementation -->
-                        {% qr_from_text "Hello World!" size=12 version=5 border=0 %}
+                        <img src="{% static qr %}" alt="QR Code">
                     </div>
                     <h1 class="text-gray-900 font-bold text-xl  text-cetner pl-5">Jane Doe #ABC123</h1>
 

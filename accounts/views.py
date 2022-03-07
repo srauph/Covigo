@@ -6,7 +6,7 @@ from django.views.decorators.cache import never_cache
 from django.contrib.auth.forms import PasswordResetForm
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
-from accounts.utils import get_superuser_staff_model, send_email_to_user, reset_password_email_generator
+from accounts.utils import get_superuser_staff_model, send_email_to_user, reset_password_email_generator, profile_qr
 
 
 @login_required
@@ -48,8 +48,14 @@ def index(request):
     return redirect('accounts:list_users')
 
 
-def profile(request):
-    return render(request, 'accounts/profile.html')
+def profile(request, user_id):
+    image = profile_qr(user_id)
+    return render(request, 'accounts/profile.html', {"qr": image})
+
+
+def profile_from_code(request, code):
+    image = f"accounts/qrs/{code}.png"
+    return render(request, 'accounts/profile.html', {"qr": image})
 
 
 @login_required
