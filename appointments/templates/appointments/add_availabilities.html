@@ -57,10 +57,9 @@
                     <div class="w-full px-2 pt-2 pb-0">
                         <label class="block text-gray-700 text-sm font-bold mb-2">Availability range:</label>
                     </div>
+
+                   {{ time_formset.management_form }}
                     <div class="time-formset">
-
-
-                        {{ time_formset.management_form }}
 
                         <div class="px-2 absolute text-red-500 text-sm font-semibold inline">
                             {{ time_formset.non_form_errors }}
