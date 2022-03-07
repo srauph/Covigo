@@ -11,21 +11,40 @@
                         <!-- QR Code Implementation -->
                         <img src="{% static qr %}" alt="QR Code">
                     </div>
-                    <h1 class="text-gray-900 font-bold text-xl  text-center pl-5">Jane Doe #ABC123</h1>
-
-                    <ul
-                            class="bg-gray-100 text-gray-600 hover:text-gray-700 hover:shadow py-2 px-3 mt-3 divide-y rounded shadow-sm text-sm">
+                    <!-- Patient Name and Patient Code -->
+                    <h1 class="text-gray-900 font-bold text-xl text-center pl-5">{{ usr.first_name }} {{ usr.last_name }}</h1>
+                    <h3 class="text-gray-900 font-bold text-sm text-center pl-5">{{ usr.patient.code }}</h3>
+                    <!-- Patient Status -->
+                    <ul class="bg-gray-100 text-gray-600 hover:text-gray-700 hover:shadow py-2 px-3 mt-3 divide-y rounded shadow-sm text-sm">
+                        <!-- Covid Status -->
                         <li class="flex items-center py-3">
                             <span>Covid Status</span>
-                            <span class="ml-auto">
-                                <span class="bg-green-500 py-1 px-2 rounded text-white text-sm">Confirmed</span>
-                            </span>
+                            {% if usr.patient.is_confirmed %}
+                                <span class="ml-auto">
+                                    <span class="bg-red-600 py-1 px-2 rounded text-white text-sm">Confirmed</span>
+                                </span>
+                            {% elif usr.patient.is_recovered %}
+                                <span class="ml-auto">
+                                    <span class="bg-green-500 py-1 px-2 rounded text-white text-sm">Recovered</span>
+                                </span>
+                            {% else %}
+                                <span class="ml-auto">
+                                    <span class="bg-slate-700 py-1 px-2 rounded text-white text-sm">Unconfirmed</span>
+                                </span>
+                            {% endif %}
                         </li>
+                        <!-- Isolation Status -->
                         <li class="flex items-center py-3">
                             <span>Isolation Status</span>
-                            <span class="ml-auto">
-                                <span class="bg-orange-500 py-1 px-2 rounded text-white text-sm">In Isolation</span>
-                            </span>
+                            {% if usr.patient.is_quarantining %}
+                                <span class="ml-auto">
+                                    <span class="bg-red-600 py-1 px-2 rounded text-white text-sm">In Isolation</span>
+                                </span>
+                            {% else %}
+                                <span class="ml-auto">
+                                    <span class="bg-green-500 py-1 px-2 rounded text-white text-sm">None</span>
+                                </span>
+                            {% endif %}
                         </li>
                         <li class="flex items-center py-3">
                             <button class="w-full bg-blue-600 p-2 text-white rounded">Download QR code</button>
@@ -93,43 +112,41 @@
                             </button>
                         </a>
                     </div>
+                    <!-- User/Patient Information -->
                     <div class="text-gray-700">
                         <div class="grid md:grid-cols-2 text-sm">
                             <div class="grid grid-cols-2">
                                 <div class="px-4 py-2 font-semibold">First Name</div>
-                                <div class="px-4 py-2">Jane</div>
+                                <div class="px-4 py-2">{{ usr.first_name }}</div>
                             </div>
                             <div class="grid grid-cols-2">
                                 <div class="px-4 py-2 font-semibold">Last Name</div>
-                                <div class="px-4 py-2">Doe</div>
+                                <div class="px-4 py-2">{{ usr.last_name }}</div>
                             </div>
                             <div class="grid grid-cols-2">
                                 <div class="px-4 py-2 font-semibold">Contact No.</div>
-                                <div class="px-4 py-2">+11 998001001</div>
+                                <div class="px-4 py-2">{{ usr.profile.phone_number }}</div>
                             </div>
                             <div class="grid grid-cols-2">
                                 <div class="px-4 py-2 font-semibold">Current Address</div>
-                                <div class="px-4 py-2">Lorem ipsum dolor sit amet,
-                                </div>
+                                <div class="px-4 py-2">{{ usr.profile.address}}</div>
                             </div>
                             <div class="grid grid-cols-2">
                                 <div class="px-4 py-2 font-semibold">Email.</div>
                                 <div class="px-4 py-2">
-                                    <a class="text-blue-800" href="mailto:jane@example.com">jane@example.com</a>
+                                    <a class="text-blue-800" href="mailto:{{usr.email}}">{{ usr.email}}</a>
                                 </div>
                             </div>
                             <div class="grid grid-cols-2">
                                 <div class="px-4 py-2 font-semibold">Postal Code</div>
                                 <div class="px-4 py-2">
-                                    <a class="">ABC123</a>
+                                    <a class="">{{ usr.profile.postal_code }}</a>
                                 </div>
                             </div>
-
                         </div>
                     </div>
-
                 </div>
-                <div class="my-4"></div>
+                <div class="my-2"></div>
                 <div class="grid grid-cols-4 gap-2">
                     <div class="bg-white p-3 shadow-sm rounded-sm ">
 
