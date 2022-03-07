@@ -51,19 +51,20 @@ class SymptomTestCase(TransactionTestCase):
         self.response = self.client.post(reverse('symptoms:create_symptom'), self.mocked_form_data2)
 
         # we expect one symptom to be added to the database here, since proper
-        # form data has been inputted in the form fields, and the form data to still
-        # be shown on the view
+        # form data has been inputted in the form fields, the form data to still
+        # be shown on the view and a success message to be displayed on the template for the user to see
         self.assertTrue(Symptom.objects.all().count() == 1)
+        self.assertEqual('The symptom was created successfully.', str(list(self.response.context['messages'])[0]))
         self.assertEqual(self.mocked_form_data2['name'], self.response.context['form']['name'].value())
         self.assertEqual(self.mocked_form_data2['description'], self.response.context['form']['description'].value())
 
-        # here, I am testing for the form error by making sure that it works: If I
-        # use the same mocked form data and try to call a POST request on it, I should expect the error to be shown
-        # on the view and prevent me from creating a duplicate symptom in the database, thus my database symptom count
+        # here, I am testing for the form error message by making sure that it works: If I
+        # use the same mocked form data and try to call a POST request on it, I should expect the error message to be shown
+        # on the view, alerting me of my mistake, and prevent me from creating a duplicate symptom in the database, thus my database symptom count
         # should not increase (intended behaviour)
         self.response = self.client.post(reverse('symptoms:create_symptom'), self.mocked_form_data2)
         self.assertTrue(Symptom.objects.all().count() == 1)
-        self.assertEqual('This symptom name already exists for a given symptom.', list(self.response.context['form'].errors.values())[0][0])
+        self.assertEqual('The symptom was not created successfully: This symptom name already exists for a given symptom. Please change the symptom name.', str(list(self.response.context['messages'])[0]))
         self.assertEqual(self.mocked_form_data2['name'], self.response.context['form']['name'].value())
         self.assertEqual(self.mocked_form_data2['description'], self.response.context['form']['description'].value())
 
@@ -73,19 +74,21 @@ class SymptomTestCase(TransactionTestCase):
         self.assertEqual(self.response.status_code, 200)
         self.assertTrue(Symptom.objects.all().count() == 0)
         self.response = self.client.post(reverse('symptoms:create_symptom'), self.mocked_form_data2)
+        self.assertEqual('The symptom was created successfully.', str(list(self.response.context['messages'])[0]))
         self.response = self.client.post(reverse('symptoms:create_symptom'), self.mocked_form_data3)
+        self.assertEqual('The symptom was created successfully.', str(list(self.response.context['messages'])[0]))
 
         # we expect two symptoms to be added to the database here since proper
         # form data has been inputted in the form fields
         self.assertTrue(Symptom.objects.all().count() == 2)
 
-        # here, I am testing for the form error by making sure that it works: If I
-        # use the same mocked form data and try to call a POST request on it, I should expect the error to be shown
-        # on the view and prevent me from creating a duplicate symptom in the database, thus my database symptom count
+        # here, I am testing for the form error message by making sure that it works: If I
+        # use the same mocked form data and try to call a POST request on it, I should expect the error message to be shown
+        # on the view, alerting me of my mistake, and prevent me from creating a duplicate symptom in the database, thus my database symptom count
         # should not increase (intended behaviour)
         self.response = self.client.post(reverse('symptoms:create_symptom'), self.mocked_form_data3)
         self.assertTrue(Symptom.objects.all().count() == 2)
-        self.assertEqual('This symptom name already exists for a given symptom.', list(self.response.context['form'].errors.values())[0][0])
+        self.assertEqual('The symptom was not created successfully: This symptom name already exists for a given symptom. Please change the symptom name.', str(list(self.response.context['messages'])[0]))
         self.response = self.client.get(reverse('symptoms:list_symptoms'))
         self.assertEqual(self.response.status_code, 200)
 
@@ -105,8 +108,9 @@ class SymptomTestCase(TransactionTestCase):
         # we should expect to have no symptoms in the database if we start with an empty database
         self.assertTrue(Symptom.objects.all().count() == 0)
         self.response = self.client.post(reverse('symptoms:create_symptom'), self.mocked_form_data2)
+        self.assertEqual('The symptom was created successfully.', str(list(self.response.context['messages'])[0]))
         self.response = self.client.post(reverse('symptoms:create_symptom'), self.mocked_form_data3)
-        self.response = self.client.get(reverse('symptoms:list_symptoms'))
+        self.assertEqual('The symptom was created successfully.', str(list(self.response.context['messages'])[0]))
         self.assertEqual(self.response.status_code, 200)
         self.assertTrue(Symptom.objects.all().count() == 2)
 
@@ -142,19 +146,30 @@ class SymptomTestCase(TransactionTestCase):
             self.edited_mocked_form_data3
         )
 
-        # here, I am testing for the form error by making sure that it works: If I
+        # here, I am testing for the form error message by making sure that it works: If I
         # try to submit the same mocked form data with no edits on both the symptom name and description
-        # by calling a POST request on it, I should expect the error to be shown
-        # on the view as the form should return the error (intended behaviour)
+        # by calling a POST request on it, I should expect the error message to be shown
+        # on the view as the form should return the error message and alert me of my mistake (intended behaviour)
         self.response = self.client.post(
             reverse('symptoms:edit_symptom',
                     kwargs={'symptom_id': Symptom.objects.get(id=2).id}
                     ),
             self.edited_mocked_form_data3
         )
-        self.assertEqual('No edits made on this symptom. If you wish to make no changes, please click the "Cancel" button to go back to the list of symptoms.', list(self.response.context['form'].errors.values())[0][0])
+        self.assertEqual('The symptom was not edited successfully: No edits made on this symptom. If you wish to make no changes, please click the "Cancel" button to go back to the list of symptoms.', str(list(self.response.context['messages'])[0]))
         self.assertEqual(self.edited_mocked_form_data3['name'], self.response.context['form']['name'].value())
         self.assertEqual(self.edited_mocked_form_data3['description'], self.response.context['form']['description'].value())
+
+        # if I try to submit an edited symptom that has a symptom name already identical to an existing one, I should
+        # also expect a form error message to be shown on the view as the form should return the error message
+        # and alert me of my mistake (intended behaviour)
+        self.response = self.client.post(
+            reverse('symptoms:edit_symptom',
+                    kwargs={'symptom_id': Symptom.objects.get(id=2).id}
+                    ),
+            self.edited_mocked_form_data2
+        )
+        self.assertEqual('The symptom was not edited successfully: This symptom name already exists for a given symptom. Please change the symptom name.', str(list(self.response.context['messages'])[0]))
 
         # this just makes sure that the database still contains
         # the same number of symptoms in it as it did earlier, thus
