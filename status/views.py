@@ -67,7 +67,7 @@ def patient_report_modal(request, user_id, date_updated):
             # Render as an httpResponse for the modal to use
             return HttpResponse(render_to_string('status/patient-report-modal.html', context={
                 'user_id': user_id,
-                'date': date_updated,
+                'date': datetime.fromisoformat(date_updated),
                 'report_symptom_list': report_symptom_list,
                 'is_flagged': is_patient_flagged,
             }, request=request))
