@@ -5,11 +5,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.formset/1.2.2/jquery.formset.min.js"></script>
     <script>
         $('.time-formset').formset({
-            deleteCssClass: 'bg-red-600 ',
+            {#deleteCssClass: 'bg-red-600 ',#}
             addText: 'Insert break',
-            deleteText: 'Remove',
+            deleteText: '',
             addCssClass: 'bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md',
         });
+        $('#delete-row').addClass("hidden");
     </script>
 {% endblock %}
 
@@ -27,78 +28,119 @@
                     </h2>
                     <hr>
 
-                    <div class="text-red-500 text-sm font-semibold">
-                        <div class="absolute">
+
+                    <div class="w-full max-w-2xl px-2 py-2">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Select days to create availabilities
+                            for:</label>
+                        <div class="text-red-500 text-sm font-semibold inline">
                             {{ availability_form.availability_days.errors }}
                         </div>
-                    </div>
-                    <div class="w-full max-w-2xl px-2 py-2">
-                        <label>Select days to create availabilities for</label>
                         <div class="mt-1">
                             {{ availability_form.availability_days }}
                         </div>
                     </div>
-                    <div class="text-red-500 text-sm font-semibold">
-                        <div class="absolute">
+
+
+                    <div class="w-full px-2 py-2">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Slot duration:</label>
+                        <div class="text-red-500 text-sm font-semibold inline">
                             {{ availability_form.slot_duration_hours.errors }}
                         </div>
-                    </div>
-
-                    <div class="w-full px-2 py-2 inline-flex">
-                        <label>Slot Duration</label>
-
-                        <div class="mt-1 pl-5 pr-5">
+                        <div class="inline mt-1 pr-5">
                             {{ availability_form.slot_duration_hours }}
                             hours
-                        </div>
-                        <div class="mt-1">
                             {{ availability_form.slot_duration_minutes }}
                             minutes
                         </div>
                     </div>
 
-
-                    {{ time_formset.management_form }}
-
-                    <div class="px-2 absolute text-red-500 text-sm font-semibold">
-                        {{ time_formset.non_form_errors }}
+                    <div class="w-full px-2 pt-2 pb-0">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Availability range:</label>
                     </div>
-                    {% for time_form in time_formset %}
-                        <div class="time-formset">
-                            <div class="w-full px-2 py-2 inline-flex">
-                                <label>Start time</label>
-                                {{ time_form.start_time_hour }}:
-                                {{ time_form.start_time_minute }}
-                            </div>
+                    <div class="time-formset">
 
-                            <div class="w-full px-2 py-2 inline-flex">
-                                <label>End time</label>
-                                {{ time_form.end_time_hour }}:
-                                {{ time_form.end_time_minute }}
-                            </div>
-                            <div class="text-red-500 text-sm font-semibold">
-                                <div class="absolute">
-                                    {{ time_form.errors }}
-                                </div>
-                            </div>
 
+                        {{ time_formset.management_form }}
+
+                        <div class="px-2 absolute text-red-500 text-sm font-semibold inline">
+                            {{ time_formset.non_form_errors }}
                         </div>
-                    {% endfor %}
 
-                    <div class="w-full px-2 py-2 inline-flex">
-                        <label>Maintain this schedule until</label>
-                        <div class="mt-1 pl-5 pr-5">
+                        <div>
+                            {% for time_form in time_formset %}
+
+                                <div class="inline-flex py-2">
+                                    <div class="w-max px-2 py-2">
+                                        <label>Start time:</label>
+                                        <div class="inline mt-1 pr-5 ">
+                                            {{ time_form.start_time_hour }}:
+                                            {{ time_form.start_time_minute }}
+                                        </div>
+                                    </div>
+                                    <div class="w-max px-2 py-2">
+                                        <label>End time:</label>
+                                        <div class="inline mt-1 pr-5">
+                                            {{ time_form.end_time_hour }}:
+                                            {{ time_form.end_time_minute }}
+                                        </div>
+                                    </div>
+                                    <div id='delete-row'
+                                         class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md">
+                                        <a class="delete-row" href="javascript:void(0)">
+                                            <button type="button">Remove</button>
+                                        </a>
+                                    </div>
+                                    <div class="text-red-500 text-sm font-semibold">
+                                        <div class="absolute">
+                                            {{ time_form.errors }}
+                                        </div>
+                                    </div>
+
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                    </div>
+                    <div class="w-full px-2 pt-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Maintain this schedule until:</label>
+
+                        <div class="inline mt-1 pr-5">
                             {{ availability_form.date_until }}
                         </div>
                     </div>
 
-                    <button type="submit"
-                            class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
-                        <span>Submit</span>
-                    </button>
+                    <div class="w-full mt-8 md:mt-0">
+                        <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
+                            <a href="{% url "appointments:index" %}">
+                                <button type="button"
+                                        class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                 stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </span>
+                                    <span>Cancel</span>
+                                </button>
+                            </a>
+                            <button type="submit"
+                                    class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                 viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </span>
+                                <span>Create</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+
     </form>
 
 
