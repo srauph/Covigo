@@ -1,17 +1,19 @@
 {% extends "Covigo/base.html" %}
 
 {% block styles %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.4/css/jquery.dataTables.css">
 {% endblock %}
 
 {% block script %}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"
             integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
     <script type="text/javascript" charset="utf8"
             src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
     <script>
         $(document).ready(function () {
-            var table = $('#patient_reports_table').DataTable({
+            let table = $('#patient_reports_table').DataTable({
                 "bSort": false,
                 "columnDefs": [
                     {
@@ -20,7 +22,6 @@
                     }
                 ]
             });
-
             $('#toggleRead').change(function () {
                 $.fn.dataTable.ext.search.pop();
                 let value = $(this).val();
@@ -30,15 +31,29 @@
                 } else {
                     $.fn.dataTable.ext.search.push(
                         function (settings, data, dataIndex) {
-                            return $(table.row(dataIndex).node()).attr('data-read') == value;
+                            return $(table.row(dataIndex).node()).attr('data-read') === value;
                         }
                     );
                     table.draw();
                 }
             });
-
+            $('.report-modal-link').click(function (e) {
+                e.preventDefault();
+                this.blur();
+                $.ajax({
+                    method: 'POST',
+                    url: $(this).attr('data-url'),
+                    data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
+                    dataType: 'html',
+                    success: function (html) {
+                        $('#modal-div').html(html).modal('show');
+                    }
+                });
+            });
         });
-
     </script>
 {% endblock %}
 
@@ -82,15 +97,19 @@
                     <td class="p-2">{{ reports.user__first_name }} {{ reports.user__last_name }}</td>
                     <td class="p-2">{{ reports.date_updated }}</td>
                     <td class="flex justify-middle gap-2">
-                        <a href="">
+                        <a class="report-modal-link"
+                           data-url="{% url 'status:patient-report-modal' reports.user_id reports.date_updated %}">
                             <button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-                                        <span>
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                                 viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                      d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                            </svg>
-                                        </span>
+                                    <span>
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                             class="h-6 w-6" fill="none"
+                                             viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round"
+                                                  stroke-linejoin="round"
+                                                  stroke-width="2"
+                                                  d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </span>
                                 <span>View Report</span>
                             </button>
                         </a>
@@ -100,6 +119,8 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+        <div id="modal-div" class="modal" style="max-width:1000px;padding: 0 0">
         </div>
     </div>
 {% endblock %}
