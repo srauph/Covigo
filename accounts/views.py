@@ -48,14 +48,20 @@ def index(request):
     return redirect('accounts:list_users')
 
 
+@login_required
+@never_cache
 def profile(request, user_id):
+    user = User.objects.get(id = user_id)
     image = profile_qr(user_id)
-    return render(request, 'accounts/profile.html', {"qr": image})
+    return render(request, 'accounts/profile.html', {"qr": image, "usr": user, "full_view": True})
 
 
+@never_cache
 def profile_from_code(request, code):
-    image = f"accounts/qrs/{code}.png"
-    return render(request, 'accounts/profile.html', {"qr": image})
+    patient = Patient.objects.get(code = code)
+    user = User.objects.get(patient = patient)
+    image = profile_qr(user.id)
+    return render(request, 'accounts/profile.html', {"qr": image, "usr": user, "full_view": False})
 
 
 @login_required
