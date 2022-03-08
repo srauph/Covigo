@@ -49,26 +49,14 @@ def get_superuser_staff_model():
 
 
 def generate_and_send_email(user, subject, template):
-    if PRODUCTION_MODE:
-        c = {
-            'email': user.email,
-            'domain': 'covigo.ddns.net',
-            'site_name': 'Covigo',
-            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-            'user': user,
-            'token': default_token_generator.make_token(user),
-            'protocol': 'https',
-        }
-    else:
-        c = {
-            'email': user.email,
-            'domain': '127.0.0.1:8000',
-            'site_name': 'Covigo',
-            "uid": urlsafe_base64_encode(force_bytes(user.pk)),
-            "user": user,
-            'token': default_token_generator.make_token(user),
-            'protocol': 'http',
-        }
+    c = {
+        'email': user.email,
+        'host_name': HOST_NAME,
+        'site_name': 'Covigo',
+        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+        'user': user,
+        'token': default_token_generator.make_token(user),
+    }
     email = render_to_string(template, c)
     send_email_to_user(user, subject, email)
 

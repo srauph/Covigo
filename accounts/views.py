@@ -65,7 +65,7 @@ def forgot_password(request):
             try:
                 user = User.objects.get(email=data)
                 subject = "Covigo - Password Reset Requested"
-                template = "accounts/authentication/txt/reset_password_email.txt"
+                template = "accounts/messages/reset_password_email.html"
                 generate_and_send_email(user, subject, template)
                 return redirect("accounts:forgot_password_done")
             except MultipleObjectsReturned:
@@ -213,7 +213,7 @@ def create_user(request):
 
             if has_email:
                 subject = "Covigo - Account Registration"
-                template = "accounts/authentication/txt/register_user_email.txt"
+                template = "accounts/messages/register_user_email.html"
                 generate_and_send_email(new_user, subject, template)
 
             return redirect("accounts:list_users")
