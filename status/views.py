@@ -63,6 +63,9 @@ def patient_report_modal(request, user_id, date_updated):
             except Exception:
                 is_patient_flagged = False
 
+            # Set the report to viewed 
+            PatientSymptom.objects.filter(user_id=user_id, date_updated=date_updated).update(is_viewed=1)
+
             # Render as an httpResponse for the modal to use
             return HttpResponse(render_to_string('status/patient-report-modal.html', context={
                 'user_id': user_id,
