@@ -1,16 +1,21 @@
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView, INTERNAL_RESET_SESSION_TOKEN
 from django.core.exceptions import MultipleObjectsReturned
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.views.decorators.cache import never_cache
-from django.contrib.auth.forms import PasswordResetForm
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
-from accounts.utils import get_superuser_staff_model, send_email_to_user, reset_password_email_generator, \
+from accounts.utils import (
+    get_superuser_staff_model,
+    send_email_to_user,
+    reset_password_email_generator,
+    generate_profile_qr,
     get_user_from_uidb64
+)
 
 
 class RegisterPasswordResetConfirmView(PasswordResetConfirmView):
@@ -152,8 +157,20 @@ def index(request):
     return redirect('accounts:list_users')
 
 
-def profile(request):
-    return render(request, 'accounts/profile.html')
+@login_required
+@never_cache
+def profile(request, user_id):
+    user = User.objects.get(id = user_id)
+    image = generate_profile_qr(user_id)
+    return render(request, 'accounts/profile.html', {"qr": image, "usr": user, "full_view": True})
+
+
+@never_cache
+def profile_from_code(request, code):
+    patient = Patient.objects.get(code = code)
+    user = User.objects.get(patient = patient)
+    image = generate_profile_qr(user.id)
+    return render(request, 'accounts/profile.html', {"qr": image, "usr": user, "full_view": False})
 
 
 @login_required

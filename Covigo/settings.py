@@ -34,12 +34,12 @@ if PRODUCTION_MODE:
     ALLOWED_HOSTS = getenv("ALLOWED_HOSTS")
     STATIC_ROOT = getenv("STATIC_ROOT")
     SECRET_KEY = getenv("SECRET_KEY")
-    HOST_NAME = 'covigo.ddns.net'
+    HOST_NAME = 'https://covigo.ddns.net'
 else:
     DEBUG = True
     ALLOWED_HOSTS = []
     SECRET_KEY = 'django-insecure-)hrxs16w-%lr2@k@!rfq!lwem55i%uv$7qhiktrme63j!2+1(f'
-    HOST_NAME = '127.0.0.1:8000'
+    HOST_NAME = 'http://127.0.0.1:8000'
 
 # Application definition
 
