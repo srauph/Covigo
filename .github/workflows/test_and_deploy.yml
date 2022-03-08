@@ -36,8 +36,5 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Deploy
-      env:
-        DATABASE_USER: ${{ secrets.DATABASE_USER }}
-        DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
       run: |
-        echo $USER
+        ../deploy-server.sh
