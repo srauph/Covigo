@@ -3,6 +3,8 @@ from django.contrib.auth import views as auth_views
 from . import views
 from .forms import ResetPasswordForm
 
+# from django.conf.urls import include
+
 app_name = 'accounts'
 urlpatterns = [
     path('', views.index, name='index'),
@@ -18,7 +20,8 @@ urlpatterns = [
     path('unflag/<int:user_id>/', views.unflaguser, name='unflag_user'),
 
     path('two_factor_authentication/', views.two_factor_authentication, name='two_factor_authentication'),
-    path('profile/', views.profile, name='profile'),
+    path('profile/<int:user_id>/', views.profile, name='profile'),
+    path('profile/<code>/', views.profile_from_code, name='profile_from_code'),
 
     path(
         'login/',
