@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
+from django.utils.datetime_safe import datetime
 from django.views.decorators.cache import never_cache
 
 from accounts.models import Patient, Flag
@@ -50,7 +51,7 @@ def patient_report_modal(request, user_id, date_updated):
         # Ensure this was an ajax call
         if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
 
-            # Gets all symptoms info required for the report
+            # Gets all symptoms' info required for the report
             report_symptom_list = PatientSymptom.objects.select_related('symptom', 'user') \
                 .values('symptom_id', 'data', 'symptom__name', 'user__patients_assigned_flags__is_active',
                         'user__first_name', 'user__last_name') \
@@ -68,7 +69,7 @@ def patient_report_modal(request, user_id, date_updated):
             # Render as an httpResponse for the modal to use
             return HttpResponse(render_to_string('status/patient-report-modal.html', context={
                 'user_id': user_id,
-                'date': date_updated,
+                'date': datetime.strptime(date_updated, '%Y-%m-%d %H:%M:%S.%f+00:00'),
                 'report_symptom_list': report_symptom_list,
                 'is_flagged': is_patient_flagged,
                 'patient_name': report_symptom_list[0]['user__first_name'] + ' ' + report_symptom_list[0][
