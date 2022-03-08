@@ -14,7 +14,16 @@
                     <hr>
                 </div>
 
-                <div class="w-full max-w-2xl px-2">
+
+                <div class="w-full px-2">
+                    <div class="pb-4 flex">
+                        <label for="">start reporting on: </label>
+                    <input type="datetime-local" name="starting_date" class="border rounded" required>
+
+                    <label for="">Days to report:</label>
+                    <input type="number" name="interval" class="border rounded" required>
+                    </div>
+                    <hr>
                     <label>Symptoms:</label>
                     <div class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400">
                         <table class="table-auto w-full text-center my-2">
