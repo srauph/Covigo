@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
+from django.db import IntegrityError
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -47,7 +48,7 @@ def get_superuser_staff_model():
         return None
 
 
-def reset_password_email_generator(user, subject, template):
+def generate_and_send_email(user, subject, template):
     if PRODUCTION_MODE:
         c = {
             'email': user.email,
@@ -125,3 +126,37 @@ def generate_profile_qr(user_id):
             return path
     else:
         return None
+
+
+# Deprecated function, but I'll leave it here in case it becomes useful later.
+def reset_username_to_email_or_phone(user):
+    # Try setting username to the email if it exists
+    email = user.email
+    if email:
+        user.username = email
+        user.save()
+        return
+
+    # If the user doesn't have an email, set it to the phone number
+    phone_number = user.profile.phone_number
+    if phone_number:
+        user.username = phone_number
+        user.save()
+        return
+
+    # If the user has neither an email nor a phone number, raise an exception
+    # TODO: Raise a more specific exception here
+    raise Exception
+
+
+# Deprecated function, but I'll leave it here in case it becomes useful later.
+def set_username_to_blank(user):
+    try:
+        user.username = " "
+        user.save()
+
+    except IntegrityError:
+        user_to_reset = User.objects.get(username=" ")
+        reset_username_to_email_or_phone(user_to_reset)
+        user.username = " "
+        user.save()

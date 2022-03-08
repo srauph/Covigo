@@ -67,14 +67,13 @@ urlpatterns = [
         auth_views.PasswordResetCompleteView.as_view(template_name='accounts/authentication/reset_password_done.html'),
         name='reset_password_done'
     ),
-    # FOR DEV ONLY -- IF I FORGOT TO REMOVE THIS PLEASE REMIND ME TO
-    path(
-        'register/',
-        views.register,
-        name='register'
-    ),
     path(
         'register/<uidb64>/<token>/',
+        views.register_user,
+        name='register_user'
+    ),
+    path(
+        'register/password/<uidb64>/<token>/',
         views.RegisterPasswordResetConfirmView.as_view(
             form_class=SetPasswordForm,
             template_name='accounts/authentication/register_user_password.html',
@@ -82,7 +81,7 @@ urlpatterns = [
         name='register_user_password'
     ),
     path(
-        'register/<uidb64>/password_done',
+        'register/password/<uidb64>/password_done',
         views.register_user_password_done,
         name="register_user_password_done"
     ),
