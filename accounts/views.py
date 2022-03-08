@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth.views import PasswordResetConfirmView, INTERNAL_RESET_SESSION_TOKEN
+from django.contrib.auth.views import PasswordResetConfirmView
 from django.core.exceptions import MultipleObjectsReturned
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
@@ -103,13 +103,14 @@ def register_user_password_done(request, uidb64):
 
 @never_cache
 def register_user_details(request, uidb64, token):
+    INTERNAL_SET_DETAILS_SESSION_TOKEN = "_set_details_token"
     user = get_user_from_uidb64(uidb64)
     user_id = user.id
     valid = False
 
     if user is not None:
         if token == 'set-details':
-            session_token = request.session.get(INTERNAL_RESET_SESSION_TOKEN)
+            session_token = request.session.get(INTERNAL_SET_DETAILS_SESSION_TOKEN)
             if default_token_generator.check_token(user, session_token):
                 # If the token is valid, display the password reset form.
                 valid = True
@@ -119,7 +120,7 @@ def register_user_details(request, uidb64, token):
                 # password reset form at a URL without the token. That
                 # avoids the possibility of leaking the token in the
                 # HTTP Referer header.
-                request.session[INTERNAL_RESET_SESSION_TOKEN] = token
+                request.session[INTERNAL_SET_DETAILS_SESSION_TOKEN] = token
                 redirect_url = request.path.replace(token, 'set-details')
                 return redirect(redirect_url, uidb64, token)
 
@@ -131,7 +132,7 @@ def register_user_details(request, uidb64, token):
             profile_form = RegisterProfileForm(request.POST, instance=user.profile, user_id=user_id)
 
             if process_register_or_edit_user_form(request, user_form, profile_form):
-                request.session[INTERNAL_RESET_SESSION_TOKEN] = None
+                request.session[INTERNAL_SET_DETAILS_SESSION_TOKEN] = None
                 return redirect("accounts:register_user_done")
 
         # Create forms
