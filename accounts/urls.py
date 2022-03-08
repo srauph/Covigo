@@ -76,7 +76,7 @@ urlpatterns = [
         'register/password/<uidb64>/<token>/',
         views.RegisterPasswordResetConfirmView.as_view(
             form_class=SetPasswordForm,
-            template_name='accounts/authentication/register_user_password.html',
+            template_name='accounts/registration/register_user_password.html',
         ),
         name='register_user_password'
     ),
@@ -92,7 +92,7 @@ urlpatterns = [
     ),
     path(
         'register/done/',
-        auth_views.PasswordResetCompleteView.as_view(template_name='accounts/register_user_done.html'),
+        auth_views.PasswordResetCompleteView.as_view(template_name='accounts/registration/register_user_done.html'),
         name='register_user_done'
     ),
 ]

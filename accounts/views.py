@@ -132,7 +132,7 @@ def register_user_details(request, uidb64, token):
             user_form = RegisterUserForm(instance=user, user_id=user_id, initial={"username": None})
             profile_form = RegisterProfileForm(instance=user.profile, user_id=user_id)
 
-        return render(request, "accounts/register_user_details.html", {
+        return render(request, "accounts/registration/register_user_details.html", {
             "user_form": user_form,
             "profile_form": profile_form,
             "validlink": True
@@ -140,7 +140,7 @@ def register_user_details(request, uidb64, token):
 
     # Don't process/create forms if the link is expired or invalid
     else:
-        return render(request, "accounts/register_user_details.html", {
+        return render(request, "accounts/registration/register_user_details.html", {
             "validlink": False
         })
 
