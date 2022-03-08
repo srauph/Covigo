@@ -40,4 +40,4 @@ jobs:
         DATABASE_USER: ${{ secrets.DATABASE_USER }}
         DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
       run: |
-        echo hi
+        echo $USER
