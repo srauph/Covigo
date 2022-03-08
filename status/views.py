@@ -1,10 +1,10 @@
-from django.contrib.auth.models import User
-from django.db.models import Max, Count
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render, get_object_or_404
+import json
+
+from django.core.serializers.json import DjangoJSONEncoder
+from django.http import HttpResponse
+from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
-from django.utils.datetime_safe import datetime
 from django.views.decorators.cache import never_cache
 
 from accounts.models import Patient, Flag
@@ -47,7 +47,6 @@ def patient_reports(request):
 def patient_report_modal(request, user_id, date_updated):
     # When the view report button is pressed a POST request is made
     if request.method == "POST":
-
         # Ensure this was an ajax call
         if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
 
@@ -63,13 +62,13 @@ def patient_report_modal(request, user_id, date_updated):
             except Exception:
                 is_patient_flagged = False
 
-            # Set the report to viewed 
+            # Set the report to viewed
             PatientSymptom.objects.filter(user_id=user_id, date_updated=date_updated).update(is_viewed=1)
 
             # Render as an httpResponse for the modal to use
             return HttpResponse(render_to_string('status/patient-report-modal.html', context={
                 'user_id': user_id,
-                'date': datetime.fromisoformat(date_updated),
+                'date': date_updated,
                 'report_symptom_list': report_symptom_list,
                 'is_flagged': is_patient_flagged,
                 'patient_name': report_symptom_list[0]['user__first_name'] + ' ' + report_symptom_list[0][
@@ -77,3 +76,24 @@ def patient_report_modal(request, user_id, date_updated):
             }, request=request))
 
     return HttpResponse("Invalid request.")
+
+
+@login_required
+@never_cache
+def patient_reports_table(request):
+    doctor = request.user
+
+    # Get doctors patient name(s) and user id(s)
+    patient_ids = []
+    for users in Patient.objects.all():
+        if users.staff_id == doctor.id:
+            patient_ids.append(users.user_id)
+
+    reports = PatientSymptom.objects.select_related('user') \
+        .values('date_updated', 'user_id', 'is_viewed', 'user__first_name', 'user__last_name',
+                'user__patients_assigned_flags__is_active') \
+        .filter(user_id__in=patient_ids).distinct()
+
+    serialized_reports = json.dumps({'data': list(reports)}, cls=DjangoJSONEncoder, default=str)
+
+    return HttpResponse(serialized_reports, content_type='application/json')
