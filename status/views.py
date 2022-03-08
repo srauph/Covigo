@@ -4,12 +4,10 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
-from django.utils import timezone
 from django.utils.datetime_safe import datetime
 from django.views.decorators.cache import never_cache
-from django.views.generic import UpdateView
 
-from accounts.models import Patient, Staff, Flag
+from accounts.models import Patient, Flag
 from symptoms.models import PatientSymptom
 
 
@@ -55,7 +53,8 @@ def patient_report_modal(request, user_id, date_updated):
 
             # Gets all symptoms info required for the report
             report_symptom_list = PatientSymptom.objects.select_related('symptom', 'user') \
-                .values('symptom_id', 'data', 'symptom__name', 'user__patients_assigned_flags__is_active') \
+                .values('symptom_id', 'data', 'symptom__name', 'user__patients_assigned_flags__is_active',
+                        'user__first_name', 'user__last_name') \
                 .filter(user_id=user_id, date_updated=date_updated)
 
             # Check if the patient is flagged
@@ -70,6 +69,8 @@ def patient_report_modal(request, user_id, date_updated):
                 'date': datetime.fromisoformat(date_updated),
                 'report_symptom_list': report_symptom_list,
                 'is_flagged': is_patient_flagged,
+                'patient_name': report_symptom_list[0]['user__first_name'] + ' ' + report_symptom_list[0][
+                    'user__last_name'],
             }, request=request))
 
     return HttpResponse("Invalid request.")

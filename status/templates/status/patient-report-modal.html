@@ -7,6 +7,29 @@
                 "bSort": false,
                 "bFilter": false,
             });
+            $('#flag-button').click(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    method: 'POST',
+                    url: $(this).attr('data-url'),
+                    data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
+                    dataType: 'html',
+                    success: function (html) {
+                        // Set the flag button text and data-url to the appropriate ones
+                        let is_flagged = JSON.parse(html).is_flagged;
+                        $('#is-flagged-button-text').text(is_flagged === "True" ? "Unflag Patient" : "Flag Patient");
+                        let b = document.getElementById("flag-button");
+                        if (is_flagged === "True") {
+                            b.setAttribute("data-url", "{% url 'accounts:unflag_user' user_id %}");
+                        } else {
+                            b.setAttribute("data-url", "{% url 'accounts:flag_user' user_id %}");
+                        }
+                    }
+                });
+            });
         });
     </script>
 {% endblock %}
@@ -14,20 +37,21 @@
 {% block content %}
     <div class="min-h-full bg-slate-100">
         <div class="flex justify-between bg-slate-700">
-            <h1 id="patient-name" class="text-2xl text-white font-semibold px-8 py-4">Patient: Name </h1>
+            <h1 id="patient-name" class="text-2xl text-white font-semibold px-8 py-4">Patient: {{ patient_name }} </h1>
         </div>
 
         <div class="bg-white shadow m-8 rounded-xl">
             <div class="w-full flex justify-between items-center p-4">
                 <div><span>{{ date }}</span></div>
                 <div class="flex gap-2">
-                    <!-- TODO: These unflag/flag cause a redirect to account list page-->
-                    {% if is_flagged %}
-                        <a href="{% url 'accounts:unflag_user' user_id %}">
-                    {% else %}
-                        <a href="{% url 'accounts:flag_user' user_id %}">
-                    {% endif %}
-                    <button class="bg-green-600 hover:bg-green-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                    <a id="flag-button" data-url="
+                        {% if is_flagged %}
+                            {% url 'accounts:unflag_user' user_id %}
+                        {% else %}
+                            {% url 'accounts:flag_user' user_id %}
+                        {% endif %}
+                    ">
+                        <button class="bg-green-600 hover:bg-green-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                             <span>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                                      stroke="currentColor"
@@ -36,12 +60,9 @@
                                         d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>
                                 </svg>
                             </span>
-                        {% if is_flagged %}
-                            <span>Unflag Patient</span>
-                        {% else %}
-                            <span>Flag Patient</span>
-                        {% endif %}
-                    </button>
+                            <span id="is-flagged-button-text">{% if is_flagged %}Unflag Patient{% else %}Flag
+                                Patient{% endif %}</span>
+                        </button>
                     </a>
                     <a href="{% url 'messaging:compose_message' user_id %}">
                         <button class="bg-green-600 hover:bg-green-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
