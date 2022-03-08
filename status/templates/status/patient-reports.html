@@ -14,13 +14,54 @@
     <script>
         $(document).ready(function () {
             let table = $('#patient_reports_table').DataTable({
-                "bSort": false,
+                "ajax": "{% url 'status:patient-reports-table' %}",
+                createdRow: function (row, data, index) {
+                    $(row).attr('data-read', data.is_viewed)
+                    $(row).attr('data-date', data.date_updated)
+                    if (data.is_viewed === false) {
+                        $(row).addClass('hover:bg-slate-200 font-semibold border-b')
+                    } else {
+                        $(row).addClass('hover:bg-slate-200 border-b')
+                    }
+                },
+                "columns": [
+                    {"data": "user__patients_assigned_flags__is_active"},
+                    {"data": "date_updated"},
+                    {"data": "user_id"},
+                    {"data": "is_viewed"},
+                    {"data": "user__first_name"},
+                    {"data": "user__last_name"},
+                    {defaultContent: '<button class="report-modal-link">click me</button>'},
+                ],
                 "columnDefs": [
                     {
+                        "targets": [0],
                         "visible": false,
-                        "searchable": true
-                    }
-                ]
+                        "searchable": false
+                    },
+                    {
+                        "targets": [4],
+                        "visible": true,
+                        "searchable": true,
+                        "render": function (data, type, row) {
+                            return row.user__first_name + ' ' + row.user__last_name;
+                        }
+                    },
+                    {
+                        "targets": [5],
+                        "visible": false,
+                        "searchable": false
+                    }, {
+                        "targets": [2],
+                        "visible": false,
+                        "searchable": false
+                    }, {
+                        "targets": [3],
+                        "visible": false,
+                        "searchable": false
+                    },
+                ],
+                "order": [[3, "asc"], [0, "desc"], [1, "desc"]]
             });
             $('#toggleRead').change(function () {
                 $.fn.dataTable.ext.search.pop();
@@ -37,12 +78,25 @@
                     table.draw();
                 }
             });
-            $('.report-modal-link').click(function (e) {
+            $(document).on('click', '.report-modal-link', function (e) {
+                var row = $(this).closest('tr');
+                var user_id = table.row(row).data().user_id;
+                var d = table.row(row).data().date_updated;
+                {#var date_updated = d.getUTCFullYear() + '-' +#}
+                {#                    (d.getUTCMonth() + 1) + '-' +#}
+                {#                    (d.getUTCDate()) + ' ' +#}
+                {#                    (d.getUTCHours()) + ':' +#}
+                {#                    (d.getUTCMinutes()) + ':' +#}
+                {#                    (d.getUTCSeconds()) + '.' +#}
+                {#                    (d.getUTCMilliseconds()) + '+00:00';#}
+                var url = "{% url 'status:patient-report-modal' 897897 'date_updated' %}"
+                url = url.replace(897897, user_id);
+                url = url.replace('date_updated', d);
                 e.preventDefault();
                 this.blur();
                 $.ajax({
                     method: 'POST',
-                    url: $(this).attr('data-url'),
+                    url: url,
                     data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
                     headers: {
                         "X-Requested-With": "XMLHttpRequest",
@@ -50,6 +104,7 @@
                     dataType: 'html',
                     success: function (html) {
                         $('#modal-div').html(html).modal('show');
+                        table.draw();
                     }
                 });
             });
@@ -70,8 +125,8 @@
                     <select name="" id="toggleRead"
                             class="bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md">
                         <option value="showAll">Show All Messages</option>
-                        <option value="unread">Show Unread Messages</option>
-                        <option value="read">Show Read Messages</option>
+                        <option value="false">Show Unread Messages</option>
+                        <option value="true">Show Read Messages</option>
                     </select>
                 </div>
             </div>
@@ -82,41 +137,47 @@
                 <table class="w-full table-auto" id="patient_reports_table">
                     <thead>
                     <tr class="border-b">
-                        <th class="p-2">Patient Name</th>
+                        <th class="p-2">user__patients_assigned_flags__is_active</th>
                         <th class="p-2">Date</th>
+                        <th class="p-2">user_id</th>
+                        <th class="p-2">is_viewed</th>
+                        <th class="p-2">Patient Name</th>
+                        <th class="p-2">user__last_name</th>
                         <th class="p-2"></th>
                     </tr>
                     </thead>
-                    <tbody>
-                    {% for reports in patient_reports %}
-                        {% if reports.is_viewed == True %}
-                            <tr class="hover:bg-slate-200 border-b" data-read="read">
-                                {% else %}
-                            <tr class="hover:bg-slate-200 font-semibold border-b" data-read="unread">
-                        {% endif %}
-                    <td class="p-2">{{ reports.user__first_name }} {{ reports.user__last_name }}</td>
-                    <td class="p-2">{{ reports.date_updated }}</td>
-                    <td class="flex justify-middle gap-2">
-                        <a class="report-modal-link"
-                           data-url="{% url 'status:patient-report-modal' reports.user_id reports.date_updated %}">
-                            <button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-                                    <span>
-                                        <svg xmlns="http://www.w3.org/2000/svg"
-                                             class="h-6 w-6" fill="none"
-                                             viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round"
-                                                  stroke-linejoin="round"
-                                                  stroke-width="2"
-                                                  d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                    </span>
-                                <span>View Report</span>
-                            </button>
-                        </a>
-                    </td>
-                    </tr>
-                    {% endfor %}
-                    </tbody>
+                    {#                    <tbody>#}
+                    {#                    {% for reports in patient_reports %}#}
+                    {#                        {% if reports.is_viewed == True %}#}
+                    {#                            <tr class="hover:bg-slate-200 border-b" data-read="read">#}
+                    {#                                {% else %}#}
+                    {#                            <tr class="hover:bg-slate-200 font-semibold border-b" data-read="unread">#}
+                    {#                        {% endif %}#}
+                    {#                    <td class="p-2">{{ reports.is_viewed }}</td>#}
+                    {#                    <td class="p-2">{{ reports.user__patients_assigned_flags__is_active }}</td>#}
+                    {#                    <td class="p-2">{{ reports.user__first_name }} {{ reports.user__last_name }}</td>#}
+                    {#                    <td class="p-2">{{ reports.date_updated }}</td>#}
+                    {#                    <td class="flex justify-middle gap-2">#}
+                    {#                                            <a class="report-modal-link"#}
+                    {#                                               data-url="{% url 'status:patient-report-modal' reports.user_id reports.date_updated %}">#}
+                    {#                                                <button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">#}
+                    {#                                                        <span>#}
+                    {#                                                            <svg xmlns="http://www.w3.org/2000/svg"#}
+                    {#                                                                 class="h-6 w-6" fill="none"#}
+                    {#                                                                 viewBox="0 0 24 24" stroke="currentColor">#}
+                    {#                                                                <path stroke-linecap="round"#}
+                    {#                                                                      stroke-linejoin="round"#}
+                    {#                                                                      stroke-width="2"#}
+                    {#                                                                      d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/>#}
+                    {#                                                            </svg>#}
+                    {#                                                        </span>#}
+                    {#                                                    <span>View Report</span>#}
+                    {#                                                </button>#}
+                    {#                                            </a>#}
+                    {#                    </td>#}
+                    {#                    </tr>#}
+                    {#                    {% endfor %}#}
+                    {#                    </tbody>#}
                 </table>
             </div>
         </div>

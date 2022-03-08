@@ -7,7 +7,7 @@
                 "bSort": false,
                 "bFilter": false,
             });
-            $('#flag-button').click(function (e) {
+            $('#flag-button').on('click', function (e) {
                 e.preventDefault();
                 $.ajax({
                     method: 'POST',
