@@ -1,10 +1,18 @@
+import os.path
+
 from django.contrib.auth.tokens import default_token_generator
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from accounts.models import Flag, Staff
+from accounts.models import Flag, Staff, Profile, Patient
 from django.contrib.auth.models import User
+from Covigo.settings import HOST_NAME
+from pathlib import Path
+from qrcode import *
+
+import uuid
 import smtplib
+import shortuuid
 
 
 # Returns the flag assigned to a patient_user by a staff_user
@@ -51,3 +59,48 @@ def send_email_to_user(user, subject, message):
     s.login(email,pwd)
     s.sendmail(email, user.email, f"Subject: {subject}\n{message}")
     s.quit()
+
+
+def get_or_generate_code(patient):
+    # Shortuuid docs recommends removing characters (like 0 and O) that can be confused.
+    # It sounds reasonable so I decided to do that.
+    shortuuid.set_alphabet("23456789ABCDEFGHJKLMNPQRSTUVWXYZ")
+    if not patient.code:
+        code = shortuuid.uuid()[:9]
+
+        # Regenerate the code if it exists
+        while Patient.objects.filter(code=code).exists():
+            code = shortuuid.uuid()[:9]
+
+        patient.code = code
+        patient.save()
+        return patient.code
+    else:
+        return patient.code
+
+
+def generate_profile_qr(user_id):
+    user = User.objects.get(id = user_id)
+
+    # Only generate qr codes for patient users
+    if not user.is_staff:
+        # Get or generate the unique patient code
+        patient = Patient.objects.get(user=user)
+        patient_code = get_or_generate_code(patient)
+
+        # Link to store in the qr code
+        data = f"{HOST_NAME}/accounts/profile/{str(patient_code)}"
+
+        # Create path to store generated qr code image
+        path = f"accounts/qrs/{str(patient_code)}.png"
+        Path("accounts/static/accounts/qrs").mkdir(parents=True, exist_ok=True)
+
+        if os.path.exists(path):
+            return path
+        else:
+            # Generate the qr code
+            img = make(data)
+            img.save("accounts/static/"+path)
+            return path
+    else:
+        return None
