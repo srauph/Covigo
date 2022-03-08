@@ -7,6 +7,7 @@ from django.core.exceptions import MultipleObjectsReturned
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views.decorators.cache import never_cache
+
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
 from accounts.utils import (
