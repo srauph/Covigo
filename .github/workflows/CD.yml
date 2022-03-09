@@ -24,6 +24,6 @@ jobs:
       always() && 
       github.event.inputs.deploy == 'true' && 
       (
-        needs.test.result != 'failure' &&
+        needs.test.result != 'failure'
       ) 
     uses: ./.github/workflows/deploy.yml
