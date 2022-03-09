@@ -1,9 +1,10 @@
+name: Run Deploy Script
 on:
   workflow_call
 
 jobs:
   deploy:
-    name: Deploy
+    name: Deploy to Server
     runs-on: self-hosted
     strategy:
       max-parallel: 4
@@ -11,6 +12,5 @@ jobs:
         python-version: ['3.10']
     steps:
     - uses: actions/checkout@v2
-    - name: Deploy to Server
-      run: |
+    - run: |
         ../deploy-server.sh
