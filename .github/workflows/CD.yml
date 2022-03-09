@@ -21,9 +21,9 @@ jobs:
     name: Deploy
     needs: [test]
     if: >
-    always() && 
-    github.event.inputs.deploy == 'true' && 
-    (
-      needs.test.result != 'failure' &&
-    ) 
+      always() && 
+      github.event.inputs.deploy == 'true' && 
+      (
+        needs.test.result != 'failure' &&
+      ) 
     uses: ./.github/workflows/deploy.yml
