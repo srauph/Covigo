@@ -1,0 +1,23 @@
+name: Django CD
+on:
+  workflow_dispatch:
+    inputs:
+      test:
+        description: 'Run the test suite'
+        required: false
+        type: boolean
+      deploy:
+        description: 'Deploy to the production server'
+        required: false
+        type: boolean
+        
+jobs:
+  test:
+    name: Run Tests
+    if: github.event.inputs.test
+    uses: ./.github/workflows/test.yml
+  deploy:
+    name: Deploy
+    needs: [test]
+    if: github.event.inputs.deploy
+    uses: ./.github/workflows/deploy.yml

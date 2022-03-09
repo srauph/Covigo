@@ -1,0 +1,16 @@
+on:
+  workflow_call
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: self-hosted
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: ['3.10']
+    steps:
+    - uses: actions/checkout@v2
+    - name: Deploy to Server
+      run: |
+        ../deploy-server.sh
