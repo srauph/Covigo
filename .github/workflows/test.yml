@@ -1,7 +1,10 @@
-name: Django CI
 on:
-  pull_request:
-    branches: [ master ]
+  workflow_call
+    secrets:
+      DATABASE_USER:
+        required: true
+      DATABASE_PASSWORD:
+        required: true
 
 jobs:
   test:
