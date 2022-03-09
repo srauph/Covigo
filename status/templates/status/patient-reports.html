@@ -17,7 +17,6 @@
                 "ajax": "{% url 'status:patient-reports-table' %}",
                 createdRow: function (row, data, index) {
                     $(row).attr('data-read', data.is_viewed)
-                    $(row).attr('data-date', data.date_updated)
                     if (data.is_viewed === false) {
                         $(row).addClass('hover:bg-slate-200 font-semibold border-b')
                     } else {
