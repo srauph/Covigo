@@ -1,11 +1,15 @@
-name: Django CI
+name: Run Tests
 on:
-  pull_request:
-    branches: [ master ]
+  workflow_call:
+    secrets:
+      DATABASE_USER:
+        required: true
+      DATABASE_PASSWORD:
+        required: true
 
 jobs:
   test:
-    name: Test
+    name: Run Test Suite
     runs-on: self-hosted
     strategy:
       max-parallel: 4
@@ -13,8 +17,7 @@ jobs:
         python-version: ['3.10']
     steps:
     - uses: actions/checkout@v2
-    - name: Run Tests
-      env:
+    - env:
         DATABASE_USER: ${{ secrets.DATABASE_USER }}
         DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
       run: |
@@ -23,4 +26,4 @@ jobs:
         pip3 install --upgrade pip
         pip3 install django
         if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
-        python3.10 manage.py test
+        python3.10 manage.py test --noinput

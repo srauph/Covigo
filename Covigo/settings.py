@@ -23,17 +23,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
+
 # Configure settings based on "dev mode" or "production mode"
-if getenv("PRODUCTION_MODE") == "True":
-    PRODUCTION_MODE = True
-else:
-    PRODUCTION_MODE = False
+PRODUCTION_MODE = getenv("PRODUCTION_MODE") == "True"
 
 if PRODUCTION_MODE:
     DEBUG = False
     ALLOWED_HOSTS = getenv("ALLOWED_HOSTS")
     STATIC_ROOT = getenv("STATIC_ROOT")
     SECRET_KEY = getenv("SECRET_KEY")
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
     HOST_NAME = 'https://covigo.ddns.net'
 else:
     DEBUG = True
@@ -82,6 +82,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'Covigo.context_processors.production_mode',
             ],
         },
     },
