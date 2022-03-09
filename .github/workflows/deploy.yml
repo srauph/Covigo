@@ -1,4 +1,4 @@
-name: Deploy
+name: Run Deploy Script
 on:
   workflow_call
 
@@ -12,6 +12,5 @@ jobs:
         python-version: ['3.10']
     steps:
     - uses: actions/checkout@v2
-    - name: Run Deploy Script
       run: |
         ../deploy-server.sh
