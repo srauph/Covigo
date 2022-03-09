@@ -53,7 +53,7 @@ def patient_report_modal(request, user_id, date_updated):
 
             # Gets all symptoms' info required for the report
             report_symptom_list = PatientSymptom.objects.select_related('symptom', 'user') \
-                .values('symptom_id', 'data', 'symptom__name', 'user__patients_assigned_flags__is_active',
+                .values('symptom_id', 'data', 'symptom__name', 'is_viewed', 'user__patients_assigned_flags__is_active',
                         'user__first_name', 'user__last_name') \
                 .filter(user_id=user_id, date_updated=date_updated)
 
@@ -63,8 +63,10 @@ def patient_report_modal(request, user_id, date_updated):
             except Exception:
                 is_patient_flagged = False
 
-            # Set the report to viewed
-            PatientSymptom.objects.filter(user_id=user_id, date_updated=date_updated).update(is_viewed=1)
+            # Ensure the report has not been viewed before
+            if not report_symptom_list[0]['is_viewed']:
+                # Set the report to viewed
+                PatientSymptom.objects.filter(user_id=user_id, date_updated=date_updated).update(is_viewed=1)
 
             # Render as an httpResponse for the modal to use
             return HttpResponse(render_to_string('status/patient-report-modal.html', context={
