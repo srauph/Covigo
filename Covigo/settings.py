@@ -28,11 +28,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-if getenv("PRODUCTION_MODE") == "True":
+PRODUCTION_MODE = getenv("PRODUCTION_MODE") == "True"
+if PRODUCTION_MODE:
     DEBUG = False
     ALLOWED_HOSTS = [".covigo.ddns.net"]
     STATIC_ROOT = getenv("STATIC_ROOT")
     SECRET_KEY = getenv("SECRET_KEY")
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
     HOST_NAME = 'https://covigo.ddns.net'
 else:
     DEBUG = True
@@ -81,6 +84,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'Covigo.context_processors.production_mode',
             ],
         },
     },

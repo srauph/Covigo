@@ -4,5 +4,7 @@ venv/
 *.env
 *.DS_Store
 fsevents/
-tailwind
+static/Covigo/css/dist/styles.css
+tailwind/node_modules/
+tailwind/*.json
 qrs/
