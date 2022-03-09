@@ -12,5 +12,6 @@ jobs:
         python-version: ['3.10']
     steps:
     - uses: actions/checkout@v2
-    - run: |
+    - name: Run deploy-server.sh
+      run: |
         ../deploy-server.sh
