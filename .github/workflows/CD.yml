@@ -16,6 +16,9 @@ jobs:
     name: Run Tests
     if: github.event.inputs.test
     uses: ./.github/workflows/test.yml
+    secrets:
+      DATABASE_USER: ${{ secrets.DATABASE_USER }}
+      DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
   deploy:
     name: Deploy
     needs: [test]

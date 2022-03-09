@@ -9,4 +9,6 @@ jobs:
   test:
     name: Run Tests
     uses: ./.github/workflows/test.yml
-    
+    secrets:
+      DATABASE_USER: ${{ secrets.DATABASE_USER }}
+      DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
