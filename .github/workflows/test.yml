@@ -9,12 +9,13 @@ jobs:
       max-parallel: 4
       matrix:
         python-version: ['3.10']
+    secrets:
+      DATABASE_USER: ${{ secrets.DATABASE_USER }}
+      DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
     steps:
     - uses: actions/checkout@v2
     - name: Run Tests
       env:
-        DATABASE_USER: ${{ secrets.DATABASE_USER }}
-        DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
       run: |
         if [ ! -d "/venv/" ]; then virtualenv venv; fi
         source venv/bin/activate
