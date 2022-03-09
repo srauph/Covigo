@@ -4,17 +4,17 @@ on:
     inputs:
       test:
         description: 'Run the test suite'
-        required: false
+        required: true
         type: boolean
       deploy:
         description: 'Deploy to the production server'
-        required: false
+        required: true
         type: boolean
         
 jobs:
   test:
     name: Run Tests
-    if: github.event.inputs.test
+    if: github.event.inputs.test == 'true'
     uses: ./.github/workflows/test.yml
     secrets:
       DATABASE_USER: ${{ secrets.DATABASE_USER }}
@@ -22,5 +22,5 @@ jobs:
   deploy:
     name: Deploy
     needs: [test]
-    if: github.event.inputs.deploy
+    if: github.event.inputs.deploy == 'true'
     uses: ./.github/workflows/deploy.yml
