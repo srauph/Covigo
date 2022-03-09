@@ -219,8 +219,6 @@ def flaguser(request, user_id):
 
     # POST request is made when the doctor clicks to flag during viewing a report
     if request.method == "POST":
-        print("post made for flag")
-
         # Ensure this was an ajax call
         if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
             return JsonResponse({'is_flagged': f'{flag.is_active}'})
@@ -242,7 +240,6 @@ def unflaguser(request, user_id):
 
     # POST request is made when the doctor clicks to flag during viewing a report
     if request.method == "POST":
-        print("post made for unflag")
         # Ensure this was an ajax call
         if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
             return JsonResponse({'is_flagged': f'{flag.is_active}'})
