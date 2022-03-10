@@ -1,6 +1,6 @@
 name: Run Deploy Script
 on:
-  workflow_call
+  workflow_call:
 
 jobs:
   deploy:
@@ -12,5 +12,7 @@ jobs:
         python-version: ['3.10']
     steps:
     - uses: actions/checkout@v2
-    - run: |
-        ../deploy-server.sh
+    - name: Run deploy-server.sh
+      run: |
+        chmod +x deploy-server.sh
+        ./deploy-server.sh
