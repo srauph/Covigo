@@ -1,5 +1,6 @@
 from django.contrib.auth.models import Group, Permission
 from django.core.exceptions import MultipleObjectsReturned
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
@@ -28,7 +29,8 @@ def forgot_password(request):
                 reset_password_email_generator(user, subject, template)
                 return redirect("accounts:forgot_password_done")
             except MultipleObjectsReturned:
-                password_reset_form.add_error(None, "More than one user with the given email address could be found. Please contact the system administrators to fix this issue.")
+                password_reset_form.add_error(None,
+                                              "More than one user with the given email address could be found. Please contact the system administrators to fix this issue.")
             except User.DoesNotExist:
                 password_reset_form.add_error(None, "No user with the given email address could be found.")
         else:
@@ -199,7 +201,7 @@ def list_group(request):
         'groups': Group.objects.all()
     })
 
-  
+
 @login_required
 def flaguser(request, user_id):
     user_staff = request.user
@@ -215,21 +217,33 @@ def flaguser(request, user_id):
         flag = Flag(staff=user_staff, patient=user_patient, is_active=True)
         flag.save()
 
+    # POST request is made when the doctor clicks to flag during viewing a report
+    if request.method == "POST":
+        # Ensure this was an ajax call
+        if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
+            return JsonResponse({'is_flagged': f'{flag.is_active}'})
+
     return redirect("accounts:list_users")
 
-  
+
 @login_required
 def unflaguser(request, user_id):
     user_staff = request.user
     user_patient = User.objects.get(id=user_id)
 
     flag = user_staff.staffs_created_flags.filter(patient=user_patient)
-    
+
     if flag:
         flag = flag.get()
         flag.is_active = False
         flag.save()
-    
+
+    # POST request is made when the doctor clicks to flag during viewing a report
+    if request.method == "POST":
+        # Ensure this was an ajax call
+        if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
+            return JsonResponse({'is_flagged': f'{flag.is_active}'})
+
     return redirect("accounts:list_users")
 
 
