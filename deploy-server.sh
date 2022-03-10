@@ -7,6 +7,5 @@ npx tailwindcss -i ../static/Covigo/css/styles.css -o ../static/Covigo/css/dist/
 cd ..
 python3.10 manage.py collectstatic --noinput
 sudo systemctl restart gunicorn.service
-echo "just a test lol"
 systemctl status -l --no-pager nginx.service
 systemctl status -l --no-pager gunicorn.service
