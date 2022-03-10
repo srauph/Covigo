@@ -9,6 +9,7 @@ from django.utils.datetime_safe import datetime
 from django.views.decorators.cache import never_cache
 
 from accounts.models import Patient, Flag
+from status.utils import return_reports
 from symptoms.models import PatientSymptom
 
 
@@ -92,10 +93,7 @@ def patient_reports_table(request):
         if users.staff_id == doctor.id:
             patient_ids.append(users.user_id)
 
-    reports = PatientSymptom.objects.select_related('user') \
-        .values('date_updated', 'user_id', 'is_viewed', 'user__first_name', 'user__last_name',
-                'user__patients_assigned_flags__is_active') \
-        .filter(user_id__in=patient_ids).distinct()
+    reports = return_reports(patient_ids)
 
     serialized_reports = json.dumps({'data': list(reports)}, cls=DjangoJSONEncoder, default=str)
 
