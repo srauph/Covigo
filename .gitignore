@@ -7,4 +7,5 @@ fsevents/
 static/Covigo/css/dist/styles.css
 tailwind/node_modules/
 tailwind/*.json
+typescript
 qrs/

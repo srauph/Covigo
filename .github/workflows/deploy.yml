@@ -14,4 +14,4 @@ jobs:
     - uses: actions/checkout@v2
     - name: Run deploy-server.sh
       run: |
-        ../deploy-server.sh
+        ./deploy-server.sh
