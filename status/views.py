@@ -86,7 +86,7 @@ def patient_report_modal(request, user_id, date_updated):
 def patient_reports_table(request):
     doctor = request.user
 
-    # Get doctors patient name(s) and user id(s)
+    # Get doctors patient's user id(s)
     patient_ids = []
     for users in Patient.objects.all():
         if users.staff_id == doctor.id:
