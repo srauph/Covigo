@@ -1,5 +1,7 @@
 from django.contrib.auth.models import User
 from django.test import TestCase, Client, RequestFactory
+from django.urls import reverse
+
 from messaging.models import MessageGroup, MessageContent
 from messaging.views import toggle_read
 
@@ -44,7 +46,6 @@ class MessagingViewReplyTests(TestCase):
 
     # Check if seen status becomes true when recipient opens message
     def test_seen_recipient(self):
-
         # Get the current logged-in user (self)
         user_1 = User.objects.get(id=1)
 
@@ -69,7 +70,7 @@ class MessagingViewReplyTests(TestCase):
         self.assertTrue(msg_group_1.recipient_seen)
 
 
-class MessagingList(TestCase):
+class MessagingListTests(TestCase):
 
     def setUp(self):
         user_1 = User.objects.create(id=1, username="amir", is_staff=True)
@@ -93,7 +94,6 @@ class MessagingList(TestCase):
         self.assertTemplateUsed(response, 'messaging/list_messages.html')
 
     def test_toggle_read(self):
-
         # Toggle the seen status to be True
         toggle_read(self.request, 1)
         msg_group_1 = MessageGroup.objects.get(id=1)
@@ -110,3 +110,40 @@ class MessagingList(TestCase):
         self.assertTrue(msg_group_1.author_seen)
 
 
+class MessagingComposeTest(TestCase):
+
+    def setUp(self):
+        user_1 = User.objects.create(id=1, username="bob", is_staff=True)
+        user_1.set_password('secret')
+        user_1.save()
+
+        self.client = Client()
+        self.client.login(username='bob', password='secret')
+
+        doctor_1 = User.objects.create(id=2, username="doctor_1", is_staff=True)
+        doctor_1.set_password('secret')
+        doctor_1.save()
+
+    # Test to check if user cannot send message to themselves
+    def test_user_cannot_message_self(self):
+        # User tries to message self by entering their id in the url
+        response = self.client.get('/messaging/compose/1')
+
+        # User is redirected to the messages list
+        self.assertRedirects(response, '/messaging/list/')
+
+    # Test to compose a new message
+    def test_create_message_group(self):
+        message_group_data = {'title': 'Question about fever',
+                              'priority': '0',
+                              'content': 'Please help me with my fever'}
+
+        # Submit the form
+        response = self.client.post('/messaging/compose/2', message_group_data)
+
+        # Fetch the newly created MessageGroup object after submitting form
+        msg_group = MessageGroup.objects.filter(title='Question about fever').first()
+        self.assertEqual(msg_group.title, 'Question about fever')
+
+        # Check redirect
+        self.assertRedirects(response, '/messaging/list/1')
