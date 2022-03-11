@@ -1,3 +1,4 @@
+import content as content
 from django.contrib.auth.models import User
 from django.test import TestCase, Client, RequestFactory
 
@@ -22,9 +23,9 @@ class MessagingViewReplyTests(TestCase):
         msg_group_1 = MessageGroup.objects.create(id=1, author=user_1, recipient=doctor_1,
                                                   title="Question about my fever")
         MessageContent.objects.create(message=msg_group_1, author=user_1,
-                                      content="Hello doctor, I have a question about my fever")
+                                      content="Hello doctor, I have a question about my fever", id=1)
         MessageContent.objects.create(message=msg_group_1, author=doctor_1,
-                                      content="Hi Bob, what seems to be the problem?")
+                                      content="Hi Bob, what seems to be the problem?", id=2)
 
     def test_view_message_page_success(self):
         """
@@ -60,8 +61,10 @@ class MessagingViewReplyTests(TestCase):
             'content': 'Another message reply!!!'
         })
 
+        msg_content = MessageContent.objects.filter(author=self.user).order_by('-date_created').first()
+
         # Assert
-        self.assertEqual(MessageContent.objects.get(id=3).content, 'Another message reply!!!')
+        self.assertEqual(msg_content.content, 'Another message reply!!!')
 
     def test_seen_recipient(self):
         """
