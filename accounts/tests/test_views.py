@@ -5,7 +5,7 @@ from django.urls import reverse
 from unittest import mock
 
 from accounts.utils import get_flag
-from accounts.views import flaguser, unflaguser, forgot_password
+from accounts.views import flaguser, unflaguser
 from accounts.models import Flag
 
 
