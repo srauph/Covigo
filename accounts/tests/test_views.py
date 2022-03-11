@@ -5,8 +5,8 @@ from django.urls import reverse
 from unittest import mock
 
 from accounts.utils import get_flag
-from accounts.views import flaguser, unflaguser
-from accounts.models import Flag
+from accounts.views import flaguser, unflaguser, profile, profile_from_code
+from accounts.models import Flag, Patient, Staff
 
 
 class ForgotPasswordTests(TestCase):
@@ -114,7 +114,8 @@ class ForgotPasswordTests(TestCase):
         mocked_pass_reset_form_data = {'email': 'qwerty@gmail.com'}
 
         # Act
-        response = self.request.POST = self.client.post(reverse('accounts:forgot_password'), mocked_pass_reset_form_data)
+        response = self.request.POST = self.client.post(reverse('accounts:forgot_password'),
+                                                        mocked_pass_reset_form_data)
 
         # Assert
         self.assertRedirects(response, '/accounts/forgot_password/done/')
@@ -194,3 +195,94 @@ class FlagAssigningTests(TestCase):
         flag = get_flag(self.request.user, patient)
         self.assertEqual(flag.is_active, expected)
         self.assertEqual(response.status_code, 302)
+
+
+class AccountPageViewTest(TestCase):
+
+    def setUp(self):
+        user_1 = User.objects.create(id=1, username="bob", is_staff=False)
+        user_1.set_password('secret')
+        user_1.save()
+
+        doctor_1 = User.objects.create(id=2, username="doctor", is_staff=True)
+
+        staff_1 = Staff.objects.create(user=doctor_1)
+
+        patient_1 = Patient.objects.create(code=1, user=user_1, staff=staff_1)
+        user_1.patient = patient_1
+        user_1.save()
+
+        self.client = Client()
+        self.client.login(username='bob', password='secret')
+
+    def test_list_users_not_logged_in(self):
+        """
+        Test that checks if not logged-in users cannot view the list of users
+        @return:
+        """
+        # Arrange
+        # New client that is not logged in
+        other_client = Client()
+
+        # Act
+        response = other_client.get(reverse('accounts:list_users'))
+
+        # Assert
+        self.assertTemplateNotUsed(response, 'accounts/list_users.html')
+
+    def test_list_users_logged_in(self):
+        """
+        Test that checks if logged-in users can view the list of users
+        @return:
+        """
+        # Act
+        response = self.client.get(reverse('accounts:list_users'))
+
+        # Assert
+        self.assertTemplateUsed(response, 'accounts/list_users.html')
+
+    def test_profile_not_logged_in(self):
+        """
+        Test that checks if not logged-in users cannot view user profiles
+        @return:
+        """
+        # Arrange
+        # New client that is not logged in
+        other_client = Client()
+
+        # Act
+        response = other_client.get('/accounts/profile/1/')
+
+        # Assert
+        self.assertTemplateNotUsed(response, 'accounts/profile.html')
+
+    @mock.patch('accounts.views.generate_profile_qr')
+    def test_profile_logged_in(self, mock_generate_profile_qr_function):
+        """
+        Test that checks if logged-in users can view user profiles
+        @return:
+        """
+        # Act
+        response = self.client.get('/accounts/profile/1/')
+
+        # Assert
+        self.assertTemplateUsed(response, 'accounts/profile.html')
+        mock_generate_profile_qr_function.assert_called_once()
+
+    @mock.patch('accounts.views.generate_profile_qr')
+    def test_profile_from_code(self, mock_generate_profile_qr_function):
+        """
+        Test that checks if not logged-in users can view user profiles qr codes using the profile codes
+        @return:
+        """
+        # Arrange
+        # New client that is not logged in
+        other_client = Client()
+
+        # Act
+        response = other_client.get('/accounts/profile/1/')
+        request = response.wsgi_request
+        profile_from_code(request, 1)
+
+        # Assert
+        mock_generate_profile_qr_function.assert_called_once()
