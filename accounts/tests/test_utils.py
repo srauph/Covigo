@@ -77,19 +77,36 @@ class ResetEmailPasswordGeneratorTests(TestCase):
         self.subject = "Test Subject"
         self.template = "Test Template"
 
-    @mock.patch('accounts.utils.render_to_string', return_value="email")
+    # NOTE: TO ANYONE WHO USES THIS AS INSPIRATION FOR DOING MULTIPLE MOCKS:
+    # The decorators wrap the function and are thus loaded in "reverse order"!
+    # The decorator in the bottom will populate the first param, second from bottom is the secon param,
+    # etc. until the first decorator popultes the last param.
     @mock.patch('accounts.utils.send_email_to_user')
+    @mock.patch('accounts.utils.render_to_string', return_value="email")
     def test_renders_email(self, mock_render_function, _):
+        """
+        Check that the render to string function is being called
+        @param mock_render_function: accounts.utils.render_to_string
+        @param _:
+        @return:
+        """
+
         # Act
         reset_password_email_generator(self.user, self.subject, self.template)
 
         # Assert
         mock_render_function.assert_called_once()
 
-    @skip("not working")
-    @mock.patch('accounts.utils.send_email_to_user')
     @mock.patch('accounts.utils.render_to_string', return_value="email")
-    def test_renders_email(self, mock_send_email_function, _):
+    @mock.patch('accounts.utils.send_email_to_user')
+    def test_sends_email(self, mock_send_email_function, _):
+        """
+        Check that the send email function is being called
+        @param mock_send_email_function:
+        @param _:
+        @return:
+        """
+
         # Act
         reset_password_email_generator(self.user, self.subject, self.template)
 
