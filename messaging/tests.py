@@ -15,6 +15,8 @@ class MessagingViewReplyTests(TestCase):
         self.client = Client()
         self.client.login(username='bob', password='secret')
 
+        self.user = user_1
+
         doctor_1 = User.objects.create(id=2, username="doctor_1", is_staff=True)
         doctor_1.set_password('secret')
         doctor_1.save()
