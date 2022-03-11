@@ -8,6 +8,7 @@ from .forms import ResetPasswordForm
 app_name = 'accounts'
 urlpatterns = [
     path('', views.index, name='index'),
+    path('unauthorized', views.unauthorized, name='unauthorized'),
     path('list/', views.list_users, name='list_users'),
     path('create/', views.create_user, name='create_user'),
     path('edit/<int:user_id>/', views.edit_user, name='edit_user'),

@@ -10,6 +10,9 @@ from accounts.models import Flag, Staff, Patient
 from accounts.utils import get_superuser_staff_model, send_email_to_user, reset_password_email_generator, generate_profile_qr
 
 
+def unauthorized(request):
+    return render(request, 'accounts/unauthorized.html')
+
 @login_required
 @never_cache
 def two_factor_authentication(request):
