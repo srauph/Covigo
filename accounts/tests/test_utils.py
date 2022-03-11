@@ -79,8 +79,8 @@ class ResetEmailPasswordGeneratorTests(TestCase):
 
     # NOTE: TO ANYONE WHO USES THIS AS INSPIRATION FOR DOING MULTIPLE MOCKS:
     # The decorators wrap the function and are thus loaded in "reverse order"!
-    # The decorator in the bottom will populate the first param, second from bottom is the secon param,
-    # etc. until the first decorator popultes the last param.
+    # The decorator in the bottom will populate the first param, second from bottom
+    # is the second param, etc. until the first decorator populates the last param.
     @mock.patch('accounts.utils.send_email_to_user')
     @mock.patch('accounts.utils.render_to_string', return_value="email")
     def test_renders_email(self, mock_render_function, _):
