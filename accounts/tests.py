@@ -94,16 +94,30 @@ class ForgotPasswordTests(TestCase):
         subject = "Password Reset Requested"
         template = "accounts/authentication/reset_password_email.txt"
 
-        # Simulate the user entering a non-existing email in the forgot password form
+        # Simulate the user entering a valid in the forgot password form
         mocked_pass_reset_form_data = {'email': 'qwerty@gmail.com'}
 
-        self.request.POST = self.client.post(reverse('accounts:forgot_password'), mocked_pass_reset_form_data)
-
         # Act
-        forgot_password(self.request)
+        self.request.POST = self.client.post(reverse('accounts:forgot_password'), mocked_pass_reset_form_data)
 
         # Assert
         mock_reset_password_email_generator.assert_called_once_with(new_user, subject, template)
+
+    def test_forgot_password_redirects_to_done(self):
+        # Arrange
+        # Create a new user that doesn't have duplicate emails in the db
+        new_user = User.objects.create(id=3, email='qwerty@gmail.com', username='qwerty')
+        subject = "Password Reset Requested"
+        template = "accounts/authentication/reset_password_email.txt"
+
+        # Simulate the user entering a non-existing email in the forgot password form
+        mocked_pass_reset_form_data = {'email': 'qwerty@gmail.com'}
+
+        # Act
+        response = self.request.POST = self.client.post(reverse('accounts:forgot_password'), mocked_pass_reset_form_data)
+
+        # Assert
+        self.assertRedirects(response, '/accounts/forgot_password/done/')
 
 
 class FlagAssigningTests(TestCase):
