@@ -10,7 +10,7 @@ from django.views.decorators.cache import never_cache
 
 import accounts.views
 from accounts.models import Patient, Flag
-from status.utils import return_reports
+from status.utils import return_reports, return_symptom_list
 from symptoms.models import PatientSymptom
 
 
@@ -35,17 +35,14 @@ def patient_reports(request):
         # Return a QuerySet with all distinct reports from the doctors patients based on their updated date,
         # if it's viewed and if the patient is flagged
         # TODO see if any edge cases exists that break it
-        reports = PatientSymptom.objects.select_related('user') \
-            .values('date_updated', 'user_id', 'is_viewed', 'user__first_name', 'user__last_name',
-                    'user__patients_assigned_flags__is_active') \
-            .filter(user_id__in=patient_ids).order_by('is_viewed', '-user__patients_assigned_flags__is_active',
-                                                      '-date_updated').distinct()
+        reports = return_reports().order_by('is_viewed', '-user__patients_assigned_flags__is_active',
+                                            '-date_updated').distinct()
 
         return render(request, 'status/patient-reports.html', {
             'patient_reports': reports
         })
     else:
-        #TODO: this should change later, probably django has a method to redirect all unauthorized requests to a 401 page
+        # TODO: this should change later, probably django has a method to redirect all unauthorized requests to a 401 page
         return redirect('accounts:unauthorized')
 
 
@@ -58,10 +55,7 @@ def patient_report_modal(request, user_id, date_updated):
         if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
 
             # Gets all symptoms' info required for the report
-            report_symptom_list = PatientSymptom.objects.select_related('symptom', 'user') \
-                .values('symptom_id', 'data', 'symptom__name', 'is_viewed', 'user__patients_assigned_flags__is_active',
-                        'user__first_name', 'user__last_name') \
-                .filter(user_id=user_id, date_updated=date_updated)
+            report_symptom_list = return_symptom_list(user_id, date_updated)
 
             # Check if the patient is flagged
             try:
@@ -101,4 +95,3 @@ def patient_reports_table(request):
         serialized_reports = json.dumps({'data': list(reports)}, cls=DjangoJSONEncoder, default=str)
 
         return HttpResponse(serialized_reports, content_type='application/json')
-
