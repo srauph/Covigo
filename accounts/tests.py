@@ -6,7 +6,8 @@ from accounts.utils import get_flag
 from accounts.views import flaguser, unflaguser
 from accounts.models import Flag
 
-class ForgotPassword(TestCase):
+
+class ForgotPasswordTests(TestCase):
     def setUp(self):
         user_1 = User.objects.create(id=1, email='bob@gmail.com', username='bob1')
         user_1.save()
@@ -32,7 +33,6 @@ class ForgotPassword(TestCase):
 
     # Test to check if user enters an email that isn't linked to any existing user
     def test_non_existing_user_email(self):
-
         # Simulate the user entering a non-existing email in the forgot password form
         mocked_pass_reset_form_data = {'email': 'bruh@gmail.com'}
 
@@ -44,7 +44,6 @@ class ForgotPassword(TestCase):
 
     # Test to check if user does not enter any data in the form
     def test_empty_email(self):
-
         # Simulate the user entering a non-existing email in the forgot password form
         mocked_pass_reset_form_data = {'email': ''}
 
@@ -57,7 +56,6 @@ class ForgotPassword(TestCase):
         self.assertEqual('Please enter a valid email address or phone number.', form_error_message_2)
 
     def test_forgot_password_success(self):
-
         # Create a new user that doesn't have duplicate emails in the db
         new_user = User.objects.create(id=3, email='qwerty@gmail.com', username='qwerty')
 
