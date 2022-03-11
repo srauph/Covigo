@@ -2,6 +2,9 @@ from django.contrib.auth.models import User
 from django.test import TestCase, RequestFactory, Client
 from django.urls import reverse
 
+from unittest import mock
+
+import accounts.utils
 from accounts.utils import get_flag
 from accounts.views import flaguser, unflaguser
 from accounts.models import Flag
@@ -11,6 +14,8 @@ class ForgotPasswordTests(TestCase):
     def setUp(self):
         user_1 = User.objects.create(id=1, email='bob@gmail.com', username='bob1')
         user_1.save()
+
+        self.request = RequestFactory().get('/')
 
         self.client = Client()
         self.response = self.client.get('accounts:forgot_password')
@@ -55,14 +60,23 @@ class ForgotPasswordTests(TestCase):
         self.assertEqual('This field is required.', form_error_message_1)
         self.assertEqual('Please enter a valid email address or phone number.', form_error_message_2)
 
-    def test_forgot_password_success(self):
+    @mock.patch.object(accounts.utils, 'reset_password_email_generator', wraps=accounts.views.forgot_password)
+    def test_forgot_password_success(self, mock_reset_password_email_generator):
+        # from accounts.views import forgot_password
         # Create a new user that doesn't have duplicate emails in the db
-        new_user = User.objects.create(id=3, email='qwerty@gmail.com', username='qwerty')
+
+        new_user = User.objects.create(id=3, email='chunkypotatooo@gmail.com', username='qwerty')
+        subject = "Password Reset Requested"
+        template = "accounts/authentication/reset_password_email.txt"
 
         # Simulate the user entering a non-existing email in the forgot password form
-        mocked_pass_reset_form_data = {'email': 'qwerty@gmail.com'}
+        mocked_pass_reset_form_data = {'email': 'chunkypotatooo@gmail.com'}
 
-        response = self.client.post(reverse('accounts:forgot_password'), mocked_pass_reset_form_data)
+        self.request.POST = self.client.post(reverse('accounts:forgot_password'), mocked_pass_reset_form_data)
+
+        accounts.views.forgot_password(self.request)
+
+        mock_reset_password_email_generator.assert_called_with(new_user, subject, template)
 
 
 class FlagAssigningTests(TestCase):
