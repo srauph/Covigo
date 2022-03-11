@@ -35,7 +35,7 @@ def patient_reports(request):
         # Return a QuerySet with all distinct reports from the doctors patients based on their updated date,
         # if it's viewed and if the patient is flagged
         # TODO see if any edge cases exists that break it
-        reports = return_reports().order_by('is_viewed', '-user__patients_assigned_flags__is_active',
+        reports = return_reports(patient_ids).order_by('is_viewed', '-user__patients_assigned_flags__is_active',
                                             '-date_updated').distinct()
 
         return render(request, 'status/patient-reports.html', {
