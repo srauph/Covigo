@@ -27,7 +27,6 @@ def forgot_password(request):
                 subject = "Password Reset Requested"
                 template = "accounts/authentication/reset_password_email.txt"
                 reset_password_email_generator(user, subject, template)
-                print("he")
                 return redirect("accounts:forgot_password_done")
             except MultipleObjectsReturned:
                 password_reset_form.add_error(None,
