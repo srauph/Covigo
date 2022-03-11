@@ -2,12 +2,13 @@ import json
 
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
 from django.utils.datetime_safe import datetime
 from django.views.decorators.cache import never_cache
 
+import accounts.views
 from accounts.models import Patient, Flag
 from status.utils import return_reports
 from symptoms.models import PatientSymptom
@@ -25,23 +26,27 @@ def patient_reports(request):
     doctor = request.user
 
     # Get doctors patient name(s) and user id(s)
-    patient_ids = []
-    for users in Patient.objects.all():
-        if users.staff_id == doctor.id:
-            patient_ids.append(users.user_id)
+    if doctor.has_perm('view_patientsymptom'):
+        patient_ids = []
+        for users in Patient.objects.all():
+            if users.staff_id == doctor.id:
+                patient_ids.append(users.user_id)
 
-    # Return a QuerySet with all distinct reports from the doctors patients based on their updated date,
-    # if it's viewed and if the patient is flagged
-    # TODO see if any edge cases exists that break it
-    reports = PatientSymptom.objects.select_related('user') \
-        .values('date_updated', 'user_id', 'is_viewed', 'user__first_name', 'user__last_name',
-                'user__patients_assigned_flags__is_active') \
-        .filter(user_id__in=patient_ids).order_by('is_viewed', '-user__patients_assigned_flags__is_active',
-                                                  '-date_updated').distinct()
+        # Return a QuerySet with all distinct reports from the doctors patients based on their updated date,
+        # if it's viewed and if the patient is flagged
+        # TODO see if any edge cases exists that break it
+        reports = PatientSymptom.objects.select_related('user') \
+            .values('date_updated', 'user_id', 'is_viewed', 'user__first_name', 'user__last_name',
+                    'user__patients_assigned_flags__is_active') \
+            .filter(user_id__in=patient_ids).order_by('is_viewed', '-user__patients_assigned_flags__is_active',
+                                                      '-date_updated').distinct()
 
-    return render(request, 'status/patient-reports.html', {
-        'patient_reports': reports
-    })
+        return render(request, 'status/patient-reports.html', {
+            'patient_reports': reports
+        })
+    else:
+        #TODO: this should change later, probably django has a method to redirect all unauthorized requests to a 401 page
+        return redirect('accounts:unauthorized')
 
 
 @login_required
@@ -86,15 +91,14 @@ def patient_report_modal(request, user_id, date_updated):
 @never_cache
 def patient_reports_table(request):
     doctor = request.user
-
-    # Get doctors patient's user id(s)
     patient_ids = []
     for users in Patient.objects.all():
         if users.staff_id == doctor.id:
             patient_ids.append(users.user_id)
 
-    reports = return_reports(patient_ids)
+        reports = return_reports(patient_ids)
 
-    serialized_reports = json.dumps({'data': list(reports)}, cls=DjangoJSONEncoder, default=str)
+        serialized_reports = json.dumps({'data': list(reports)}, cls=DjangoJSONEncoder, default=str)
 
-    return HttpResponse(serialized_reports, content_type='application/json')
+        return HttpResponse(serialized_reports, content_type='application/json')
+
