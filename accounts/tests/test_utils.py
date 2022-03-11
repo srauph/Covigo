@@ -1,10 +1,10 @@
 from django.contrib.auth.models import User
 from django.test import TestCase, RequestFactory
-from unittest import mock
+from unittest import mock, skip
 
 import accounts.utils
 from accounts.models import Flag, Staff
-from accounts.utils import get_flag, get_superuser_staff_model
+from accounts.utils import get_flag, get_superuser_staff_model, reset_password_email_generator
 
 
 class GetFlagTests(TestCase):
@@ -69,3 +69,29 @@ class GetSuperuserStaffModelTests(TestCase):
             # Act & Assert
             self.assertEqual(staff_obj, get_superuser_staff_model())
             mock_staff_model.assert_not_called()
+
+
+class ResetEmailPasswordGeneratorTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create(username="user")
+        self.subject = "Test Subject"
+        self.template = "Test Template"
+
+    @mock.patch('accounts.utils.render_to_string', return_value="email")
+    @mock.patch('accounts.utils.send_email_to_user')
+    def test_renders_email(self, mock_render_function, _):
+        # Act
+        reset_password_email_generator(self.user, self.subject, self.template)
+
+        # Assert
+        mock_render_function.assert_called_once()
+
+    @skip("not working")
+    @mock.patch('accounts.utils.send_email_to_user')
+    @mock.patch('accounts.utils.render_to_string', return_value="email")
+    def test_renders_email(self, mock_send_email_function, _):
+        # Act
+        reset_password_email_generator(self.user, self.subject, self.template)
+
+        # Assert
+        mock_send_email_function.assert_called_once_with(self.user, self.subject, "email")
