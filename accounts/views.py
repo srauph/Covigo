@@ -12,7 +12,8 @@ from accounts.utils import (
     get_superuser_staff_model,
     send_email_to_user,
     reset_password_email_generator,
-    get_or_generate_profile_qr
+    get_or_generate_patient_profile_qr,
+    convert_permission_name_to_id
 )
 
 
@@ -60,7 +61,7 @@ def index(request):
 @never_cache
 def profile(request, user_id):
     user = User.objects.get(id = user_id)
-    image = get_or_generate_profile_qr(user_id)
+    image = get_or_generate_patient_profile_qr(user_id)
     return render(request, 'accounts/profile.html', {"qr": image, "usr": user, "full_view": True})
 
 
@@ -68,7 +69,7 @@ def profile(request, user_id):
 def profile_from_code(request, code):
     patient = Patient.objects.get(code = code)
     user = User.objects.get(patient = patient)
-    image = get_or_generate_profile_qr(user.id)
+    image = get_or_generate_patient_profile_qr(user.id)
     return render(request, 'accounts/profile.html', {"qr": image, "usr": user, "full_view": False})
 
 
@@ -271,11 +272,3 @@ def edit_group(request, group_id):
             'permissions': Permission.objects.all(),
             'group': group
         })
-
-
-def convert_permission_name_to_id(request):
-    permission_array = []
-    for perm in request.POST.getlist('perms'):
-        permission_id = Permission.objects.filter(codename=perm).get().id
-        permission_array.append(permission_id)
-    return permission_array

@@ -2,6 +2,7 @@ import accounts.utils
 
 from django.contrib.auth.models import User
 from django.test import TestCase
+
 from unittest import mock
 
 from accounts.models import Flag, Staff
@@ -11,8 +12,12 @@ from accounts.utils import (
     reset_password_email_generator,
     send_email_to_user,
     get_or_generate_patient_code,
-    get_or_generate_profile_qr
+    get_or_generate_patient_profile_qr
 )
+
+
+class CovertPermissionNameTests(TestCase):
+    pass
 
 
 class GetFlagTests(TestCase):
@@ -244,13 +249,13 @@ class GenerateProfileQrTests(TestCase):
         self.user.refresh_from_db()
 
         # Act & Assert
-        self.assertIsNone(get_or_generate_profile_qr(self.user.id))
+        self.assertIsNone(get_or_generate_patient_profile_qr(self.user.id))
 
     @mock.patch('accounts.utils.Path.mkdir')
     @mock.patch('accounts.utils.PilImage')
     @mock.patch('accounts.utils.make')
     @mock.patch('accounts.utils.os.path.exists')
-    @mock.patch('accounts.utils.get_or_generate_code')
+    @mock.patch('accounts.utils.get_or_generate_patient_code')
     @mock.patch('accounts.utils.Patient.objects')
     def test_user_is_not_staff_returns_image_path(self, m_patient_objects, m_code_generator, m_os_path_exists, m_qrcode_make, m_pil_image, _):
         """
@@ -283,7 +288,7 @@ class GenerateProfileQrTests(TestCase):
                 m_generated_image.reset_mock()
 
                 # Act
-                returned_path = get_or_generate_profile_qr(self.user.id)
+                returned_path = get_or_generate_patient_profile_qr(self.user.id)
 
                 # Assert
                 if not case.get('path_exists'):

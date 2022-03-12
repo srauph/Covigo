@@ -2,7 +2,7 @@ import os.path
 import shortuuid
 import smtplib
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission
 from django.contrib.auth.tokens import default_token_generator
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
@@ -14,6 +14,14 @@ from accounts.models import Flag, Staff, Patient
 from pathlib import Path
 from qrcode import make
 from qrcode.image.pil import PilImage
+
+
+def convert_permission_name_to_id(request):
+    permission_array = []
+    for perm in request.POST.getlist('perms'):
+        permission_id = Permission.objects.filter(codename=perm).get().id
+        permission_array.append(permission_id)
+    return permission_array
 
 
 def get_flag(staff_user, patient_user):
@@ -108,7 +116,7 @@ def get_or_generate_patient_code(patient):
         return patient.code
 
 
-def get_or_generate_profile_qr(user_id):
+def get_or_generate_patient_profile_qr(user_id):
     """
     Get the path to a patient's qr code image, or generate the image if it doesn't exist.
     @param user_id: The patient whose qr code is to be fetched
