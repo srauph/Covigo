@@ -67,7 +67,7 @@
                         render: function (data, type, row) {
                             //Modify the render solely for display
                             if (type === 'display') {
-                                let date = new Date(row.date_updated);
+                                let date = new Date(row.date_updated__date);
                                 let utcHours = date.getUTCHours();
                                 let hourPeriod = utcHours >= 12 ? 'p.m.' : 'a.m.';
                                 const MONTH = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
