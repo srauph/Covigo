@@ -16,14 +16,6 @@ from qrcode import make
 from qrcode.image.pil import PilImage
 
 
-def convert_permission_name_to_id(request):
-    permission_array = []
-    for perm in request.POST.getlist('perms'):
-        permission_id = Permission.objects.filter(codename=perm).get().id
-        permission_array.append(permission_id)
-    return permission_array
-
-
 def get_flag(staff_user, patient_user):
     """
     Returns the flag assigned to a patient_user by a staff_user
