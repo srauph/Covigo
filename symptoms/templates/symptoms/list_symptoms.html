@@ -7,7 +7,7 @@
             (x) => x.addEventListener(
             'click',
             function(){
-                x.parentElement.classList.add('hidden')
+                x.parentElement.parentElement.parentElement.parentElement.classList.add('hidden')
             }
             )
         );
@@ -65,7 +65,7 @@
         {% for message in messages %}
             {% if message.tags == 'success'%}
                 <div role="alert" class="p-5 rounded-lg border m-8 border-green-400 bg-green-300 text-green-900">
-                    <div class="alert-del divide-y-2 divide-solid divide-green-400">
+                    <div class="divide-y-2 divide-solid divide-green-400">
                         <h2 class="font-bold text-xl flex items-center pb-2">
                             <span class="mr-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -74,7 +74,7 @@
                             </span>
                             Success!
                             <div class="text-xl flex align-center w-full justify-end">
-                                <strong class="cursor-pointer">
+                                <strong class="alert-del cursor-pointer">
                                     &times;
                                 </strong>
                             </div>
