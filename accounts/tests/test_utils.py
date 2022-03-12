@@ -15,7 +15,6 @@ from accounts.utils import (
 )
 
 
-
 class GetFlagTests(TestCase):
     def setUp(self):
         self.patient_user = User.objects.create(username="patient_user")
@@ -254,7 +253,7 @@ class GenerateProfileQrTests(TestCase):
         Check that passing a patient user with an existing qr image returns the path to the image
         @param m_patient_objects: Mock patient object
         @param m_code_generator: Mock patient code generator utility function
-        @param m_os_path: Mock os path
+        @param m_os_path_exists: Mock os path
         @param m_qrcode_make: Mock qrcode make function that returns a mocked PilImage
         @param m_pil_image: Mock PilImage save function
         @param _:
