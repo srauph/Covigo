@@ -3,15 +3,15 @@
 {% block script %}
     <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.formset/1.2.2/jquery.formset.min.js"></script>
-    <script>
-        $('.time-formset').formset({
-            {#deleteCssClass: 'bg-red-600 ',#}
-            addText: 'Insert break',
-            deleteText: '',
-            addCssClass: 'bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md',
-        });
-        $('#delete-row').addClass("hidden");
-    </script>
+    {#    <script>#}
+    {#        $('.time-formset').formset({#}
+    {#deleteCssClass: 'bg-red-600 ',#}
+    {#            addText: 'Insert break',#}
+    {#            deleteText: '',#}
+    {#            addCssClass: 'bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md',#}
+    {#        });#}
+    {#        $('#delete-row').addClass("hidden");#}
+    {#    </script>#}
 {% endblock %}
 
 {% block content %}
@@ -28,8 +28,25 @@
                     </h2>
                     <hr>
 
+                    <div class="w-full px-2 pt-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Start date:</label>
+                        <div class="text-red-500 text-sm font-semibold inline">
+                            {{ availability_form.start_date.errors }}
+                        </div>
+                        <div class="inline mt-1 pr-5">
+                            {{ availability_form.start_date }}
+                        </div>
+                    </div>
 
-                    <div class="w-full max-w-2xl px-2 py-2">
+                    <div class="w-full px-2 pt-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">End date:</label>
+
+                        <div class="inline mt-1 pr-5">
+                            {{ availability_form.end_date }}
+                        </div>
+                    </div>
+
+                    <div class="w-full max-w-2xl px-2 py-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2">Select days to create availabilities
                             for:</label>
                         <div class="text-red-500 text-sm font-semibold inline">
@@ -54,59 +71,53 @@
                         </div>
                     </div>
 
-                    <div class="w-full px-2 pt-2 pb-0">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Availability range:</label>
-                    </div>
+                    {#                    <div class="w-full px-2 pt-2 pb-0">#}
+                    {#                        <label class="block text-gray-700 text-sm font-bold mb-2">Availability range:</label>#}
+                    {#                    </div>#}
+                    {##}
+                    {#                   {{ time_formset.management_form }}#}
+                    {#                    <div class="time-formset">#}
+                    {##}
+                    {#                        <div class="px-2 absolute text-red-500 text-sm font-semibold inline">#}
+                    {#                            {{ time_formset.non_form_errors }}#}
+                    {#                        </div>#}
+                    {##}
+                    {#                        <div>#}
+                    {#                            {% for time_form in time_formset %}#}
+                    {##}
+                    {#                                <div class="inline-flex py-2">#}
+                    {#                                    <div class="w-max px-2 py-2">#}
+                    {#                                        <label>Start time:</label>#}
+                    {#                                        <div class="inline mt-1 pr-5 ">#}
+                    {#                                            {{ time_form.start_time_hour }}:#}
+                    {#                                            {{ time_form.start_time_minute }}#}
+                    {#                                        </div>#}
+                    {#                                    </div>#}
+                    {#                                    <div class="w-max px-2 py-2">#}
+                    {#                                        <label>End time:</label>#}
+                    {#                                        <div class="inline mt-1 pr-5">#}
+                    {#                                            {{ time_form.end_time_hour }}:#}
+                    {#                                            {{ time_form.end_time_minute }}#}
+                    {#                                        </div>#}
+                    {#                                    </div>#}
+                    {#                                    <div id='delete-row'#}
+                    {#                                         class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md">#}
+                    {#                                        <a class="delete-row" href="javascript:void(0)">#}
+                    {#                                            <button type="button">Remove</button>#}
+                    {#                                        </a>#}
+                    {#                                    </div>#}
+                    {#                                    <div class="text-red-500 text-sm font-semibold">#}
+                    {#                                        <div class="absolute">#}
+                    {#                                            {{ time_form.errors }}#}
+                    {#                                        </div>#}
+                    {#                                    </div>#}
+                    {##}
+                    {#                                </div>#}
+                    {#                            {% endfor %}#}
+                    {#                        </div>#}
+                    {##}
+                    {#                    </div>#}
 
-                   {{ time_formset.management_form }}
-                    <div class="time-formset">
-
-                        <div class="px-2 absolute text-red-500 text-sm font-semibold inline">
-                            {{ time_formset.non_form_errors }}
-                        </div>
-
-                        <div>
-                            {% for time_form in time_formset %}
-
-                                <div class="inline-flex py-2">
-                                    <div class="w-max px-2 py-2">
-                                        <label>Start time:</label>
-                                        <div class="inline mt-1 pr-5 ">
-                                            {{ time_form.start_time_hour }}:
-                                            {{ time_form.start_time_minute }}
-                                        </div>
-                                    </div>
-                                    <div class="w-max px-2 py-2">
-                                        <label>End time:</label>
-                                        <div class="inline mt-1 pr-5">
-                                            {{ time_form.end_time_hour }}:
-                                            {{ time_form.end_time_minute }}
-                                        </div>
-                                    </div>
-                                    <div id='delete-row'
-                                         class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md">
-                                        <a class="delete-row" href="javascript:void(0)">
-                                            <button type="button">Remove</button>
-                                        </a>
-                                    </div>
-                                    <div class="text-red-500 text-sm font-semibold">
-                                        <div class="absolute">
-                                            {{ time_form.errors }}
-                                        </div>
-                                    </div>
-
-                                </div>
-                            {% endfor %}
-                        </div>
-
-                    </div>
-                    <div class="w-full px-2 pt-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Maintain this schedule until:</label>
-
-                        <div class="inline mt-1 pr-5">
-                            {{ availability_form.date_until }}
-                        </div>
-                    </div>
 
                     <div class="w-full mt-8 md:mt-0">
                         <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
