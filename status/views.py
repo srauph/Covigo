@@ -71,7 +71,7 @@ def patient_report_modal(request, user_id, date_updated):
             # Ensure the report has not been viewed before
             if not report_symptom_list[0]['is_viewed']:
                 # Set the report to viewed
-                PatientSymptom.objects.filter(user_id=user_id, date_updated=date_updated).update(is_viewed=1)
+                PatientSymptom.objects.filter(user_id=user_id, date_updated__date=date_updated).update(is_viewed=1)
 
             # Render as an httpResponse for the modal to use
             return HttpResponse(render_to_string('status/patient-report-modal.html', context={
