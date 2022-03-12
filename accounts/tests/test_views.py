@@ -1,9 +1,10 @@
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.test import TestCase, RequestFactory, Client
 from django.urls import reverse
 
 from unittest import mock
 
+from accounts.forms import UserForm
 from accounts.utils import get_flag
 from accounts.views import flaguser, unflaguser, profile, profile_from_code
 from accounts.models import Flag, Patient, Staff
@@ -286,3 +287,47 @@ class AccountPageViewTest(TestCase):
 
         # Assert
         mock_generate_profile_qr_function.assert_called_once()
+
+
+class EditUserTests(TestCase):
+    def setUp(self):
+        user_1 = User.objects.create(id=1, email='bob@gmail.com', username='bob')
+        user_1.set_password('secret')
+        user_1.save()
+
+        group_1 = Group.objects.create(name='officer', id=1)
+        group_1.save()
+
+        self.client = Client()
+        self.client.login(username='bob', password='secret')
+
+    def test_email_phone_missing(self):
+        self.response = self.client.get('/accounts/edit/1/')
+        mocked_edit_user_data = {'username': 'bob',
+                                 'email': '',
+                                 'groups': '',
+                                 'phone_number': ''
+                                 }
+
+        response = self.client.post('/accounts/edit/1/', mocked_edit_user_data)
+        form_error_message_1 = list(response.context['user_form'].errors.values())[1][0]
+
+        # Assert
+        self.assertEqual('Please enter an email address or a phone number.', form_error_message_1)
+
+        # self.assertRedirects(response, '/accounts/list/')
+
+    def test_user_edit_details(self):
+        self.response = self.client.get('/accounts/edit/1/')
+
+        grp = Group.objects.first()
+
+        mocked_edit_user_data = {'username': 'obo',
+                                 'email': 'obo@gmail.com',
+                                 'groups': '1',
+                                 'phone_number': '5141234567'
+                                 }
+        response = self.client.post('/accounts/edit/1/', mocked_edit_user_data)
+        # x = response.context['user_form']
+        x = UserForm(response)
+        print(1)
