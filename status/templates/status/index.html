@@ -109,11 +109,11 @@
                         <tr>
                             <th class="border-b text-left p-1">Symptoms to report</th>
                         </tr>
-                        <tr class="border-b ">
-                            <td class="p-1">Fever</td>
-                        </tr>
-
-
+                       {% for s in symptoms %}
+                            <tr class="border-b ">
+                            <td class="p-1">{{ s.symptom__name }}</td>
+                             </tr>
+                        {% endfor %}
                     </table>
                 </div>
             </div>

@@ -10,7 +10,7 @@ from django.views.decorators.cache import never_cache
 
 import accounts.views
 from accounts.models import Patient, Flag
-from status.utils import return_reports, return_symptom_list
+from status.utils import return_reports, return_symptom_list, return_symptoms
 from symptoms.models import PatientSymptom
 
 
@@ -19,9 +19,11 @@ from symptoms.models import PatientSymptom
 def index(request):
     patient_ids = [request.user.id]
     reports = return_reports(patient_ids)
+    patient_symptoms = return_symptoms(request.user.id)
     print(reports.query)
     return render(request, 'status/index.html', {
-        'reports': reports
+        'reports': reports,
+        'symptoms': patient_symptoms
     })
 
 
