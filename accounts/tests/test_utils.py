@@ -1,16 +1,19 @@
+import accounts.utils
+
 from django.contrib.auth.models import User
 from django.test import TestCase
 from unittest import mock
 
-import accounts.utils
-from accounts.models import Flag, Staff, Patient
-from accounts.utils import \
-    get_flag, \
-    get_superuser_staff_model, \
-    reset_password_email_generator, \
-    send_email_to_user, \
-    get_or_generate_code, \
+from accounts.models import Flag, Staff
+from accounts.utils import (
+    get_flag,
+    get_superuser_staff_model,
+    reset_password_email_generator,
+    send_email_to_user,
+    get_or_generate_code,
     generate_profile_qr
+)
+
 
 
 class GetFlagTests(TestCase):
@@ -173,7 +176,7 @@ class SendEmailToUserTests(TestCase):
 class GetOrGenerateCodeTests(TestCase):
     @mock.patch('accounts.utils.Patient')
     @mock.patch('accounts.utils.shortuuid.set_alphabet')
-    def test_get_alphabet(self, m_shortuuid_set_alphabet, m_patient):
+    def test_set_alphabet(self, m_shortuuid_set_alphabet, m_patient):
         """
         Check that the custom alphabet is set correctly
         @return:
@@ -215,12 +218,11 @@ class GetOrGenerateCodeTests(TestCase):
         m_instance = m_patient.return_value
         m_instance.code = None
 
-        #
+        # Patient does not have a code
         m_patient_obects.filter().exists.return_value = False
 
         # Act & Assert
         self.assertIsNotNone(get_or_generate_code(m_instance))
-
 
 
 class GenerateProfileQrTests(TestCase):
