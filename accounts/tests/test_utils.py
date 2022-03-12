@@ -10,8 +10,8 @@ from accounts.utils import (
     get_superuser_staff_model,
     reset_password_email_generator,
     send_email_to_user,
-    get_or_generate_code,
-    generate_profile_qr
+    get_or_generate_patient_code,
+    get_or_generate_profile_qr
 )
 
 
@@ -23,7 +23,7 @@ class GetFlagTests(TestCase):
     def test_user_without_flag(self):
         """
         Test that trying to get a flag that doesn't exist returns None
-        @return:
+        @return: void
         """
 
         # Act & Assert
@@ -32,7 +32,7 @@ class GetFlagTests(TestCase):
     def test_user_with_flag(self):
         """
         Test that getting a flag that exists returns the flag
-        @return:
+        @return: void
         """
 
         # Arrange
@@ -46,7 +46,7 @@ class GetSuperuserStaffModelTests(TestCase):
     def test_superuser_does_not_exist(self):
         """
         Test that when no superuser exists, the function returns None
-        @return:
+        @return: void
         """
 
         # Act & Assert
@@ -56,7 +56,7 @@ class GetSuperuserStaffModelTests(TestCase):
     def test_superuser__has_no_staff_object__creates_staff_object(self, m_create_staff_model):
         """
         Test that for a superuser without a staff object, the function o create one for it is called.
-        @return:
+        @return: void
         """
 
         # Arrange
@@ -71,7 +71,7 @@ class GetSuperuserStaffModelTests(TestCase):
     def test_superuser__has_no_staff_object__returns_staff_object(self):
         """
         Test that for a superuser without a staff object, one is created and assigned to it, and returned
-        @return:
+        @return: void
         """
         # Arrange
         self.superuser = User.objects.create(username="admin", is_superuser=True)
@@ -86,7 +86,7 @@ class GetSuperuserStaffModelTests(TestCase):
     def test_superuser__has_staff_object__returns_staff_object(self):
         """
         Test that the staff object of a superuser that already has one gets returned and that a new one isn't created
-        @return:
+        @return: void
         """
 
         # Arrange
@@ -116,9 +116,9 @@ class ResetEmailPasswordGeneratorTests(TestCase):
     def test_renders_email(self, m_render_function, _):
         """
         Check that the render to string function is being called
-        @param m_render_function: accounts.utils.render_to_string
-        @param _:
-        @return:
+        @param m_render_function: render_to_string() function mock
+        @param _: send_email_to_user() function mock (not called in test)
+        @return: void
         """
 
         # Act
@@ -132,9 +132,9 @@ class ResetEmailPasswordGeneratorTests(TestCase):
     def test_sends_email(self, m_send_email_function, _):
         """
         Check that the send email function is being called
-        @param m_send_email_function:
-        @param _:
-        @return:
+        @param m_send_email_function: send_email_to_user() function mock
+        @param _: render_to_string() function mock (not called in test)
+        @return: void
         """
 
         # Act
@@ -145,18 +145,16 @@ class ResetEmailPasswordGeneratorTests(TestCase):
 
 
 class SendEmailToUserTests(TestCase):
-    @mock.patch('accounts.utils.smtplib.SMTP')
     @mock.patch('accounts.utils.smtplib')
-    def test_send_email(self, m_smtp, m_smtp_object):
+    def test_send_email(self, m_smtp):
         """
         Check that the smtplib functions are being called
-        @param m_smtp:
-        @param m_smtp_object:
-        @return:
+        @param m_smtp: smtplib library mock
+        @return: void
         """
         # Arrange
         user = User.objects.create(email="test@email.com")
-        m_instance = m_smtp_object.return_value
+        m_instance = m_smtp.SMTP.return_value
         sender_email = 'shahdextra@gmail.com'
         sender_pass = 'roses12345!%'
         email_contents = f"Subject: test subject\ntest message"
@@ -178,11 +176,13 @@ class GetOrGenerateCodeTests(TestCase):
     def test_set_alphabet(self, m_shortuuid_set_alphabet, m_patient):
         """
         Check that the custom alphabet is set correctly
-        @return:
+        @param m_shortuuid_set_alphabet: set_alphabet() function mock
+        @param m_patient: mock patient object
+        @return: void
         """
 
         # Act
-        get_or_generate_code(m_patient)
+        get_or_generate_patient_code(m_patient)
 
         # Assert
         m_shortuuid_set_alphabet.assert_called_once_with('23456789ABCDEFGHJKLMNPQRSTUVWXYZ')
@@ -192,7 +192,9 @@ class GetOrGenerateCodeTests(TestCase):
     def test_patient_with_code_returns_code(self, m_patient, _):
         """
         Check that passing a Patient with a code returns the code
-        @return:
+        @param m_patient: mock patient object
+        @param _: set_alphabet() function mock (not called in test)
+        @return: void
         """
 
         # Arrange
@@ -200,16 +202,18 @@ class GetOrGenerateCodeTests(TestCase):
         m_instance.code = 'boxxy'
 
         # Act
-        result = get_or_generate_code(m_instance)
+        result = get_or_generate_patient_code(m_instance)
 
         # Assert
         self.assertEqual('boxxy', result)
 
     @mock.patch('accounts.utils.Patient.objects')
     @mock.patch('accounts.utils.Patient')
-    def test_patient_without_code_returns_new_code(self, m_patient, m_patient_obects):
+    def test_patient_without_code_returns_new_code(self, m_patient, m_patient_objects):
         """
         Check that passing a Patient without a code generates a new code
+        @param m_patient: mock patient object
+        @param m_patient_objects: mock patient.objects object
         @return:
         """
 
@@ -218,10 +222,10 @@ class GetOrGenerateCodeTests(TestCase):
         m_instance.code = None
 
         # Patient does not have a code
-        m_patient_obects.filter().exists.return_value = False
+        m_patient_objects.filter().exists.return_value = False
 
         # Act & Assert
-        self.assertIsNotNone(get_or_generate_code(m_instance))
+        self.assertIsNotNone(get_or_generate_patient_code(m_instance))
 
 
 class GenerateProfileQrTests(TestCase):
@@ -231,7 +235,7 @@ class GenerateProfileQrTests(TestCase):
     def test_user_is_staff_returns_None(self):
         """
         Check that passing a staff user returns None
-        @return:
+        @return: void
         """
 
         # Arrange
@@ -240,7 +244,7 @@ class GenerateProfileQrTests(TestCase):
         self.user.refresh_from_db()
 
         # Act & Assert
-        self.assertIsNone(generate_profile_qr(self.user.id))
+        self.assertIsNone(get_or_generate_profile_qr(self.user.id))
 
     @mock.patch('accounts.utils.Path.mkdir')
     @mock.patch('accounts.utils.PilImage')
@@ -257,7 +261,7 @@ class GenerateProfileQrTests(TestCase):
         @param m_qrcode_make: Mock qrcode make function that returns a mocked PilImage
         @param m_pil_image: Mock PilImage save function
         @param _:
-        @return:
+        @return: void
         """
 
         cases = [
@@ -279,7 +283,7 @@ class GenerateProfileQrTests(TestCase):
                 m_generated_image.reset_mock()
 
                 # Act
-                returned_path = generate_profile_qr(self.user.id)
+                returned_path = get_or_generate_profile_qr(self.user.id)
 
                 # Assert
                 if not case.get('path_exists'):
