@@ -1,3 +1,6 @@
 django~=4.0.1
 python-dotenv~=0.19.2
 mysqlclient
+qrcode
+Pillow
+shortuuid
