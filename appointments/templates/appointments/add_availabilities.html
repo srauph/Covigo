@@ -1,7 +1,54 @@
 {% extends 'Covigo/base.html' %}
 
+{% block styles %}
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.css">
+{% endblock %}
+
 {% block script %}
     <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.js"></script>
+    <script>
+
+    $(document).ready(function() {
+         const convertTime12to24 = (time12h) => {
+            const [time, modifier] = time12h.split(' ');
+            let [hours, minutes] = time.split(':');
+
+            if (hours === '12') {
+                hours = '00';
+            }
+
+            if (modifier === 'PM') {
+                hours = parseInt(hours, 10) + 12;
+            }
+
+            return `${hours}:${minutes}`;
+        }
+
+        $('.timepicker').timepicker({
+            timeFormat: 'h:mm p',
+            interval: 15,
+            defaultTime: '8',
+            startTime: '8:00',
+            dropdown: true,
+            scrollbar: true,
+            change: validateStartEndTime
+        });
+
+        function validateStartEndTime(){
+            let startTime = $('#start_time').val();
+            let endTime = $('#end_time').val();
+
+            let startTimeDate = new Date(new Date().toDateString() + ' ' + convertTime12to24(startTime));
+            let endTimeDate = new Date(new Date().toDateString() + ' ' + convertTime12to24(endTime));
+
+            console.log(convertTime12to24(startTime) + ' ' + convertTime12to24(endTime));
+            isValidTime = (startTimeDate < endTimeDate);
+        }
+
+    });
+
+    </script>
 {% endblock %}
 
 {% block content %}
@@ -51,14 +98,14 @@
                         <label class="block text-gray-700 text-sm font-bold mb-2">Start time:</label>
 
                         <div class="inline mt-1 pr-5">
-                            <input id="start_time" type="time" name="start_time" required>
+                            <input id="start_time" class="timepicker"  name="start_time" required>
                         </div>
                     </div>
 
                     <div class="w-full px-2 pt-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2">End time:</label>
                         <div class="inline mt-1 pr-5">
-                            <input id="end_time" type="time" name="end_time" required>
+                            <input id="end_time" class="timepicker" name="end_time" required>
                         </div>
                     </div>
 
