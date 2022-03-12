@@ -147,7 +147,7 @@
                             {% for r in reports %}
                                 <tr class="hover:bg-gray-200" data-user-id = "{{ r.user_id }}" data-date-updated = "{{ r.date_updated__date|date:'Y-m-d' }}">
                                     <td class="text-center p-2 render-correct-date">{{ r.date_updated__date|date:'Y-m-d' }}</td>
-                                    <td class="text-center p-2">{{ r.is_viewed }}</td>
+                                    <td class="text-center p-2">{% if r.is_viewed %}Yes{% else %}No{% endif %}</td>
                                     <td class="text-center p-2"><button class="report-modal-link bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md">View Report</button></td>
                                 </tr>
                             {% endfor %}
