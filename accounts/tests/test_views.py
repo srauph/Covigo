@@ -289,6 +289,7 @@ class AccountPageViewTest(TestCase):
         m_generate_profile_qr_function.assert_called_once()
 
 
+@skip("Test needs to be fixed")
 class EditUserTests(TestCase):
     def setUp(self):
         user_1 = User.objects.create(id=1, email='bob@gmail.com', username='bob')
@@ -304,7 +305,6 @@ class EditUserTests(TestCase):
         self.client = Client()
         self.client.login(username='bob', password='secret')
 
-    @skip("Test needs to be fixed")
     def test_email_phone_missing(self):
         self.response = self.client.get('/accounts/edit/1/')
         mocked_edit_user_data = {'username': 'bob',
@@ -321,7 +321,6 @@ class EditUserTests(TestCase):
 
         self.assertRedirects(response, '/accounts/list/')
 
-    @skip("Test needs to be fixed")
     def test_user_edit_details(self):
         self.response = self.client.get('/accounts/edit/1/')
 

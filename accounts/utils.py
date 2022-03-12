@@ -1,23 +1,28 @@
 import os.path
-import smtplib
 import shortuuid
+import smtplib
 
+from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
-from django.contrib.auth.models import User
-from qrcode.image.pil import PilImage
+from Covigo.settings import HOST_NAME
 
 from accounts.models import Flag, Staff, Patient
-from Covigo.settings import HOST_NAME
 from pathlib import Path
-from qrcode import *
+from qrcode import make
+from qrcode.image.pil import PilImage
 
 
-# Returns the flag assigned to a patient_user by a staff_user
 def get_flag(staff_user, patient_user):
+    """
+    Returns the flag assigned to a patient_user by a staff_user
+    @param staff_user: Staff user object
+    @param patient_user: Patient user object
+    @return: The patient's flag assigned by the staff if it exists, or None if it doesn't
+    """
     try:
         flag = staff_user.staffs_created_flags.get(patient=patient_user)
         return flag
@@ -26,6 +31,10 @@ def get_flag(staff_user, patient_user):
 
 
 def get_superuser_staff_model():
+    """
+    Returns the staff object of the superuser or creates one if it doesn't exist
+    @return: the superuser's staff object
+    """
     try:
         superuser = User.objects.filter(is_superuser=True).get()
         try:
@@ -39,6 +48,13 @@ def get_superuser_staff_model():
 
 
 def reset_password_email_generator(user, subject, template):
+    """
+    Generate and send a "reset password" email for a user
+    @param user: The user whose password is to be reset
+    @param subject: The name to give the email's subject
+    @param template: The template to use for the email to send
+    @return: void
+    """
     c = {
         "email": user.email,
         'domain': '127.0.0.1:8000',
@@ -53,6 +69,13 @@ def reset_password_email_generator(user, subject, template):
 
 
 def send_email_to_user(user, subject, message):
+    """
+    Send an email to a user
+    @param user: The user to send the email to
+    @param subject: The subject of the email to send
+    @param message: The message of the email to send
+    @return: void
+    """
     s = smtplib.SMTP('smtp.gmail.com', 587)
     s.starttls()
     email = 'shahdextra@gmail.com'
@@ -62,7 +85,12 @@ def send_email_to_user(user, subject, message):
     s.quit()
 
 
-def get_or_generate_code(patient):
+def get_or_generate_patient_code(patient):
+    """
+    Get a patient's profile code or generate one if it doesn't exist
+    @param patient: The patient whose code is to be fetched
+    @return: The patient's profile code
+    """
     # Shortuuid docs recommends removing characters (like 0 and O) that can be confused.
     # It sounds reasonable so I decided to do that.
     shortuuid.set_alphabet("23456789ABCDEFGHJKLMNPQRSTUVWXYZ")
@@ -80,14 +108,19 @@ def get_or_generate_code(patient):
         return patient.code
 
 
-def generate_profile_qr(user_id):
-    user = User.objects.get(id = user_id)
+def get_or_generate_profile_qr(user_id):
+    """
+    Get the path to a patient's qr code image, or generate the image if it doesn't exist.
+    @param user_id: The patient whose qr code is to be fetched
+    @return: Path to the qr code image file
+    """
+    user = User.objects.get(id=user_id)
 
     # Only generate qr codes for patient users
     if not user.is_staff:
         # Get or generate the unique patient code
         patient = Patient.objects.get(user=user)
-        patient_code = get_or_generate_code(patient)
+        patient_code = get_or_generate_patient_code(patient)
 
         # Link to store in the qr code
         data = f"{HOST_NAME}/accounts/profile/{str(patient_code)}"
