@@ -118,7 +118,9 @@ def assign_symptom(request, user_id):
 
     if request.method == 'POST':
         # Assigns symptoms selected for patient
-        date = datetime.strptime(request.POST['starting_date'], '%Y-%m-%d')
+
+        date = datetime.strptime(request.POST['starting_date'], '%Y-%m-%dT%H:%M')
+        print(date)
         interval = int(request.POST.get('interval'))
         while interval != 0:
             for symptom_id in request.POST.getlist('symptom'):

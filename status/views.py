@@ -17,7 +17,12 @@ from symptoms.models import PatientSymptom
 @login_required
 @never_cache
 def index(request):
-    return render(request, 'status/index.html')
+    patient_ids = [request.user.id]
+    reports = return_reports(patient_ids)
+    print(reports.query)
+    return render(request, 'status/index.html', {
+        'reports': reports
+    })
 
 
 @login_required
@@ -36,7 +41,7 @@ def patient_reports(request):
         # if it's viewed and if the patient is flagged
         # TODO see if any edge cases exists that break it
         reports = return_reports(patient_ids).order_by('is_viewed', '-user__patients_assigned_flags__is_active',
-                                            '-date_updated').distinct()
+                                                       '-date_updated').distinct()
 
         return render(request, 'status/patient-reports.html', {
             'patient_reports': reports
@@ -49,6 +54,7 @@ def patient_reports(request):
 @login_required
 @never_cache
 def patient_report_modal(request, user_id, date_updated):
+    print('here')
     # When the view report button is pressed a POST request is made
     if request.method == "POST":
         # Ensure this was an ajax call
@@ -56,7 +62,6 @@ def patient_report_modal(request, user_id, date_updated):
 
             # Gets all symptoms' info required for the report
             report_symptom_list = return_symptom_list(user_id, date_updated)
-
             # Check if the patient is flagged
             try:
                 is_patient_flagged = Flag.objects.filter(patient_id=user_id).get(is_active=1)
@@ -71,7 +76,7 @@ def patient_report_modal(request, user_id, date_updated):
             # Render as an httpResponse for the modal to use
             return HttpResponse(render_to_string('status/patient-report-modal.html', context={
                 'user_id': user_id,
-                'date': datetime.strptime(date_updated, '%Y-%m-%d %H:%M:%S.%f+00:00'),
+                'date': date_updated,
                 'report_symptom_list': report_symptom_list,
                 'is_flagged': is_patient_flagged,
                 'patient_name': report_symptom_list[0]['user__first_name'] + ' ' + report_symptom_list[0][

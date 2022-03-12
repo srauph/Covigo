@@ -1,9 +1,56 @@
 {% extends "Covigo/base.html" %}
 
-
+{% block styles %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css"/>
+{% endblock %}
 
 {% block script %}
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+                integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
+    <script>
+    $(document).on('click', '.report-modal-link', function (e) {
+                let row = $(this).closest('tr');
+                let date_updated = row.attr('data-date-updated');
+                let user_id = row.attr('data-user-id');
 
+                console.log(date_updated);
+                let url = "{% url 'status:patient-report-modal' 999999999 'date_updated' %}";
+                url = url.replace(999999999, user_id);
+                url = url.replace('date_updated', date_updated);
+
+                e.preventDefault();
+                this.blur();
+                $.ajax({
+                    method: 'POST',
+                    url: url,
+                    data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
+                    dataType: 'html',
+                    success: function (html) {
+
+                        $('#modal-div').html(html).modal('show');
+
+                        //Re-laod table to update that it has been read
+
+                    }
+                });
+            });
+
+    $('.render-correct-date').each(function(i, obj){
+        let val = $(this).html();
+        let date = new Date(val);
+
+        let utcHours = date.getUTCHours();
+        let hourPeriod = utcHours >= 12 ? 'p.m.' : 'a.m.';
+        const MONTH = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        let final = MONTH[date.getUTCMonth()] + " " + date.getUTCDate() + ", " + date.getUTCFullYear() + ", " + (utcHours - 12) + ":" + date.getMinutes() + " " + hourPeriod;
+
+
+    })
+    </script>
 
 {% endblock %}
 
@@ -82,12 +129,20 @@
                         </thead>
 
                         <tbody>
-
+                            {% for r in reports %}
+                                    <tr class="" data-user-id = "{{ r.user_id }}" data-date-updated = "{{ r.date_updated__date|date:'Y-m-d' }}">
+                                    <td class="text-center p-2 render-correct-date">{{ r.date_updated__date|date:'Y-m-d' }}</td>
+                                    <td class="text-center p-2">{{ r.is_viewed }}</td>
+                                    <td class="text-center p-2"><button class="report-modal-link bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md">View Report</button></td>
+                                </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
 
+        </div>
+         <div id="modal-div" class="modal" style="max-width:1000px;padding: 0 0">
         </div>
     </div>
 {% endblock %}
