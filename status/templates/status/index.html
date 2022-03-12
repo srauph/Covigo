@@ -52,6 +52,9 @@
 
             setInterval(() => {
               duration = moment.duration(duration - interval);
+              if(duration == 1){
+                  location.reload()
+              }
               countdown.innerText = duration.hours() + ":" + duration.minutes() + ":" + duration.seconds()
             }, interval);
 
