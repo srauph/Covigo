@@ -64,18 +64,6 @@
                         "targets": [4],
                         "visible": true,
                         "searchable": true,
-                        render: function (data, type, row) {
-                            //Modify the render solely for display
-                            if (type === 'display') {
-                                let date = new Date(row.date_updated__date);
-                                let utcHours = date.getUTCHours();
-                                let hourPeriod = utcHours >= 12 ? 'p.m.' : 'a.m.';
-                                const MONTH = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-                                return MONTH[date.getUTCMonth()] + " " + date.getUTCDate() + ", " + date.getUTCFullYear() + ", " + (utcHours - 12) + ":" + date.getMinutes() + " " + hourPeriod;
-                            }
-                            //Keep the original for sorting purpose
-                            return data;
-                        }
                     },
                     { // user__last_name
                         "targets": [5],
