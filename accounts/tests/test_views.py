@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User, Group, Permission
 from django.test import TestCase, RequestFactory, Client
 from django.urls import reverse
 
@@ -6,7 +6,7 @@ from unittest import mock, skip
 
 from accounts.forms import UserForm
 from accounts.utils import get_flag
-from accounts.views import flaguser, unflaguser, profile, profile_from_code
+from accounts.views import flaguser, unflaguser, profile, profile_from_code, convert_permission_name_to_id
 from accounts.models import Flag, Patient, Staff
 
 
@@ -335,4 +335,31 @@ class EditUserTests(TestCase):
 
 
 class CovertPermissionNameTests(TestCase):
-    pass
+    def test_pass_list_of_perms(self):
+        """
+        Test that the convert_permission_name_to_id() function returns the IDS of the passed list of peerms
+        @return: void
+        """
+        
+        self.factory = RequestFactory()
+        perms_list = []
+        id_list = []
+
+        cases = [
+            {'test_section': 0, 'msg': 'No permissions'},
+            {'test_section': Permission.objects.count() // 2, 'msg': 'Half the permissions'},
+            {'test_section': Permission.objects.count(), 'msg': 'All of the permissions'},
+        ]
+
+        for case in cases:
+            with self.subTest(case.get('msg')):
+                # Arrange
+                for i in Permission.objects.values('codename', 'id')[:case.get('test_section')]:
+                    perms_list.append(i['codename'])
+                    id_list.append(i['id'])
+
+                fake_form_data = {'perms': perms_list}
+                m_request = self.factory.post('/accounts/access_control/group/add', fake_form_data)
+
+                # Act & Assert
+                self.assertEqual(id_list, convert_permission_name_to_id(m_request))

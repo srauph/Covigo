@@ -253,7 +253,8 @@ class GenerateProfileQrTests(TestCase):
     @mock.patch('accounts.utils.os.path.exists')
     @mock.patch('accounts.utils.get_or_generate_patient_code')
     @mock.patch('accounts.utils.Patient.objects')
-    def test_user_is_not_staff_returns_image_path(self, m_patient_objects, m_code_generator, m_os_path_exists, m_qrcode_make, m_pil_image, _):
+    def test_user_is_not_staff_returns_image_path(self, m_patient_objects, m_code_generator, m_os_path_exists,
+                                                  m_qrcode_make, m_pil_image, _):
         """
         Check that passing a patient user with an existing qr image returns the path to the image
         @param m_patient_objects: Mock patient object
