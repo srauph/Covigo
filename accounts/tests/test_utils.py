@@ -16,10 +16,6 @@ from accounts.utils import (
 )
 
 
-class CovertPermissionNameTests(TestCase):
-    pass
-
-
 class GetFlagTests(TestCase):
     def setUp(self):
         self.patient_user = User.objects.create(username="patient_user")
