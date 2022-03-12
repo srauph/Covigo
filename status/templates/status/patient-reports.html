@@ -68,7 +68,7 @@
                             //Modify the render solely for display
                             if (type === 'display') {
                                 let date = new Date(row.date_updated__date);
-                                return date.getFullYear + "-" + date.getMonth() + "-" + date.getDate()
+                                return date.getFullYear() + "-" + date.getMonth() + "-" + date.getDate()
                             }
                             //Keep the original for sorting purpose
                             return data;
