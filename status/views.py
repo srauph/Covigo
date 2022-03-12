@@ -21,11 +21,11 @@ def index(request):
     reports = return_reports(patient_ids)
     patient_symptoms = return_symptoms(request.user.id)
     report_exist = check_report_exist(request.user.id, datetime.datetime.now())
-    print(report_exist)
     return render(request, 'status/index.html', {
         'reports': reports,
         'symptoms': patient_symptoms,
-        'report_exist': report_exist
+        'report_exist': report_exist,
+        'is_quarantining': request.user.patient.is_quarantining
     })
 
 
