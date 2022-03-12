@@ -5,60 +5,60 @@
 {% endblock %}
 
 {% block script %}
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"
-                integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 
     <script>
-    $(document).on('click', '.report-modal-link', function (e) {
-                let row = $(this).closest('tr');
-                let date_updated = row.attr('data-date-updated');
-                let user_id = row.attr('data-user-id');
+        $(document).on('click', '.report-modal-link', function (e) {
+            let row = $(this).closest('tr');
+            let date_updated = row.attr('data-date-updated');
+            let user_id = row.attr('data-user-id');
 
-                console.log(date_updated);
-                let url = "{% url 'status:patient-report-modal' 999999999 'date_updated' %}";
-                url = url.replace(999999999, user_id);
-                url = url.replace('date_updated', date_updated);
+            console.log(date_updated);
+            let url = "{% url 'status:patient-report-modal' 999999999 'date_updated' %}";
+            url = url.replace(999999999, user_id);
+            url = url.replace('date_updated', date_updated);
 
-                e.preventDefault();
-                this.blur();
-                $.ajax({
-                    method: 'POST',
-                    url: url,
-                    data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
-                    headers: {
-                        "X-Requested-With": "XMLHttpRequest",
-                    },
-                    dataType: 'html',
-                    success: function (html) {
+            e.preventDefault();
+            this.blur();
+            $.ajax({
+                method: 'POST',
+                url: url,
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+                dataType: 'html',
+                success: function (html) {
 
-                        $('#modal-div').html(html).modal('show');
+                    $('#modal-div').html(html).modal('show');
 
-                        //Re-laod table to update that it has been read
+                    //Re-laod table to update that it has been read
 
-                    }
-                });
+                }
             });
-            const endOfTheDay = new Date();
-            const now = new Date();
-            endOfTheDay.setHours(23,59,59,999)
-            const eventTime = endOfTheDay.getTime();
-            const currentTime = now.getTime();
-            const diffTime = eventTime - currentTime;
-            let duration = moment.duration(diffTime);
-            const interval = 1000;
-            const countdown = document.querySelector('#countdown')
+        });
+        const endOfTheDay = new Date();
+        const now = new Date();
+        endOfTheDay.setHours(23, 59, 59, 999)
+        const eventTime = endOfTheDay.getTime();
+        const currentTime = now.getTime();
+        const diffTime = eventTime - currentTime;
+        let duration = moment.duration(diffTime);
+        const interval = 1000;
+        const countdown = document.querySelector('#countdown')
 
-            setInterval(() => {
-              duration = moment.duration(duration - interval);
-              if(duration == 1){
-                  location.reload()
-              }
-              countdown.innerText = duration.hours() + ":" + duration.minutes() + ":" + duration.seconds()
-            }, interval);
-
+        setInterval(() => {
+            duration = moment.duration(duration - interval);
+            if (duration == 1) {
+                location.reload()
+            }
             countdown.innerText = duration.hours() + ":" + duration.minutes() + ":" + duration.seconds()
+        }, interval);
+
+        countdown.innerText = duration.hours() + ":" + duration.minutes() + ":" + duration.seconds()
 
     </script>
 
@@ -72,6 +72,16 @@
             <h1 class="text-2xl text-white font-semibold px-8 py-4">Health Status</h1>
         </div>
 
+        <div class="bg-white shadow m-8 rounded-xl">
+            <div role="alert">
+                <div class="bg-red-500 text-white font-bold rounded-t px-4 py-2">
+                    Quarantine Advised
+                </div>
+                <div class="border border-t-0 border-red-400 rounded-b bg-red-100 px-4 py-3 text-red-700">
+                    <p>Your doctor has recommended you quarantine. Please read and adhere to your local rules.</p>
+                </div>
+            </div>
+        </div>
         <div class="bg-white shadow m-8 rounded-xl">
             <div class="w-full flex justify-between items-center p-4">
                 <div>
@@ -91,7 +101,8 @@
                 </div>
                 {% if report_exist %}
                     <div class="text-red-600 font-bold">
-                        You should Submit your report with all requested data today by 11:59:59, remaining time: <span id="countdown"></span>
+                        You should submit your report with all requested data today by 11:59:59, remaining time: <span
+                            id="countdown"></span>
                     </div>
                 {% else %}
                     <div class="text-green-600 font-bold">
@@ -116,7 +127,6 @@
 
             </div>
         </div>
-
         <div class="flex">
             <div class="w-1/6 m-4">
                 <div class="m-4 p-4 bg-white shadow rounded-lg">
@@ -124,10 +134,10 @@
                         <tr>
                             <th class="border-b text-left p-1">Symptoms to report</th>
                         </tr>
-                       {% for s in symptoms %}
+                        {% for s in symptoms %}
                             <tr class="border-b ">
-                            <td class="p-1">{{ s.symptom__name }}</td>
-                             </tr>
+                                <td class="p-1">{{ s.symptom__name }}</td>
+                            </tr>
                         {% endfor %}
                     </table>
                 </div>
@@ -136,28 +146,33 @@
                 <div class="m-4 p-4 bg-white shadow rounded-lg">
                     <table class="w-full table-auto" id="message_list_table">
                         <thead>
-                            <tr class="border-b">
-                                <th class="p-2">Date Submitted</th>
-                                <th class="p-2">Viewed By Doctor</th>
-                                <th class="p-2">Action</th>
-                            </tr>
+                        <tr class="border-b">
+                            <th class="p-2">Date Submitted</th>
+                            <th class="p-2">Viewed By Doctor</th>
+                            <th class="p-2">Action</th>
+                        </tr>
                         </thead>
 
                         <tbody>
-                            {% for r in reports %}
-                                <tr class="hover:bg-gray-200" data-user-id = "{{ r.user_id }}" data-date-updated = "{{ r.date_updated__date|date:'Y-m-d' }}">
-                                    <td class="text-center p-2 render-correct-date">{{ r.date_updated__date|date:'Y-m-d' }}</td>
-                                    <td class="text-center p-2">{% if r.is_viewed %}Yes{% else %}No{% endif %}</td>
-                                    <td class="text-center p-2"><button class="report-modal-link bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md">View Report</button></td>
-                                </tr>
-                            {% endfor %}
+                        {% for r in reports %}
+                            <tr class="hover:bg-gray-200" data-user-id="{{ r.user_id }}"
+                                data-date-updated="{{ r.date_updated__date|date:'Y-m-d' }}">
+                                <td class="text-center p-2 render-correct-date">{{ r.date_updated__date|date:'Y-m-d' }}</td>
+                                <td class="text-center p-2">{{ r.is_viewed }}</td>
+                                <td class="text-center p-2">
+                                    <button class="report-modal-link bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md">
+                                        View Report
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
 
         </div>
-         <div id="modal-div" class="modal" style="max-width:1000px;padding: 0 0">
+        <div id="modal-div" class="modal" style="max-width:1000px;padding: 0 0">
         </div>
     </div>
 {% endblock %}
