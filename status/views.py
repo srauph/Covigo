@@ -104,3 +104,34 @@ def patient_reports_table(request):
     serialized_reports = json.dumps({'data': list(reports)}, cls=DjangoJSONEncoder, default=str)
 
     return HttpResponse(serialized_reports, content_type='application/json')
+
+
+@login_required
+@never_cache
+def create_patient_report(request):
+    current_user = request.user
+    report = PatientSymptom.objects.filter(user_id=current_user, due_date=datetime.now(), data__isnull=True)
+    if request.method == 'POST':
+        for r in report:
+            report_data = request.POST.get('data')
+            r.save(data=report_data)
+
+    return render(request, 'status/create-status-report.html', {
+        'report': report
+    })
+
+
+@login_required
+@never_cache
+def edit_patient_report(request):
+    current_user = request.user
+    report = PatientSymptom.objects.filter(user_id=current_user, due_date=datetime.now(), data__isnull=False)
+
+    if request.method == 'POST':
+        for r in report:
+            report_data = request.POST.get('data')
+            r.save(data=report_data)
+
+    return render(request, 'status/create-status-report.html', {
+        'report': report
+    })
