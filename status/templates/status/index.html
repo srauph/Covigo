@@ -89,9 +89,15 @@
                         </button>
                     </a>
                 </div>
-                <div class="text-red-600 font-bold">
-                    You should Submit your report with all requested data today by 11:59:59, remaining time: <span id="countdown"></span>
-                </div>
+                {% if report_exist %}
+                    <div class="text-red-600 font-bold">
+                        You should Submit your report with all requested data today by 11:59:59, remaining time: <span id="countdown"></span>
+                    </div>
+                {% else %}
+                    <div class="text-green-600 font-bold">
+                        You are all set, your doctor will contact you if necessary.
+                    </div>
+                {% endif %}
                 <div>
                     <a href="">
                         <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
