@@ -83,10 +83,10 @@ class ForgotPasswordTests(TestCase):
         self.assertEqual('Please enter a valid email address or phone number.', form_error_message_2)
 
     @mock.patch('accounts.views.reset_password_email_generator')
-    def test_forgot_password_calls_reset_password_email_generator(self, mock_reset_password_email_generator):
+    def test_forgot_password_calls_reset_password_email_generator(self, m_reset_password_email_generator):
         """
         Test to check that forgot_password() calls reset_password_email_generator()
-        @param mock_reset_password_email_generator:
+        @param m_reset_password_email_generator:
         @return:
         """
         # Arrange
@@ -102,7 +102,7 @@ class ForgotPasswordTests(TestCase):
         self.request.POST = self.client.post(reverse('accounts:forgot_password'), mocked_pass_reset_form_data)
 
         # Assert
-        mock_reset_password_email_generator.assert_called_once_with(new_user, subject, template)
+        m_reset_password_email_generator.assert_called_once_with(new_user, subject, template)
 
     def test_forgot_password_redirects_to_done(self):
         # Arrange
@@ -258,7 +258,7 @@ class AccountPageViewTest(TestCase):
         self.assertTemplateNotUsed(response, 'accounts/profile.html')
 
     @mock.patch('accounts.views.generate_profile_qr')
-    def test_profile_logged_in(self, mock_generate_profile_qr_function):
+    def test_profile_logged_in(self, m_generate_profile_qr_function):
         """
         Test that checks if logged-in users can view user profiles
         @return:
@@ -268,10 +268,10 @@ class AccountPageViewTest(TestCase):
 
         # Assert
         self.assertTemplateUsed(response, 'accounts/profile.html')
-        mock_generate_profile_qr_function.assert_called_once()
+        m_generate_profile_qr_function.assert_called_once()
 
     @mock.patch('accounts.views.generate_profile_qr')
-    def test_profile_from_code(self, mock_generate_profile_qr_function):
+    def test_profile_from_code(self, m_generate_profile_qr_function):
         """
         Test that checks if not logged-in users can view user profiles qr codes using the profile codes
         @return:
@@ -286,7 +286,7 @@ class AccountPageViewTest(TestCase):
         profile_from_code(request, 1)
 
         # Assert
-        mock_generate_profile_qr_function.assert_called_once()
+        m_generate_profile_qr_function.assert_called_once()
 
 
 class EditUserTests(TestCase):

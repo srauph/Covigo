@@ -6,8 +6,11 @@ from django.contrib.auth.tokens import default_token_generator
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from accounts.models import Flag, Staff, Patient
+
 from django.contrib.auth.models import User
+from qrcode.image.pil import PilImage
+
+from accounts.models import Flag, Staff, Patient
 from Covigo.settings import HOST_NAME
 from pathlib import Path
 from qrcode import *
@@ -97,7 +100,7 @@ def generate_profile_qr(user_id):
             return path
         else:
             # Generate the qr code
-            img = make(data)
+            img: PilImage = make(data)
             img.save("accounts/static/"+path)
             return path
     else:
