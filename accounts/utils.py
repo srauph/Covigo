@@ -54,7 +54,7 @@ def send_email_to_user(user, subject, message):
     s.starttls()
     email = 'shahdextra@gmail.com'
     pwd = 'roses12345!%'
-    s.login(email,pwd)
+    s.login(email, pwd)
     s.sendmail(email, user.email, f"Subject: {subject}\n{message}")
     s.quit()
 
