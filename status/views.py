@@ -76,7 +76,7 @@ def patient_report_modal(request, user_id, date_updated):
             # Render as an httpResponse for the modal to use
             return HttpResponse(render_to_string('status/patient-report-modal.html', context={
                 'user_id': user_id,
-                'date': date_updated__date,
+                'date': date_updated,
                 'report_symptom_list': report_symptom_list,
                 'is_flagged': is_patient_flagged,
                 'patient_name': report_symptom_list[0]['user__first_name'] + ' ' + report_symptom_list[0][
@@ -95,8 +95,8 @@ def patient_reports_table(request):
         if users.staff_id == doctor.id:
             patient_ids.append(users.user_id)
 
-        reports = return_reports(patient_ids)
+    reports = return_reports(patient_ids)
 
-        serialized_reports = json.dumps({'data': list(reports)}, cls=DjangoJSONEncoder, default=str)
+    serialized_reports = json.dumps({'data': list(reports)}, cls=DjangoJSONEncoder, default=str)
 
-        return HttpResponse(serialized_reports, content_type='application/json')
+    return HttpResponse(serialized_reports, content_type='application/json')
