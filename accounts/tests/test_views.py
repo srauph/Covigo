@@ -332,3 +332,7 @@ class EditUserTests(TestCase):
         response = self.client.post('/accounts/edit/1/', mocked_edit_user_data)
         # x = response.context['user_form']
         # x = UserForm(response)
+
+
+class CovertPermissionNameTests(TestCase):
+    pass
