@@ -15,3 +15,10 @@ def return_symptom_list(user_id, date_updated):
                 'user__first_name', 'user__last_name') \
         .filter(user_id=user_id, date_updated__date=date_updated)
     return report_symptom_list
+
+def return_symptoms(user_id):
+    return_patient_symptoms = PatientSymptom.objects.select_related('symptom', 'user') \
+        .values('symptom_id', 'data', 'symptom__name', 'is_viewed', 'user__patients_assigned_flags__is_active',
+                'user__first_name', 'user__last_name') \
+        .filter(user_id=user_id).distinct()
+    return return_patient_symptoms
