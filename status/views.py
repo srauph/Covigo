@@ -23,7 +23,7 @@ def index(request):
     print(reports.query)
     return render(request, 'status/index.html', {
         'reports': reports,
-        'symptoms': patient_symptoms
+        'symptoms': patient_symptoms,
     })
 
 

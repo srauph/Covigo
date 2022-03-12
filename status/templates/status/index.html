@@ -8,6 +8,8 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"
                 integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
     <script>
     $(document).on('click', '.report-modal-link', function (e) {
                 let row = $(this).closest('tr');
@@ -38,18 +40,23 @@
                     }
                 });
             });
+            const endOfTheDay = new Date();
+            const now = new Date();
+            endOfTheDay.setHours(23,59,59,999)
+            const eventTime = endOfTheDay.getTime();
+            const currentTime = now.getTime();
+            const diffTime = eventTime - currentTime;
+            let duration = moment.duration(diffTime);
+            const interval = 1000;
+            const countdown = document.querySelector('#countdown')
 
-    $('.render-correct-date').each(function(i, obj){
-        let val = $(this).html();
-        let date = new Date(val);
+            setInterval(() => {
+              duration = moment.duration(duration - interval);
+              countdown.innerText = duration.hours() + ":" + duration.minutes() + ":" + duration.seconds()
+            }, interval);
 
-        let utcHours = date.getUTCHours();
-        let hourPeriod = utcHours >= 12 ? 'p.m.' : 'a.m.';
-        const MONTH = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        let final = MONTH[date.getUTCMonth()] + " " + date.getUTCDate() + ", " + date.getUTCFullYear() + ", " + (utcHours - 12) + ":" + date.getMinutes() + " " + hourPeriod;
+            countdown.innerText = duration.hours() + ":" + duration.minutes() + ":" + duration.seconds()
 
-
-    })
     </script>
 
 {% endblock %}
@@ -81,7 +88,7 @@
                 </div>
 
                 <div class="text-red-600 font-bold">
-                    You should Submit your report today by 11:59:59, remaining time: 1 hour
+                    You should Submit your report today by 11:59:59, remaining time: <span id="countdown"></span>
                 </div>
                 <div>
                     <a href="">
