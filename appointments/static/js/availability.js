@@ -7,7 +7,6 @@ $(document).ready(function () {
         if (hours === '12') {
             hours = '00';
         }
-
         if (modifier === 'PM') {
             hours = parseInt(hours, 10) + 12;
         }
@@ -49,6 +48,36 @@ $(document).ready(function () {
         validateSlotDuration();
     });
 
+    $('#id_start_date').change(function(){
+        validateStartEndDate();
+    });
+
+    $('#id_end_date').change(function(){
+        validateStartEndDate();
+    });
+
+    function validateStartEndDate(){
+        let startDate = $('#id_start_date').val();
+        let endDate = $('#id_end_date').val();
+        console.log(startDate + ' ' + endDate);
+        if (startDate !== "" && endDate !== ""){
+            let startDateObject = new Date(String(startDate) + ' ' + '00:00');
+            let endDateObject = new Date(String(endDate) + ' ' + '00:00');
+
+            let isInvalidDate = startDateObject > endDateObject;
+
+            if (isInvalidDate){
+                $('#date-error').removeClass('hidden');
+            }
+            else{
+                $('#date-error').addClass('hidden');
+            }
+            return isInvalidDate;
+        }
+        return false;
+
+
+    }
 
     function validateStartEndTime() {
         let startTime = $('#start_time').val();
@@ -62,14 +91,14 @@ $(document).ready(function () {
             let startTimeDate = new Date(new Date().toDateString() + ' ' + startTime24);
             let endTimeDate = new Date(new Date().toDateString() + ' ' + endTime24);
 
-            let isValidTime = (startTimeDate < endTimeDate);
+            let isInvalidTime = startTimeDate > endTimeDate;
 
-            if (!isValidTime) {
+            if (isInvalidTime) {
                 $('#time-error').removeClass('hidden');
             } else {
                 $('#time-error').addClass('hidden');
             }
-            return isValidTime;
+            return isInvalidTime;
         }
         return false;
 
@@ -89,13 +118,16 @@ $(document).ready(function () {
             let endTimeDate = new Date(new Date().toDateString() + ' ' + convertTime12to24($('#end_time').val()));
             const diffTime = Math.abs(endTimeDate - startTimeDate)/MILLIS_PER_MINUTE;
 
-            if (slotDurationMinutes > diffTime){
+            let isInvalidValidSlot = slotDurationMinutes > diffTime;
+            if (isInvalidValidSlot){
                 $('#slot-error').removeClass('hidden');
             }
             else{
                 $('#slot-error').addClass('hidden');
             }
+            return isInvalidValidSlot;
         }
+        return false;
     }
 
 });
