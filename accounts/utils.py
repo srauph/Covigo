@@ -1,7 +1,8 @@
 from accounts.models import Flag, Staff
 from django.contrib.auth.models import User
 import smtplib
-
+from twilio.base.exceptions import TwilioRestException
+from twilio.rest import Client
 
 # Returns the flag assigned to a patient_user by a staff_user
 def get_flag(staff_user, patient_user):
@@ -24,6 +25,7 @@ def get_superuser_staff_model():
     except Exception:
         return None
 
+#takes a user, subject, and message as params and sends the user an email
 def sendMailToUser(user, subject, message):
     s = smtplib.SMTP('smtp.gmail.com', 587)
     s.starttls()

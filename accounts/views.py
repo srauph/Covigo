@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
-from accounts.utils import get_superuser_staff_model, sendMailToUser
+from accounts.utils import get_superuser_staff_model, sendMailToUser, sendSMSToUser
 
 
 @login_required
