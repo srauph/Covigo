@@ -8,15 +8,31 @@
     <div class="min-h-full bg-slate-100">
         {#    {{  permissions }}#}
         <div class="flex justify-between bg-slate-700">
-            <h1 class="text-2xl text-white font-semibold px-8 py-4">Create Role</h1>
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">Create Group</h1>
         </div>
         <form action="" method="post">
             {% csrf_token %}
             <div class="bg-white shadow m-8 rounded-xl">
-                <div class="w-full flex justify-between items-center p-4">
-                    <div>
+                <div class="w-full flex justify-between items-center p-4 {{ errors.has_errors|yesno:"pb-6," }}">
+                    <div class="flex">
                         <label class="font-semibold px-2">Group Name:</label>
-                        <input type="text" class="h-8 px-2 bg-slate-100 rounded-md border border-slate-400" name="name">
+                        <div>
+                            <input type="text" value="{{ new_name }}" class="h-8 px-2 bg-slate-100 rounded-md border border-slate-400" name="name">
+                            {% if errors.blank_name %}
+                                <div class="text-red-500 text-sm font-semibold">
+                                    <div class="absolute">
+                                        <p>Please enter a group name.</p>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if errors.duplicate_name %}
+                                <div class="text-red-500 text-sm font-semibold">
+                                    <div class="absolute">
+                                        <p>Another group with the same name exists.</p>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
