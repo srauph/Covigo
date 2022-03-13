@@ -302,20 +302,23 @@ class AccountCreateTests(TransactionTestCase):
         used in one test: "test_user_can_edit_symptom_and_return")
         :return: void
         """
-        self.client = Client()
         self.user = User.objects.create(username='admin')
         self.staff = Staff.objects.create(user=self.user)
+        self.user.set_password('admin')
+        self.user.save()
+
+        self.client = create_test_client(test_user=self.user, test_password='admin')
+
         self.mocked_group1 = Group.objects.create(name='')
         self.mocked_group2 = Group.objects.create(name='Doctor')
         self.mocked_group3 = Group.objects.create(name='Officer')
-        self.user.set_password('admin')
-        self.user.save()
-        self.client.login(username='admin', password='admin')
+
         self.mocked_form_data1 = {'email': '', 'phone_number': '', 'is_staff': True, 'groups': self.mocked_group1.id}
         self.mocked_form_data2 = {'email': 'my_brother@gmail.com', 'phone_number': '', 'is_staff': True, 'groups': self.mocked_group2.id}
         self.mocked_form_data3 = {'email': '', 'phone_number': '5145639236', 'is_staff': True, 'groups': self.mocked_group3.id}
         self.mocked_form_data4 = {'email': 'my_sister@gmail.com', 'phone_number': '5149067845', 'is_staff': True, 'groups': self.mocked_group3.id}
         self.mocked_form_data5 = {'email': 'my_other@gmail.com', 'phone_number': '5143728471', 'is_staff': True, 'groups': [self.mocked_group2.id, self.mocked_group3.id]}
+
         self.response = self.client.get(reverse('accounts:create_user'))
 
     def test_empty_forms(self):
@@ -439,12 +442,53 @@ class EditUserTests(TestCase):
         # x = UserForm(response)
 
 
+class ListGroupTests(TestCase):
+    def test_list_groups_not_logged_in(self):
+        """
+        Test that checks if not logged in, users cannot view the list of groups
+        @return: void
+        """
+        # Arrange
+        # New client that is not logged in
+        anonymous_client = Client()
+
+        # Act
+        response = anonymous_client.get(reverse('accounts:list_users'))
+
+        # Assert
+        self.assertTemplateNotUsed(response, 'accounts/list_users.html')
+
+    def test_list_groups_successfully(self):
+        """
+        Test that checks that a logged in user can view the list of groups
+        @return: void
+        """
+
+        # Arrange
+        create_test_permissions(4)
+        client = create_test_client()
+
+        new_group_name = 'test group lol'
+        second_new_group_name = 'second test group lol'
+
+        group1 = Group.objects.create(name=new_group_name)
+        group1.permissions.set([1, 2])
+        group1.save()
+
+        group2 = Group.objects.create(name=second_new_group_name)
+        group2.permissions.set([2, 3])
+        group2.save()
+
+        # Act
+        response = client.get(reverse('accounts:list_group'))
+
+        # Assert
+        self.assertEqual(set(Group.objects.all()), set(response.context['groups']))
+
+
 class CreateGroupTests(TestCase):
     def setUp(self):
-        Permission.objects.all().delete()
-        for i in range(1, 4):
-            Permission.objects.create(codename=f'test_perm_{i}', content_type_id=1)
-
+        create_test_permissions(3)
         self.client = create_test_client()
 
     def test_create_group_successfully(self):
@@ -541,10 +585,7 @@ class CreateGroupTests(TestCase):
 
 class EditGroupTests(TestCase):
     def setUp(self):
-        Permission.objects.all().delete()
-        for i in range(1, 4):
-            Permission.objects.create(codename=f'test_perm_{i}', content_type_id=1)
-
+        create_test_permissions(3)
         self.client = create_test_client()
 
         new_group_name = 'test group lol'
@@ -665,10 +706,7 @@ class EditGroupTests(TestCase):
 
 class CovertPermissionNameTests(TestCase):
     def setUp(self):
-        Permission.objects.all().delete()
-        for i in range(1, 7):
-            Permission.objects.create(codename=f'test_perm_{i}', content_type_id=1)
-
+        create_test_permissions(6)
         self.factory = RequestFactory()
 
     def test_pass_list_of_perms(self):
@@ -698,19 +736,31 @@ class CovertPermissionNameTests(TestCase):
                 self.assertEqual(id_list, convert_permission_name_to_id(m_request))
 
 
-def create_test_client():
+def create_test_client(test_user=None, test_password=None):
     """
     Helper function to create a test client
     @return: The test client
     """
-    test_user = User.objects.create(username="bob")
-    test_user.set_password('secret')
-    test_user.save()
+    if test_user is None:
+        test_user = User.objects.create(username="bob")
+        test_user.set_password('secret')
+        test_user.save()
+        test_password = 'secret'
 
     client = Client()
-    client.login(username='bob', password='secret')
+    client.login(username=test_user.username, password=test_password)
 
     return client
+
+
+def create_test_permissions(num_of_permissions):
+    """
+    Helper function to create test permissions
+    @return:
+    """
+    Permission.objects.all().delete()
+    for i in range(1, num_of_permissions+1):
+        Permission.objects.create(codename=f'test_perm_{i}', content_type_id=1)
 
 
 def create_group_helper(client, new_group_name, new_group_perms):
