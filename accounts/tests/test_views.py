@@ -499,7 +499,7 @@ class CreateGroupTests(TestCase):
             'perms': new_group_perms
         }
 
-        self.client.post(reverse('accounts:add_group'), fake_form_data)
+        self.client.post(reverse('accounts:create_group'), fake_form_data)
 
 class CovertPermissionNameTests(TestCase):
     def setUp(self):
