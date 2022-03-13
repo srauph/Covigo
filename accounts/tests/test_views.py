@@ -1,7 +1,9 @@
 from django.contrib.auth.models import User, Group, Permission
 from django.test import TestCase,TransactionTestCase, RequestFactory, Client
 from django.urls import reverse
-from unittest import mock, skip
+
+from unittest import mock
+
 from accounts.utils import get_flag
 from accounts.views import flaguser, unflaguser, profile_from_code, convert_permission_name_to_id
 from accounts.models import Flag, Patient, Staff
@@ -103,6 +105,11 @@ class ForgotPasswordTests(TestCase):
         m_reset_password_email_generator.assert_called_once_with(new_user, subject, template)
 
     def test_forgot_password_redirects_to_done(self):
+        """
+        Test to check that completin the forgot password form redirects to the forgot password done page
+        @return:
+        """
+
         # Arrange
         # Create a new user that doesn't have duplicate emails in the db
         new_user = User.objects.create(id=3, email='qwerty@gmail.com', username='qwerty')
@@ -186,9 +193,9 @@ class FlagAssigningTests(TestCase):
         """
         Gets the flag of `patient`, and asserts that the flag's is_active property is `expected`
         and that the `response` status code is 302.
-        @param response:
-        @param expected:
-        @param patient:
+        @param response: Http response object
+        @param expected: Expected flag status
+        @param patient: Patient whose flag we're getting
         @return: void
         """
 
@@ -590,6 +597,7 @@ class ListGroupTests(TestCase):
         Test that checks if not logged in, users cannot view the list of groups
         @return: void
         """
+
         # Arrange
         # New client that is not logged in
         anonymous_client = Client()
@@ -884,6 +892,7 @@ def create_test_client(test_user=None, test_password=None):
     Helper function to create a test client
     @return: The test client
     """
+
     if test_user is None:
         test_user = User.objects.create(username="bob")
         test_user.set_password('secret')
@@ -899,8 +908,9 @@ def create_test_client(test_user=None, test_password=None):
 def create_test_permissions(num_of_permissions):
     """
     Helper function to create test permissions
-    @return:
+    @return: void
     """
+
     Permission.objects.all().delete()
     for i in range(1, num_of_permissions+1):
         Permission.objects.create(codename=f'test_perm_{i}', content_type_id=1)
@@ -915,6 +925,7 @@ def create_group_helper(client, new_group_name, new_group_perms):
     @return: The test client's response
     """
 
+    # here, the key "name" is the name of the group and not the name of the permission
     fake_form_data = {
         'name': new_group_name,
         'perms': new_group_perms
