@@ -64,15 +64,15 @@ $(document).ready(function () {
             let startDateObject = new Date(String(startDate) + ' ' + '00:00');
             let endDateObject = new Date(String(endDate) + ' ' + '00:00');
 
-            let isInvalidDate = startDateObject > endDateObject;
+            let isValidDate = startDateObject <= endDateObject;
 
-            if (isInvalidDate){
+            if (!isValidDate){
                 $('#date-error').removeClass('hidden');
             }
             else{
                 $('#date-error').addClass('hidden');
             }
-            return isInvalidDate;
+            return isValidDate;
         }
         return false;
 
@@ -91,14 +91,14 @@ $(document).ready(function () {
             let startTimeDate = new Date(new Date().toDateString() + ' ' + startTime24);
             let endTimeDate = new Date(new Date().toDateString() + ' ' + endTime24);
 
-            let isInvalidTime = startTimeDate > endTimeDate;
+            let isValidTime = startTimeDate < endTimeDate;
 
-            if (isInvalidTime) {
+            if (!isValidTime) {
                 $('#time-error').removeClass('hidden');
             } else {
                 $('#time-error').addClass('hidden');
             }
-            return isInvalidTime;
+            return isValidTime;
         }
         return false;
 
@@ -118,14 +118,14 @@ $(document).ready(function () {
             let endTimeDate = new Date(new Date().toDateString() + ' ' + convertTime12to24($('#end_time').val()));
             const diffTime = Math.abs(endTimeDate - startTimeDate)/MILLIS_PER_MINUTE;
 
-            let isInvalidValidSlot = slotDurationMinutes > diffTime;
-            if (isInvalidValidSlot){
+            let isValidSlot = slotDurationMinutes <= diffTime;
+            if (!isValidSlot){
                 $('#slot-error').removeClass('hidden');
             }
             else{
                 $('#slot-error').addClass('hidden');
             }
-            return isInvalidValidSlot;
+            return isValidSlot;
         }
         return false;
     }
