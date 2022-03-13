@@ -118,7 +118,7 @@ $(document).ready(function () {
             let endTimeDate = new Date(new Date().toDateString() + ' ' + convertTime12to24($('#end_time').val()));
             const diffTime = Math.abs(endTimeDate - startTimeDate)/MILLIS_PER_MINUTE;
 
-            let isValidSlot = slotDurationMinutes <= diffTime;
+            let isValidSlot = (slotDurationMinutes <= diffTime) && (slotDurationMinutes !== 0);
             if (!isValidSlot){
                 $('#slot-error').removeClass('hidden');
             }
@@ -130,4 +130,14 @@ $(document).ready(function () {
         return false;
     }
 
+    function validateForm(event) {
+        let valid = validateStartEndDate() && validateStartEndTime() && validateSlotDuration();
+        if(!valid){
+            event.preventDefault();
+        }
+    }
+
+    $('#availability-form').submit(function(event){
+        validateForm(event)
+    });
 });

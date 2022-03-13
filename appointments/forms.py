@@ -86,7 +86,7 @@ class AvailabilityForm(forms.Form):
                                                   widget=forms.CheckboxSelectMultiple(),
                                                   required=True)
 
-    slot_duration_hours = forms.IntegerField(widget=forms.Select(choices=SLOT_HOURS), required=True)
+    slot_duration_hours = forms.IntegerField(widget=forms.Select(choices=SLOT_HOURS), initial='1', required=True)
     slot_duration_minutes = forms.IntegerField(widget=forms.Select(choices=SLOT_MINUTES), required=True)
 
     date_today = datetime.datetime.now()
