@@ -35,3 +35,18 @@ def sendMailToUser(user, subject, message):
     s.sendmail(email, user.username, f"Subject: {subject}\n{message}")
     s.quit()
     return None
+
+
+#takes a user, user's phone number, and message as params and sends a text message
+def sendSMSToUser(user, user_phone, message):
+    account = "AC77b343442a4ec3ea3d0258ea5c597289"
+    token = "f9a14a572c2ab1de3683c0d65f7c962b"
+    client = Client(account, token)
+
+    try:
+        message = client.messages.create(to=user_phone, from_="+16626727846",
+                                         body=message)
+    except TwilioRestException as e:
+        print(e)
+
+    return None

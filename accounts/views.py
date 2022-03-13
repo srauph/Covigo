@@ -84,6 +84,9 @@ def create_user(request):
             if has_email:
                 sendMailToUser(new_user, subject, message)
 
+            if has_phone:
+                sendSMSToUser(new_user, user_phone, message)
+
             return redirect("accounts:list_users")
 
         else:
