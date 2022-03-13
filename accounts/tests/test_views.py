@@ -1,12 +1,9 @@
 from django.contrib.auth.models import User, Group, Permission
 from django.test import TestCase,TransactionTestCase, RequestFactory, Client
 from django.urls import reverse
-
 from unittest import mock, skip
-
-from accounts.forms import UserForm
 from accounts.utils import get_flag
-from accounts.views import flaguser, unflaguser, profile, profile_from_code, convert_permission_name_to_id
+from accounts.views import flaguser, unflaguser, profile_from_code, convert_permission_name_to_id
 from accounts.models import Flag, Patient, Staff
 
 
@@ -23,7 +20,7 @@ class ForgotPasswordTests(TestCase):
     def test_non_unique_email(self):
         """
         Test to check if user enters an email that have more than one user connected to it
-        @return:
+        @return: void
         """
 
         # Arrange
@@ -47,7 +44,7 @@ class ForgotPasswordTests(TestCase):
     def test_non_existing_user_email(self):
         """
         Test to check if user enters an email that isn't linked to any existing user
-        @return:
+        @return: void
         """
 
         # Arrange
@@ -65,7 +62,7 @@ class ForgotPasswordTests(TestCase):
     def test_empty_email(self):
         """
         Test to check if user does not enter any data in the form
-        @return:
+        @return: void
         """
 
         # Arrange
@@ -87,8 +84,9 @@ class ForgotPasswordTests(TestCase):
         """
         Test to check that forgot_password() calls reset_password_email_generator()
         @param m_reset_password_email_generator:
-        @return:
+        @return: void
         """
+
         # Arrange
         # Create a new user that doesn't have duplicate emails in the db
         new_user = User.objects.create(id=3, email='qwerty@gmail.com', username='qwerty')
@@ -132,7 +130,7 @@ class FlagAssigningTests(TestCase):
     def test_previously_flagged_user(self):
         """
         Test to check that a previously unflagged user can be flagged again
-        @return:
+        @return: void
         """
 
         # Arrange
@@ -147,7 +145,7 @@ class FlagAssigningTests(TestCase):
     def test_never_flagged_user(self):
         """
         Test to ensure that a never-before flagged user can be flagged
-        @return:
+        @return: void
         """
 
         # Arrange & Act
@@ -159,7 +157,7 @@ class FlagAssigningTests(TestCase):
     def test_unflag_user(self):
         """
         Test to ensure that a flagged user can be unflagged
-        @return:
+        @return: void
         """
 
         # Arrange
@@ -174,7 +172,7 @@ class FlagAssigningTests(TestCase):
     def test_unflag_never_flagged_user(self):
         """
         Test to ensure that a never-before flagged user can be unflagged
-        @return:
+        @return: void
         """
 
         # Arrange & Act
@@ -191,8 +189,9 @@ class FlagAssigningTests(TestCase):
         @param response:
         @param expected:
         @param patient:
-        @return:
+        @return: void
         """
+
         flag = get_flag(self.request.user, patient)
         self.assertEqual(flag.is_active, expected)
         self.assertEqual(response.status_code, 302)
@@ -218,8 +217,9 @@ class AccountPageViewTest(TestCase):
     def test_list_users_not_logged_in(self):
         """
         Test that checks if not logged-in users cannot view the list of users
-        @return:
+        @return: void
         """
+
         # Arrange
         # New client that is not logged in
         other_client = Client()
@@ -233,8 +233,9 @@ class AccountPageViewTest(TestCase):
     def test_list_users_logged_in(self):
         """
         Test that checks if logged-in users can view the list of users
-        @return:
+        @return: void
         """
+
         # Act
         response = self.client.get(reverse('accounts:list_users'))
 
@@ -244,8 +245,9 @@ class AccountPageViewTest(TestCase):
     def test_profile_not_logged_in(self):
         """
         Test that checks if not logged-in users cannot view user profiles
-        @return:
+        @return: void
         """
+
         # Arrange
         # New client that is not logged in
         other_client = Client()
@@ -260,8 +262,9 @@ class AccountPageViewTest(TestCase):
     def test_profile_logged_in(self, m_generate_profile_qr_function):
         """
         Test that checks if logged-in users can view user profiles
-        @return:
+        @return: void
         """
+
         # Act
         response = self.client.get('/accounts/profile/1/')
 
@@ -273,8 +276,9 @@ class AccountPageViewTest(TestCase):
     def test_profile_from_code(self, m_generate_profile_qr_function):
         """
         Test that checks if not logged-in users can view user profiles qr codes using the profile codes
-        @return:
+        @return: void
         """
+
         # Arrange
         # New client that is not logged in
         other_client = Client()
@@ -302,6 +306,7 @@ class AccountTestCase(TransactionTestCase):
         used in one test: "test_user_can_edit_symptom_and_return")
         :return: void
         """
+
         self.client = Client()
         self.user = User.objects.create(username='admin')
         self.staff = Staff.objects.create(user=self.user)
@@ -315,14 +320,25 @@ class AccountTestCase(TransactionTestCase):
         self.mocked_form_data2 = {'email': 'my_brother@gmail.com', 'phone_number': '', 'is_staff': True, 'groups': self.mocked_group2.id}
         self.mocked_form_data3 = {'email': '', 'phone_number': '5145639236', 'is_staff': True, 'groups': self.mocked_group3.id}
         self.mocked_form_data4 = {'email': 'my_sister@gmail.com', 'phone_number': '5149067845', 'is_staff': True, 'groups': self.mocked_group3.id}
-        self.mocked_form_data5 = {'email': 'my_other@gmail.com', 'phone_number': '5143728471', 'is_staff': True, 'groups': [self.mocked_group2.id, self.mocked_group3.id]}
+        self.mocked_form_data5 = {'email': 'm', 'phone_number': '5149067845', 'is_staff': True, 'groups': self.mocked_group3.id}
+        self.mocked_form_data6 = {'email': 'my_other@gmail.com', 'phone_number': '5143728471', 'is_staff': True, 'groups': [self.mocked_group2.id, self.mocked_group3.id]}
+        self.edited_mocked_form_data2 = {'username': 'my_brother@gmail.com', 'email': 'my_mother@gmail.com', 'phone_number': '', 'is_staff': True, 'groups': self.mocked_group2.id}
+        self.edited_mocked_form_data3 = {'username': '5145639236', 'email': 'my_otter@gmail.com', 'phone_number': '5145639236', 'is_staff': True, 'groups': self.mocked_group2.id}
+        self.edited_mocked_form_data4 = {'username': 'my_sister@gmail.com', 'email': 'my_sister@gmail.com', 'phone_number': '5140398275', 'is_staff': True, 'groups': self.mocked_group3.id}
+        self.edited_mocked_form_data5 = {'username': 'my_sister@gmail.com', 'email': 'my_sister@gmail.com', 'phone_number': '5149067845', 'is_staff': True, 'groups': self.mocked_group2.id}
+        self.edited_mocked_form_data6 = {'username': '', 'email': 'my_sister@gmail.com', 'phone_number': '5140398275', 'is_staff': True, 'groups': self.mocked_group3.id}
+        self.edited_mocked_form_data7 = {'username': 'my_sister@gmail.com', 'email': 'y', 'phone_number': '5149067845', 'is_staff': True, 'groups': self.mocked_group3.id}
+        self.edited_mocked_form_data8 = {'username': 'my_sister@gmail.com', 'email': '', 'phone_number': '', 'is_staff': True, 'groups': self.mocked_group3.id}
+        self.edited_mocked_form_data9 = {'username': 'my_sister@gmail.com', 'email': 'my_father@gmail.com', 'phone_number': '5149067845', 'is_staff': True, 'groups': [self.mocked_group2.id, self.mocked_group3.id]}
+        self.edited_mocked_form_data10 = {'username': 'my_brother@gmail.com', 'email': 'my_mother@gmail.com', 'phone_number': '5145639236', 'is_staff': True, 'groups': self.mocked_group3.id}
         self.response = self.client.get(reverse('accounts:create_user'))
 
-    def test_empty_forms(self):
+    def test_empty_create_new_user_account_forms(self):
         """
         this test allows us to test directly for form fields when dealing with empty forms
         :return: void
         """
+
         # this insures that the specific GET request has succeeded (OK) through
         # the reverse URL naming attribute for the "create_user.html" page
         self.assertEqual(self.response.status_code, 200)
@@ -334,12 +350,13 @@ class AccountTestCase(TransactionTestCase):
         self.assertTrue(User.objects.all().count() == 1)
         self.assertEqual('Please enter an email address or a phone number.', list(self.response.context['user_form'].errors['__all__'])[0])
 
-    def test_user_can_create_account(self):
+    def test_user_can_create_new_user_account(self):
         """
         this test allows us to test for if an account that is submitted through a form
         (with the "create" or "create and return" buttons) ends up actually being indeed added to the database or not
         :return: void
         """
+
         self.assertEqual(self.response.status_code, 200)
         self.assertTrue(User.objects.all().count() == 1)
         self.response = self.client.post(reverse('accounts:create_user'), self.mocked_form_data2)
@@ -369,10 +386,21 @@ class AccountTestCase(TransactionTestCase):
         self.assertEqual(self.mocked_form_data4['phone_number'], User.objects.get(id=4).profile.phone_number)
         self.assertEqual(self.mocked_form_data4['groups'], User.objects.get(id=4).groups.get().id)
         self.assertEqual(self.mocked_form_data4['is_staff'], User.objects.get(id=4).is_staff)
+        self.assertEqual(User.objects.get(id=3).groups.get().id, User.objects.get(id=4).groups.get().id)
+
+        # here, I am testing for the valid email address form error message by making sure that it works:
+        # If I use a non-valid email address inside mocked form data and try to call a POST request on it,
+        # I should expect the error message to be shown on the view, alerting me of my mistake,
+        # and prevent me from creating an account in the database, thus my database user count
+        # should not increase (intended behaviour)
+        self.response = self.client.post(reverse('accounts:create_user'), self.mocked_form_data5)
+        self.assertTrue(User.objects.all().count() == 4)
+
+        self.assertEqual('Enter a valid email address.', list(self.response.context['user_form'].errors['email'])[0])
 
         # here, I am testing for the duplicate email and phone number (in another already existing account)
         # form error messages by making sure that they work: If I use the same mocked form data and try to
-        # call a POST request on it, I should expect the error messages to be shown on the view, alerting me of my mistake,
+        # call a POST request on it, I should expect the error messages to be shown on the view, alerting me of my mistakes,
         # and prevent me from creating a duplicate account in the database, thus my database user count
         # should not increase (intended behaviour)
         self.response = self.client.post(reverse('accounts:create_user'), self.mocked_form_data4)
@@ -382,61 +410,176 @@ class AccountTestCase(TransactionTestCase):
         self.assertEqual('Phone number already in use by another user.', list(self.response.context['profile_form'].errors['phone_number'])[0])
 
         # here, I am testing for the multiple groups/roles form error message by making sure that it works:
-        # If I try to post form data that contains more than one group/role by calling a POST request on it,
+        # If I try to post mocked form data that contains more than one group/role by calling a POST request on it,
         # I should expect the error message to be shown on the view, alerting me of my mistake,
         # and prevent me from creating an account in the database, thus my database user count
         # should not increase (intended behaviour)
-        self.response = self.client.post(reverse('accounts:create_user'), self.mocked_form_data5)
+        self.response = self.client.post(reverse('accounts:create_user'), self.mocked_form_data6)
 
         self.assertTrue(User.objects.all().count() == 4)
         self.assertEqual('Cannot select more than one group.', list(self.response.context['user_form']['groups'].errors)[0])
 
+    def test_user_can_edit_existing_user_account(self):
+        """
+        this test allows us to test for if an account that is edited and submitted through a form
+        ends up actually being indeed properly edited in the list of users and in the database or not
+        :return: void
+        """
 
+        self.assertEqual(self.response.status_code, 200)
+        self.assertTrue(User.objects.all().count() == 1)
+        self.response = self.client.post(reverse('accounts:create_user'), self.mocked_form_data2)
+        self.response = self.client.post(reverse('accounts:create_user'), self.mocked_form_data3)
+        self.response = self.client.post(reverse('accounts:create_user'), self.mocked_form_data4)
+        self.assertTrue(User.objects.all().count() == 4)
 
-@skip("Test needs to be fixed")
-class EditUserTests(TestCase):
-    def setUp(self):
-        user_1 = User.objects.create(id=1, email='bob@gmail.com', username='bob')
-        user_1.set_password('secret')
-        user_1.save()
+        # for lack of details, this following statement would translate to the "edit_user.html" page
+        # opening up with a specific user/account from the user/account list already
+        # loaded on its form on the view and ready to be edited
+        self.response = self.client.get(
+            reverse('accounts:edit_user',
+                    kwargs={'user_id': User.objects.get(id=2).id}
+                    )
+        )
+        self.assertEqual(self.response.status_code, 200)
 
-        group_1 = Group.objects.create(name='officer', id=1)
-        group_1.save()
+        # for lack of details, this following statement would translate to an administrator making a change/edit
+        # to the form data of an existing user/account taken from the user/account list and "posting" that
+        # new user/account back to the view of the "list_users.html" page
+        self.response = self.client.post(
+            reverse('accounts:edit_user',
+                    kwargs={'user_id': User.objects.get(id=2).id}
+                    ),
+            self.edited_mocked_form_data2
+        )
+        self.response = self.client.get(
+            reverse('accounts:edit_user',
+                    kwargs={'user_id': User.objects.get(id=3).id}
+                    )
+        )
+        self.assertEqual(self.response.status_code, 200)
+        self.response = self.client.post(
+            reverse('accounts:edit_user',
+                    kwargs={'user_id': User.objects.get(id=3).id}
+                    ),
+            self.edited_mocked_form_data3
+        )
+        self.response = self.client.get(
+            reverse('accounts:edit_user',
+                    kwargs={'user_id': User.objects.get(id=4).id}
+                    )
+        )
+        self.assertEqual(self.response.status_code, 200)
+        self.response = self.client.post(
+            reverse('accounts:edit_user',
+                    kwargs={'user_id': User.objects.get(id=4).id}
+                    ),
+            self.edited_mocked_form_data4
+        )
 
-        group_2 = Group.objects.create(name='doc', id=2)
-        group_2.save()
+        # Here, I am checking if it is possible to edit an already existing account with the same
+        # group/role as another already existing account (should be possible as it is intended behaviour)
+        self.response = self.client.post(
+            reverse('accounts:edit_user',
+                    kwargs={'user_id': User.objects.get(id=4).id}
+                    ),
+            self.edited_mocked_form_data5
+        )
+        self.assertEqual(User.objects.get(id=2).groups.get().id, User.objects.get(id=4).groups.get().id)
 
-        self.client = Client()
-        self.client.login(username='bob', password='secret')
+        # here, I am testing for the empty edited username field (in another already existing account)
+        # form error message by making sure that it works: If I try to submit edited mocked form data
+        # with no username by calling a POST request on it, I should expect the error message to be shown
+        # on the view as the form should return the error message and alert me of my mistake (intended behaviour)
+        self.response = self.client.post(
+            reverse('accounts:edit_user',
+                    kwargs={'user_id': User.objects.get(id=4).id}
+                    ),
+            self.edited_mocked_form_data6
+        )
+        self.assertEqual('This field is required.', list(self.response.context['user_form'].errors.values())[0][0])
 
-    def test_email_phone_missing(self):
-        self.response = self.client.get('/accounts/edit/1/')
-        mocked_edit_user_data = {'username': 'bob',
-                                 'email': '',
-                                 'groups': '',
-                                 'phone_number': ''
-                                 }
+        # here, I am testing for the valid email address form error message by making sure that it works:
+        # If I try to submit edited mocked form data with a non-valid email address by calling a POST request on it,
+        # I should expect the error message to be shown on the view as the form should return
+        # the error message and alert me of my mistake (intended behaviour)
+        self.response = self.client.post(
+            reverse('accounts:edit_user',
+                    kwargs={'user_id': User.objects.get(id=4).id}
+                    ),
+            self.edited_mocked_form_data7
+        )
 
-        response = self.client.post('/accounts/edit/1/', mocked_edit_user_data)
-        form_error_message_1 = list(response.context['user_form'].errors.values())[1][0]
+        self.assertEqual('Enter a valid email address.', list(self.response.context['user_form'].errors['email'])[0])
 
-        # Assert
-        self.assertEqual('Please enter an email address or a phone number.', form_error_message_1)
+        # here, I am testing for the empty edited email and phone number fields form error message by making sure that it works:
+        # If I try to submit edited mocked form data with no email and phone number by calling a POST request on it,
+        # I should expect the error message to be shown on the view as the form should return
+        # the error message and alert me of my mistake (intended behaviour)
+        self.response = self.client.post(
+            reverse('accounts:edit_user',
+                    kwargs={'user_id': User.objects.get(id=4).id}
+                    ),
+            self.edited_mocked_form_data8
+        )
 
-        self.assertRedirects(response, '/accounts/list/')
+        self.assertEqual('Please enter an email address or a phone number.', list(self.response.context['user_form'].errors['__all__'])[0])
 
-    def test_user_edit_details(self):
-        self.response = self.client.get('/accounts/edit/1/')
+        # here, I am testing for the multiple groups/roles form error message by making sure that it works:
+        # If I try to post edited mocked form data that contains more than one group/role by calling a POST request on it,
+        # I should expect the error message to be shown on the view as the form should return
+        # the error message and alert me of my mistake (intended behaviour)
+        self.response = self.client.post(
+            reverse('accounts:edit_user',
+                    kwargs={'user_id': User.objects.get(id=4).id}
+                    ),
+            self.edited_mocked_form_data9
+        )
 
-        grp = Group.objects.first()
+        self.assertEqual('Cannot select more than one group.', list(self.response.context['user_form']['groups'].errors)[0])
 
-        mocked_edit_user_data = {'username': 'obo',
-                                 'email': 'obo@gmail.com',
-                                 'phone_number': '5141234567'
-                                 }
-        response = self.client.post('/accounts/edit/1/', mocked_edit_user_data)
-        # x = response.context['user_form']
-        # x = UserForm(response)
+        # here, I am testing for the duplicate username, email and phone number fields (in another already existing account)
+        # form error messages by making sure that they work: If I try to post edited mocked form data that contains
+        # an identical username, email and phone number to any other already existing user/account in the
+        # database/system by calling a POST request on it, I should expect the error messages to be shown on
+        # the view as the form should return the error messages and alert me of my mistakes (intended behaviour)
+        self.response = self.client.post(
+            reverse('accounts:edit_user',
+                    kwargs={'user_id': User.objects.get(id=4).id}
+                    ),
+            self.edited_mocked_form_data10
+        )
+        self.assertEqual('A user with that username already exists.', list(self.response.context['user_form'].errors['username'])[0])
+        self.assertEqual('Email already in use by another user.', list(self.response.context['user_form'].errors['email'])[0])
+        self.assertEqual('Phone number already in use by another user.', list(self.response.context['profile_form'].errors['phone_number'])[0])
+
+        # this just makes sure that the database still contains
+        # the same number of users/accounts in it as it did earlier, thus
+        # showing that the contents of existing users/accounts
+        # were changed, rather than the changes showing up
+        # as new users/accounts in the database entirely
+        self.assertTrue(User.objects.all().count() == 4)
+        self.response = self.client.get(reverse('accounts:list_users'))
+        self.assertEqual(self.response.status_code, 200)
+
+        # the following assertions below check that the list of users/accounts page actually shows
+        # the three posted users/accounts with changes in its context
+        self.assertEqual(set(self.response.context['users']), set(User.objects.all()))
+        self.assertEqual(
+            list(self.response.context['users'].values("username")),
+            list(User.objects.values("username"))
+        )
+        self.assertEqual(
+            list(self.response.context['users'].values("email")),
+            list(User.objects.values("email"))
+        )
+        self.assertEqual(self.response.context['users'][1].profile.phone_number, User.objects.get(id=2).profile.phone_number)
+        self.assertEqual(self.response.context['users'][2].profile.phone_number, User.objects.get(id=3).profile.phone_number)
+        self.assertEqual(self.response.context['users'][3].profile.phone_number, User.objects.get(id=4).profile.phone_number)
+        self.assertEqual(
+            list(self.response.context['users'].values("groups")),
+            list(User.objects.values("groups"))
+        )
 
 
 @skip("Test needs to be finished")
@@ -455,6 +598,7 @@ class AddGroupTests(TestCase):
         Permission.objects.create(codename="test_perm_1", content_type_id=1)
         Permission.objects.create(codename="test_perm_2", content_type_id=1)
 
+        # here, the key "name" is the name of the group and not the name of the permission
         fake_form_data = {
             'name': 'test group lol',
             'perms': [
@@ -481,6 +625,7 @@ class CovertPermissionNameTests(TestCase):
         Test that the convert_permission_name_to_id() function returns the IDS of the passed list of peerms
         @return: void
         """
+
         cases = [
             {'test_section': 0, 'msg': 'No permissions'},
             {'test_section': Permission.objects.count() // 2, 'msg': 'Half of the permissions'},
