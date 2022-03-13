@@ -198,7 +198,7 @@ class FlagAssigningTests(TestCase):
         self.assertEqual(response.status_code, 302)
 
 
-class AccountPageViewTest(TestCase):
+class AccountPageViewTests(TestCase):
     def setUp(self):
         user_1 = User.objects.create(id=1, username="bob", is_staff=False)
         user_1.set_password('secret')
@@ -288,7 +288,7 @@ class AccountPageViewTest(TestCase):
         m_generate_profile_qr_function.assert_called_once()
 
 
-class AccountTestCase(TransactionTestCase):
+class AccountCreateTests(TransactionTestCase):
 
     # this makes sure that the database ids reset to 1 for every test (especially important for
     # the test "test_user_can_edit_symptom_and_return" when dealing with fetching symptom ids from the database)
@@ -439,9 +439,12 @@ class EditUserTests(TestCase):
         # x = UserForm(response)
 
 
-@skip("Test needs to be finished")
-class AddGroupTests(TestCase):
+class CreateGroupTests(TestCase):
     def setUp(self):
+        Permission.objects.all().delete()
+        for i in range(1, 7):
+            Permission.objects.create(codename=f'test_perm_{i}', content_type_id=1)
+
         test_user = User.objects.create(username="bob")
         test_user.set_password('secret')
         test_user.save()
@@ -449,30 +452,60 @@ class AddGroupTests(TestCase):
         self.client = Client()
         self.client.login(username='bob', password='secret')
 
-    def test_add_group_successfully(self):
+    def test_create_group_successfully(self):
+        """
+        Test that creating a group with a given set of permissions works
+        @return:
+        """
 
-        Permission.objects.all().delete()
-        Permission.objects.create(codename="test_perm_1", content_type_id=1)
-        Permission.objects.create(codename="test_perm_2", content_type_id=1)
+        # Arrange
+        new_group_name = 'test group lol'
+        new_group_perms = ['test_perm_1', 'test_perm_2']
+        expected_permissions_set = set(Permission.objects.filter(codename__in=new_group_perms))
+
+        # Act
+        self.create_group_helper(new_group_name, new_group_perms)
+
+        # Assert
+        self.assertEqual(new_group_name, Group.objects.last().name)
+        self.assertSetEqual(expected_permissions_set, set(Group.objects.last().permissions.all()))
+
+    def test_create_groups_with_no_name_raises_error(self):
+
+        # Arrange
+        new_group_name = ''
+        new_group_perms = ['test_perm_1', 'test_perm_2']
+        expected_permissions_set = set(Permission.objects.filter(codename__in=new_group_perms))
+
+        # Act
+        self.create_group_helper(new_group_name, new_group_perms)
+
+        # Assert
+        self.assertEqual(new_group_name, Group.objects.last().name)
+        self.assertSetEqual(expected_permissions_set, set(Group.objects.last().permissions.all()))
+
+    def test_create_groups_with_same_name_raises_error(self):
+        pass
+
+    def create_group_helper(self, new_group_name, new_group_perms):
+        """
+        Helper function to create a group to be used inside another test.
+        This function isn't itself a test and does not make any assertions.
+        @return: void
+        """
 
         fake_form_data = {
-            'name': 'test group lol',
-            'perms': [
-                'test_perm_1',
-                'test_perm_2'
-            ]
+            'name': new_group_name,
+            'perms': new_group_perms
         }
 
-        self.client.post('/accounts/access_control/group/add', fake_form_data)
-
-        print(Group.objects.all())
-
+        self.client.post(reverse('accounts:add_group'), fake_form_data)
 
 class CovertPermissionNameTests(TestCase):
     def setUp(self):
         Permission.objects.all().delete()
         for i in range(1, 7):
-            Permission.objects.create(codename=f'test_perm_{i}', content_type_id=i)
+            Permission.objects.create(codename=f'test_perm_{i}', content_type_id=1)
 
         self.factory = RequestFactory()
 
