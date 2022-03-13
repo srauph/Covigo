@@ -71,7 +71,7 @@
                                 let utcHours = date.getUTCHours();
                                 let hourPeriod = utcHours >= 12 ? 'p.m.' : 'a.m.';
                                 const MONTH = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-                                return MONTH[date.getUTCMonth()] + " " + date.getUTCDate() + ", " + date.getUTCFullYear() + ", " + (utcHours - 12) + ":" + date.getMinutes() + " " + hourPeriod;
+                                return MONTH[date.getUTCMonth()] + " " + date.getUTCDate() + ", " + date.getUTCFullYear() + ", " + ((utcHours % 12) || 12) + ":" + date.getMinutes() + " " + hourPeriod;
                             }
                             //Keep the original for sorting purpose
                             return data;

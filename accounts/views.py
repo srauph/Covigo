@@ -16,6 +16,15 @@ from accounts.utils import (
 )
 
 
+class GroupErrors:
+    def __init__(self):
+        self.blank_name = False
+        self.duplicate_name = False
+
+    def has_errors(self):
+        return self.blank_name or self.duplicate_name
+
+
 @login_required
 @never_cache
 def two_factor_authentication(request):
@@ -183,28 +192,75 @@ def edit_user(request, user_id):
 
 @login_required
 @never_cache
-def add_group(request):
-    if request.method == 'POST':
-
-        group = Group(name=request.POST['name'])
-        group.save()
-        permission_array = convert_permission_name_to_id(request)
-
-        group.permissions.set(permission_array)
-
-        return redirect('accounts:list_group')
-
-    else:
-        return render(request, 'accounts/access_control/group/add_group.html', {
-            'permissions': Permission.objects.all()
-        })
+def list_group(request):
+    return render(request, 'accounts/access_control/group/list_group.html', {
+        'groups': Group.objects.all()
+    })
 
 
 @login_required
 @never_cache
-def list_group(request):
-    return render(request, 'accounts/access_control/group/list_group.html', {
-        'groups': Group.objects.all()
+def create_group(request):
+    new_name = ''
+    errors = GroupErrors()
+
+    if request.method == 'POST':
+        new_name = request.POST['name']
+
+        if not new_name:
+            errors.blank_name = True
+
+        elif Group.objects.filter(name=new_name).exists():
+            errors.duplicate_name = True
+
+        else:
+            group = Group(name=new_name)
+            group.save()
+
+            permission_array = convert_permission_name_to_id(request)
+            group.permissions.set(permission_array)
+
+            return redirect('accounts:list_group')
+
+    return render(request, 'accounts/access_control/group/add_group.html', {
+        'permissions': Permission.objects.all(),
+        'new_name': new_name,
+        'errors': errors,
+    })
+
+
+@login_required
+@never_cache
+def edit_group(request, group_id):
+    group = Group.objects.get(id=group_id)
+    old_name = group.name
+    new_name = old_name
+    errors = GroupErrors()
+
+    if request.method == 'POST':
+        new_name = request.POST['name']
+
+        if not new_name:
+            errors.blank_name = True
+
+        elif Group.objects.exclude(name=old_name).filter(name=new_name).exists():
+            errors.duplicate_name = True
+
+        else:
+            group.name = new_name
+            group.save()
+
+            permission_array = convert_permission_name_to_id(request)
+            group.permissions.clear()
+            group.permissions.set(permission_array)
+
+            return redirect('accounts:list_group')
+
+    return render(request, 'accounts/access_control/group/edit_group.html', {
+        'permissions': Permission.objects.all(),
+        'new_name': new_name,
+        'errors': errors,
+        'group': group
     })
 
 
@@ -253,24 +309,7 @@ def unflaguser(request, user_id):
     return redirect("accounts:list_users")
 
 
-@login_required
-@never_cache
-def edit_group(request, group_id):
-    group = Group.objects.filter(id=group_id).get()
 
-    if request.method == "POST":
-        group.symptom_name = request.POST['name']
-        group.save()
-        permission_array = convert_permission_name_to_id(request)
-        group.permissions.clear()
-        group.permissions.set(permission_array)
-
-        return redirect('accounts:list_group')
-    else:
-        return render(request, 'accounts/access_control/group/edit_group.html', {
-            'permissions': Permission.objects.all(),
-            'group': group
-        })
 
 
 def convert_permission_name_to_id(request):
