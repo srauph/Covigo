@@ -20,18 +20,28 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-)hrxs16w-%lr2@k@!rfq!lwem55i%uv$7qhiktrme63j!2+1(f'
+# TODO: Make the SECRET_KEY secret
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
-
+PRODUCTION_MODE = getenv("PRODUCTION_MODE") == "True"
+if PRODUCTION_MODE:
+    DEBUG = False
+    ALLOWED_HOSTS = [".covigo.ddns.net"]
+    STATIC_ROOT = getenv("STATIC_ROOT")
+    SECRET_KEY = getenv("SECRET_KEY")
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+    HOST_NAME = 'https://covigo.ddns.net'
+else:
+    DEBUG = True
+    ALLOWED_HOSTS = []
+    SECRET_KEY = 'django-insecure-)hrxs16w-%lr2@k@!rfq!lwem55i%uv$7qhiktrme63j!2+1(f'
+    HOST_NAME = 'http://127.0.0.1:8000'
 
 # Application definition
 
@@ -74,6 +84,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'Covigo.context_processors.production_mode',
             ],
         },
     },
@@ -85,26 +96,27 @@ STATICFILES_DIRS = [
 
 WSGI_APPLICATION = 'Covigo.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
 
-DATABASE_PASSWORD=getenv("DATABASE_PASSWORD")
+DATABASE_PASSWORD = getenv("DATABASE_PASSWORD")
+
+if getenv("DATABASE_USER"):
+    DATABASE_USER = getenv("DATABASE_USER")
+else:
+    DATABASE_USER = 'root'
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'Covigo',
-        'USER': 'root',
+        'USER': DATABASE_USER,
         'PASSWORD': DATABASE_PASSWORD,
         'HOST': 'localhost',
         'PORT': '3306',
     }
 }
-
-
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -124,7 +136,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
@@ -135,7 +146,6 @@ TIME_ZONE = 'US/Eastern'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/

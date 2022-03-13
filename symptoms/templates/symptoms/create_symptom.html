@@ -1,40 +1,150 @@
 {% extends 'Covigo/base.html' %}
 
+{% block script %}
+    <script>
+        let alert_del = document.querySelectorAll('.alert-del');
+        alert_del.forEach(
+            (x) => x.addEventListener(
+            'click',
+            function(){
+                x.parentElement.parentElement.parentElement.parentElement.classList.add('hidden')
+            }
+            )
+        );
+    </script>
+{% endblock %}
+
 {% block content %}
-    <div class="min-h-full bg-slate-100">
-        <h1 class="text-5xl p-4 font-semibold text-center">
-            Symptom Creation
-        </h1>
-        <div class="block bg-gray-50 m-4 p-4 rounded">
-            <form action="{% url 'symptoms:create_symptom' %}" method="post" class="text-3xl">
-                {% csrf_token %}
-                <div class="flex flex-wrap justify-evenly px-4 m-4 font-semibold">
-                    <div class="w-full flex flex-wrap items-center px-4 m-4 font-semibold">
-                        <div class="w-full xl:w-1/4">
-                            {{ form.name.label_tag }}
-                        </div>
-                        <div class="w-full xl:w-3/4 text-2xl rounded border">
-                            {{ form.name }}
-                        </div>
-                    </div>
-                    <div class="w-full flex flex-wrap items-center px-4 m-4 font-semibold">
-                        <div class="w-full xl:w-1/3">
-                            {{ form.description.label_tag }}
-                        </div>
-                        <div class="w-full xl:w-2/3 text-2xl rounded border align-middle">
-                           {{ form.description }}
-                        </div>
-                    </div>
-                </div>
-                <div class="flex flex-wrap justify-center">
-                    <div class="w-full xl:w-auto px-4 m-4 text-center">
-                        <input type="submit" value="Submit and return" name="Submit and return" class="px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white text-3xl font-bold"/>
-                    </div>
-                    <div class="w-full xl:w-auto px-4 m-4 text-center">
-                        <input type="submit" value="Submit and duplicate" name="Submit and duplicate" class="px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white text-3xl font-bold"/>
-                    </div>
-                </div>
-            </form>
+    <form method="POST" class="min-h-full bg-slate-100 flex flex-col">
+        {% csrf_token %}
+        <div class="bg-slate-700 border-b">
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">
+                Create Symptom
+            </h1>
         </div>
-    </div>
+
+        <div class="flex flex-col justify-between grow m-8 p-4 min-h-full bg-white shadow rounded-lg">
+            <div class="w-full flex flex-col gap-8 mb-8">
+                <div class="w-full">
+                    <h2 class="p-2 text-2xl font-bold">
+                        Symptom Details
+                    </h2>
+                    <hr>
+                    {% for message in messages %}
+                        {% if message.tags == 'success'%}
+                            <div role="alert" class="p-5 rounded-lg border border-green-400 bg-green-300 text-green-900">
+                                <div class="divide-y-2 divide-solid divide-green-400">
+                                    <h2 class="font-bold text-xl flex items-center pb-2">
+                                        <span class="mr-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                                            </svg>
+                                        </span>
+                                        Success!
+                                        <div class="text-xl flex align-center w-full justify-end">
+                                            <strong class="alert-del cursor-pointer">
+                                                &times;
+                                            </strong>
+                                        </div>
+                                    </h2>
+                                    <p class="pt-2">
+                                        {{ message }}
+                                    </p>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div role="alert" class="p-5 rounded-lg border border-red-400 bg-red-300 text-red-900">
+                                <div class="divide-y-2 divide-solid divide-red-400">
+                                    <h2 class="font-bold text-xl flex items-center pb-2">
+                                        <span class="mr-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </span>
+                                        Error!
+                                        <div class="text-xl flex align-center w-full justify-end">
+                                            <strong class="alert-del cursor-pointer">
+                                                &times;
+                                            </strong>
+                                        </div>
+                                    </h2>
+                                    <p class="pt-2">
+                                        {{ message }}
+                                    </p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="w-full max-w-2xl px-2">
+                    <label>
+                        Symptom Name:
+                    </label>
+                    <div class="mt-1">
+
+                        {# this captures the symptom name as the name field of the form when it gets used/submitted #}
+                        {{ form.name }}
+                    </div>
+                </div>
+
+                <div class="w-full max-w-2xl px-2">
+                    <label>
+                        Description:
+                    </label>
+                    <div class="mt-1">
+
+                        {# this captures the symptom description as the description field of the form when it gets used/submitted #}
+                        {{ form.description }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full mt-8 md:mt-0">
+                <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
+                    <a href="{% url "symptoms:list_symptoms" %}">
+                        <button type="button"
+                                class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                 stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </span>
+                            <span>
+                                Cancel
+                            </span>
+                        </button>
+                    </a>
+                    <button type="submit" value="Create" name="Create"
+                            class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                 viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </span>
+                        <span>
+                            Create
+                        </span>
+                    </button>
+                    <button type="submit" value="Create and Return" name="Create and Return"
+                            class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                 viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </span>
+                        <span>
+                            Create and Return
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
 {% endblock %}

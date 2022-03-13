@@ -1,5 +1,8 @@
+from django import forms
+from django.contrib.auth import password_validation
+from django.contrib.auth.forms import SetPasswordForm
 from django.core.exceptions import ValidationError
-from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, BooleanField, Select
+from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, Select
 from django.contrib.auth.models import User
 from accounts.models import Profile
 
@@ -177,3 +180,32 @@ class EditProfileForm(ModelForm):
                 "Phone number already in use by another user."
             )
         return cleaned_phone_number
+
+
+class ResetPasswordForm(SetPasswordForm):
+    error_messages = {
+        'password_mismatch': 'The two password fields didn’t match.'
+    }
+    new_password1 = forms.CharField(
+        label="New Password",
+        widget=forms.PasswordInput(
+            attrs={
+                'autocomplete': 'new-password',
+                'placeholder': 'New Password',
+                'class': 'appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm'
+            }
+        ),
+        strip=False,
+        help_text=password_validation.password_validators_help_text_html(),
+    )
+    new_password2 = forms.CharField(
+        label="Confirm Password",
+        strip=False,
+        widget=forms.PasswordInput(
+            attrs={
+                'autocomplete': 'new-password',
+                'placeholder': 'Confirm Password',
+                'class': 'appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm'
+            }
+        ),
+    )

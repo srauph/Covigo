@@ -7,7 +7,7 @@
             <h1 class="text-2xl text-white font-semibold px-8 py-4">Edit Account</h1>
         </div>
 
-        <div class="flex flex-col justify-between grow m-8 p-4 min-h-full bg-white rounded-lg">
+        <div class="flex flex-col justify-between grow m-8 p-4 min-h-full bg-white shadow rounded-lg">
             <div class="w-full flex flex-col gap-8 mb-8">
                 <div class="w-full">
                     <h2 class="p-2 text-2xl font-bold">Account Information</h2>
@@ -18,9 +18,11 @@
                     </div>
                 </div>
 
-                <div class="w-full lg:w-2/3 xl:w-1/2 2xl:w-2/5 px-2 flex flex-col items-start">
-                    <label class="mb-1">Username:</label>
-                    {{ user_form.username }}
+                <div class="w-full max-w-2xl px-2">
+                    <label>Username:</label>
+                    <div class="mt-1">
+                        {{ user_form.username }}
+                    </div>
                     <div class="text-red-500 text-sm font-semibold">
                         <div class="absolute">
                             {{ user_form.username.errors }}
@@ -28,9 +30,11 @@
                     </div>
                 </div>
 
-                <div class="w-full lg:w-2/3 xl:w-1/2 2xl:w-2/5 px-2 flex flex-col items-start">
-                    <label class="mb-1">Email:</label>
-                    {{ user_form.email }}
+                <div class="w-full max-w-2xl px-2">
+                    <label>Email:</label>
+                    <div class="mt-1">
+                        {{ user_form.email }}
+                    </div>
                     <div class="text-red-500 text-sm font-semibold">
                         <div class="absolute">
                             {{ user_form.email.errors }}
@@ -38,9 +42,11 @@
                     </div>
                 </div>
 
-                <div class="w-full lg:w-2/3 xl:w-1/2 2xl:w-2/5 px-2 flex flex-col items-start">
-                    <label class="mb-1">First Name:</label>
-                    {{ user_form.first_name }}
+                <div class="w-full max-w-2xl px-2">
+                    <label>First Name:</label>
+                    <div class="mt-1">
+                        {{ user_form.first_name }}
+                    </div>
                     <div class="text-red-500 text-sm font-semibold">
                         <div class="absolute">
                             {{ user_form.first_name.errors }}
@@ -48,9 +54,11 @@
                     </div>
                 </div>
 
-                <div class="w-full lg:w-2/3 xl:w-1/2 2xl:w-2/5 px-2 flex flex-col items-start">
-                    <label class="mb-1">Last Name:</label>
-                    {{ user_form.last_name }}
+                <div class="w-full max-w-2xl px-2">
+                    <label>Last Name:</label>
+                    <div class="mt-1">
+                        {{ user_form.last_name }}
+                    </div>
                     <div class="text-red-500 text-sm font-semibold">
                         <div class="absolute">
                             {{ user_form.last_name.errors }}
@@ -58,9 +66,11 @@
                     </div>
                 </div>
 
-                <div class="w-full lg:w-2/3 xl:w-1/2 2xl:w-2/5 px-2 flex flex-col items-start">
-                    <label class="mb-1">Phone Number:</label>
-                    {{ profile_form.phone_number }}
+                <div class="w-full max-w-2xl px-2">
+                    <label>Phone Number:</label>
+                    <div class="mt-1">
+                        {{ profile_form.phone_number }}
+                    </div>
                     <div class="text-red-500 text-sm font-semibold">
                         <div class="absolute">
                             {{ profile_form.phone_number.errors }}
@@ -68,9 +78,11 @@
                     </div>
                 </div>
 
-                <div class="w-full lg:w-2/3 xl:w-1/2 2xl:w-2/5 px-2 flex flex-col items-start">
-                    <label class="mb-1">Address:</label>
-                    {{ profile_form.address }}
+                <div class="w-full max-w-2xl px-2">
+                    <label>Address:</label>
+                    <div class="mt-1">
+                        {{ profile_form.address }}
+                    </div>
                     <div class="text-red-500 text-sm font-semibold">
                         <div class="absolute">
                             {{ profile_form.address.errors }}
@@ -78,9 +90,11 @@
                     </div>
                 </div>
 
-                <div class="w-full lg:w-2/3 xl:w-1/2 2xl:w-2/5 px-2 flex flex-col items-start">
-                    <label class="mb-1">Postal Code:</label>
-                    {{ profile_form.postal_code }}
+                <div class="w-full max-w-2xl px-2">
+                    <label>Postal Code:</label>
+                    <div class="mt-1">
+                        {{ profile_form.postal_code }}
+                    </div>
                     <div class="text-red-500 text-sm font-semibold">
                         <div class="absolute">
                             {{ profile_form.postal_code.errors }}
@@ -88,9 +102,9 @@
                     </div>
                 </div>
 
-                <div class="w-full lg:w-2/3 xl:w-1/2 2xl:w-2/5 px-2 flex flex-col items-start">
-                    <label class="mb-1">Role:</label>
-                    <div class="w-full bg-slate-100 rounded-md border border-slate-400">
+                <div class="w-full max-w-2xl px-2">
+                    <label>Role:</label>
+                    <div class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400">
                         {{ user_form.groups }}
                     </div>
                     <div class="text-red-500 text-sm font-semibold">
@@ -102,15 +116,29 @@
             </div>
             <div class="w-full mt-8 md:mt-0">
                 <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
-                    {# TODO: Fix broken cancel button. #}
                     <a href="{% url "accounts:list_users" %}">
-                        <button class="w-full sm:w-auto bg-slate-400 border border-gray-500 hover:bg-gray-500 text-white font-bold rounded-md px-4 py-2">
-                            Cancel
+                        <button type="button"
+                                class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                 stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </span>
+                            <span>Cancel</span>
                         </button>
                     </a>
                     <button type="submit"
-                            class="w-full sm:w-auto bg-blue-400 border border-blue-500 hover:bg-blue-500 text-white font-bold rounded-md px-4 py-2">
-                        Edit and Return
+                            class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                 stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                        </span>
+                        <span>Edit</span>
                     </button>
                 </div>
             </div>

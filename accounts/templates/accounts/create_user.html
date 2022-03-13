@@ -7,7 +7,7 @@
             <h1 class="text-2xl text-white font-semibold px-8 py-4">Create Account</h1>
         </div>
 
-        <div class="flex flex-col justify-between grow m-8 p-4 min-h-full bg-white rounded-lg">
+        <div class="flex flex-col justify-between grow m-8 p-4 min-h-full bg-white shadow rounded-lg">
             <div class="w-full flex flex-col gap-8 mb-8">
                 <div class="w-full">
                     <h2 class="p-2 text-2xl font-bold">Account Information</h2>
@@ -18,9 +18,11 @@
                     </div>
                 </div>
 
-                <div class="w-full lg:w-2/3 xl:w-1/2 2xl:w-2/5 px-2 flex flex-col items-start">
-                    <label class="mb-1">Email:</label>
-                    {{ user_form.email }}
+                <div class="w-full max-w-2xl px-2">
+                    <label>Email:</label>
+                    <div class="mt-1">
+                        {{ user_form.email }}
+                    </div>
                     <div class="text-red-500 text-sm font-semibold">
                         <div class="absolute">
                             {{ user_form.email.errors }}
@@ -28,9 +30,11 @@
                     </div>
                 </div>
 
-                <div class="w-full lg:w-2/3 xl:w-1/2 2xl:w-2/5 px-2 flex flex-col items-start">
-                    <label class="mb-1">Phone Number:</label>
-                    {{ profile_form.phone_number }}
+                <div class="w-full max-w-2xl px-2">
+                    <label>Phone Number:</label>
+                    <div class="mt-1">
+                        {{ profile_form.phone_number }}
+                    </div>
                     <div class="text-red-500 text-sm font-semibold">
                         <div class="absolute">
                             {{ profile_form.phone_number.errors }}
@@ -38,7 +42,7 @@
                     </div>
                 </div>
 
-                <div class="w-full lg:w-2/3 xl:w-1/2 2xl:w-2/5 px-2 lex flex-col items-start">
+                <div class="w-full max-w-2xl px-2">
                     <label>User Type:</label>
                     <div class="mt-1">
                         {{ user_form.is_staff }}
@@ -50,9 +54,9 @@
                     </div>
                 </div>
 
-                <div class="w-full lg:w-2/3 xl:w-1/2 2xl:w-2/5 px-2 flex flex-col items-start">
-                    <label class="mb-1">Role:</label>
-                    <div class="w-full bg-slate-100 rounded-md border border-slate-400">
+                <div class="w-full max-w-2xl px-2">
+                    <label>Role:</label>
+                    <div class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400">
                         {{ user_form.groups }}
                     </div>
                     <div class="text-red-500 text-sm font-semibold">
@@ -64,19 +68,40 @@
             </div>
             <div class="w-full mt-8 md:mt-0">
                 <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
-                    {# TODO: Fix broken cancel button. #}
                     <a href="{% url "accounts:list_users" %}">
-                        <button class="w-full sm:w-auto bg-slate-400 border border-gray-500 hover:bg-gray-500 text-white font-bold rounded-md px-4 py-2">
-                            Cancel
+                        <button type="button" class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                 stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </span>
+                            <span>Cancel</span>
                         </button>
                     </a>
                     <button type="submit"
-                            class="w-full sm:w-auto bg-blue-400 border border-blue-500 hover:bg-blue-500 text-white font-bold rounded-md px-4 py-2">
-                        Create
+                            class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                 viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </span>
+                        <span>Create</span>
                     </button>
+                    {# TODO: Implement Create and return #}
                     <button type="submit"
-                            class="w-full sm:w-auto bg-blue-400 border border-blue-500 hover:bg-blue-500 text-white font-bold rounded-md px-4 py-2">
-                        Create and Return
+                            class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                 viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </span>
+                        <span>Create and Return</span>
                     </button>
                 </div>
             </div>

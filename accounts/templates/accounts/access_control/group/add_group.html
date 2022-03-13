@@ -5,39 +5,81 @@
     <link href="{% static 'accounts/css/dual-listbox.css' %}" rel="stylesheet">
 {% endblock %}
 {% block content %}
-
     <div class="min-h-full bg-slate-100">
         {#    {{  permissions }}#}
-        <h1 class="text-5xl p-4">Add a group</h1>
-        <div class="flex ">
-            <form action="" method="post" class="w-3/4">
-            {% csrf_token %}
-                <div class="">
-                    <div class="w-full bg-gray-50 p-4 m-4 rounded-2xl">
-                        <label for="">Group Name:</label>
-                        <input type="text" class="bg-neutral-300 py-2 text-black  px-2 rounded-xl" name="name">
-                    </div>
-                    <div class="w-full bg-gray-50 p-4 m-4 rounded-2xl">
-                        <p class="text-lg">Add Permissions</p>
-                        <hr>
-                        <div class="mt-4">
-                            <select class=" multiselect" multiple name="perms">
-                                {% for permission in permissions %}
-                                    <option value="{{ permission.codename }}">{{ permission.content_type }}
-                                        | {{ permission.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <input type="submit"
-                               class="px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white mt-4"
-                               value="submit">
-                    </div>
-
-                </div>
-            </form>
+        <div class="flex justify-between bg-slate-700">
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">Create Group</h1>
         </div>
-    </div>
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="bg-white shadow m-8 rounded-xl">
+                <div class="w-full flex justify-between items-center p-4 {{ errors.has_errors|yesno:"pb-6," }}">
+                    <div class="flex">
+                        <label class="font-semibold px-2">Group Name:</label>
+                        <div>
+                            <input type="text" value="{{ new_name }}" class="h-8 px-2 bg-slate-100 rounded-md border border-slate-400" name="name">
+                            {% if errors.blank_name %}
+                                <div class="text-red-500 text-sm font-semibold">
+                                    <div class="absolute">
+                                        <p>Please enter a group name.</p>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if errors.duplicate_name %}
+                                <div class="text-red-500 text-sm font-semibold">
+                                    <div class="absolute">
+                                        <p>Another group with the same name exists.</p>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
 
+            <div class="flex flex-col justify-between grow m-8 p-4 min-h-full bg-white shadow rounded-lg">
+                <div>
+                    <h2 class="p-2 font-bold">Select Permissions</h2>
+                    <hr>
+                    <div class="p-2 mt-4">
+                        <select class=" multiselect" multiple name="perms">
+                            {% for permission in permissions %}
+                                <option value="{{ permission.codename }}">{{ permission.content_type }}
+                                    | {{ permission.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="w-full p-2 mt-8 md:mt-0">
+                        <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
+                            <a href="{% url "accounts:list_group" %}">
+                                <button type="button" class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                                <span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                         stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </span>
+                                    <span>Cancel</span>
+                                </button>
+                            </a>
+                            <button type="submit"
+                                    class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                                <span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                         viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </span>
+                                <span>Create</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
 {% endblock %}
 
 {% block script %}
