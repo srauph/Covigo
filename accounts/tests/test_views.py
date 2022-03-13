@@ -442,15 +442,10 @@ class EditUserTests(TestCase):
 class CreateGroupTests(TestCase):
     def setUp(self):
         Permission.objects.all().delete()
-        for i in range(1, 7):
+        for i in range(1, 4):
             Permission.objects.create(codename=f'test_perm_{i}', content_type_id=1)
 
-        test_user = User.objects.create(username="bob")
-        test_user.set_password('secret')
-        test_user.save()
-
-        self.client = Client()
-        self.client.login(username='bob', password='secret')
+        self.client = create_test_client()
 
     def test_create_group_successfully(self):
         """
@@ -464,42 +459,209 @@ class CreateGroupTests(TestCase):
         expected_permissions_set = set(Permission.objects.filter(codename__in=new_group_perms))
 
         # Act
-        self.create_group_helper(new_group_name, new_group_perms)
+        create_group_helper(self.client, new_group_name, new_group_perms)
 
         # Assert
         self.assertEqual(new_group_name, Group.objects.last().name)
         self.assertSetEqual(expected_permissions_set, set(Group.objects.last().permissions.all()))
 
-    def test_create_groups_with_no_name_raises_error(self):
+    def test_create_group_with_no_perms_successfully(self):
+        """
+        Test that creating a group with an empty set of permissions works
+        @return:
+        """
+
+        # Arrange
+        new_group_name = 'test group lol'
+        new_group_perms = []
+        expected_permissions_set = set()
+
+        # Act
+        create_group_helper(self.client, new_group_name, new_group_perms)
+
+        # Assert
+        self.assertEqual(new_group_name, Group.objects.last().name)
+        self.assertSetEqual(expected_permissions_set, set(Group.objects.last().permissions.all()))
+
+    def test_create_group_with_existing_perms_successfully(self):
+        """
+        Test that creating a group with permissions identical to another group works
+        @return:
+        """
+
+        # Arrange
+        new_group_name = 'test group lol'
+        second_new_group_name = 'second test group lol'
+        new_group_perms = ['test_perm_1', 'test_perm_2']
+
+        # Act
+        create_group_helper(self.client, new_group_name, new_group_perms)
+        create_group_helper(self.client, second_new_group_name, new_group_perms)
+
+        # Assert
+        self.assertEqual(2, Group.objects.count())
+        self.assertEqual(second_new_group_name, Group.objects.last().name)
+        self.assertEqual(set(Group.objects.first().permissions.all()), set(Group.objects.last().permissions.all()))
+
+    def test_create_group_with_no_name_raises_error(self):
+        """
+        Test that creating a group with a blank name fails and sends errors.blank_name as True
+        @return:
+        """
 
         # Arrange
         new_group_name = ''
         new_group_perms = ['test_perm_1', 'test_perm_2']
+
+        # Act
+        response = create_group_helper(self.client, new_group_name, new_group_perms)
+
+        # Assert
+        self.assertTrue(response.context['errors'].blank_name)
+        self.assertFalse(set(Group.objects.all()))
+
+    def test_create_group_with_existing_name_raises_error(self):
+        """
+        Test that creating a group with an existing name fails and sends errors.duplicate_name as True
+        @return:
+        """
+
+        # Arrange
+        new_group_name = 'test group lol'
+        new_group_perms = ['test_perm_1', 'test_perm_2']
+
+        # Act
+        create_group_helper(self.client, new_group_name, new_group_perms)
+        response = create_group_helper(self.client, new_group_name, new_group_perms)
+
+        # Assert
+        self.assertTrue(response.context['errors'].duplicate_name)
+        self.assertEqual(1, Group.objects.count())
+
+
+class EditGroupTests(TestCase):
+    def setUp(self):
+        Permission.objects.all().delete()
+        for i in range(1, 4):
+            Permission.objects.create(codename=f'test_perm_{i}', content_type_id=1)
+
+        self.client = create_test_client()
+
+        new_group_name = 'test group lol'
+        new_group_perms = ['test_perm_1', 'test_perm_2']
+
+        create_group_helper(self.client, new_group_name, new_group_perms)
+
+    def test_edit_group_successfully(self):
+        """
+        Test that editing a group with a given set of permissions works
+        @return: void
+        """
+
+        # Arrange
+        group_to_edit = Group.objects.first()
+        new_group_name = 'new group name lol'
+        new_group_perms = ['test_perm_2', 'test_perm_3']
+
         expected_permissions_set = set(Permission.objects.filter(codename__in=new_group_perms))
 
         # Act
-        self.create_group_helper(new_group_name, new_group_perms)
+        edit_group_helper(self.client, new_group_name, new_group_perms, group_to_edit.id)
 
         # Assert
         self.assertEqual(new_group_name, Group.objects.last().name)
         self.assertSetEqual(expected_permissions_set, set(Group.objects.last().permissions.all()))
 
-    def test_create_groups_with_same_name_raises_error(self):
-        pass
-
-    def create_group_helper(self, new_group_name, new_group_perms):
+    def test_edit_group_to_no_perms_successfully(self):
         """
-        Helper function to create a group to be used inside another test.
-        This function isn't itself a test and does not make any assertions.
+        Test that editing a group to hve an empty set of permissions works
         @return: void
         """
 
-        fake_form_data = {
-            'name': new_group_name,
-            'perms': new_group_perms
-        }
+        # Arrange
+        group_to_edit = Group.objects.first()
+        new_group_name = 'new group name lol'
+        new_group_perms = []
+        expected_permissions_set = set()
 
-        self.client.post(reverse('accounts:create_group'), fake_form_data)
+        # Act
+        edit_group_helper(self.client, new_group_name, new_group_perms, group_to_edit.id)
+
+        # Assert
+        self.assertEqual(new_group_name, Group.objects.last().name)
+        self.assertSetEqual(expected_permissions_set, set(Group.objects.last().permissions.all()))
+
+    def test_edit_group_to_existing_perms_successfully(self):
+        """
+        Test that editing a group to have permissions identical to another group works
+        @return:
+        """
+
+        # Arrange
+        new_group_name = 'test group lol'
+        second_new_group_name = 'second test group lol'
+        new_group_perms = ['test_perm_1', 'test_perm_2']
+        second_new_group_perms = ['test_perm_2', 'test_perm_3']
+
+        create_group_helper(self.client, new_group_name, new_group_perms)
+        create_group_helper(self.client, second_new_group_name, second_new_group_perms)
+
+        group_to_edit = Group.objects.last()
+
+        # Act
+        edit_group_helper(self.client, second_new_group_name, new_group_perms, group_to_edit.id)
+
+        # Assert
+        self.assertEqual(set(Group.objects.first().permissions.all()), set(Group.objects.last().permissions.all()))
+
+    def test_edit_group_to_no_name_raises_error(self):
+        """
+        Test that editing a group to have a blank name fails and sends errors.blank_name as True
+        @return: void
+        """
+
+        # Arrange
+        group_to_edit = Group.objects.first()
+        old_group_name = group_to_edit.name
+        old_group_perms = set(group_to_edit.permissions.all())
+
+        new_group_name = ''
+        new_group_perms = ['test_perm_2', 'test_perm_3']
+
+        # Act
+        response = edit_group_helper(self.client, new_group_name, new_group_perms, group_to_edit.id)
+
+        # Assert
+        self.assertTrue(response.context['errors'].blank_name)
+        self.assertEqual(old_group_name, Group.objects.first().name)
+        self.assertEqual(old_group_perms, set(Group.objects.first().permissions.all()))
+
+    def test_edit_group_to_existing_name_raises_error(self):
+        """
+        Test that editing a group to have an existing name fails and sends errors.duplicate_name as True
+        @return: void
+        """
+
+        # Arrange
+        old_second_group_name = 'new group name lol'
+        second_group_perms = ['test_perm_2', 'test_perm_3']
+
+        create_group_helper(self.client, old_second_group_name, second_group_perms)
+        old_second_group_perms = set(Group.objects.last().permissions.all())
+
+        new_second_group_name = 'test group lol'
+        new_second_group_perms = ['test_perm_2', 'test_perm_3']
+
+        group_to_edit = Group.objects.last()
+
+        # Act
+        response = edit_group_helper(self.client, new_second_group_name, new_second_group_perms, group_to_edit.id)
+
+        # Assert
+        self.assertTrue(response.context['errors'].duplicate_name)
+        self.assertEqual(old_second_group_name, Group.objects.last().name)
+        self.assertEqual(old_second_group_perms, set(Group.objects.last().permissions.all()))
+
 
 class CovertPermissionNameTests(TestCase):
     def setUp(self):
@@ -534,3 +696,53 @@ class CovertPermissionNameTests(TestCase):
 
                 # Act & Assert
                 self.assertEqual(id_list, convert_permission_name_to_id(m_request))
+
+
+def create_test_client():
+    """
+    Helper function to create a test client
+    @return: The test client
+    """
+    test_user = User.objects.create(username="bob")
+    test_user.set_password('secret')
+    test_user.save()
+
+    client = Client()
+    client.login(username='bob', password='secret')
+
+    return client
+
+
+def create_group_helper(client, new_group_name, new_group_perms):
+    """
+    Helper function to create a group to be used inside another test.
+    @param client: The test client
+    @param new_group_name: The new name to give to the created group
+    @param new_group_perms: The new perms to give to the created group
+    @return: The test client's response
+    """
+
+    fake_form_data = {
+        'name': new_group_name,
+        'perms': new_group_perms
+    }
+
+    return client.post(reverse('accounts:create_group'), fake_form_data)
+
+
+def edit_group_helper(client, new_group_name, new_group_perms, group_id):
+    """
+    Helper function to edit a group used inside another test.
+    @param client: The test client
+    @param new_group_name: The new name to give to the edited group
+    @param new_group_perms: The new perms to give to the edited group
+    @param group_id: The id of the group to edit
+    @return: The test client's response
+    """
+
+    fake_form_data = {
+        'name': new_group_name,
+        'perms': new_group_perms
+    }
+
+    return client.post(reverse('accounts:edit_group', kwargs={'group_id': group_id}), fake_form_data)
