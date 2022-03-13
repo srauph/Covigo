@@ -22,7 +22,10 @@ $(document).ready(function () {
         startTime: '8:00',
         dropdown: true,
         scrollbar: true,
-        change: validateStartEndTime
+        change: function(){
+            validateStartEndTime();
+            validateSlotDuration();
+        }
     });
 
     $('.timepicker_2').timepicker({
@@ -32,7 +35,18 @@ $(document).ready(function () {
         startTime: '8:00',
         dropdown: true,
         scrollbar: true,
-        change: validateStartEndTime
+        change: function(){
+            validateStartEndTime();
+            validateSlotDuration();
+        }
+    });
+
+    $('#id_slot_duration_hours').change(function(){
+        validateSlotDuration();
+    });
+
+    $('#id_slot_duration_minutes').change(function(){
+        validateSlotDuration();
     });
 
 
@@ -55,37 +69,33 @@ $(document).ready(function () {
             } else {
                 $('#time-error').addClass('hidden');
             }
-        }
-
-
-    }
-
-    //This is needed when calculating the availabilities
-    function getIsValidStartEndTime() {
-        let startTime = $('#start_time').val();
-        let endTime = $('#end_time').val();
-
-        let startTime24 = convertTime12to24(startTime);
-        let endTime24 = convertTime12to24(endTime);
-
-        // Need this check because endTime is not defined properly upon opening the page
-        if (!String(startTime24).includes('undefined') && !String(endTime24).includes('undefined')) {
-            let startTimeDate = new Date(new Date().toDateString() + ' ' + startTime24);
-            let endTimeDate = new Date(new Date().toDateString() + ' ' + endTime24);
-
-            let isValidTime = (startTimeDate < endTimeDate);
-
             return isValidTime;
         }
         return false;
-
 
     }
 
     function validateSlotDuration() {
         //get the difference between end and start time
         //if slot duration is > than difference, error message
-        $('id_slot_duration_hours')
+        let slotHours = $('#id_slot_duration_hours').val();
+        let slotMinutes = $('#id_slot_duration_minutes').val();
+        let slotDurationMinutes = parseInt(slotHours)*60 + parseInt(slotMinutes);
+
+        const MILLIS_PER_MINUTE = 60000;
+
+        if (validateStartEndTime()){
+            let startTimeDate = new Date(new Date().toDateString() + ' ' + convertTime12to24($('#start_time').val()));
+            let endTimeDate = new Date(new Date().toDateString() + ' ' + convertTime12to24($('#end_time').val()));
+            const diffTime = Math.abs(endTimeDate - startTimeDate)/MILLIS_PER_MINUTE;
+
+            if (slotDurationMinutes > diffTime){
+                $('#slot-error').removeClass('hidden');
+            }
+            else{
+                $('#slot-error').addClass('hidden');
+            }
+        }
     }
 
 });

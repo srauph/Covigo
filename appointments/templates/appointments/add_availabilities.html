@@ -74,8 +74,8 @@
 
                     <div class="w-full px-2 py-2">
                         <label class="block text-gray-700 text-sm font-bold mb-2">Slot duration:</label>
-                        <div class="text-red-500 text-sm font-semibold inline">
-                            {{ availability_form.slot_duration_hours.errors }}
+                        <div class="text-red-500 text-sm font-semibold hidden" id="slot-error">
+                            Invalid time slot
                         </div>
                         <div class="inline mt-1 pr-5">
                             {{ availability_form.slot_duration_hours }}
