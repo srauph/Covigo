@@ -47,6 +47,8 @@ $(document).ready(function () {
         }
     });
 
+    $('.availability-select2').select2();
+
     $('#id_slot_duration_hours').change(function(){
         validateSlotDuration();
         generateAvailabilities();
@@ -165,10 +167,10 @@ $(document).ready(function () {
             }
 
             //Reset all the previously generated availabilities
-            $('#availability-select').empty();
+            $('.availability-select2').empty();
 
             $.each(availabilities, function (i, item) {
-                $('#availability-select').append($('<option>', {
+                $('.availability-select2').append($('<option>', {
                     value: item,
                     text: item
                 }));
