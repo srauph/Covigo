@@ -11,14 +11,14 @@ class PatientTests(TestCase):
         self.staff = Staff.objects.create(user=staff_user)
 
         self.patient = Patient.objects.create(
-            staff=self.staff,
+            assigned_staff=self.staff,
             user=self.patient_user,
             is_confirmed=True,
             is_recovered=True,
             is_quarantining=True,
             code="B0XXYB4B33"
         )
-        self.patient2 = Patient.objects.create(user=self.patient2_user, staff=self.staff,)
+        self.patient2 = Patient.objects.create(user=self.patient2_user, assigned_staff=self.staff,)
 
     def test_patient_set_attributes(self):
         self.assertTrue(self.patient.is_confirmed)
@@ -41,13 +41,13 @@ class PatientStaffTests(TestCase):
         staff_user = User.objects.create(username="Staff")
 
         cls.staff = Staff.objects.create(user=staff_user)
-        cls.patient = Patient.objects.create(user=patient1_user, staff=cls.staff)
-        cls.patient2 = Patient.objects.create(user=patient2_user, staff=cls.staff)
+        cls.patient = Patient.objects.create(user=patient1_user, assigned_staff=cls.staff)
+        cls.patient2 = Patient.objects.create(user=patient2_user, assigned_staff=cls.staff)
 
         cls.patients = Patient.objects.all()
 
     def test_patient_staff_relationship(self):
-        self.assertEqual(self.patient.staff, self.staff)
+        self.assertEqual(self.patient.assigned_staff, self.staff)
 
     def test_staff_patient_relationship(self):
         self.assertEqual(self.staff.patients.first(), self.patient)
