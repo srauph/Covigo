@@ -1,5 +1,6 @@
 $(document).ready(function () {
 
+    //UTILITY FUNCTION
     const convertTime12to24 = (time12h) => {
         const [time, modifier] = time12h.split(' ');
         let [hours, minutes] = time.split(':');
@@ -12,6 +13,12 @@ $(document).ready(function () {
         }
 
         return `${hours}:${minutes}`;
+    }
+
+    //UTILITY FUNCTION
+    function addMinutes(date, minutes){
+        const MILLIS_PER_MINUTE = 60000;
+        return new Date(date.getTime() + minutes*MILLIS_PER_MINUTE);
     }
 
     $('.timepicker_1').timepicker({
@@ -42,10 +49,12 @@ $(document).ready(function () {
 
     $('#id_slot_duration_hours').change(function(){
         validateSlotDuration();
+        generateAvailabilities();
     });
 
     $('#id_slot_duration_minutes').change(function(){
         validateSlotDuration();
+        generateAvailabilities();
     });
 
     $('#id_start_date').change(function(){
@@ -128,6 +137,32 @@ $(document).ready(function () {
             return isValidSlot;
         }
         return false;
+    }
+
+    function generateAvailabilities(){
+
+        if(validateStartEndTime() && validateSlotDuration()){
+            let startTimeDate = new Date(new Date().toDateString() + ' ' + convertTime12to24($('#start_time').val()));
+            let endTimeDate = new Date(new Date().toDateString() + ' ' + convertTime12to24($('#end_time').val()));
+            let slotDurationMinutes = parseInt($('#id_slot_duration_hours').val())*60 + parseInt($('#id_slot_duration_minutes').val());
+
+            let currentTime = startTimeDate;
+            let endTime = null;
+            while (currentTime < endTimeDate){
+                //If the time difference between start and end does not give a remainder of 0,
+                //for the last availability round the time. The last availability won't have the same slot duration as
+                //the others.
+                if (addMinutes(currentTime, slotDurationMinutes) > endTimeDate){
+                    endTime = endTimeDate;
+                    console.log(currentTime + ' ' + endTime);
+                    break;
+                }
+                endTime = addMinutes(currentTime, slotDurationMinutes);
+                console.log(currentTime + ' ' + endTime);
+                currentTime = endTime;
+            }
+
+        }
     }
 
     function validateForm(event) {
