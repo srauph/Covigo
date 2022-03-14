@@ -204,7 +204,7 @@ class FlagAssigningTests(TestCase):
         self.assertEqual(response.status_code, 302)
 
 
-class AccountPageViewTests(TestCase):
+class ListOrViewAccountTests(TestCase):
     def setUp(self):
         user_1 = User.objects.create(id=1, username="bob", is_staff=False)
         user_1.set_password('secret')
@@ -214,7 +214,7 @@ class AccountPageViewTests(TestCase):
 
         staff_1 = Staff.objects.create(user=doctor_1)
 
-        patient_1 = Patient.objects.create(code=1, user=user_1, staff=staff_1)
+        patient_1 = Patient.objects.create(code=1, user=user_1, assigned_staff=staff_1)
         user_1.patient = patient_1
         user_1.save()
 
@@ -299,7 +299,7 @@ class AccountPageViewTests(TestCase):
         m_generate_profile_qr_function.assert_called_once()
 
 
-class AccountCreateTests(TransactionTestCase):
+class CreateAccountTests(TransactionTestCase):
 
     # this makes sure that the database ids reset to 1 for every test (especially important for
     # the test "test_user_can_edit_symptom_and_return" when dealing with fetching symptom ids from the database)
@@ -854,7 +854,7 @@ class EditGroupTests(TestCase):
         self.assertEqual(old_second_group_perms, set(Group.objects.last().permissions.all()))
 
 
-class CovertPermissionNameTests(TestCase):
+class ConvertPermissionNameTests(TestCase):
     def setUp(self):
         create_test_permissions(6)
         self.factory = RequestFactory()
