@@ -61,7 +61,6 @@ def patient_reports(request):
 @login_required
 @never_cache
 def patient_report_modal(request, user_id, date_updated):
-    print('here')
     # When the view report button is pressed a POST request is made
     if request.method == "POST":
         # Ensure this was an ajax call
@@ -85,6 +84,7 @@ def patient_report_modal(request, user_id, date_updated):
                 'user_id': user_id,
                 'date': date_updated,
                 'report_symptom_list': report_symptom_list,
+                'is_staff': request.user.is_staff,
                 'is_flagged': is_patient_flagged,
                 'patient_name': report_symptom_list[0]['user__first_name'] + ' ' + report_symptom_list[0][
                     'user__last_name'],
