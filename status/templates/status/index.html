@@ -32,11 +32,7 @@
                 },
                 dataType: 'html',
                 success: function (html) {
-
                     $('#modal-div').html(html).modal('show');
-
-                    //Re-laod table to update that it has been read
-
                 }
             });
         });
@@ -65,29 +61,27 @@
 {% endblock %}
 
 {% block content %}
-
-
     <div class="min-h-full bg-slate-100">
         <div class="flex justify-between bg-slate-700">
             <h1 class="text-2xl text-white font-semibold px-8 py-4">Health Status</h1>
         </div>
         {% if is_quarantining %}
-        <div class="bg-white shadow m-8 rounded-xl">
-            <div role="alert">
-                <div class="bg-red-500 text-white font-bold rounded-t px-4 py-2">
-                    Quarantine Advised
-                </div>
-                <div class="border border-t-0 border-red-400 rounded-b bg-red-100 px-4 py-3 text-red-700">
-                    <p>Your doctor has recommended you quarantine. Please read and adhere to your local rules.</p>
+            <div class="bg-white shadow m-8 rounded-xl">
+                <div role="alert">
+                    <div class="bg-red-500 text-white font-bold rounded-t px-4 py-2">
+                        Quarantine Advised
+                    </div>
+                    <div class="border border-t-0 border-red-400 rounded-b bg-red-100 px-4 py-3 text-red-700">
+                        <p>Your doctor has recommended you quarantine. Please read and adhere to your local rules.</p>
+                    </div>
                 </div>
             </div>
-        </div>
         {% endif %}
         <div class="bg-white shadow m-8 rounded-xl">
-            <div class="w-full flex justify-between items-center p-4">
+            <div class="w-full flex justify-between flex-col md:flex-row p-4">
                 <div>
                     <a href="">
-{#                        #TODO: I will add Nizar's code to this once this PR is approved#}
+                        {#                        #TODO: I will add Nizar's code to this once this PR is approved#}
                         <button class="bg-green-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                        <span>
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
@@ -112,7 +106,7 @@
                     </div>
                 {% endif %}
                 <div>
-{#                 #TODO: this won't work for now.#}
+                    {#                 #TODO: this won't work for now.#}
                     <a href="">
                         <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                        <span>
@@ -130,8 +124,8 @@
 
             </div>
         </div>
-        <div class="flex">
-            <div class="w-1/6 m-4">
+        <div class="flex flex-col">
+            <div class="w-1.5/6 m-4">
                 <div class="m-4 p-4 bg-white shadow rounded-lg">
                     <table class="w-full">
                         <tr>
@@ -145,15 +139,15 @@
                     </table>
                 </div>
             </div>
-            <div class="m-4 w-5/6">
+            <div class="w-4.5/6 m-4 ">
                 <div class="m-4 p-4 bg-white shadow rounded-lg">
                     <table class="w-full table-auto" id="message_list_table">
                         <thead>
-                            <tr class="border-b">
-                                <th class="p-2">Date Submitted</th>
-                                <th class="p-2">Viewed By Doctor</th>
-                                <th class="p-2">Action</th>
-                            </tr>
+                        <tr class="border-b">
+                            <th class="p-2">Date Submitted</th>
+                            <th class="p-2">Viewed By Doctor</th>
+                            <th class="p-2">Action</th>
+                        </tr>
                         </thead>
 
                         <tbody>
@@ -161,7 +155,7 @@
                             <tr class="hover:bg-gray-200" data-user-id="{{ r.user_id }}"
                                 data-date-updated="{{ r.date_updated__date|date:'Y-m-d' }}">
                                 <td class="text-center p-2 render-correct-date">{{ r.date_updated__date|date:'Y-m-d' }}</td>
-                                <td class="text-center p-2">{% if r.is_viewed  %}Yes{% else %}No{% endif %}</td>
+                                <td class="text-center p-2">{% if r.is_viewed %}Yes{% else %}No{% endif %}</td>
                                 <td class="text-center p-2">
                                     <button class="report-modal-link bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md">
                                         View Report
