@@ -148,20 +148,31 @@ $(document).ready(function () {
 
             let currentTime = startTimeDate;
             let endTime = null;
+
+            let availabilities = [];
             while (currentTime < endTimeDate){
                 //If the time difference between start and end does not give a remainder of 0,
                 //for the last availability round the time. The last availability won't have the same slot duration as
                 //the others.
                 if (addMinutes(currentTime, slotDurationMinutes) > endTimeDate){
                     endTime = endTimeDate;
-                    console.log(currentTime + ' ' + endTime);
+                    availabilities.push(currentTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ' ' + endTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
                     break;
                 }
                 endTime = addMinutes(currentTime, slotDurationMinutes);
-                console.log(currentTime + ' ' + endTime);
+                availabilities.push(currentTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ' ' + endTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
                 currentTime = endTime;
             }
 
+            //Reset all the previously generated availabilities
+            $('#availability-select').empty();
+
+            $.each(availabilities, function (i, item) {
+                $('#availability-select').append($('<option>', {
+                    value: item,
+                    text: item
+                }));
+            });
         }
     }
 

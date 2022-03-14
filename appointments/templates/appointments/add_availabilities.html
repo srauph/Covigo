@@ -85,6 +85,17 @@
                         </div>
                     </div>
 
+                    <div class="w-full px-2 pt-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Select availabilities:</label>
+                        <div class="text-red-500 text-sm font-semibold hidden" id="date-error">
+                            Please select at least once availability
+                        </div>
+                        <div class="inline mt-1 pr-5">
+                            <select name="availability-select" id="availability-select" multiple>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="w-full mt-8 md:mt-0">
                         <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
                             <a href="{% url "appointments:index" %}">
