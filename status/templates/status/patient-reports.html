@@ -1,16 +1,29 @@
 {% extends "Covigo/base.html" %}
 
 {% block styles %}
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/rowreorder/1.2.8/css/rowReorder.dataTables.min.css">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.dataTables.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css"/>
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.4/css/jquery.dataTables.css">
+    <style>
+        #patient_reports_table.display tbody tr:nth-child(odd):hover td,
+        #patient_reports_table.display tbody tr:nth-child(even):hover td {
+            background-color: rgb(226 232 240) !important;
+        }
+    </style>
 {% endblock %}
 
 {% block script %}
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
-            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/rowreorder/1.2.8/js/dataTables.rowReorder.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
-    <script type="text/javascript" charset="utf8"
-            src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
+
     <script>
         $(document).ready(function () {
             let table = $('#patient_reports_table').DataTable({
@@ -18,11 +31,15 @@
                 createdRow: function (row, data, index) {
                     $(row).attr('data-read', data.is_viewed)
                     if (data.is_viewed === false) {
-                        $(row).addClass('hover:bg-slate-200 font-semibold border-b')
+                        $(row).addClass('font-semibold border-b')
                     } else {
-                        $(row).addClass('hover:bg-slate-200 border-b')
+                        $(row).addClass('border-b')
                     }
                 },
+                responsive: true,
+                "draggable ": false,
+                stripeClasses: [],
+                "orderClasses": false,
                 "columns": [
                     {"data": "user__patients_assigned_flags__is_active"},
                     {"data": "user__first_name"},
@@ -60,7 +77,7 @@
                         "visible": false,
                         "searchable": false
                     },
-                    { // date_updated
+                    { // date_updated__date
                         "targets": [4],
                         "visible": true,
                         "searchable": true,
@@ -68,7 +85,10 @@
                             //Modify the render solely for display
                             if (type === 'display') {
                                 let date = new Date(row.date_updated__date);
-                                return date.getFullYear() + "-" + date.getMonth() + "-" + date.getDate()
+                                let utcHours = date.getUTCHours();
+                                let hourPeriod = utcHours >= 12 ? 'p.m.' : 'a.m.';
+                                const MONTH = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                                return MONTH[date.getUTCMonth()] + " " + date.getUTCDate() + ", " + date.getUTCFullYear() + ", " + ((utcHours % 12) || 12) + ":" + date.getMinutes() + " " + hourPeriod;
                             }
                             //Keep the original for sorting purpose
                             return data;
@@ -104,10 +124,19 @@
                 }
             });
             $(document).on('click', '.report-modal-link', function (e) {
-                let row = $(this).closest('tr');
-                let user_id = table.row(row).data().user_id;
-                let table_date = table.row(row).data().date_updated__date;
-
+                let user_id, table_date;
+                try {
+                    // Get row data from non-responsive UI
+                    let row = $(this).closest('tr');
+                    let data = table.row(row).data();
+                    user_id = data.user_id;
+                    table_date = data.date_updated__date;
+                } catch (err) {
+                    // Get row data from responsive UI
+                    let data = table.row(this).data();
+                    user_id = data.user_id;
+                    table_date = data.date_updated__date;
+                }
                 let url = "{% url 'status:patient-report-modal' 999999999 'date_updated' %}";
                 url = url.replace(999999999, user_id);
                 url = url.replace('date_updated', table_date);
@@ -157,7 +186,8 @@
 
         <div class="m-4">
             <div class="m-4 p-4 bg-white shadow rounded-lg text-center">
-                <table class="w-full table-auto" id="patient_reports_table">
+                <table class="w-full table-auto display responsive nowrap" style="width:100%"
+                       id="patient_reports_table">
                     <thead>
                     <tr class="border-b">
                         <th class="p-2">user__patients_assigned_flags__is_active</th>
