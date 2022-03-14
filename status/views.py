@@ -39,10 +39,8 @@ def patient_reports(request):
 
     # Get doctors patient name(s) and user id(s)
     if doctor.has_perm('view_patientsymptom'):
-        patient_ids = []
-        for users in Patient.objects.all():
-            if users.staff_id == doctor.id:
-                patient_ids.append(users.user_id)
+
+        patient_ids = list(doctor.staff.get_assigned_patient_users().values_list("id", flat=True))
 
         # Return a QuerySet with all distinct reports from the doctors patients based on their updated date,
         # if it's viewed and if the patient is flagged
@@ -97,10 +95,8 @@ def patient_report_modal(request, user_id, date_updated):
 @never_cache
 def patient_reports_table(request):
     doctor = request.user
-    patient_ids = []
-    for users in Patient.objects.all():
-        if users.staff_id == doctor.id:
-            patient_ids.append(users.user_id)
+
+    patient_ids = list(doctor.staff.get_assigned_patient_users().values_list("id", flat=True))
 
     reports = return_reports(patient_ids)
 
