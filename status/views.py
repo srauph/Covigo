@@ -1,5 +1,6 @@
 import json
 
+from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
@@ -53,7 +54,7 @@ def patient_reports(request):
         })
     else:
         # TODO: this should change later, probably django has a method to redirect all unauthorized requests to a 401 page
-        return redirect('accounts:unauthorized')
+        raise PermissionDenied
 
 
 @login_required
