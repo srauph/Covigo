@@ -16,7 +16,6 @@
             let date_updated = row.attr('data-date-updated');
             let user_id = row.attr('data-user-id');
 
-            console.log(date_updated);
             let url = "{% url 'status:patient-report-modal' 999999999 'date_updated' %}";
             url = url.replace(999999999, user_id);
             url = url.replace('date_updated', date_updated);
