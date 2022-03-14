@@ -28,3 +28,11 @@ def return_symptoms(user_id):
 def check_report_exist(user_id, date):
     patient_symptom = PatientSymptom.objects.all().filter(user_id=user_id, due_date__lte=date, data=None)
     return patient_symptom.exists()
+
+
+def return_symptoms_for_today(user_id, date):
+    return_patient_symptoms = PatientSymptom.objects.select_related('symptom', 'user') \
+        .values('symptom_id', 'data', 'symptom__name', 'is_viewed', 'user__patients_assigned_flags__is_active',
+                'user__first_name', 'user__last_name') \
+        .filter(user_id=user_id, due_date=date)
+    return return_patient_symptoms
