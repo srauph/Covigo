@@ -13,7 +13,7 @@ cd <project/root/directory>
 pip3 install -r requirements.txt
 ```
 
-Create a text file `/Covigo/.env` (in the same directory that contains `settings.py`); in `.env` insrt this line:
+Create a text file `/Covigo/.env` (in the same directory that contains `settings.py`); in `.env` insert this line:
 ```pycon
 DATABASE_PASSWORD="your_mysql_root_password"
 ```
@@ -25,7 +25,7 @@ CREATE DATABASE Covigo;
 exit
 ```
 
-In your terminal terminal, run these commands:
+In your terminal, run these commands:
 ```
 python manage.py migrate
 python manage.py createsuperuser
@@ -46,8 +46,9 @@ If you'd like, you can run the project from a global Python environment, however
 using a virtual environment. The exact procedure for setting up a virtual environment
 may vary depending on your operating system and Python configuration.
 
-After opening your terminal and (activating your virtualenv), install the Python required packages
-by running this command (the exact syntax may vary depending on your OS and Python configuration).
+After opening your terminal (and activating your virtualenv, if you created one), install the Python 
+required packages by running this command (the exact syntax may vary depending on your OS and Python 
+configuration).
 
 ```commandline
  pip3 install -r requirements.txt
@@ -110,7 +111,7 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
-Covigo will then be fully installed and configred. To run the project on a built-in development server,
+Covigo will then be fully installed and configured. To run the project on a built-in development server,
 simply run the command
 
 ```commandline
@@ -125,7 +126,7 @@ With the exception of the database, which would need to be recreated, you may si
 repository files and clone a fresh copy. This is all you need to do regarding files, as this project 
 does not store files outside of it's repository folder.
 
-Regarding recreating the database, note that dropping and recreating the database will **deleta all Covigo 
+Regarding recreating the database, note that dropping and recreating the database will **delete all Covigo 
 database data** and **is irreversible**.
 
 
