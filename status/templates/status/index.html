@@ -124,22 +124,22 @@
 
             </div>
         </div>
-        <div class="flex flex-col">
-            <div class="w-1.5/6 m-4">
+        <div class="flex flex-col sm:flex-row md:flex-row lg:flex-row xl:flex-row">
+            <div class="w-full sm:w-2/6 md:w-2/6 lg:2/6 xl:2/6 p-4">
                 <div class="m-4 p-4 bg-white shadow rounded-lg">
                     <table class="w-full">
                         <tr>
-                            <th class="border-b text-left p-1">Symptoms to report</th>
+                            <th class="border-b text-left p-2">Symptoms to report</th>
                         </tr>
                         {% for s in symptoms %}
                             <tr class="border-b ">
-                                <td class="p-1">{{ s.symptom__name }}</td>
+                                <td class="p-2">{{ s.symptom__name }}</td>
                             </tr>
                         {% endfor %}
                     </table>
                 </div>
             </div>
-            <div class="w-4.5/6 m-4 ">
+            <div class="w-full sm:w-4/6 md:w-4/6 lg:4/6 xl:4/6 p-4">
                 <div class="m-4 p-4 bg-white shadow rounded-lg">
                     <table class="w-full table-auto" id="message_list_table">
                         <thead>
