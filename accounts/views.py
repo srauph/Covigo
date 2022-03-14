@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group, Permission
 from django.core.exceptions import MultipleObjectsReturned
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
 from django.views.decorators.cache import never_cache
 
@@ -24,6 +24,9 @@ class GroupErrors:
     def has_errors(self):
         return self.blank_name or self.duplicate_name
 
+
+def unauthorized(request):
+    return HttpResponse('Unauthorized', status=401)
 
 @login_required
 @never_cache

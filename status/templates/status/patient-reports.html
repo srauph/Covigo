@@ -28,7 +28,7 @@
                     {"data": "user__first_name"},
                     {"data": "user_id"},
                     {"data": "is_viewed"},
-                    {"data": "date_updated"},
+                    {"data": "date_updated__date"},
                     {"data": "user__last_name"},
                     {
                         defaultContent: '<button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1 report-modal-link">' +
@@ -67,11 +67,8 @@
                         render: function (data, type, row) {
                             //Modify the render solely for display
                             if (type === 'display') {
-                                let date = new Date(row.date_updated);
-                                let utcHours = date.getUTCHours();
-                                let hourPeriod = utcHours >= 12 ? 'p.m.' : 'a.m.';
-                                const MONTH = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-                                return MONTH[date.getUTCMonth()] + " " + date.getUTCDate() + ", " + date.getUTCFullYear() + ", " + ((utcHours % 12) || 12) + ":" + date.getMinutes() + " " + hourPeriod;
+                                let date = new Date(row.date_updated__date);
+                                return date.getFullYear() + "-" + date.getMonth() + "-" + date.getDate()
                             }
                             //Keep the original for sorting purpose
                             return data;
@@ -109,7 +106,7 @@
             $(document).on('click', '.report-modal-link', function (e) {
                 let row = $(this).closest('tr');
                 let user_id = table.row(row).data().user_id;
-                let table_date = table.row(row).data().date_updated;
+                let table_date = table.row(row).data().date_updated__date;
 
                 let url = "{% url 'status:patient-report-modal' 999999999 'date_updated' %}";
                 url = url.replace(999999999, user_id);

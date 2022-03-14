@@ -8,4 +8,5 @@ urlpatterns = [
     path('patient-reports-table/', views.patient_reports_table, name='patient-reports-table'),
     path('patient-reports/patient-report-modal/<int:user_id>/<str:date_updated>/', views.patient_report_modal,
          name='patient-report-modal'),
+    path('create-status-report/', views.create_patient_report, name='create-status-report'),
 ]
