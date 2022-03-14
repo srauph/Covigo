@@ -18,7 +18,7 @@ Create a text file `/Covigo/.env` (in the same directory that contains `settings
 DATABASE_PASSWORD="your_mysql_root_password"
 ```
 
-Run MySQL and create the database
+Run MySQL and create the database:
 ```mysql
 mysql -u root -p
 CREATE DATABASE Covigo;
@@ -47,7 +47,7 @@ using a virtual environment. The exact procedure for setting up a virtual enviro
 may vary depending on your operating system and Python configuration.
 
 After opening your terminal (and activating your virtualenv, if you created one), install the Python 
-required packages by running this command (the exact syntax may vary depending on your OS and Python 
+required packages by running this command (the exact syntax may vary depending on your operating system and Python 
 configuration).
 
 ```commandline
@@ -66,7 +66,7 @@ enter the MySQL server:
 mysql -u root -p
 ```
 
-Enter your root password. You should now be able to run MySQL commands.
+Enter your root password. You should now be able to run MySQL commands:
 
 ```mysql
 CREATE DATABASE Covigo;
@@ -86,7 +86,7 @@ folder;** rather, this is the folder that contains a file called `settings.py`.
 Inside this `.env` file you will need to create environment variables for your MySQL user.
 
 For sake of simplicity we advise you to allow Covigo to use your root MySQL user. Insert this line
-into your `.env`, replacing `your_mysql_root_password` with your MySQL server's root password.
+into your `.env`, replacing `your_mysql_root_password` with your MySQL server's root password:
 ```pycon
 DATABASE_PASSWORD="your_mysql_root_password"
 ```
@@ -94,7 +94,7 @@ DATABASE_PASSWORD="your_mysql_root_password"
 If you would like to use a custom user **instead of the root user**, please ensure that this user 
 is granted access to all permissions for the `Covigo` database. You will then need to insert a second 
 line to point Covigo to your custom MySQL user, and will need to use that user's password instead of 
-the root password.
+the root password:
 
 ```pycon
 DATABASE_USER="your_mysql_custom_user_username"
@@ -102,7 +102,7 @@ DATABASE_PASSWORD="your_mysql_custom_user_password"
 ```
 
 Whether you use the MySQL root user or a custom user, save the `env` file. You will finally need to
-run some configration commands, and then Covigo will be fully set up:
+run some configuration commands, and then Covigo will be fully set up.
 
 In your terminal, ensuring your working directory is the project's root, run these commands and answer
 any questions that are prompted:
@@ -112,7 +112,7 @@ python manage.py createsuperuser
 ```
 
 Covigo will then be fully installed and configured. To run the project on a built-in development server,
-simply run the command
+simply run the command:
 
 ```commandline
 python manage.py runserver
@@ -124,7 +124,7 @@ Covigo should then be running locally and can be accessed at http://127.0.0.1:80
 
 With the exception of the database, which would need to be recreated, you may simply delete the old 
 repository files and clone a fresh copy. This is all you need to do regarding files, as this project 
-does not store files outside of it's repository folder.
+does not store files outside of its repository folder.
 
 Regarding recreating the database, note that dropping and recreating the database will **delete all Covigo 
 database data** and **is irreversible**.
@@ -139,5 +139,5 @@ exit
 ```
 
 The database will be deleted and recreated. Note that you must run `python manage.py migrate` before this
-database can be usable again, and that you must run `python manage.py cratesuperuser` to create an account
+database can be usable again, and that you must run `python manage.py cratesuperuser` to create an administrator account
 that you can log in with.
