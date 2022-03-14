@@ -1,7 +1,7 @@
 import json
 
 from django.core.serializers.json import DjangoJSONEncoder
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
@@ -17,16 +17,19 @@ from symptoms.models import PatientSymptom
 @login_required
 @never_cache
 def index(request):
-    patient_ids = [request.user.id]
-    reports = return_reports(patient_ids)
-    patient_symptoms = return_symptoms(request.user.id)
-    report_exist = check_report_exist(request.user.id, datetime.datetime.now())
-    return render(request, 'status/index.html', {
-        'reports': reports,
-        'symptoms': patient_symptoms,
-        'report_exist': report_exist,
-        'is_quarantining': request.user.patient.is_quarantining
-    })
+    user = request.user
+    if not user.is_staff:
+        patient_ids = [request.user.id]
+        reports = return_reports(patient_ids)
+        patient_symptoms = return_symptoms(request.user.id)
+        report_exist = check_report_exist(request.user.id, datetime.datetime.now())
+        return render(request, 'status/index.html', {
+            'reports': reports,
+            'symptoms': patient_symptoms,
+            'report_exist': report_exist,
+            'is_quarantining': request.user.patient.is_quarantining
+        })
+    raise Http404("The requested resource was not found on this server.")
 
 
 @login_required
