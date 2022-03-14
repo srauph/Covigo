@@ -21,6 +21,11 @@ $(document).ready(function () {
         return new Date(date.getTime() + minutes*MILLIS_PER_MINUTE);
     }
 
+    //UTILITY FUNCTION
+    function getTimeAMPMString(time){
+        return time.toLocaleTimeString([], {hour: '2-digit',minute: '2-digit'});
+    }
+
     $('.timepicker_1').timepicker({
         timeFormat: 'h:mm p',
         interval: 15,
@@ -31,6 +36,7 @@ $(document).ready(function () {
         change: function(){
             validateStartEndTime();
             validateSlotDuration();
+            generateAvailabilities();
         }
     });
 
@@ -44,6 +50,7 @@ $(document).ready(function () {
         change: function(){
             validateStartEndTime();
             validateSlotDuration();
+            generateAvailabilities();
         }
     });
 
@@ -152,17 +159,31 @@ $(document).ready(function () {
             let endTime = null;
 
             let availabilities = [];
-            while (currentTime < endTimeDate){
+            while (currentTime < endTimeDate) {
                 //If the time difference between start and end does not give a remainder of 0,
                 //for the last availability round the time. The last availability won't have the same slot duration as
                 //the others.
-                if (addMinutes(currentTime, slotDurationMinutes) > endTimeDate){
+                if (addMinutes(currentTime, slotDurationMinutes) > endTimeDate) {
                     endTime = endTimeDate;
-                    availabilities.push(currentTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ' ' + endTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
+                    let timeData = {
+                        start: currentTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', hour12: false}),
+                        end: endTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', hour12: false})
+                    };
+                    availabilities.push({
+                        text: getTimeAMPMString(currentTime) + ' ' + getTimeAMPMString(endTime),
+                        data: timeData
+                    });
                     break;
                 }
                 endTime = addMinutes(currentTime, slotDurationMinutes);
-                availabilities.push(currentTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ' ' + endTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
+                let timeData = {
+                    start: currentTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', hour12: false}),
+                    end: endTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', hour12: false})
+                };
+                availabilities.push({
+                    text: getTimeAMPMString(currentTime) + ' ' + getTimeAMPMString(endTime),
+                    data: timeData
+                });
                 currentTime = endTime;
             }
 
@@ -171,8 +192,8 @@ $(document).ready(function () {
 
             $.each(availabilities, function (i, item) {
                 $('.availability-select2').append($('<option>', {
-                    value: item,
-                    text: item
+                    value: item.data,
+                    text: item.text
                 }));
             });
         }
