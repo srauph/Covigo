@@ -118,7 +118,6 @@ def create_patient_report(request):
         for r in report:
             report_data = request.POST.get('data')
             r.save(data=report_data)
-    print(report.query)
     return render(request, 'status/create-status-report.html', {
         'report': report
     })
