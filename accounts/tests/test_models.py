@@ -50,9 +50,9 @@ class PatientStaffTests(TestCase):
         self.assertEqual(self.patient.assigned_staff, self.staff)
 
     def test_staff_patient_relationship(self):
-        self.assertEqual(self.staff.patients.first(), self.patient)
+        self.assertEqual(self.staff.assigned_patients.first(), self.patient)
 
     def test_staff_patient_set_relationship(self):
         #
-        self.assertEqual(set(self.staff.patients.all()), set(self.patients))
+        self.assertEqual(set(self.staff.assigned_patients.all()), set(self.patients))
 
