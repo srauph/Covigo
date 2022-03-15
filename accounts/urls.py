@@ -36,18 +36,12 @@ urlpatterns = [
     ),
     path(
         'change_password/',
-        auth_views.PasswordChangeView.as_view(
-            template_name='accounts/authentication/change_password.html',
-            form_class=ChangePasswordForm,
-            success_url=reverse_lazy('accounts:change_password_done')
-        ),
+        views.ChangePasswordView.as_view(),
         name='change_password'
     ),
     path(
         'change_password/done/',
-        auth_views.PasswordChangeDoneView.as_view(
-            template_name='accounts/authentication/change_password_done.html'
-        ),
+        views.change_password_done,
         name='change_password_done'
     ),
     path(

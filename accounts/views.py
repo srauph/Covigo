@@ -1,13 +1,17 @@
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth.views import PasswordResetConfirmView
+from django.contrib.auth.views import PasswordResetConfirmView, PasswordChangeView
 from django.core.exceptions import MultipleObjectsReturned
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.debug import sensitive_post_parameters
 
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
@@ -100,6 +104,8 @@ def register_user(request, uidb64, token):
 # Yes it's technically not proper to put a class here but since this is a class-based view that in the flow occurs
 # between the register_user and register_user_password_done views, I think it makes more sense to put it here.
 class RegisterPasswordResetConfirmView(PasswordResetConfirmView):
+    @method_decorator(sensitive_post_parameters())
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         self.success_url = reverse_lazy('accounts:register_user_password_done', kwargs={'uidb64': kwargs['uidb64']})
         return super(RegisterPasswordResetConfirmView, self).dispatch(*args, **kwargs)
@@ -174,6 +180,31 @@ def index(request):
 @never_cache
 def two_factor_authentication(request):
     return render(request, 'accounts/authentication/2FA.html')
+
+
+@method_decorator(sensitive_post_parameters(), name='dispatch')
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name='dispatch')
+class ChangePasswordView(PasswordChangeView):
+    form_class = ChangePasswordForm
+    success_url = reverse_lazy('accounts:change_password_done')
+    template_name = 'accounts/authentication/change_password.html'
+
+    def form_valid(self, form, *args):
+        form.save()
+        # # Updating the password logs out all other sessions for the user
+        # # except the current one.
+        # update_session_auth_hash(self.request, form.user)
+        subject = "Covigo - Password Changed"
+        template = "accounts/messages/user_changed_password_email.html"
+        generate_and_send_email(form.user, subject, template)
+        return HttpResponseRedirect(self.get_success_url())
+
+
+@never_cache
+def change_password_done(request):
+    return render(request, 'accounts/authentication/change_password_done.html')
 
 
 @login_required
