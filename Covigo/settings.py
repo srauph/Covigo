@@ -35,6 +35,7 @@ if PRODUCTION_MODE:
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
     HOST_NAME = 'https://covigo.ddns.net'
+    STATICFILES_DIRS = [BASE_DIR / 'static',]
 else:
     DEBUG = True
     ALLOWED_HOSTS = []
@@ -88,10 +89,6 @@ TEMPLATES = [
     },
 ]
 
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
-
 WSGI_APPLICATION = 'Covigo.wsgi.application'
 
 # Database
@@ -140,10 +137,11 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'US/Eastern'
+DATETIME_FORMAT = '%d-%m-%Y %H:%M:%S'
+L10N=False
+USE_I18N = False
 
-USE_I18N = True
-
-USE_TZ = True
+USE_TZ = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
