@@ -170,18 +170,7 @@ def register_user_details(request, uidb64, token):
         })
 
 
-@login_required
-@never_cache
-def index(request):
-    return redirect('accounts:list_users')
-
-
-@login_required
-@never_cache
-def two_factor_authentication(request):
-    return render(request, 'accounts/authentication/2FA.html')
-
-
+# As before, even though this is a class-based view, I think it makes sense to put it here.
 @method_decorator(sensitive_post_parameters(), name='dispatch')
 @method_decorator(csrf_protect, name='dispatch')
 @method_decorator(login_required, name='dispatch')
@@ -193,13 +182,25 @@ class ChangePasswordView(PasswordChangeView):
 
     def form_valid(self, form, *args):
         form.save()
-        # # Updating the password logs out all other sessions for the user
-        # # except the current one.
+        # Uncomment this line to enable the following behaviour:
+        # Updating the password logs out all other sessions for the user except the current one.
         # update_session_auth_hash(self.request, form.user)
         subject = "Covigo - Password Changed"
         template = "accounts/messages/user_changed_password_email.html"
         generate_and_send_email(form.user, subject, template)
         return HttpResponseRedirect(self.get_success_url())
+
+
+@login_required
+@never_cache
+def index(request):
+    return redirect('accounts:list_users')
+
+
+@login_required
+@never_cache
+def two_factor_authentication(request):
+    return render(request, 'accounts/authentication/2FA.html')
 
 
 @never_cache
@@ -311,7 +312,8 @@ def edit_user(request, user_id):
 
     return render(request, "accounts/edit_user.html", {
         "user_form": user_form,
-        "profile_form": profile_form
+        "profile_form": profile_form,
+        "edited_user": user
     })
 
 
