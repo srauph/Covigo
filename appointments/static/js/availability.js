@@ -212,4 +212,8 @@ $(document).ready(function () {
     });
 
     $('.availability-select2').select2();
+
+    $('.message_close_button').click(function(){
+        $('#message_box').addClass('hidden')
+    })
 });

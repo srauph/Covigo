@@ -1,5 +1,6 @@
 import json
 
+from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
@@ -63,8 +64,9 @@ def add_availabilities(request):
                                 if existing_appt.get('start_date') <= start_datetime_object <= existing_appt.get(
                                         'end_date') or existing_appt.get(
                                         'start_date') <= end_datetime_object <= existing_appt.get('end_date'):
-                                    # Don't create Appointment objects
-                                    # TODO DISPLAY AN ERROR MESSAGE
+                                    # Don't create Appointment objects and display error message
+                                    messages.error(request,
+                                                   'The availability was not created. There already exists an appointment or availability between ' + start_datetime_object.strftime('%Y-%m-%d %H:%M') + ' and ' + end_datetime_object.strftime('%Y-%m-%d %H:%M'))
                                     return redirect('appointments:add_availabilities')
 
                             apt = Appointment.objects.create(staff=request.user, patient=None,
