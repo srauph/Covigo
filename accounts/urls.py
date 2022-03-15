@@ -1,7 +1,7 @@
 from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
 from . import views
-from .forms import SetPasswordForm
+from .forms import SetPasswordForm, ChangePasswordForm
 
 # from django.conf.urls import include
 
@@ -36,12 +36,18 @@ urlpatterns = [
     ),
     path(
         'change_password/',
-        auth_views.PasswordChangeView.as_view(template_name='accounts/authentication/reset_password.html'),
+        auth_views.PasswordChangeView.as_view(
+            template_name='accounts/authentication/change_password.html',
+            form_class=ChangePasswordForm,
+            success_url=reverse_lazy('accounts:change_password_done')
+        ),
         name='change_password'
     ),
     path(
         'change_password/done/',
-        auth_views.PasswordChangeDoneView.as_view(),
+        auth_views.PasswordChangeDoneView.as_view(
+            template_name='accounts/authentication/change_password_done.html'
+        ),
         name='change_password_done'
     ),
     path(

@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth import password_validation
-from django.contrib.auth.forms import SetPasswordForm
+from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm
 from django.core.exceptions import ValidationError
 from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, Select, CharField
 from django.contrib.auth.models import User
@@ -360,6 +360,48 @@ class SetPasswordForm(SetPasswordForm):
                 'autocomplete': 'new-password',
                 'placeholder': 'New Password',
                 'class': GUEST_CHARFIELD_CLASS_TOP
+            }
+        ),
+        strip=False,
+        help_text=password_validation.password_validators_help_text_html(),
+    )
+    new_password2 = forms.CharField(
+        label="Confirm Password",
+        strip=False,
+        widget=forms.PasswordInput(
+            attrs={
+                'autocomplete': 'new-password',
+                'placeholder': 'Confirm Password',
+                'class': GUEST_CHARFIELD_CLASS_BOTTOM
+            }
+        ),
+    )
+
+
+class ChangePasswordForm(PasswordChangeForm):
+    error_messages = {
+        'password_mismatch': 'The two password fields didn’t match.'
+    }
+    old_password = forms.CharField(
+        label="Old Password",
+        widget=forms.PasswordInput(
+            attrs={
+                # TODO: Figure out what goes in the autocomplete here
+                'autocomplete': 'password',
+                'placeholder': 'Old Password',
+                'class': GUEST_CHARFIELD_CLASS_TOP
+            }
+        ),
+        strip=False,
+        help_text=password_validation.password_validators_help_text_html(),
+    )
+    new_password1 = forms.CharField(
+        label="New Password",
+        widget=forms.PasswordInput(
+            attrs={
+                'autocomplete': 'new-password',
+                'placeholder': 'New Password',
+                'class': GUEST_CHARFIELD_CLASS_MIDDLE
             }
         ),
         strip=False,
