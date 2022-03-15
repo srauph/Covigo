@@ -25,11 +25,11 @@ class AvailabilityForm(forms.Form):
     date_today = datetime.datetime.now()
     date_one_year = date_today + datetime.timedelta(days=365)
 
-    start_date = forms.DateField(initial=date_today, required=True, widget=forms.widgets.DateInput(
-        attrs={'type': 'date', 'min': date_today, 'max': date_one_year}))
+    start_date = forms.DateField(initial=date_today.strftime("%Y-%m-%d"), required=True, widget=forms.widgets.DateInput(
+        attrs={'type': 'date', 'min': date_today.strftime("%Y-%m-%d"), 'max': date_one_year.strftime("%Y-%m-%d")}))
 
     end_date = forms.DateField(required=True, widget=forms.widgets.DateInput(
-        attrs={'type': 'date', 'min': date_today, 'max': date_one_year}))
+        attrs={'type': 'date', 'min': date_today.strftime("%Y-%m-%d"), 'max': date_one_year.strftime("%Y-%m-%d")}))
 
     # Validate start and end times with the slot duration time
     def clean_slot_duration_hours(self):

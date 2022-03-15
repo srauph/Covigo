@@ -80,7 +80,6 @@ $(document).ready(function () {
     function validateStartEndDate(){
         let startDate = $('#id_start_date').val();
         let endDate = $('#id_end_date').val();
-        console.log(startDate + ' ' + endDate);
         if (startDate !== "" && endDate !== ""){
             let startDateObject = new Date(String(startDate) + ' ' + '00:00');
             let endDateObject = new Date(String(endDate) + ' ' + '00:00');
