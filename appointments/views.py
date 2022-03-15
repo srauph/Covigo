@@ -34,7 +34,7 @@ def add_availabilities(request):
                     times_list.append(json.loads(time))  # Process JSON
 
                 # Need to convert from date to datetime object
-                date_start = datetime.combine(availability_form.cleaned_data.get('end_date'), datetime.max.time())
+                date_start = datetime.combine(availability_form.cleaned_data.get('start_date'), datetime.max.time())
                 date_end = datetime.combine(availability_form.cleaned_data.get('end_date'), datetime.max.time())
 
                 date_current = date_start
