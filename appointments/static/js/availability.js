@@ -76,6 +76,7 @@ $(document).ready(function () {
        validateSelectedAvailabilities();
     });
 
+    //Ensure that start date is not after end date
     function validateStartEndDate(){
         let startDate = $('#id_start_date').val();
         let endDate = $('#id_end_date').val();
@@ -99,6 +100,7 @@ $(document).ready(function () {
 
     }
 
+    //Ensure that start time is not after end time
     function validateStartEndTime() {
         let startTime = $('#start_time').val();
         let endTime = $('#end_time').val();
@@ -124,6 +126,7 @@ $(document).ready(function () {
 
     }
 
+    //Ensure that the slot duration is not greater than the difference between the start and end times
     function validateSlotDuration() {
         //get the difference between end and start time
         //if slot duration is > than difference, error message
@@ -167,6 +170,7 @@ $(document).ready(function () {
                 //the others.
                 if (addMinutes(currentTime, slotDurationMinutes) > endTimeDate) {
                     endTime = endTimeDate;
+                    //Create json to be used in backend
                     let timeData = {
                         start: currentTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', hour12: false}),
                         end: endTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', hour12: false})
@@ -175,9 +179,12 @@ $(document).ready(function () {
                         text: getTimeAMPMString(currentTime) + ' ' + getTimeAMPMString(endTime),
                         data: timeData
                     });
+                    //Exit loop because end time has been reached
                     break;
                 }
+                //Get the end time of the availability by adding the slot duration
                 endTime = addMinutes(currentTime, slotDurationMinutes);
+                //Create json to be used in backend
                 let timeData = {
                     start: currentTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', hour12: false}),
                     end: endTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', hour12: false})
@@ -186,6 +193,7 @@ $(document).ready(function () {
                     text: getTimeAMPMString(currentTime) + ' ' + getTimeAMPMString(endTime),
                     data: timeData
                 });
+                //increment to next availability
                 currentTime = endTime;
             }
 
@@ -204,6 +212,7 @@ $(document).ready(function () {
         }
     }
 
+    //Ensure the selected availabilities field is not blank
     function validateSelectedAvailabilities(){
         let availabilities_selected = $('#availability-select').val();
         if (!availabilities_selected) {
@@ -214,7 +223,7 @@ $(document).ready(function () {
         }
         return availabilities_selected;
     }
-
+    //Validate all fields before sending post request
     function validateForm(event) {
         let valid = validateStartEndDate() && validateStartEndTime() && validateSlotDuration() && validateSelectedAvailabilities();
         if(!valid){
