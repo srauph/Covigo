@@ -26,12 +26,12 @@ def add_availabilities(request):
 
                 availability_days = availability_form.cleaned_data.get('availability_days')
 
+                # Get the selected availability times from the post request
                 availability_times = dict(availability_form.data.lists()).get('availability_select[]')
 
                 times_list = []
                 for time in availability_times:
-                    x = json.loads(time)
-                    times_list.append(x)
+                    times_list.append(json.loads(time))  # Process JSON
 
                 # Need to convert from date to datetime object
                 date_start = datetime.combine(availability_form.cleaned_data.get('end_date'), datetime.max.time())
@@ -44,6 +44,7 @@ def add_availabilities(request):
                     if date_current.strftime("%A").lower() in availability_days:
 
                         for time in times_list:
+                            # Creating datetime objects for the start and end times
                             start_datetime_object = datetime.strptime(
                                 date_current.strftime('%Y/%m/%d ') + time.get('start'), '%Y/%m/%d %H:%M')
                             end_datetime_object = datetime.strptime(
