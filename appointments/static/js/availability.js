@@ -54,8 +54,6 @@ $(document).ready(function () {
         }
     });
 
-    $('.availability-select2').select2();
-
     $('#id_slot_duration_hours').change(function(){
         validateSlotDuration();
         generateAvailabilities();
@@ -192,10 +190,13 @@ $(document).ready(function () {
 
             $.each(availabilities, function (i, item) {
                 $('.availability-select2').append($('<option>', {
-                    value: item.data,
+                    name: 'availability_select',
+                    value: JSON.stringify(item.data),
                     text: item.text
                 }));
             });
+
+            $('.availability-select2').select2();
         }
     }
 
@@ -209,4 +210,6 @@ $(document).ready(function () {
     $('#availability-form').submit(function(event){
         validateForm(event)
     });
+
+    $('.availability-select2').select2();
 });
