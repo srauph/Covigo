@@ -59,21 +59,36 @@ def patient_reports(request):
 
 @login_required
 @never_cache
+def patient_reports_table(request):
+    doctor = request.user
+
+    patient_ids = list(doctor.staff.get_assigned_patient_users().values_list("id", flat=True))
+
+    reports = return_reports(patient_ids)
+
+    serialized_reports = json.dumps({'data': list(reports)}, cls=DjangoJSONEncoder, default=str)
+
+    return HttpResponse(serialized_reports, content_type='application/json')
+
+
+@login_required
+@never_cache
 def patient_report_modal(request, user_id, date_updated):
     # When the view report button is pressed a POST request is made
     if request.method == "POST":
         # Ensure this was an ajax call
         if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
 
-            # Gets all symptoms' info required for the report
+            # # Gets all symptoms' info required for the report
             report_symptom_list = return_symptom_list(user_id, date_updated)
+
             # Check if the patient is flagged
             try:
                 is_patient_flagged = Flag.objects.filter(patient_id=user_id).get(is_active=1)
             except Exception:
                 is_patient_flagged = False
-
-            # Ensure the report has not been viewed before
+            #
+            # # Ensure the report has not been viewed before
             if not report_symptom_list[0]['is_viewed']:
                 # Set the report to viewed
                 PatientSymptom.objects.filter(user_id=user_id, date_updated__date=date_updated).update(is_viewed=1)
@@ -82,7 +97,6 @@ def patient_report_modal(request, user_id, date_updated):
             return HttpResponse(render_to_string('status/patient-report-modal.html', context={
                 'user_id': user_id,
                 'date': date_updated,
-                'report_symptom_list': report_symptom_list,
                 'is_staff': request.user.is_staff,
                 'is_flagged': is_patient_flagged,
                 'patient_name': report_symptom_list[0]['user__first_name'] + ' ' + report_symptom_list[0][
@@ -94,14 +108,10 @@ def patient_report_modal(request, user_id, date_updated):
 
 @login_required
 @never_cache
-def patient_reports_table(request):
-    doctor = request.user
+def patient_reports_modal_table(request, user_id, date_updated):
+    report_symptom_list = return_symptom_list(user_id, date_updated)
 
-    patient_ids = list(doctor.staff.get_assigned_patient_users().values_list("id", flat=True))
-
-    reports = return_reports(patient_ids)
-
-    serialized_reports = json.dumps({'data': list(reports)}, cls=DjangoJSONEncoder, default=str)
+    serialized_reports = json.dumps({'data': list(report_symptom_list)}, cls=DjangoJSONEncoder, default=str)
 
     return HttpResponse(serialized_reports, content_type='application/json')
 
