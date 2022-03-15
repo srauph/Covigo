@@ -72,6 +72,10 @@ $(document).ready(function () {
         validateStartEndDate();
     });
 
+    $('#availability-select').change(function(){
+       validateSelectedAvailabilities();
+    });
+
     function validateStartEndDate(){
         let startDate = $('#id_start_date').val();
         let endDate = $('#id_end_date').val();
@@ -200,8 +204,19 @@ $(document).ready(function () {
         }
     }
 
+    function validateSelectedAvailabilities(){
+        let availabilities_selected = $('#availability-select').val();
+        if (!availabilities_selected) {
+            $('#availability_error').removeClass('hidden');
+        }
+        else{
+            $('#availability_error').addClass('hidden');
+        }
+        return availabilities_selected;
+    }
+
     function validateForm(event) {
-        let valid = validateStartEndDate() && validateStartEndTime() && validateSlotDuration();
+        let valid = validateStartEndDate() && validateStartEndTime() && validateSlotDuration() && validateSelectedAvailabilities();
         if(!valid){
             event.preventDefault();
         }
