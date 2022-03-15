@@ -5,7 +5,7 @@
         $(document).ready(function () {
             $('#patient_reports_modal_table').DataTable({
                 "ajax": "{% url 'status:patient-report-modal-table' user_id date %}",
-                "bSort": false,
+                "searching": false,
                 responsive: true,
                 "draggable ": false,
                 stripeClasses: [],
@@ -18,24 +18,26 @@
                             '<span> <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round"stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' +
                             '</span><span>Resubmit</span></button>'
                     },
-
                 ],
                 "columnDefs": [
                     { // symptom__name
                         "targets": [0],
                         "visible": true,
+                        "searchable": false
                     },
                     { // data
                         "targets": [1],
                         "visible": true,
-                    },
-                ]
+                        "searchable": false
+                    }
+                ],
             });
-            $('#flag-button').on('click', function (e) {
+
+            jQuery('#flag-button').on('click', function (e) {
                 e.preventDefault();
-                $.ajax({
+                jQuery.ajax({
                     method: 'POST',
-                    url: $(this).attr('data-url'),
+                    url: jQuery(this).attr('data-url'),
                     data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
                     headers: {
                         "X-Requested-With": "XMLHttpRequest",
@@ -44,7 +46,7 @@
                     success: function (html) {
                         // Set the flag button text and data-url to the appropriate ones
                         let is_flagged = JSON.parse(html).is_flagged;
-                        $('#is-flagged-button-text').text(is_flagged === "True" ? "Unflag Patient" : "Flag Patient");
+                        jQuery('#is-flagged-button-text').text(is_flagged === "True" ? "Unflag Patient" : "Flag Patient");
                         let b = document.getElementById("flag-button");
                         if (is_flagged === "True") {
                             b.setAttribute("data-url", "{% url 'accounts:unflag_user' user_id %}");
@@ -55,6 +57,7 @@
                 });
             });
         });
+
     </script>
 {% endblock %}
 
