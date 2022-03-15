@@ -1,6 +1,6 @@
 import json
-from django.forms import formset_factory
-from django.shortcuts import render
+
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from appointments.forms import AvailabilityForm
@@ -24,6 +24,7 @@ def add_availabilities(request):
 
             if availability_form.is_valid():
 
+                # Get the selected week days from post request
                 availability_days = availability_form.cleaned_data.get('availability_days')
 
                 # Get the selected availability times from the post request
@@ -49,6 +50,22 @@ def add_availabilities(request):
                                 date_current.strftime('%Y/%m/%d ') + time.get('start'), '%Y/%m/%d %H:%M')
                             end_datetime_object = datetime.strptime(
                                 date_current.strftime('%Y/%m/%d ') + time.get('end'), '%Y/%m/%d %H:%M')
+
+                            # Fetch existing appointments at current date of the while loop
+                            existing_appointments_at_current_date = list(Appointment.objects.filter(
+                                start_date__year=date_current.year,
+                                start_date__month=date_current.month,
+                                start_date__day=date_current.day
+                            ).values('start_date', 'end_date'))
+
+                            # Check if availabilitiy collides with already existing appointment objects
+                            for existing_appt in existing_appointments_at_current_date:
+                                if existing_appt.get('start_date') <= start_datetime_object <= existing_appt.get(
+                                        'end_date') or existing_appt.get(
+                                        'start_date') <= end_datetime_object <= existing_appt.get('end_date'):
+                                    # Don't create Appointment objects
+                                    # TODO DISPLAY AN ERROR MESSAGE
+                                    return redirect('appointments:add_availabilities')
 
                             apt = Appointment.objects.create(staff=request.user, patient=None,
                                                              start_date=start_datetime_object,
