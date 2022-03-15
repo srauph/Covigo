@@ -134,7 +134,19 @@ def get_or_generate_patient_profile_qr(user_id):
         else:
             # Generate the qr code
             img: PilImage = make(data)
-            img.save("accounts/static/"+path)
+            img.save("accounts/static/" + path)
             return path
     else:
         return None
+
+
+def get_active_flag_count_from_patient(user_id):
+    """
+    Gets and returns the active flag count for a patient by staff.
+    @param user_id: patient user ID
+    @return: returns active flag count or else 0
+    """
+    try:
+        return Flag.objects.filter(patient_id=user_id, is_active=1).count()
+    except Exception:
+        return 0
