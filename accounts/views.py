@@ -220,7 +220,10 @@ def create_user(request):
             if has_email:
                 new_user.username = user_email
             else:
-                new_user.username = user_phone
+                if not User.objects.filter(username=user_phone).exists():
+                    new_user.username = user_phone
+                else:
+                    new_user.username = f"{user_phone}-{1 + User.objects.filter(username__startswith=user_phone).count()}"
 
             new_user.save()
             new_user.profile.phone_number = user_phone

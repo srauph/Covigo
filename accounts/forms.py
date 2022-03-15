@@ -101,10 +101,6 @@ class CreateProfileForm(ModelForm):
     def clean_phone_number(self):
         # TODO: Sanitize to a "valid" phone number like 5141112222
         cleaned_phone_number = self.cleaned_data.get("phone_number")
-        if cleaned_phone_number != "" and Profile.objects.filter(phone_number=cleaned_phone_number).exists():
-            raise ValidationError(
-                "Phone number already in use by another user."
-            )
         return cleaned_phone_number
 
 
@@ -237,10 +233,6 @@ class RegisterProfileForm(ModelForm):
             raise ValidationError(
                 "Please provide a phone number."
             )
-        if cleaned_phone_number != "" and Profile.objects.filter(phone_number=cleaned_phone_number).exclude(user=User.objects.get(id=self.user_id)).exists():
-            raise ValidationError(
-                "Phone number already in use by another user."
-            )
         return cleaned_phone_number
 
     def clean_address(self):
@@ -354,10 +346,6 @@ class EditProfileForm(ModelForm):
     def clean_phone_number(self):
         # TODO: Sanitize to a "valid" phone number like 5141112222
         cleaned_phone_number = self.cleaned_data.get("phone_number")
-        if cleaned_phone_number != "" and Profile.objects.filter(phone_number=cleaned_phone_number).exclude(user=User.objects.get(id=self.user_id)).exists():
-            raise ValidationError(
-                "Phone number already in use by another user."
-            )
         return cleaned_phone_number
 
 
