@@ -2,14 +2,53 @@
 {% load static %}
 
 {% block card %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        const labels = [
+            'January',
+            'February',
+            'March',
+            'April',
+            'May',
+            'June',
+        ];
+
+        const data = {
+            labels: labels,
+            datasets: [{
+                label: 'My First dataset',
+                backgroundColor: 'rgb(255, 99, 132)',
+                borderColor: 'rgb(255, 99, 132)',
+                data: [0, 10, 5, 2, 20, 30, 45],
+            }]
+        };
+
+        const config = {
+            type: 'line',
+            data: data,
+            options: {}
+        };
+    </script>
+
     <div class="flex items-center justify-center w-full h-full rounded border bg-green-100 border-green-200 hover:bg-green-200">
         <div class="px-4 py-2">
             <h1 class="font-bold text-2xl text-center">Daily New Recoveries</h1>
             <h1 class="font-light italic text-md text-center">(past 7 days, QC)</h1>
             <hr class="border-slate-400 my-2">
             <dix class="flex items-center justify-center">
-                <img src="{% static 'dashboard/qcrecoveriesog.png' %}" alt="Hospitalizations"/>
+                {#<img src="{% static 'dashboard/qcrecoveriesog.png' %}" alt="Hospitalizations"/>#}
+                <div>
+                    <canvas id="myChart"></canvas>
+                </div>
             </dix>
         </div>
     </div>
+
+    <script>
+        const myChart = new Chart(
+            document.getElementById('myChart'),
+            config
+        );
+    </script>
 {% endblock %}
