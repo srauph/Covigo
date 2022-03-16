@@ -5,6 +5,7 @@ import smtplib
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.db import IntegrityError
+from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -184,14 +185,60 @@ def set_username_to_blank(user):
         user.save()
 
 
-def get_active_flag_count_from_patient(user_id):
+def get_current_recovered_case_count():
     """
-    Gets and returns the active flag count for a patient by staff.
-    @param user_id: patient user ID
-    @return: returns active flag count or else 0
+    A recovered case is someone who HAD covid but later RECOVERED via NEGATIVE TEST
+    @return:
     """
-    try:
-        return Flag.objects.filter(patient_id=user_id, is_active=1).count()
-    except Exception:
-        return 0
+    confirmed = Q(is_confirmed=True)
+    negative = Q(is_negative=True)
+    return Patient.objects.filter(confirmed & negative).count()
 
+
+def get_current_positive_case_count():
+    """
+    A positive case is someone who HAS COVID and DID NOT TEST NEGATIVE YET
+    @return:
+    """
+    confirmed = Q(is_confirmed=True)
+    not_negative = Q(is_negative=False)
+    return Patient.objects.filter(confirmed & not_negative).count()
+
+
+def get_unconfirmed_and_negative_case_count():
+    """
+    This is for cases where someone NEVER HAD COVID and TESTED NEGATIVE, thus being "in the clear".
+    @return: The number of unconfirmed cases who tested negative
+    """
+    not_confirmed = Q(is_confirmed=False)
+    negative = Q(is_negative=True)
+    return Patient.objects.filter(not_confirmed & negative).count()
+
+
+def get_unconfirmed_and_must_test_case_count():
+    """
+    This is for cases where someone NEVER HAD COVID and DID NOT TEST YET, thus need ing to take a Covid test.
+    After their test, they will either become a confirmed case or an unconfirmed, negative case.
+    @return: The number of unconfirmed cases who must test
+    """
+    not_confirmed = Q(is_confirmed=False)
+    not_negative = Q(is_negative=False)
+    return Patient.objects.filter(not_confirmed & not_negative).count()
+
+
+def get_current_negative_case_count():
+    """
+    This is for all cases where someone's latest test is negative.
+    They may be an unconfirmed case who tested negative or a confirmed case who recovered from having Covid
+    @return: The number of cases whose most recent test was negative
+    """
+    return Patient.objects.filter(is_negative=True).count()
+
+
+def get_current_confirmed_case_count():
+    """
+    This is for all cases where someone is a confirmed case.
+    A confirmed case is anyone who has covid right now, or had Covid earlier and recovered.
+    @return: The total number of confirmed Covid cases
+    """
+    return Patient.objects.filter(is_confirmed=True).count()

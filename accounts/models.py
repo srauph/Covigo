@@ -29,8 +29,24 @@ class Staff(models.Model):
     def __str__(self):
         return f"{self.user}_staff"
 
+    def get_active_flag_count(self):
+        """
+        Gets and returns the active number of flags issued by this staff.
+        @return: returns active flag count or else 0
+        """
+        try:
+            return Flag.objects.filter(staff=self.user, is_active=True).count()
+        except:
+            return 0
 
 class Patient(models.Model):
+    """
+    is_confirmed: A confirmed patient is one who had covid, either now or previously.
+    is_negative: A negative patient is one who is proven to not have covid via a negative test.
+                 A patient who isn't negative either has covid or is a "probable case"
+    is_quarantining: A quarantining patient is one who is in isolation.
+                     This applies whether they have covid or not (eg living with someone with covid)
+    """
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
@@ -43,7 +59,7 @@ class Patient(models.Model):
         blank=True
     )
     is_confirmed = models.BooleanField(default=False)
-    is_recovered = models.BooleanField(default=False)
+    is_negative = models.BooleanField(default=False)
     is_quarantining = models.BooleanField(default=False)
     code = models.CharField(max_length=255)
 
@@ -52,6 +68,16 @@ class Patient(models.Model):
 
     def __str__(self):
         return f"{self.user}_patient"
+
+    def get_active_flag_count(self, staff_user):
+        """
+        Gets and returns the active flag count for a patient by staff.
+        @return: returns active flag count or else 0
+        """
+        try:
+            return Flag.objects.filter(patient=self.user, staff=staff_user, is_active=True).count()
+        except Exception:
+            return 0
 
 
 class Flag(models.Model):
