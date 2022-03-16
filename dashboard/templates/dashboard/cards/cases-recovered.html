@@ -17,7 +17,7 @@
         const data = {
             labels: {{ dates|safe }},
             datasets: [{
-                label: 'My First dataset',
+                label: 'Recovered Patients',
                 backgroundColor: 'rgb(255, 99, 132)',
                 borderColor: 'rgb(255, 99, 132)',
                 data: {{ numbers|safe }},
@@ -27,7 +27,13 @@
         const config = {
             type: 'line',
             data: data,
-            options: {}
+            options: {
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
         };
     </script>
 
