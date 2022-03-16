@@ -1,0 +1,154 @@
+{% extends "Covigo/base.html" %}
+
+{% block styles %}
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.4/css/jquery.dataTables.css">
+{% endblock %}
+
+{% block script %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script type="text/javascript" charset="utf8"
+            src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
+    <script>
+
+
+        $(document).ready(function () {
+            var table = $('#availabilities_list_table').DataTable();
+            let selected_weekdays = [];
+            $('.weekday-filter').click(function(){
+                let weekday = $(this).val();
+                if($(this).attr('data-selected') !== 'true'){
+                    $(this).addClass('bg-blue-600');
+                    $(this).attr('data-selected',true);
+                    selected_weekdays.push(weekday);
+                }else{
+                    $(this).removeClass('bg-blue-600');
+                    $(this).removeAttr('data-selected');
+                    selected_weekdays = selected_weekdays.filter(function(value, index, arr){
+                        return value !== weekday;
+                    })
+                }
+                let query = selected_weekdays.join('|');
+                filterByWeekday(table,query);
+            })
+        });
+
+        function filterByWeekday(table,weekdays){
+            console.log(weekdays);
+            if(weekdays !== ''){
+                table.column(4).search('^'+weekdays+'$',true,false).draw();
+            }else{
+                table.column(4).search("").draw();
+            }
+        }
+    </script>
+{% endblock %}
+
+{% block content %}
+
+
+    <div class="min-h-full bg-slate-100">
+        <div class="flex justify-between bg-slate-700">
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">Availabilities</h1>
+        </div>
+
+        <div class="bg-white shadow m-8 rounded-xl">
+            <div class="w-full flex justify-between items-center p-4">
+                <div class="flex">
+                    <span>Select one or any: </span>
+                    <button class="weekday-filter bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none border-r border-white"  value="Satruday">
+                        Saturday
+                    </button>
+                    <button class="weekday-filter bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Sunday">
+                        Sunday
+                    </button>
+                    <button class="weekday-filter bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Monday">
+                        Monday
+                    </button>
+                    <button class="weekday-filter bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Tuesday">
+                        Tuesday
+                    </button>
+                    <button class="weekday-filter bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Wednesday">
+                        Wednesday
+                    </button>
+                    <button class="weekday-filter bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Thursday">
+                        Thursday
+                    </button>
+                    <button class="weekday-filter bg-gray-600 text-white px-2 py-1 rounded-md  rounded-l-none" value="Friday">Friday
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="m-4">
+            <div class="m-4 p-4 bg-white shadow rounded-lg">
+                <table class="w-full table-auto text-left" id="availabilities_list_table">
+                    <thead>
+                    <tr class="border-b">
+                        {#                        Do we need ID here? #}
+                        {#                        <th class="p-2">ID</th>#}
+                        <th class="p-2"></th>
+                        <th class="p-2">Date</th>
+                        <th class="p-2">Start Time</th>
+                        <th class="p-2">End Time</th>
+                        <th class="p-2">Weekday</th>
+                        <th class="p-2">Status</th>
+                        <th class="p-2">Actions</th>
+                    </tr>
+                    </thead>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td>2022-03-03</td>
+                        <td>11:00</td>
+                        <td>12:00</td>
+                        <td>Monday</td>
+                        <td>Booked</td>
+                        <td></td>
+                    </tr>
+
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td>2022-03-03</td>
+                        <td>11:00</td>
+                        <td>12:00</td>
+                        <td>Monday</td>
+                        <td>Booked</td>
+                        <td></td>
+                    </tr>
+
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td>2022-03-03</td>
+                        <td>11:00</td>
+                        <td>12:00</td>
+                        <td>Saturday</td>
+                        <td>Booked</td>
+                        <td></td>
+                    </tr>
+
+
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td>2022-03-03</td>
+                        <td>11:00</td>
+                        <td>12:00</td>
+                        <td>Monday</td>
+                        <td>Booked</td>
+                        <td></td>
+                    </tr>
+
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td>2022-03-03</td>
+                        <td>11:00</td>
+                        <td>12:00</td>
+                        <td>Friday</td>
+                        <td>Booked</td>
+                        <td></td>
+                    </tr>
+
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
