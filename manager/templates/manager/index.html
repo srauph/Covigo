@@ -1,0 +1,102 @@
+{% extends "Covigo/base.html" %}
+
+{% block content %}
+    <div class="bg-slate-700 border-b">
+        <h1 class="text-2xl text-white font-semibold px-8 py-4">Manager</h1>
+    </div>
+
+    <div class="flex flex-col justify-between grow m-8 p-4 min-h-full bg-white shadow rounded-lg">
+        <div class="w-full flex flex-col gap-8 mb-8">
+            <div class="w-full">
+                <h2 class="p-2 text-2xl font-bold">Account Information</h2>
+                <hr>
+            </div>
+
+            <a href="{% url 'symptoms:index' %}">
+                <button type="button" class="bg-cyan-500 hover:bg-cyan-700 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                <span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                </span>
+                    <span>Manage Symptoms</span>
+                </button>
+            </a>
+
+            <div class="w-full max-w-2xl px-2">
+                <label>Phone Number:</label>
+                <div class="mt-1">
+                    {{ profile_form.phone_number }}
+                </div>
+                <div class="text-red-500 text-sm font-semibold">
+                    <div class="absolute">
+                        {{ profile_form.phone_number.errors }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full max-w-2xl px-2">
+                <label>User Type:</label>
+                <div class="mt-1">
+                    {{ user_form.is_staff }}
+                </div>
+                <div class="text-red-500 text-sm font-semibold">
+                    <div class="absolute">
+                        {{ user_form.is_staff.errors }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full max-w-2xl px-2">
+                <label>Role:</label>
+                <div class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400">
+                    {{ user_form.groups }}
+                </div>
+                <div class="text-red-500 text-sm font-semibold">
+                    <div class="absolute">
+                        {{ user_form.groups.errors }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="w-full mt-8 md:mt-0">
+            <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
+                <a href="{% url "accounts:list_users" %}">
+                    <button type="button" class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                    <span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                             stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </span>
+                        <span>Cancel</span>
+                    </button>
+                </a>
+                <button type="submit"
+                        class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                    <span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                             viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </span>
+                    <span>Create</span>
+                </button>
+                {# TODO: Implement Create and return #}
+                <button type="submit"
+                        class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                    <span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                             viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </span>
+                    <span>Create and Return</span>
+                </button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
