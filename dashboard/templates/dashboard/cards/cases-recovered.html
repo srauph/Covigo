@@ -39,7 +39,7 @@
             <dix class="flex items-center justify-center">
                 {#<img src="{% static 'dashboard/qcrecoveriesog.png' %}" alt="Hospitalizations"/>#}
                 <div>
-                    <canvas id="myChart"></canvas>
+                    <canvas id="recoveries" width="300" height="200"></canvas>
                 </div>
             </dix>
         </div>
@@ -47,7 +47,7 @@
 
     <script>
         const myChart = new Chart(
-            document.getElementById('myChart'),
+            document.getElementById('recoveries'),
             config
         );
     </script>
