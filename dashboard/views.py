@@ -4,10 +4,6 @@ from django.views.decorators.cache import never_cache
 
 import csv
 
-class MyData:
-    dates = []
-    amount = []
-
 
 @login_required
 @never_cache
@@ -17,11 +13,8 @@ def index(request):
         reader = csv.DictReader(recovered_patients_file)
         data = list(reader)
         recovered_patients_file.close()
-        print(data)
         dates = list(map(lambda x: x['Date'], data))
         numbers = list(map(lambda x: x['Number'], data))
-        print(dates)
-        print(numbers)
 
     except FileNotFoundError:
         # TODO: Handle no data yet existing.
