@@ -1,0 +1,51 @@
+{% extends "dashboard/card-base.html" %}
+{% load static %}
+
+{% block card %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        const recoveries_data = {
+            labels: {{ recoveries.dates|safe }},
+            datasets: [{
+                label: 'Recovered Patients',
+                backgroundColor: 'rgb(255, 99, 132)',
+                borderColor: 'rgb(255, 99, 132)',
+                data: {{ recoveries.numbers|safe }},
+            }]
+        };
+
+        const recoveries_config = {
+            type: 'line',
+            data: recoveries_data,
+            options: {
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        };
+    </script>
+
+    <div class="flex items-center justify-center w-full h-full rounded border bg-green-100 border-green-200 group-hover:bg-green-200">
+        <div class="px-4 py-2">
+            <h1 class="font-bold text-2xl text-center">Total Recoveries</h1>
+            <h1 class="font-light italic text-md text-center">(past 7 days, QC)</h1>
+            <hr class="border-slate-400 my-2">
+            <dix class="flex items-center justify-center">
+                {#<img src="{% static 'dashboard/qcrecoveriesog.png' %}" alt="Hospitalizations"/>#}
+                <div>
+                    <canvas id="recoveries" class="rounded bg-white group-hover:bg-slate-50" width="300" height="200"></canvas>
+                </div>
+            </dix>
+        </div>
+    </div>
+
+    <script>
+        const recoveries = new Chart(
+            document.getElementById('recoveries'),
+            recoveries_config
+        );
+    </script>
+{% endblock %}
