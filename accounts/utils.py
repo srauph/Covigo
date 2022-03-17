@@ -150,3 +150,15 @@ def get_active_flag_count_from_patient(user_id):
         return Flag.objects.filter(patient_id=user_id, is_active=1).count()
     except Exception:
         return 0
+
+
+def get_assigned_staff_id_by_patient_id(patient_id):
+    """
+    Returns the staff id of the assigned user for the patient.
+    @param patient_id: patient user id
+    @return: assigned staff id or else 0
+    """
+    try:
+        return Patient.objects.values_list('assigned_staff_id', flat=True).get(user_id=patient_id)
+    except Exception:
+        return 0
