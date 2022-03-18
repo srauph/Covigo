@@ -83,7 +83,7 @@
 
     <div class="min-h-full bg-slate-100">
         <div class="flex justify-between bg-slate-700">
-            <h1 class="text-2xl text-white font-semibold px-8 py-4">Availabilities</h1>
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">Available Appointments</h1>
         </div>
 
         <div class="bg-white shadow m-8 rounded-xl">
@@ -143,58 +143,50 @@
                         <th class="p-2">Actions</th>
                     </tr>
                     </thead>
+                    <tbody>
+                    {% for appointment in appointments %}
                     <tr>
                         <td><input type="checkbox"></td>
-                        <td>2022/03/01</td>
-                        <td>11:00</td>
-                        <td>12:00</td>
-                        <td>Monday</td>
-                        <td>Booked</td>
+                        <td>{{ appointment.start_date }}</td>
+                        <td>{{ appointment.start_date }}</td>
+                        <td>{{ appointment.end_created }}</td>
+                        <td>{{ appointment.patient }}</td>
+                        <td>{{ appointment.staff }}</td>
                         <td></td>
                     </tr>
-
-                    <tr>
-                        <td><input type="checkbox"></td>
-                        <td>2022/03/03</td>
-                        <td>11:00</td>
-                        <td>12:00</td>
-                        <td>Monday</td>
-                        <td>Booked</td>
-                        <td></td>
-                    </tr>
-
-                    <tr>
-                        <td><input type="checkbox"></td>
-                        <td>2022/03/03</td>
-                        <td>11:00</td>
-                        <td>12:00</td>
-                        <td>Saturday</td>
-                        <td>Booked</td>
-                        <td></td>
-                    </tr>
-
-
-                    <tr>
-                        <td><input type="checkbox"></td>
-                        <td>2022-03-08</td>
-                        <td>11:00</td>
-                        <td>12:00</td>
-                        <td>Monday</td>
-                        <td>Booked</td>
-                        <td></td>
-                    </tr>
-
-                    <tr>
-                        <td><input type="checkbox"></td>
-                        <td>2022/03/05</td>
-                        <td>11:00</td>
-                        <td>12:00</td>
-                        <td>Friday</td>
-                        <td>Booked</td>
-                        <td></td>
-                    </tr>
+                    {% endfor %}
+                    </tbody>
 
                 </table>
+            </div>
+            <div class="w-full mt-8 md:mt-0">
+                <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
+                    <a href="{% url "appointments:index" %}">
+                        <button type="button"
+                                class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                 stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </span>
+                            <span>Cancel</span>
+                        </button>
+                    </a>
+                    <button type="submit"
+                            class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1"
+                            name="submit">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                 viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </span>
+                        <span>Book selected appointments</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
