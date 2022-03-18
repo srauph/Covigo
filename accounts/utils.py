@@ -215,11 +215,11 @@ def get_unconfirmed_and_negative_case_count():
     return Patient.objects.filter(not_confirmed & negative).count()
 
 
-def get_unconfirmed_and_must_test_case_count():
+def get_unconfirmed_and_untested_count():
     """
     This is for cases where someone NEVER HAD COVID and DID NOT TEST YET, thus need ing to take a Covid test.
     After their test, they will either become a confirmed case or an unconfirmed, negative case.
-    @return: The number of unconfirmed cases who must test
+    @return: The number of unconfirmed cases whoa re still untested
     """
     not_confirmed = Q(is_confirmed=False)
     not_negative = Q(is_negative=False)

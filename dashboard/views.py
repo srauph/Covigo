@@ -2,47 +2,38 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 
-import csv
+from dashboard.utils import fetch_data_from_file, extract_daily_data
 
 
 @login_required
 @never_cache
 def index(request):
-    recoveries = fetch_data_from_file("dashboard/data/recovered_patients.csv")
+    confirmed = fetch_data_from_file("dashboard/data/confirmed_cases.csv")
+    daily_confirmed = extract_daily_data(confirmed)
+
+    current_positives = fetch_data_from_file("dashboard/data/positive_cases.csv")
+    daily_positives = extract_daily_data(current_positives)
+
+    recoveries = fetch_data_from_file("dashboard/data/recovered_cases.csv")
     daily_recoveries = extract_daily_data(recoveries)
-    cumulative_positives = fetch_data_from_file("dashboard/data/recovered_patients.csv")
+
+    unconfirmed_negative = fetch_data_from_file("dashboard/data/unconfirmed_negative.csv")
+    daily_unconfirmed_negative = extract_daily_data(unconfirmed_negative)
+
+    unconfirmed_untested = fetch_data_from_file("dashboard/data/unconfirmed_untested.csv")
+    daily_unconfirmed_untested = extract_daily_data(unconfirmed_untested)
 
     return render(request, 'dashboard/index.html', {
+        "confirmed": confirmed,
+        "daily_confirmed": daily_confirmed,
+        "current_positives": current_positives,
+        "daily_positives": daily_positives,
         "recoveries": recoveries,
         "daily_recoveries": daily_recoveries,
-        # "recoveries": {"dates": recoveries[0], "numbers": recoveries[1]},
-        # "recoveries": {"dates": recoveries[0], "numbers": recoveries[1]},
-        # "recoveries": {"dates": recoveries[0], "numbers": recoveries[1]},
-        # "recoveries": {"dates": recoveries[0], "numbers": recoveries[1]},
-        # "recoveries": {"dates": recoveries[0], "numbers": recoveries[1]},
-        # "recoveries": {"dates": recoveries[0], "numbers": recoveries[1]},
-        # "recoveries": {"dates": recoveries[0], "numbers": recoveries[1]},
+        "unconfirmed_negative": unconfirmed_negative,
+        "daily_unconfirmed_negative": daily_unconfirmed_negative,
+        "unconfirmed_untested": unconfirmed_untested,
+        "unconfirmed_untested": daily_unconfirmed_untested,
     })
 
 
-def fetch_data_from_file(file_name, date_header_name="Date", number_header_name="Number"):
-    try:
-        opened_file = open(file_name, "r")
-        reader = csv.DictReader(opened_file)
-        data = list(reader)
-        opened_file.close()
-        dates = list(map(lambda x: x[date_header_name], data))
-        numbers = list(map(lambda x: x[number_header_name], data))
-
-        return {"dates": dates, "numbers": numbers}
-
-    except FileNotFoundError:
-        # TODO: Handle no data yet existing.
-        pass
-
-
-def extract_daily_data(data):
-    dates = data["dates"]
-    cumulative_numbers = data["numbers"]
-    daily_numbers = list(map(lambda n1, n2: str(int(n2)-int(n1)), cumulative_numbers[:-1], cumulative_numbers[1:]))
-    return {"dates": dates[1:], "numbers": daily_numbers}

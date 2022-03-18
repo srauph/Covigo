@@ -8,9 +8,9 @@
         const daily_recoveries_data = {
             labels: {{ daily_recoveries.dates|safe }},
             datasets: [{
-                label: 'Recovered Patients',
-                backgroundColor: 'rgb(255, 99, 132)',
-                borderColor: 'rgb(255, 99, 132)',
+                label: 'Change',
+                backgroundColor: 'rgb(74, 222, 128)',
+                borderColor: 'rgb(74, 222, 128)',
                 data: {{ daily_recoveries.numbers|safe }},
             }]
         };
@@ -28,15 +28,15 @@
         };
     </script>
 
-    <div class="flex items-center justify-center w-full h-full rounded border bg-green-100 border-green-200 group-hover:bg-green-200">
+    <div class="flex items-center justify-center w-full h-full rounded-md shadow bg-green-100 group-hover:bg-green-200">
         <div class="px-4 py-2">
-            <h1 class="font-bold text-2xl text-center">New Recoveries by Day</h1>
-            <h1 class="font-light italic text-md text-center">(past 7 days, QC)</h1>
+            <h2 class="font-bold text-xl text-center">Recoveries (Daily Change)</h2>
+            <h3 class="font-light text-sm text-center text-gray-600">(Relative to previous day, since {{ daily_recoveries.dates.0 }})</h3>
             <hr class="border-slate-400 my-2">
             <dix class="flex items-center justify-center">
                 {#<img src="{% static 'dashboard/qcrecoveriesog.png' %}" alt="Hospitalizations"/>#}
                 <div>
-                    <canvas id="daily_recoveries" class="rounded bg-white group-hover:bg-slate-50" width="300" height="200"></canvas>
+                    <canvas id="daily_recoveries" class="rounded shadow bg-white group-hover:bg-slate-50" width="300" height="200"></canvas>
                 </div>
             </dix>
         </div>

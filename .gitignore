@@ -9,3 +9,4 @@ tailwind/node_modules/
 tailwind/*.json
 typescript
 qrs/
+dashboard/data/
