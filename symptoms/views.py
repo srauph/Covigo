@@ -117,55 +117,48 @@ def assign_symptom(request, user_id):
     assigned_symptoms = patient.symptoms.all()
     patient_information = patient.patient
 
+    earliest_due_date, latest_due_date = get_remaining_start_end_due_dates(user_id)
+    if latest_due_date is None:
+        allow_editing = False
+    else:
+        allow_editing = datetime.now() < latest_due_date
+
     # Ensure this is a post request
     if request.method == 'POST':
 
         # Get the action of the button
         action = str(request.POST.get('button-action'))
 
-        # Ensure this was the action of assigning symptoms
-        if action == 'assign':
+        # Ensure this was the action of assigning symptoms or updating
+        if action == 'assign' or action == 'update':
+            symptom_list = request.POST.getlist('symptom')
+
             # Assigns symptoms selected for patient
-            date = datetime.strptime(request.POST['starting_date'], '%Y-%m-%dT%H:%M')
+            if action == 'assign':
+                starting_date = datetime.strptime(request.POST['starting_date'], '%Y-%m-%dT%H:%M')
+                interval = int(request.POST.get('interval'))
+            else:  # Update
+                starting_date = latest_due_date.replace(day=earliest_due_date.day)
+                interval = (latest_due_date.day - earliest_due_date.day) + 1
 
-            interval = int(request.POST.get('interval'))
             while interval != 0:
-                for symptom_id in request.POST.getlist('symptom'):
-                    assign_symptom_to_user(symptom_id, user_id, date)
+                for symptom_id in symptom_list:
+                    assign_symptom_to_user(symptom_id, user_id, starting_date)
                 interval = interval - 1
-                date = date + timedelta(days=1)
+                starting_date = starting_date + timedelta(days=1)
 
-            # Assigns quarantine status for patient
-            quarantine_status_changed = request.POST.get('should_quarantine') is not None
-            if patient_information.is_quarantining is not quarantine_status_changed:
-                patient_information.is_quarantining = quarantine_status_changed
-                patient_information.save()
-        else:
             if action == 'update':
-
-                # TODO remove ' '
-                updated_symptom_list: list = request.POST.getlist('symptom')
-                earliest_due_date, latest_due_date = get_remaining_start_end_due_dates(user_id)
-
-                # Assigned new symptoms
-                # TODO merge duplicate code with the assign one
-                if latest_due_date is not None:
-                    interval = (latest_due_date.day - earliest_due_date.day) + 1
-                    due_date = latest_due_date.replace(day=earliest_due_date.day)
-
-                    while interval != 0:
-                        for symptom_id in updated_symptom_list:
-                            assign_symptom_to_user(symptom_id, user_id, due_date)
-                        interval = interval - 1
-                        due_date = due_date + timedelta(days=1)
-                    print("it's not none")
-                else:
-                    print("it's none")
-
                 # delete old symptoms with data=null that are no longer assigned
                 query = PatientSymptom.objects.filter(
-                    Q(user_id=user_id) & Q(data=None) & ~Q(symptom_id__in=updated_symptom_list))
+                    Q(user_id=user_id) & Q(data=None) & ~Q(symptom_id__in=symptom_list))
                 query.delete()
+
+            if action == 'assign':
+                # Assigns quarantine status for patient
+                quarantine_status_changed = request.POST.get('should_quarantine') is not None
+                if patient_information.is_quarantining is not quarantine_status_changed:
+                    patient_information.is_quarantining = quarantine_status_changed
+                    patient_information.save()
 
         return redirect('accounts:list_users')
 
@@ -176,7 +169,7 @@ def assign_symptom(request, user_id):
         'patient_name': patient_name,
         'patient_is_quarantining': patient_information.is_quarantining,
         # TODO real method
-        'allow_editing': True,
+        'allow_editing': allow_editing,
     })
 
 
