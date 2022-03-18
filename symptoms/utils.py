@@ -36,27 +36,15 @@ def assign_symptom_to_user(symptom_id, user_id, due_date):
         patient_symptom.save()
 
 
-def get_latest_symptom_due_date(user_id):
+def get_remaining_start_end_due_dates(user_id):
     """
-    Gets the latest symptom due date a patient must report by.
+    Gets the earliest and latest symptom due date with data=None (null).
     @param user_id: user id
     @return: latest datetime if it exists otherwise None
     """
     try:
-        return PatientSymptom.objects.filter(Q(user_id=user_id) & Q(data=None)).aggregate(Max('due_date'))[
-            'due_date__max']
-    except Exception:
-        return None
-
-
-def get_earliest_symptom_due_date(user_id):
-    """
-    Gets the earliest symptom is due by.
-    @param user_id: user id
-    @return: earliest datetime if it exists otherwise None
-    """
-    try:
-        return PatientSymptom.objects.filter(Q(user_id=user_id) & Q(data=None)).aggregate(Min('due_date'))[
-            'due_date__min']
+        query = PatientSymptom.objects.filter(Q(user_id=user_id) & Q(data=None)).aggregate(Min('due_date'),
+                                                                                           Max('due_date'))
+        return query['due_date__min'], query['due_date__max']
     except Exception:
         return None
