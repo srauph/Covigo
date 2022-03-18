@@ -162,7 +162,10 @@ def assign_symptom(request, user_id):
                 else:
                     print("it's none")
 
-                # delete old symptoms with data=null
+                # delete old symptoms with data=null that are no longer assigned
+                query = PatientSymptom.objects.filter(
+                    Q(user_id=user_id) & Q(data=None) & ~Q(symptom_id__in=updated_symptom_list))
+                query.delete()
 
         return redirect('accounts:list_users')
 
