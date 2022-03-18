@@ -1,18 +1,42 @@
 {% extends "Covigo/base.html" %}
 
 {% block styles %}
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/rowreorder/1.2.8/css/rowReorder.dataTables.min.css">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.dataTables.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css"/>
+    <style>
+        table.display tbody tr:nth-child(odd):hover td,
+        table.display tbody tr:nth-child(even):hover td {
+            background-color: rgb(226 232 240) !important;
+        }
+
+        table.dataTable.dtr-inline.collapsed > tbody > tr > td.dtr-control:before,
+        table.dataTable.dtr-inline.collapsed > tbody > tr > th.dtr-control:before {
+            background-color: rgb(6 182 212) !important;
+        }
+
+        #patient_reports_modal_table.dataTable.nowrap th, table.dataTable.nowrap td {
+            white-space: normal !important;
+        }
+    </style>
 {% endblock %}
 
 {% block script %}
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
-            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/rowreorder/1.2.8/js/dataTables.rowReorder.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 
     <script>
-        $(document).on('click', '.report-modal-link', function (e) {
-            let row = $(this).closest('tr');
+        jQuery(document).on('click', '.report-modal-link', function (e) {
+            let row = jQuery(this).closest('tr');
             let date_updated = row.attr('data-date-updated');
             let user_id = row.attr('data-user-id');
 
@@ -22,7 +46,7 @@
 
             e.preventDefault();
             this.blur();
-            $.ajax({
+            jQuery.ajax({
                 method: 'POST',
                 url: url,
                 data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
@@ -47,14 +71,12 @@
 
         setInterval(() => {
             duration = moment.duration(duration - interval);
-            if (duration == 1) {
+            if (duration === 1) {
                 location.reload()
             }
-            countdown.innerText = duration.hours() + ":" + duration.minutes() + ":" + duration.seconds()
+            countdown.innerText = duration.hours() + ":" + duration.minutes() + ":" + duration.seconds();
         }, interval);
-
-        countdown.innerText = duration.hours() + ":" + duration.minutes() + ":" + duration.seconds()
-
+        countdown.innerText = duration.hours() + ":" + duration.minutes() + ":" + duration.seconds();
     </script>
 
 {% endblock %}

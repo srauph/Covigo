@@ -37,6 +37,7 @@ $(document).ready(function () {
             validateStartEndTime();
             validateSlotDuration();
             generateAvailabilities();
+            validateSelectedAvailabilities();
         }
     });
 
@@ -51,6 +52,7 @@ $(document).ready(function () {
             validateStartEndTime();
             validateSlotDuration();
             generateAvailabilities();
+            validateSelectedAvailabilities();
         }
     });
 
@@ -189,7 +191,7 @@ $(document).ready(function () {
                     end: endTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', hour12: false})
                 };
                 availabilities.push({
-                    text: getTimeAMPMString(currentTime) + ' ' + getTimeAMPMString(endTime),
+                    text: getTimeAMPMString(currentTime) + '-' + getTimeAMPMString(endTime),
                     data: timeData
                 });
                 //increment to next availability
@@ -203,11 +205,11 @@ $(document).ready(function () {
                 $('.availability-select2').append($('<option>', {
                     name: 'availability_select',
                     value: JSON.stringify(item.data),
-                    text: item.text
+                    text: item.text,
+                    selected: 'selected'
                 }));
             });
 
-            $('.availability-select2').select2();
         }
     }
 
@@ -234,7 +236,9 @@ $(document).ready(function () {
         validateForm(event)
     });
 
-    $('.availability-select2').select2();
+    $('.availability-select2').select2({
+        placeholder: 'Please select availabilities for patients to book appointments'
+    });
 
     $('.message_close_button').click(function(){
         $('#message_box').addClass('hidden')
