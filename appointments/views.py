@@ -64,8 +64,7 @@ def add_availabilities(request):
                             for existing_appt in existing_appointments_at_current_date:
                                 if existing_appt.get('start_date') < start_datetime_object < existing_appt.get(
                                         'end_date') or existing_appt.get(
-
-                                    'start_date') <= end_datetime_object <= existing_appt.get('end_date'):
+                                    'start_date') < end_datetime_object < existing_appt.get('end_date'):
                                     # Don't create Appointment objects and display error message
                                     messages.error(request,
                                                    'The availability was not created. There already exists an appointment or availability between ' + start_datetime_object.strftime(
