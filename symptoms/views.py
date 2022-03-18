@@ -9,7 +9,8 @@ from symptoms.models import Symptom, PatientSymptom
 from symptoms.forms import CreateSymptomForm
 from django.contrib import messages
 
-from symptoms.utils import assign_symptom_to_user, get_remaining_start_end_due_dates
+from symptoms.utils import assign_symptom_to_user, get_latest_reporting_due_date, get_earliest_reporting_due_date, \
+    is_symptom_editing_allowed
 
 
 @login_required
@@ -117,11 +118,7 @@ def assign_symptom(request, user_id):
     assigned_symptoms = patient.symptoms.all()
     patient_information = patient.patient
 
-    earliest_due_date, latest_due_date = get_remaining_start_end_due_dates(user_id)
-    if latest_due_date is None:
-        allow_editing = False
-    else:
-        allow_editing = datetime.now() < latest_due_date
+    allow_editing = is_symptom_editing_allowed(user_id)
 
     # Ensure this is a post request
     if request.method == 'POST':
@@ -138,6 +135,9 @@ def assign_symptom(request, user_id):
                 starting_date = datetime.strptime(request.POST['starting_date'], '%Y-%m-%dT%H:%M')
                 interval = int(request.POST.get('interval'))
             else:  # Update
+                earliest_due_date = get_earliest_reporting_due_date(user_id)
+                latest_due_date = get_latest_reporting_due_date(user_id)
+
                 starting_date = latest_due_date.replace(day=earliest_due_date.day)
                 interval = (latest_due_date.day - earliest_due_date.day) + 1
 
@@ -168,7 +168,6 @@ def assign_symptom(request, user_id):
         'patient': patient,
         'patient_name': patient_name,
         'patient_is_quarantining': patient_information.is_quarantining,
-        # TODO real method
         'allow_editing': allow_editing,
     })
 

@@ -1,4 +1,5 @@
 from django.db.models import Count, Q, Max, Min
+from django.utils.datetime_safe import datetime
 
 from symptoms.models import PatientSymptom
 
@@ -36,15 +37,41 @@ def assign_symptom_to_user(symptom_id, user_id, due_date):
         patient_symptom.save()
 
 
-def get_remaining_start_end_due_dates(user_id):
+def get_earliest_reporting_due_date(user_id):
     """
-    Gets the earliest and latest symptom due date with data=None (null).
+    Gets the earliest symptom report due date with data=None (null).
     @param user_id: user id
     @return: latest datetime if it exists otherwise None
     """
     try:
-        query = PatientSymptom.objects.filter(Q(user_id=user_id) & Q(data=None)).aggregate(Min('due_date'),
-                                                                                           Max('due_date'))
-        return query['due_date__min'], query['due_date__max']
+        return PatientSymptom.objects.filter(Q(user_id=user_id) & Q(data=None)).aggregate(Min('due_date'))[
+            'due_date__min']
     except Exception:
         return None
+
+
+def get_latest_reporting_due_date(user_id):
+    """
+    Gets the latest symptom report due date with data=None (null).
+    @param user_id: user id
+    @return: latest datetime if it exists otherwise None
+    """
+    try:
+        return PatientSymptom.objects.filter(Q(user_id=user_id) & Q(data=None)).aggregate(Max('due_date'))[
+            'due_date__max']
+    except Exception:
+        return None
+
+
+def is_symptom_editing_allowed(user_id):
+    """
+    Checks if the doctor is allowed to edit a users symptoms.
+    It ensures that there is an existing due date with data=null in the future.
+    @param user_id: user id of the patient
+    @return: true if allowed, false otherwise
+    """
+    latest_due_date = get_latest_reporting_due_date(user_id)
+    if latest_due_date is None:
+        return False
+    else:
+        return datetime.now() < latest_due_date
