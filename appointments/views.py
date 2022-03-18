@@ -4,6 +4,8 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
+
+from accounts.utils import get_assigned_staff_id_by_patient_id
 from appointments.forms import AvailabilityForm
 from datetime import datetime, timedelta
 from appointments.models import Appointment
@@ -12,7 +14,11 @@ from appointments.models import Appointment
 @login_required
 @never_cache
 def index(request):
-    return render(request, 'appointments/index.html')
+    staff_id = get_assigned_staff_id_by_patient_id(request.user.id)
+    booked_appointments = Appointment.objects.filter(patient=request.user.id, staff=staff_id)
+    return render(request, 'appointments/index.html', {
+        'booked_appointments': booked_appointments
+    })
 
 
 @login_required
@@ -63,9 +69,7 @@ def add_availabilities(request):
                             for existing_appt in existing_appointments_at_current_date:
                                 if existing_appt.get('start_date') < start_datetime_object < existing_appt.get(
                                         'end_date') or existing_appt.get(
-                                  
                                     'start_date') <= end_datetime_object <= existing_appt.get('end_date'):
-
                                     # Don't create Appointment objects and display error message
                                     messages.error(request,
                                                    'The availability was not created. There already exists an appointment or availability between ' + start_datetime_object.strftime(
@@ -89,5 +93,12 @@ def add_availabilities(request):
         })
 
 
+@login_required
+@never_cache
 def list_availabilities(request):
-    return render(request, 'appointments/availabilities.html')
+    staff_id = get_assigned_staff_id_by_patient_id(request.user.id)
+    print("staff id", staff_id)
+    print("user id ", request.user.id)
+    return render(request, 'appointments/availabilities.html', {
+        'appointments': Appointment.objects.filter(patient=None, staff=staff_id).all()
+    })

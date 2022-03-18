@@ -6,17 +6,19 @@
             <div class="grow flex-col xl:flex-row xl:w-1/3">
                 <div class="m-4">
                     <a href="{% url 'appointments:add_availabilities'%}">
-                    <button class="w-full px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white text-2xl font-bold">
-                        <h2>Add availabilities</h2>
-                    </button>
+                        <button class="w-full px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white text-2xl font-bold">
+                            <h2>Add availabilities</h2>
+                        </button>
                     </a>
                 </div>
                 <hr class="mx-4 border-slate-400">
 
                 <div class="m-4">
-                    <button class="w-full px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white text-2xl font-bold">
-                        <h2>Book an appointment</h2>
-                    </button>
+                    <a href = "{%  url 'appointments:list_availabilities' %}" >
+                        <button class="w-full px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white text-2xl font-bold">
+                            <h2>Book an appointment</h2>
+                        </button>
+                    </a>
                 </div>
                 <hr class="mx-4 border-slate-400">
                 <div class="block m-4 p-4 rounded bg-slate-200 text-slate-800 text-center text-lg font-semibold">
@@ -24,10 +26,9 @@
                     <hr class="my-2 border-slate-400">
                     <div class="text-left text-lg font-normal xl:w-96">
                         <ul class="px-8 list-disc">
-                            <li>date time place</li>
-                            <li>date time place</li>
-                            <li>date time place</li>
-                            <li>date time place</li>
+                            {% for appt in booked_appointments %}
+                            <li> {{ appt.start_date }} </li>
+                            {% endfor %}
                         </ul>
                     </div>
                 </div>
