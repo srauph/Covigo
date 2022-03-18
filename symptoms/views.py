@@ -115,9 +115,11 @@ def assign_symptom(request, user_id):
         patient_name = patient
     else:
         patient_name = f"{patient.first_name} {patient.last_name}"
-    assigned_symptoms = patient.symptoms.all()
+        
+    assigned_symptoms = patient.symptoms.all().filter(patient_symptoms__data=None)
     patient_information = patient.patient
 
+    # Check if Assign Symptom can be treated as Editing instead
     allow_editing = is_symptom_editing_allowed(user_id)
 
     # Ensure this is a post request
