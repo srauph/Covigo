@@ -242,3 +242,15 @@ def get_current_confirmed_case_count():
     @return: The total number of confirmed Covid cases
     """
     return Patient.objects.filter(is_confirmed=True).count()
+
+
+def get_assigned_staff_id_by_patient_id(patient_id):
+    """
+    Returns the staff id of the assigned user for the patient.
+    @param patient_id: patient user id
+    @return: assigned staff id or else 0
+    """
+    try:
+        return Patient.objects.values_list('assigned_staff_id', flat=True).get(user_id=patient_id)
+    except Exception:
+        return 0
