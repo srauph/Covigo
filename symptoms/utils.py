@@ -1,4 +1,4 @@
-from django.db.models import Count, Q, Max
+from django.db.models import Count, Q, Max, Min
 
 from symptoms.models import PatientSymptom
 
@@ -45,5 +45,18 @@ def get_latest_symptom_due_date(user_id):
     try:
         return PatientSymptom.objects.filter(Q(user_id=user_id) & Q(data=None)).aggregate(Max('due_date'))[
             'due_date__max']
+    except Exception:
+        return None
+
+
+def get_earliest_symptom_due_date(user_id):
+    """
+    Gets the earliest symptom is due by.
+    @param user_id: user id
+    @return: earliest datetime if it exists otherwise None
+    """
+    try:
+        return PatientSymptom.objects.filter(Q(user_id=user_id) & Q(data=None)).aggregate(Min('due_date'))[
+            'due_date__min']
     except Exception:
         return None
