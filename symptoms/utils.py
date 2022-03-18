@@ -24,7 +24,7 @@ def symptom_count_by_id(symptom_id_list):
 
 def assign_symptom_to_user(symptom_id, user_id, due_date):
     """
-    Assigns a symptom to a user with a by a specific due date.
+    Assigns a symptom to a user with a by a specific due date,but will ignore already existing symptom ids.
     @param symptom_id: the symptom's id
     @param user_id: the user id being assigned a symptom
     @param due_date: due date of the symptom
@@ -36,13 +36,14 @@ def assign_symptom_to_user(symptom_id, user_id, due_date):
         patient_symptom.save()
 
 
-def get_last_symptom_due_date(user_id):
+def get_latest_symptom_due_date(user_id):
     """
     Gets the latest symptom due date a patient must report by.
     @param user_id: user id
     @return: latest datetime if it exists otherwise None
     """
     try:
-        return PatientSymptom.objects.filter(Q(user_id=user_id) & Q(data=None)).aggregate(Max('due_date'))
+        return PatientSymptom.objects.filter(Q(user_id=user_id) & Q(data=None)).aggregate(Max('due_date'))[
+            'due_date__max']
     except Exception:
         return None

@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 from django.contrib.auth.models import User
+from django.db.models import Q
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
@@ -8,7 +9,7 @@ from symptoms.models import Symptom, PatientSymptom
 from symptoms.forms import CreateSymptomForm
 from django.contrib import messages
 
-from symptoms.utils import assign_symptom_to_user
+from symptoms.utils import assign_symptom_to_user, get_latest_symptom_due_date
 
 
 @login_required
@@ -141,17 +142,29 @@ def assign_symptom(request, user_id):
                 patient_information.save()
         else:
             if action == 'update':
-                updated_symptom_list = request.POST.getlist('symptom')
-                # Assign the new symptoms
-                # for symptom_id in updated_symptom_list:
-                    # assign_symptom_to_user(symptom_id, user_id, date)
 
-                # Delete the unassigned symptoms that do not need to be reported anymore
-                # print(updated_symptom_list)
-                # query = PatientSymptom.objects.filter(
-                #     Q(user_id=patient.id) & Q(data=None) & ~Q(symptom_id__in=updated_symptom_list))
-                # print(query.query)
-                # print(query)
+                # TODO remove ' '
+                updated_symptom_list: list = request.POST.getlist('symptom')
+                latest_due_date: datetime = get_latest_symptom_due_date(user_id)
+
+                # Assigned new symptoms
+                # TODO merge duplicate code with the assign one
+                if not latest_due_date is None:
+                    current_date: datetime = datetime.now()
+                    interval = (latest_due_date.day - current_date.day) + 1
+                    due_date = latest_due_date.replace(day=current_date.day)
+
+                    while interval != 0:
+                        for symptom_id in updated_symptom_list:
+                            assign_symptom_to_user(symptom_id, user_id, due_date)
+                        interval = interval - 1
+                        due_date = due_date + timedelta(days=1)
+                    print("it's not none")
+                else:
+                    print("it's none")
+
+                # delete old symptoms with data=null
+
         return redirect('accounts:list_users')
 
     return render(request, 'symptoms/assign_symptom.html', {
@@ -160,7 +173,7 @@ def assign_symptom(request, user_id):
         'patient': patient,
         'patient_name': patient_name,
         'patient_is_quarantining': patient_information.is_quarantining,
-        'allow_editing': False,
+        'allow_editing': True,
     })
 
 
