@@ -5,6 +5,7 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView, PasswordChangeView
 from django.core.exceptions import MultipleObjectsReturned
+from django.db.models import Q
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
@@ -20,6 +21,7 @@ from accounts.utils import (
     get_or_generate_patient_profile_qr,
     get_user_from_uidb64
 )
+from messaging.models import MessageGroup
 
 
 class GroupErrors:
@@ -212,8 +214,30 @@ def change_password_done(request):
 @never_cache
 def profile(request, user_id):
     user = User.objects.get(id=user_id)
-    image = get_or_generate_patient_profile_qr(user_id)
-    return render(request, 'accounts/profile.html', {"qr": image, "usr": user, "full_view": True})
+
+    # messages_filter = Q(author_id=user_id) | Q(recipient_id=user_id)
+    # message_group = MessageGroup.objects.filter(messages_filter).order_by('-date_updated')[:3]
+
+    if not user.is_staff:
+        qr = get_or_generate_patient_profile_qr(user_id)
+
+        return render(request, 'accounts/profile.html', {
+            "qr": qr,
+            "usr": user,
+            "full_view": True
+        })
+
+    else:
+        if user.staff.assigned_patients.count() > 0:
+            assigned_patients = user.staff.get_assigned_patient_users()
+        else:
+            assigned_patients = None
+        print(assigned_patients)
+        return render(request, 'accounts/profile.html', {
+            "assigned_patients": assigned_patients,
+            "usr": user,
+            "full_view": True
+        })
 
 
 @never_cache

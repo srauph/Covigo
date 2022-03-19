@@ -1,96 +1,135 @@
-{% extends "Covigo/base.html" %}
+{% extends full_view|yesno:"Covigo/base.html,Covigo/layout/guest.html" %}
+
 {% load static %}
+
 {% block content %}
-    <div class="container mx-auto my-5 p-5">
-        <div class="md:flex no-wrap md:-mx-2 ">
-            <!-- Left Side -->
-            <div class="w-full md:w-2/12 md:mx-2">
-                <!-- Profile Card -->
-                <div class="bg-white p-3 border-t-4 border-black">
-                    {% if not usr.is_staff %}
-                        <div class="image object-fill">
-                            <!-- QR Code Implementation -->
-                            <img src="{% static qr %}" alt="QR Code">
+
+    <div class="min-h-full bg-slate-100 {{ full_view|yesno:",flex justify-center items-center" }}">
+        <div class="flex md:-mx-2 {{ full_view|yesno:"flex-wrap p-8," }}">
+            <!-- Profile Card -->
+            <div class="w-full rounded-lg bg-white shadow flex flex-col {{ full_view|yesno:"xl:w-1/4,w-96" }}">
+                {% if not usr.is_staff %}
+                    <div class="flex justify-center">
+                        <div class="p-2 {{ full_view|yesno:"w-64 h-64," }}">
+                            <div class="image object-fill">
+                                <!-- QR Code Implementation -->
+                                <img src="{% static qr %}" alt="QR Code">
+                            </div>
                         </div>
-                    {% endif %}
-                    <!-- Patient Name and Patient Code -->
-                    <h1 class="text-gray-900 font-bold text-xl text-center pl-5">{{ usr.first_name }} {{ usr.last_name }}</h1>
-                    <h3 class="text-gray-900 font-bold text-sm text-center pl-5">{{ usr.patient.code }}</h3>
-                    <!-- Patient Status -->
-                    <ul class="bg-gray-100 text-gray-600 hover:text-gray-700 hover:shadow py-2 px-3 mt-3 divide-y rounded shadow-sm text-sm">
-                        <!-- Covid Status -->
-                        <li class="flex items-center py-3">
-                            <span>Covid Status</span>
-                            {% if usr.patient.is_confirmed %}
-                                <span class="ml-auto">
-                                    <span class="bg-red-600 py-1 px-2 rounded text-white text-sm">Confirmed</span>
-                                </span>
-                            {% elif usr.patient.is_recovered %}
-                                <span class="ml-auto">
-                                    <span class="bg-green-500 py-1 px-2 rounded text-white text-sm">Recovered</span>
-                                </span>
-                            {% else %}
-                                <span class="ml-auto">
-                                    <span class="bg-slate-700 py-1 px-2 rounded text-white text-sm">Unconfirmed</span>
-                                </span>
+                    </div>
+
+                    <div class="w-full p-4 border-t-4 border-black">
+                        <!-- Patient Name and Patient Code -->
+                        <h1 class="text-gray-900 font-bold text-xl text-center pl-5">{{ usr.first_name }} {{ usr.last_name }}</h1>
+                        <h3 class="text-gray-900 font-bold text-sm text-center pl-5">{{ usr.patient.code }}</h3>
+                        <!-- Patient Status -->
+                        <ul class="bg-gray-100 text-gray-600 hover:text-gray-700 hover:shadow py-2 px-3 mt-3 divide-y rounded shadow-sm text-sm">
+                            <!-- Covid Status -->
+                            <li class="flex items-center py-3">
+                                <span>Covid Status</span>
+                                {% if usr.patient.is_confirmed %}
+                                    <span class="ml-auto">
+                                        <span class="bg-red-600 py-1 px-2 rounded text-white text-sm">Confirmed</span>
+                                    </span>
+                                {% elif usr.patient.is_recovered %}
+                                    <span class="ml-auto">
+                                        <span class="bg-green-500 py-1 px-2 rounded text-white text-sm">Recovered</span>
+                                    </span>
+                                {% else %}
+                                    <span class="ml-auto">
+                                        <span class="bg-slate-700 py-1 px-2 rounded text-white text-sm">Unconfirmed</span>
+                                    </span>
+                                {% endif %}
+                            </li>
+                            <!-- Isolation Status -->
+                            <li class="flex items-center py-3">
+                                <span>Isolation Status</span>
+                                {% if usr.patient.is_quarantining %}
+                                    <span class="ml-auto">
+                                        <span class="bg-red-600 py-1 px-2 rounded text-white text-sm">In Isolation</span>
+                                    </span>
+                                {% else %}
+                                    <span class="ml-auto">
+                                        <span class="bg-green-500 py-1 px-2 rounded text-white text-sm">None</span>
+                                    </span>
+                                {% endif %}
+                            </li>
+                            <li class="flex items-center py-3">
+                                <button class="w-full bg-blue-600 p-2 text-white rounded">Download QR code</button>
+                            </li>
+                            {% if full_view %}
+                                <li class="flex items-center py-3">
+                                    <a href="{% url 'symptoms:assign_symptom' usr.id %}">
+                                        <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white pl-1 pr-2 py-1 rounded-md flex items-center gap-1">
+                                        <span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                 viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                                            </svg>
+                                        </span>
+                                            <span>Assign Symptoms</span>
+                                        </button>
+                                    </a>
+                                </li>
                             {% endif %}
-                        </li>
-                        <!-- Isolation Status -->
-                        <li class="flex items-center py-3">
-                            <span>Isolation Status</span>
-                            {% if usr.patient.is_quarantining %}
-                                <span class="ml-auto">
-                                    <span class="bg-red-600 py-1 px-2 rounded text-white text-sm">In Isolation</span>
-                                </span>
-                            {% else %}
-                                <span class="ml-auto">
-                                    <span class="bg-green-500 py-1 px-2 rounded text-white text-sm">None</span>
-                                </span>
-                            {% endif %}
-                        </li>
-                        <li class="flex items-center py-3">
-                            <button class="w-full bg-blue-600 p-2 text-white rounded">Download QR code</button>
-                        </li>
+                        </ul>
                         {% if full_view %}
-                        <li class="flex items-center py-3">
-                            <a href="{% url 'symptoms:assign_symptom' usr.id %}">
-                                <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white pl-1 pr-2 py-1 rounded-md flex items-center gap-1">
-                                    <span>
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                            <div class="my-4"></div>
+                            <div class="bg-white p-3 hover:shadow">
+                                <div class="flex items-center space-x-3 font-semibold text-gray-900 text-xl leading-8">
+                                <span class="text-green-500">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                         viewBox="0 0 24 24"
+                                         stroke="currentColor">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                </span>
+                                    <span>Assigned Doctor</span>
+                                </div>
+                                <div class="grid grid-cols-1">
+                                    <div class="text-center my-2">
+
+                                        <a href="#" class="text-main-color">Dr. John Doe</a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                {% else %}
+                    <div class="">
+                        <div>
+                            <div class="flex items-center space-x-2 font-semibold text-gray-900 leading-8 mb-3">
+                                    <span clas="text-green-500">
+                                        <svg class="h-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                             viewBox="0 0 24 24"
+                                             stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                         </svg>
                                     </span>
-                                    <span>Assign Symptoms</span>
-                                </button>
-                            </a>
-                        </li>
-                        {% endif %}
-                    </ul>
-                </div>
-                {% if full_view %}
-                <div class="my-4"></div>
-                <div class="bg-white p-3 hover:shadow">
-                    <div class="flex items-center space-x-3 font-semibold text-gray-900 text-xl leading-8">
-                        <span class="text-green-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                                 stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                            </svg>
-                        </span>
-                        <span>Assigned Doctor</span>
-                    </div>
-                    <div class="grid grid-cols-1">
-                        <div class="text-center my-2">
+                                <span class="tracking-wide">Assigned Patients</span>
+                            </div>
+                            <ul class="list-inside  divide-y">
 
-                            <a href="#" class="text-main-color">Dr. John Doe</a>
+                                {% for patient_user in assigned_patients %}
+
+                                    <li class="py-2">
+                                        {{ patient_user.first_name }} {{ patient_user.last_name }}
+                                    </li>
+
+                                {% endfor %}
+                            </ul>
                         </div>
                     </div>
-                </div>
                 {% endif %}
             </div>
+
+            <!-- Right side -->
             {% if full_view %}
-            <div class="w-full md:w-9/12 mx-2 h-64">
+                <div class="flex flex-col w-full xl:w-3/4 px-2">
                 <div class="bg-white p-3 shadow-sm rounded-sm">
                     <div class="flex items-center space-x-2 font-semibold text-gray-900 leading-8">
                         <span clas="text-green-500">
@@ -117,31 +156,31 @@
                     <!-- User/Patient Information -->
                     <div class="text-gray-700">
                         <div class="grid md:grid-cols-2 text-sm">
-                            <div class="grid grid-cols-2">
+                            <div class="grid grid-cols-3">
                                 <div class="px-4 py-2 font-semibold">First Name</div>
-                                <div class="px-4 py-2">{{ usr.first_name }}</div>
+                                <div class="px-4 py-2 col-span-2">{{ usr.first_name }}</div>
                             </div>
-                            <div class="grid grid-cols-2">
+                            <div class="grid grid-cols-3">
                                 <div class="px-4 py-2 font-semibold">Last Name</div>
-                                <div class="px-4 py-2">{{ usr.last_name }}</div>
+                                <div class="px-4 py-2 col-span-2">{{ usr.last_name }}</div>
                             </div>
-                            <div class="grid grid-cols-2">
+                            <div class="grid grid-cols-3">
                                 <div class="px-4 py-2 font-semibold">Contact No.</div>
-                                <div class="px-4 py-2">{{ usr.profile.phone_number }}</div>
+                                <div class="px-4 py-2 col-span-2">{{ usr.profile.phone_number }}</div>
                             </div>
-                            <div class="grid grid-cols-2">
+                            <div class="grid grid-cols-3">
                                 <div class="px-4 py-2 font-semibold">Current Address</div>
-                                <div class="px-4 py-2">{{ usr.profile.address}}</div>
+                                <div class="px-4 py-2 col-span-2">{{ usr.profile.address }}</div>
                             </div>
-                            <div class="grid grid-cols-2">
+                            <div class="grid grid-cols-3">
                                 <div class="px-4 py-2 font-semibold">Email.</div>
-                                <div class="px-4 py-2">
-                                    <a class="text-blue-800" href="mailto:{{usr.email}}">{{ usr.email}}</a>
+                                <div class="px-4 py-2 col-span-2">
+                                    <a class="text-blue-800" href="mailto:{{ usr.email }}">{{ usr.email }}</a>
                                 </div>
                             </div>
-                            <div class="grid grid-cols-2">
+                            <div class="grid grid-cols-3">
                                 <div class="px-4 py-2 font-semibold">Postal Code</div>
-                                <div class="px-4 py-2">
+                                <div class="px-4 py-2 col-span-2">
                                     <a class="">{{ usr.profile.postal_code }}</a>
                                 </div>
                             </div>
@@ -179,72 +218,11 @@
                                         <div class="text-teal-600">Feb 30, 2022 - 4 minutes ago</div>
                                     </li>
                                     <li class="py-2">
-                                        <div class=" "><a href="" class="text-blue-400">View All Status Updates</a></div>
+                                        <div class=" "><a href="" class="text-blue-400">View All Status Updates</a>
+                                        </div>
                                     </li>
 
                                 </ul>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white p-3  shadow-sm rounded-sm col-start-2 col-end-6">
-                        <div class="grid grid-cols-1">
-                            <div>
-                                <div class="flex items-center space-x-2 font-semibold text-gray-900 leading-8 mb-3">
-                                    <span clas="text-green-500">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                             viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/>
-                                        </svg>
-                                    </span>
-                                    <span class="tracking-wide">Latest Messages</span>
-                                    <a href="{% url 'messaging:list_messages' usr.id %}">
-                                        <button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-                                            <span>
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                                     viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                          d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
-                                                </svg>
-                                            </span>
-                                            <span>View All Messages</span>
-                                        </button>
-                                    </a>
-                                    {% if not usr.id == user.id %}
-                                        <a href="{% url 'messaging:compose_message' usr.id %}">
-                                            <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-                                                <span>
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                                         viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                                                    </svg>
-                                                </span>
-                                                <span>Message</span>
-                                            </button>
-                                        </a>
-                                    {% endif %}
-                                </div>
-                                <table class="table-auto w-full text-left">
-                                    <tr class="border-b">
-                                        <th class="p-2">Sender</th>
-                                        <th class="p-2">Subject</th>
-                                        <th class="p-2">Last Reply On</th>
-                                        <th class="p-2">Actions</th>
-                                    </tr>
-                                    <!-- Needs to be linked to messages -->
-                                    <tr class="hover:bg-gray-200 border-b">
-                                        <td class="p-2">John Doe</td>
-                                        <td class="p-2">Question about my Fever</td>
-                                        <td class="p-2">02/02/2022 22:22</td>
-                                        <td class="p-2">
-                                            <a href="{% url 'messaging:view_message' 3 %}">
-                                                <button class="bg-blue-600 text-white px-3 py-1 rounded-2xl hover:bg-blue-800 text-sm">
-                                                    View Message
-                                                </button>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </table>
                             </div>
                         </div>
                     </div>

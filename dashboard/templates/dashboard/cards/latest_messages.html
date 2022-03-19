@@ -1,0 +1,79 @@
+{% block latest_messages_modal %}
+    <div class="bg-white p-3  shadow-sm rounded-sm col-start-2 col-end-6">
+        <div class="grid grid-cols-1">
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center space-x-2 font-semibold text-gray-900 leading-8">
+                        <span clas="text-green-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                 viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/>
+                            </svg>
+                        </span>
+                        <span class="tracking-wide">Latest Messages</span>
+                    </div>
+
+                    <div class="flex gap-2">
+                        {% if not usr.id == user.id %}
+                            <a href="{% url 'messaging:compose_message' usr.id %}">
+                                <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                                    <span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                             viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                        </svg>
+                                    </span>
+                                    <span>Message</span>
+                                </button>
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'messaging:list_messages' usr.id %}">
+                            <button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                                <span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                         viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
+                                    </svg>
+                                </span>
+                                <span>View All Messages</span>
+                            </button>
+                        </a>
+                    </div>
+                </div>
+                <table class="table-auto w-full">
+                    <thead>
+                        <tr class="border-b text-left">
+                            <th class="p-2">Sender</th>
+                            <th class="p-2">Subject</th>
+                            <th class="p-2">Last Reply On</th>
+                            <th class="p-2"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for msg in message_group %}
+                        <tr class="hover:bg-slate-200 border-b">
+                            <td class="p-2">{{ msg.author.username }}</td>
+                            <td class="p-2">{{ msg.title }}</td>
+                            <td class="p-2">{{ msg.date_updated }}</td>
+                            <td class="flex justify-end gap-2 py-1">
+                                <a href="{% url 'messaging:view_message' msg.id %}">
+                                    <button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                                        <span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </span>
+                                        <span>View Message</span>
+                                    </button>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
