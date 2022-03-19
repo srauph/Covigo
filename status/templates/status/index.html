@@ -116,7 +116,7 @@
                         </button>
                     </a>
                 </div>
-                {% if report_exist %}
+                {% if is_reporting_today %}
                     <div class="text-red-600 font-bold">
                         You should submit your report with all requested data today by 11:59:59, remaining time: <span
                             id="countdown"></span>
@@ -150,13 +150,19 @@
                 <div class="m-4 p-4 bg-white shadow rounded-lg">
                     <table class="w-full">
                         <tr>
-                            <th class="border-b text-left p-2">Symptoms to report</th>
+                            <th class="border-b text-left p-2">Symptoms to Report Today</th>
                         </tr>
-                        {% for s in symptoms %}
+                        {% if is_reporting_today %}
+                            {% for s in symptoms %}
+                                <tr class="border-b ">
+                                    <td class="p-2">{{ s.symptom__name }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
                             <tr class="border-b ">
-                                <td class="p-2">{{ s.symptom__name }}</td>
+                                <td class="p-2">Nothing to report today.</td>
                             </tr>
-                        {% endfor %}
+                        {% endif %}
                     </table>
                 </div>
             </div>

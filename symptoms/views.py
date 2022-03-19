@@ -1,4 +1,3 @@
-import logging
 from datetime import datetime, timedelta
 
 from django.contrib.auth.models import User
@@ -9,6 +8,9 @@ from django.views.decorators.cache import never_cache
 from symptoms.models import Symptom, PatientSymptom
 from symptoms.forms import CreateSymptomForm
 from django.contrib import messages
+
+from symptoms.utils import assign_symptom_to_user, get_latest_reporting_due_date, get_earliest_reporting_due_date, \
+    is_symptom_editing_allowed, get_assigned_symptoms_from_patient
 
 
 @login_required
@@ -113,31 +115,52 @@ def assign_symptom(request, user_id):
         patient_name = patient
     else:
         patient_name = f"{patient.first_name} {patient.last_name}"
-    assigned_symptoms = patient.symptoms.all()
+
+    assigned_symptoms = get_assigned_symptoms_from_patient(patient)
     patient_information = patient.patient
 
+    # Check if Assign Symptom can be treated as Editing instead
+    allow_editing = is_symptom_editing_allowed(user_id)
+
+    # Ensure this is a post request
     if request.method == 'POST':
 
-        # Assigns symptoms selected for patient
-        date = datetime.strptime(request.POST['starting_date'], '%Y-%m-%dT%H:%M')
+        # Get the action of the button
+        action = str(request.POST.get('button-action'))
 
-        interval = int(request.POST.get('interval'))
-        while interval != 0:
-            for symptom_id in request.POST.getlist('symptom'):
-                filter1 = Q(symptom_id=symptom_id) & Q(user_id=patient.id) & Q(due_date=date)
-                # to not override the existing patient_symptom instance, will make it more robust in next sprints
-                if not PatientSymptom.objects.filter(filter1).exists():
-                    patient_symptom = PatientSymptom(symptom_id=symptom_id, user_id=patient.id, due_date=date)
-                    patient_symptom.save()
-                # TODO: we need to discuss the edit feature and the case when a doctor wants to remove a symptom from a patient.
-            interval = interval - 1
-            date = date + timedelta(days=1)
+        # Ensure this was the action of assigning symptoms or updating
+        if action == 'assign' or action == 'update':
+            symptom_list = request.POST.getlist('symptom')
 
-        # Assigns quarantine status for patient
-        quarantine_status_changed = request.POST.get('should_quarantine') is not None
-        if patient_information.is_quarantining is not quarantine_status_changed:
-            patient_information.is_quarantining = quarantine_status_changed
-            patient_information.save()
+            # Assigns symptoms selected for patient
+            if action == 'assign':
+                starting_date = datetime.strptime(request.POST['starting_date'], '%Y-%m-%dT%H:%M')
+                interval = int(request.POST.get('interval'))
+            else:  # Update
+                earliest_due_date = get_earliest_reporting_due_date(user_id)
+                latest_due_date = get_latest_reporting_due_date(user_id)
+
+                starting_date = latest_due_date.replace(day=earliest_due_date.day)
+                interval = (latest_due_date.day - earliest_due_date.day) + 1
+
+            while interval != 0:
+                for symptom_id in symptom_list:
+                    assign_symptom_to_user(symptom_id, user_id, starting_date)
+                interval = interval - 1
+                starting_date = starting_date + timedelta(days=1)
+
+            if action == 'update':
+                # delete old symptoms with data=null that are no longer assigned
+                query = PatientSymptom.objects.filter(
+                    Q(user_id=user_id) & Q(data=None) & ~Q(symptom_id__in=symptom_list))
+                query.delete()
+
+            if action == 'assign':
+                # Assigns quarantine status for patient
+                quarantine_status_changed = request.POST.get('should_quarantine') is not None
+                if patient_information.is_quarantining is not quarantine_status_changed:
+                    patient_information.is_quarantining = quarantine_status_changed
+                    patient_information.save()
 
         return redirect('accounts:list_users')
 
@@ -147,6 +170,7 @@ def assign_symptom(request, user_id):
         'patient': patient,
         'patient_name': patient_name,
         'patient_is_quarantining': patient_information.is_quarantining,
+        'allow_editing': allow_editing,
     })
 
 
