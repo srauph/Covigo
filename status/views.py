@@ -11,7 +11,7 @@ from django.views.decorators.cache import never_cache
 import datetime
 from accounts.models import Flag
 from accounts.utils import get_assigned_staff_id_by_patient_id
-from status.utils import return_reports, return_symptom_list, return_symptoms, check_report_exist
+from status.utils import return_reports, return_symptom_list, return_symptoms_for_today
 from symptoms.models import PatientSymptom
 
 
@@ -35,15 +35,12 @@ def index(request):
         reports = return_reports(patient_ids, assigned_staff_id)
 
         # Symptoms to report
-        patient_symptoms = return_symptoms(request.user.id, assigned_staff_id)
-
-        # Check if there is a report due today
-        report_exist = check_report_exist(request.user.id, datetime.datetime.now())
+        patient_symptoms = return_symptoms_for_today(request.user.id)
 
         return render(request, 'status/index.html', {
             'reports': reports,
             'symptoms': patient_symptoms,
-            'report_exist': report_exist,
+            'is_reporting_today': patient_symptoms.exists(),
             'is_quarantining': request.user.patient.is_quarantining
         })
     raise Http404("The requested resource was not found on this server.")
