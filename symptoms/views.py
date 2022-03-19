@@ -10,7 +10,7 @@ from symptoms.forms import CreateSymptomForm
 from django.contrib import messages
 
 from symptoms.utils import assign_symptom_to_user, get_latest_reporting_due_date, get_earliest_reporting_due_date, \
-    is_symptom_editing_allowed
+    is_symptom_editing_allowed, get_assigned_symptoms_from_patient
 
 
 @login_required
@@ -115,8 +115,8 @@ def assign_symptom(request, user_id):
         patient_name = patient
     else:
         patient_name = f"{patient.first_name} {patient.last_name}"
-        
-    assigned_symptoms = patient.symptoms.all().filter(patient_symptoms__data=None)
+
+    assigned_symptoms = get_assigned_symptoms_from_patient(patient)
     patient_information = patient.patient
 
     # Check if Assign Symptom can be treated as Editing instead
