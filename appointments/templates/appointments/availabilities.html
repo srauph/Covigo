@@ -148,7 +148,7 @@
                                 <td>{{ appointment.start_date.date }}</td>
                                 <td>{{ appointment.start_date.time }}</td>
                                 <td>{{ appointment.end_date.time }}</td>
-                                <td>{{ appointment.start_date.weekday }}</td>
+                                <td class="text-center p-2 render-correct-date">{{ appointment.start_date|date:'l' }}</td>
                                 <td></td>
                                 <td class="p-2 text-center flex flex-wrap justify-center sm:justify-end gap-2">
                                     <button type="submit"
