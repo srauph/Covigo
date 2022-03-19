@@ -45,8 +45,6 @@
                 let query = selected_weekdays.join('|');
                 filterByWeekday(table, query);
             })
-
-
         });
 
         function filterByWeekday(table, weekdays) {
@@ -59,16 +57,16 @@
 
         var minDate, maxDate;
         $.fn.dataTable.ext.search.push(
-            function( settings, data, dataIndex ) {
+            function (settings, data, dataIndex) {
                 var min = minDate.val();
                 var max = maxDate.val();
-                var date = new Date( data[1] );
+                var date = new Date(data[1]);
 
                 if (
-                    ( min === null && max === null ) ||
-                    ( min === null && date <= max ) ||
-                    ( min <= date   && max === null ) ||
-                    ( min <= date   && date <= max )
+                    (min === null && max === null) ||
+                    (min === null && date <= max) ||
+                    (min <= date && max === null) ||
+                    (min <= date && date <= max)
                 ) {
                     return true;
                 }
@@ -127,43 +125,57 @@
             </div>
         </div>
 
-        <div class="m-4">
-            <div class="m-4 p-4 bg-white shadow rounded-lg">
-                <table class="w-full table-auto text-left" id="availabilities_list_table">
-                    <thead>
-                    <tr class="border-b">
-                        {#                        Do we need ID here? #}
-                        {#                        <th class="p-2">ID</th>#}
-                        <th class="p-2"></th>
-                        <th class="p-2">Date</th>
-                        <th class="p-2">Start Time</th>
-                        <th class="p-2">End Time</th>
-                        <th class="p-2">Weekday</th>
-                        <th class="p-2">Status</th>
-                        <th class="p-2">Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for appointment in appointments %}
-                    <tr>
-                        <td><input type="checkbox"></td>
-                        <td>{{ appointment.start_date }}</td>
-                        <td>{{ appointment.start_date }}</td>
-                        <td>{{ appointment.end_created }}</td>
-                        <td>{{ appointment.patient }}</td>
-                        <td>{{ appointment.staff }}</td>
-                        <td></td>
-                    </tr>
-                    {% endfor %}
-                    </tbody>
+        <form action="" method="post">
+        {% csrf_token %}
+            <div class="m-4">
+                <div class="m-4 p-4 bg-white shadow rounded-lg">
+                    <table class="w-full table-auto text-left" id="availabilities_list_table">
+                        <thead>
+                        <tr class="border-b">
+                            <th class="p-2"></th>
+                            <th class="p-2">Date</th>
+                            <th class="p-2">Start Time</th>
+                            <th class="p-2">End Time</th>
+                            <th class="p-2">Weekday</th>
+                            <th class="p-2">Status</th>
+                            <th class="p-2">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for appointment in appointments %}
+                            <tr>
+                                <td><input type="checkbox" name="booking_ids" value="{{ appointment.id }}"></td>
+                                <td>{{ appointment.start_date.date }}</td>
+                                <td>{{ appointment.start_date.time }}</td>
+                                <td>{{ appointment.end_date.time }}</td>
+                                <td>{{ appointment.start_date.weekday }}</td>
+                                <td></td>
+                                <td class="p-2 text-center flex flex-wrap justify-center sm:justify-end gap-2">
+                                    <button type="submit"
+                                            class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1"
+                                            name="submit">
+                                                <span>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                         viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                              stroke-width="2"
+                                                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                    </svg>
+                                                </span>
+                                        Book Appointment
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
 
-                </table>
-            </div>
-            <div class="w-full mt-8 md:mt-0">
-                <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
-                    <a href="{% url "appointments:index" %}">
-                        <button type="button"
-                                class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                    </table>
+                </div>
+                <div class="w-full mt-8 md:mt-0">
+                    <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
+                        <a href="{% url "appointments:index" %}">
+                            <button type="button"
+                                    class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
                         <span>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                                  stroke="currentColor">
@@ -171,12 +183,12 @@
                                       d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                         </span>
-                            <span>Cancel</span>
-                        </button>
-                    </a>
-                    <button type="submit"
-                            class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1"
-                            name="submit">
+                                <span>Cancel</span>
+                            </button>
+                        </a>
+                        <button type="submit"
+                                class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1"
+                                name="submit">
                         <span>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
                                  viewBox="0 0 24 24" stroke="currentColor">
@@ -184,10 +196,11 @@
                                       d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                         </span>
-                        <span>Book selected appointments</span>
-                    </button>
+                            <span>Book selected appointments</span>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
+        </form>
     </div>
 {% endblock %}
