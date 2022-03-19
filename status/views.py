@@ -2,6 +2,7 @@ import json
 
 from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import Q
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -11,7 +12,8 @@ from django.views.decorators.cache import never_cache
 import datetime
 from accounts.models import Flag
 from accounts.utils import get_assigned_staff_id_by_patient_id
-from status.utils import return_reports, return_symptom_list, return_symptoms_for_today
+from status.utils import return_symptoms_for_today, get_reports_by_patient, get_patient_report_information, \
+    get_reports_for_doctor
 from symptoms.models import PatientSymptom
 
 
@@ -29,10 +31,8 @@ def index(request):
         # Assigned staff user id for the viewing user
         assigned_staff_id = get_assigned_staff_id_by_patient_id(user.id)
 
-        patient_ids = [request.user.id]
-
         # Reports for the user
-        reports = return_reports(patient_ids, assigned_staff_id)
+        reports = get_reports_by_patient(request.user.id)
 
         # Symptoms to report
         patient_symptoms = return_symptoms_for_today(request.user.id)
@@ -64,9 +64,8 @@ def patient_reports(request):
 
         # Return a QuerySet with all distinct reports from the doctors patients based on their updated date,
         # if it's viewed and if the patient is flagged
-        reports = return_reports(patient_ids, request.user.id).order_by('is_viewed',
-                                                                        '-user__patients_assigned_flags__is_active',
-                                                                        '-date_updated').distinct()
+        reports = get_reports_for_doctor(patient_ids)
+
         return render(request, 'status/patient-reports.html', {
             'patient_reports': reports
         })
@@ -89,7 +88,7 @@ def patient_reports_table(request):
     patient_ids = list(doctor.staff.get_assigned_patient_users().values_list("id", flat=True))
 
     # Return a query set of reports for the patient for their assigned doctor
-    reports = return_reports(patient_ids, doctor.id)
+    reports = get_reports_for_doctor(patient_ids)
 
     # Serialize it in a JSON format for the datatable to parse
     serialized_reports = json.dumps({'data': list(reports)}, cls=DjangoJSONEncoder, default=str)
@@ -112,14 +111,8 @@ def patient_report_modal(request, user_id, date_updated):
         # Ensure this was an ajax call
         if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
 
-            # Get the assigned staff id for the patient
-            if request.user.is_staff:  # Doctor is viewing
-                staff_id = request.user.id
-            else:  # Patient is viewing
-                staff_id = get_assigned_staff_id_by_patient_id(request.user.id)
-
-            # # Gets all symptoms' info required for the report
-            report_symptom_list = return_symptom_list(user_id, date_updated, staff_id)
+            # Gets all symptoms' info required for the report
+            report_symptom_list = get_patient_report_information(user_id, date_updated)
 
             # Check if the patient is flagged
             try:
@@ -130,7 +123,8 @@ def patient_report_modal(request, user_id, date_updated):
             # Ensure the report has not been viewed before
             if not report_symptom_list[0]['is_viewed']:
                 # Set the report to viewed
-                PatientSymptom.objects.filter(user_id=user_id, date_updated__date=date_updated).update(is_viewed=1)
+                PatientSymptom.objects.filter(
+                    Q(user_id=user_id) & Q(date_updated__date=date_updated) & ~Q(data=None)).update(is_viewed=1)
 
             # Render as an httpResponse for the modal to use
             return HttpResponse(render_to_string('status/patient-report-modal.html', context={
@@ -155,14 +149,8 @@ def patient_reports_modal_table(request, user_id, date_updated):
     @param date_updated: date of the report
     @return: json response of the report
     """
-    # Get the assigned staff id for the patient
-    if request.user.is_staff:  # Doctor is viewing
-        staff_id = request.user.id
-    else:  # Patient is viewing
-        staff_id = get_assigned_staff_id_by_patient_id(request.user.id)
-
     # Return a query set of all symptoms for the patient
-    report_symptom_list = return_symptom_list(user_id, date_updated, staff_id)
+    report_symptom_list = get_patient_report_information(user_id, date_updated)
 
     # Serialize it in a JSON format for the datatable to parse
     serialized_reports = json.dumps({'data': list(report_symptom_list)}, cls=DjangoJSONEncoder, default=str)
