@@ -45,6 +45,9 @@ def add_availabilities(request):
                 # Assign starting date to another variable that will be incremented until the end date
                 date_current = date_start
 
+                # Number of created availabilities
+                num_of_created_availabilities = 0
+
                 # Create availabilities starting at the start date until the end date
                 while date_current <= date_end:
                     # Only add availabilities at the selected days of the week
@@ -94,8 +97,16 @@ def add_availabilities(request):
                                                              end_date=end_datetime_object)
                             apt.save()
 
+                            num_of_created_availabilities += 1
+
                     # Increment to next day
                     date_current += timedelta(days=1)
+
+                # If the selected days of the week do not match any of the dates between start and end date
+                if num_of_created_availabilities == 0:
+                    messages.error(request,
+                                   'No dates exist for the selected days of the week.')
+                    return redirect('appointments:add_availabilities')
 
                 # Reset the form
                 availability_form = AvailabilityForm()
