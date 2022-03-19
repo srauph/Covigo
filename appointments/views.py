@@ -96,10 +96,18 @@ def add_availabilities(request):
 
 @login_required
 @never_cache
-def list_availabilities(request):
+def book_appointments(request):
     staff_id = get_assigned_staff_id_by_patient_id(request.user.id)
-    print("staff id", staff_id)
-    print("user id ", request.user.id)
+
+    if request.method == 'POST':
+        booking_ids = request.POST.getlist('booking_ids')
+
+        # books an appointment by adding the patient's id to the appointment's patient_id column
+        for booking_id in booking_ids:
+            booking = Appointment.objects.get(id=booking_id)
+            booking.patient = request.user
+            booking.save()
+
     return render(request, 'appointments/availabilities.html', {
         'appointments': Appointment.objects.filter(patient=None, staff=staff_id).all()
     })
