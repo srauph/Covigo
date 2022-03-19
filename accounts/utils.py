@@ -96,10 +96,11 @@ def send_email_to_user(user, subject, message):
     s.quit()
 
 
-def get_or_generate_patient_code(patient):
+def get_or_generate_patient_code(patient, prefix="A"):
     """
     Get a patient's profile code or generate one if it doesn't exist
     @param patient: The patient whose code is to be fetched
+    @param prefix: The prefix to give to the code. A is the default prefix
     @return: The patient's profile code
     """
     # Shortuuid docs recommends removing characters (like 0 and O) that can be confused.
@@ -111,6 +112,8 @@ def get_or_generate_patient_code(patient):
         # Regenerate the code if it exists
         while Patient.objects.filter(code=code).exists():
             code = shortuuid.uuid()[:9]
+
+        code = prefix + code
 
         patient.code = code
         patient.save()
