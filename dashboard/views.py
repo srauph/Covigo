@@ -4,21 +4,33 @@ from django.views.decorators.cache import never_cache
 
 from dashboard.utils import fetch_data_from_file, extract_daily_data
 
-data = []
-
 
 @login_required
 @never_cache
 def index(request):
-    return render(request, 'dashboard/index.html', {
-        "data": data,
+    user = request.user
 
-    })
+    messages = []
+    appointments = []
+
+    if user.is_staff:
+        patients = user.staff.get_assigned_patient_users()
+        statuses = []
+        data = fetch_data_from_all_files()
+        return render(request, 'dashboard/index.html', {
+            "data": data,
+        })
+
+    else:
+        status_reminder = []
+        quarantine_instructions = []
+
+        return render(request, 'dashboard/index.html', {
+            "data": []
+        })
 
 
 def fetch_data_from_all_files():
-    global data
-
     confirmed = fetch_data_from_file("dashboard/data/confirmed_cases.csv")
     daily_confirmed = extract_daily_data(confirmed)
 
@@ -34,7 +46,7 @@ def fetch_data_from_all_files():
     unconfirmed_untested = fetch_data_from_file("dashboard/data/unconfirmed_untested.csv")
     daily_unconfirmed_untested = extract_daily_data(unconfirmed_untested)
 
-    data = {
+    return {
         "confirmed": confirmed,
         "daily_confirmed": daily_confirmed,
         "current_positives": current_positives,

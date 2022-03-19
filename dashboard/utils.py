@@ -21,5 +21,4 @@ def extract_daily_data(data):
     dates = data["dates"]
     cumulative_numbers = data["numbers"]
     daily_numbers = list(map(lambda n1, n2: str(int(n2)-int(n1)), cumulative_numbers[:-1], cumulative_numbers[1:]))
-    print(daily_numbers)
     return {"dates": dates[1:], "numbers": daily_numbers}

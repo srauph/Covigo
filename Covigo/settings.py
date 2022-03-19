@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-
+import json
 from pathlib import Path
 from dotenv import load_dotenv
 from os import getenv
@@ -37,10 +37,13 @@ if PRODUCTION_MODE:
     HOST_NAME = 'https://covigo.ddns.net'
     STATICFILES_DIRS = [BASE_DIR / 'static',]
 else:
+    try:
+        ALLOWED_HOSTS = json.loads(getenv("ALLOWED_HOSTS"))
+    except TypeError:
+        ALLOWED_HOSTS = []
     DEBUG = True
-    ALLOWED_HOSTS = []
     SECRET_KEY = 'django-insecure-)hrxs16w-%lr2@k@!rfq!lwem55i%uv$7qhiktrme63j!2+1(f'
-    HOST_NAME = 'http://127.0.0.1:8000'
+    HOST_NAME = 'http://localhost:8000'
 
 # Application definition
 
