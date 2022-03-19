@@ -66,17 +66,24 @@ def add_availabilities(request):
                                 staff=request.user
                             ).values('start_date', 'end_date'))
 
-                            # Check if availability collides with already existing appointment objects. Availability
-                            # collides if either the start or end time is in between the start and end time of an
-                            # existing Appointment object
+                            # Check if availability collides with already existing appointment objects.
+                            # Availability collides if either the start or end time is in between the start and end
+                            # time of an existing Appointment object OR if the Availability has the exact same start and
+                            # end time of an existing Appointment object
                             for existing_appt in existing_appointments_at_current_date:
                                 if existing_appt.get('start_date') < start_datetime_object < existing_appt.get(
-                                        'end_date') or existing_appt.get(
-                                        'start_date') < end_datetime_object < existing_appt.get('end_date'):
+                                        'end_date') \
+                                        or existing_appt.get('start_date') < end_datetime_object < existing_appt.get(
+                                        'end_date') \
+                                        or (existing_appt.get('start_date') == start_datetime_object
+                                            and existing_appt.get(
+                                            'end_date') == end_datetime_object):
                                     # Don't create Appointment objects since they collide with existing Appointments
                                     # and display error message
                                     messages.error(request,
-                                                   'The availability was not created. There already exists an appointment or availability between ' + start_datetime_object.strftime(
+                                                   'The availability was not created. There already exists an '
+                                                   'appointment or availability between ' +
+                                                   start_datetime_object.strftime(
                                                        '%Y-%m-%d %H:%M') + ' and ' + end_datetime_object.strftime(
                                                        '%Y-%m-%d %H:%M'))
                                     return redirect('appointments:add_availabilities')
@@ -95,6 +102,10 @@ def add_availabilities(request):
 
                 # Display success message
                 messages.success(request, 'The availabilities have been created')
+
+                if request.POST.get('Create and Return'):
+                    return redirect('appointments:index')
+
         else:
             availability_form = AvailabilityForm()
 
