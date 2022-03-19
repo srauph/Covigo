@@ -45,7 +45,6 @@
                                                                 value="{{ sym.id }}"
                                             {% if sym in assigned_symptoms %}
                                                                 checked
-                                                {% if not allow_editing %} disabled {% endif %}
                                             {% endif %}>
                                     </td>
                                     <td class="text-left">{{ sym.name }}</td>

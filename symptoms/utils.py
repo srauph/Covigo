@@ -1,5 +1,6 @@
 from django.db.models import Count, Q, Max, Min
 from django.utils.datetime_safe import datetime
+
 from symptoms.models import PatientSymptom
 
 
@@ -74,3 +75,16 @@ def is_symptom_editing_allowed(user_id):
         return False
     else:
         return datetime.now() < latest_due_date
+
+
+def get_assigned_symptoms_from_patient(patient):
+    """
+    Checks if editing symptoms is allowed and returns the assigned symptoms with data = None meaning they still have to report them.
+    Returns () if there is no symptom to report meaning they have expired or the there are no new reports.
+    @param patient: the patient user
+    @return: symptoms if they must still be reported otherwise ()
+    """
+    if is_symptom_editing_allowed(patient.id):
+        return patient.symptoms.all().filter(patient_symptoms__data=None)
+    else:
+        return ()
