@@ -222,12 +222,14 @@ def profile(request, user_id):
         qr = get_or_generate_patient_profile_qr(user_id)
         assigned_staff = user.patient.get_assigned_staff_user()
         assigned_staff_patient_count = user.patient.assigned_staff.get_assigned_patient_users().count()
+        assigned_flags = Flag.objects.filter(patient=user)
 
         return render(request, 'accounts/profile.html', {
             "qr": qr,
             "usr": user,
             "assigned_staff": assigned_staff,
             "assigned_staff_patient_count": assigned_staff_patient_count,
+            "assigned_flags": assigned_flags,
             "full_view": True
         })
 
