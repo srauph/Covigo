@@ -109,6 +109,8 @@ def book_appointments(request):
     staff_user_id = Staff.objects.get(id=staff_id).user_id
     staff_name = get_users_names(staff_user_id)
 
+    print(staff_id, staff_user_id, staff_name)
+
     if request.method == 'POST' and request.POST.get('Book Appointment'):
         booking_id = request.POST.get('Book Appointment')
 
