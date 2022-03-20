@@ -45,13 +45,21 @@
                 let query = selected_weekdays.join('|');
                 filterByWeekday(table, query);
             })
+
+            $(document).on('change','.avail_checkbox',function(){
+                if($('.avail_checkbox:checked').length > 0){
+                    $('#mass_submit_btn').removeClass('hidden');
+                }else{
+                    $('#mass_submit_btn').addClass('hidden');
+                }
+            })
         });
 
         function filterByWeekday(table, weekdays) {
             if (weekdays !== '') {
-                table.column(4).search('^' + weekdays + '$', true, false).draw();
+                table.column(3).search('^' + weekdays + '$', true, false).draw();
             } else {
-                table.column(4).search("").draw();
+                table.column(3).search("").draw();
             }
         }
 
@@ -73,6 +81,10 @@
                 return false;
             }
         );
+
+
+
+
     </script>
 {% endblock %}
 
@@ -126,7 +138,7 @@
         </div>
 
         <form action="" method="post">
-        {% csrf_token %}
+            {% csrf_token %}
             <div class="m-4">
                 <div class="m-4 p-4 bg-white shadow rounded-lg">
                     <table class="w-full table-auto text-left" id="availabilities_list_table">
@@ -134,25 +146,21 @@
                         <tr class="border-b">
                             <th class="p-2"></th>
                             <th class="p-2">Date</th>
-                            <th class="p-2">Start Time</th>
-                            <th class="p-2">End Time</th>
+                            <th class="p-2">Times</th>
                             <th class="p-2">Weekday</th>
-                            <th class="p-2">Status</th>
                             <th class="p-2">Actions</th>
                         </tr>
                         </thead>
                         <tbody>
                         {% for appointment in appointments %}
                             <tr>
-                                <td><input type="checkbox" name="booking_ids" value="{{ appointment.id }}"></td>
+                                <td><input type="checkbox" class="avail_checkbox" name="booking_ids" value="{{ appointment.id }}"></td>
                                 <td>{{ appointment.start_date.date }}</td>
-                                <td>{{ appointment.start_date.time }}</td>
-                                <td>{{ appointment.end_date.time }}</td>
-                                <td class="text-center p-2 render-correct-date">{{ appointment.start_date|date:'l' }}</td>
-                                <td></td>
-                                <td class="p-2 text-center flex flex-wrap justify-center sm:justify-end gap-2">
+                                <td>{{ appointment.start_date.time }} - {{ appointment.end_date.time }}</td>
+                                <td class="p-2 render-correct-date">{{ appointment.start_date|date:'l' }}</td>
+                                <td class="p-2">
                                     <button type="submit"
-                                            class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1"
+                                            class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex"
                                             name="submit">
                                                 <span>
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
@@ -187,8 +195,8 @@
                             </button>
                         </a>
                         <button type="submit"
-                                class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1"
-                                name="submit">
+                                class="hidden bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1"
+                                name="submit_checkboxes" id="mass_submit_btn">
                         <span>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
                                  viewBox="0 0 24 24" stroke="currentColor">
