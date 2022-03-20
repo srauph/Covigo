@@ -1,11 +1,12 @@
 import json
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.db.models import Q
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from accounts.models import Staff
-from accounts.utils import get_assigned_staff_id_by_patient_id
+from accounts.utils import get_assigned_staff_id_by_patient_id, get_users_names
 from appointments.forms import AvailabilityForm
 from datetime import datetime, timedelta
 from appointments.models import Appointment
@@ -69,7 +70,8 @@ def add_availabilities(request):
                             # Check if availability collides with already existing appointment objects
                             for existing_appt in existing_appointments_at_current_date:
                                 if existing_appt.get('start_date') < start_datetime_object < existing_appt.get(
-                                        'end_date') or existing_appt.get('start_date') < end_datetime_object < existing_appt.get('end_date'):
+                                        'end_date') or existing_appt.get(
+                                    'start_date') < end_datetime_object < existing_appt.get('end_date'):
                                     # Don't create Appointment objects and display error message
                                     messages.error(request,
                                                    'The availability was not created. There already exists an appointment or availability between ' + start_datetime_object.strftime(
@@ -101,6 +103,10 @@ def add_availabilities(request):
 @never_cache
 def book_appointments(request):
     staff_id = get_assigned_staff_id_by_patient_id(request.user.id)
+    staff_user_id = Staff.objects.get(id=staff_id).user_id
+    staff_name = get_users_names(staff_user_id)
+
+    print(staff_id, staff_user_id, staff_name)
 
     if request.method == 'POST' and request.POST.get('Book Appointment'):
         booking_id = request.POST.get('Book Appointment')
@@ -122,7 +128,8 @@ def book_appointments(request):
         return redirect('appointments:index')
 
     return render(request, 'appointments/book_appointments.html', {
-        'appointments': Appointment.objects.filter(patient=None, staff=staff_id).all()
+        'appointments': Appointment.objects.filter(patient=None, staff=staff_id).all(),
+        'staff_name': staff_name
     })
 
 
