@@ -182,10 +182,13 @@ def create_patient_report(request):
     report = PatientSymptom.objects.filter(user_id=current_user, due_date__lte=datetime.datetime.now(), data=None)
 
     # Ensure it was a post request
+    report_data = request.POST.getList('data')
     if request.method == 'POST':
-        for r in report:
-            report_data = request.POST.get('data')
-            r.save(data=report_data)
+        for s in report_data:
+            symptom = PatientSymptom.objects.filter(id=s)
+            symptom.data = report_data[s]
+            symptom.save()
+
     return render(request, 'status/create-status-report.html', {
         'report': report
     })
