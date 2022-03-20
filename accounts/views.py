@@ -220,19 +220,18 @@ def profile(request, user_id):
 
     if not user.is_staff:
         qr = get_or_generate_patient_profile_qr(user_id)
+        assigned_staff = user.patient.get_assigned_staff_user()
 
         return render(request, 'accounts/profile.html', {
             "qr": qr,
             "usr": user,
+            "assigned_staff": assigned_staff,
             "full_view": True
         })
 
     else:
-        if user.staff.assigned_patients.count() > 0:
-            assigned_patients = user.staff.get_assigned_patient_users()
-        else:
-            assigned_patients = None
-        print(assigned_patients)
+        assigned_patients = user.staff.get_assigned_patient_users()
+
         return render(request, 'accounts/profile.html', {
             "assigned_patients": assigned_patients,
             "usr": user,
