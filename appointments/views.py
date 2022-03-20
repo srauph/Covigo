@@ -6,7 +6,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from accounts.models import Staff
-from accounts.utils import get_assigned_staff_id_by_patient_id, get_users_names
+from accounts.utils import get_assigned_staff_id_by_patient_id, get_users_names, get_is_staff
 from appointments.forms import AvailabilityForm
 from datetime import datetime, timedelta
 from appointments.models import Appointment
@@ -17,8 +17,11 @@ from appointments.models import Appointment
 def index(request):
     staff_id = get_assigned_staff_id_by_patient_id(request.user.id)
     booked_appointments = Appointment.objects.filter(patient=request.user.id, staff=staff_id)
+    is_staff = get_is_staff(request.user.id)
+
     return render(request, 'appointments/index.html', {
-        'booked_appointments': booked_appointments
+        'booked_appointments': booked_appointments,
+        'is_staff': is_staff
     })
 
 
@@ -105,8 +108,6 @@ def book_appointments(request):
     staff_id = get_assigned_staff_id_by_patient_id(request.user.id)
     staff_user_id = Staff.objects.get(id=staff_id).user_id
     staff_name = get_users_names(staff_user_id)
-
-    print(staff_id, staff_user_id, staff_name)
 
     if request.method == 'POST' and request.POST.get('Book Appointment'):
         booking_id = request.POST.get('Book Appointment')

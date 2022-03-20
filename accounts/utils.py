@@ -163,7 +163,7 @@ def get_assigned_staff_id_by_patient_id(patient_id):
 
 def get_users_names(user_id):
     """
-    Returns the users frist name and last name
+    Returns the users first name and last name
     @param user_id: the user's user id
     @return: a string containing the users first and last name else empty string
     """
@@ -171,3 +171,15 @@ def get_users_names(user_id):
         return User.objects.get(id=user_id).first_name + " " + User.objects.get(id=user_id).last_name
     except Exception:
         return ""
+
+
+def get_is_staff(user_id):
+    """
+    Returns the is_staff column for a user id in the user table
+    @param user_id: the user's user id
+    @return: is_staff column else -1 if the user does not exist
+    """
+    try:
+        return User.objects.get(id=user_id).is_staff
+    except Exception:
+        return -1
