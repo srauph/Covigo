@@ -1,0 +1,227 @@
+{% extends "Covigo/base.html" %}
+
+{% block styles %}
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.4/css/jquery.dataTables.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/datetime/1.1.2/css/dataTables.dateTime.min.css">
+{% endblock %}
+
+{% block script %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script type="text/javascript" charset="utf8"
+            src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" charset="utf8"
+            src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+    <script type="text/javascript" charset="utf8"
+            src="https://cdn.datatables.net/datetime/1.1.2/js/dataTables.dateTime.min.js"></script>
+    <script>
+        let minDate;
+        let maxDate;
+
+        $(document).ready(function () {
+            minDate = new DateTime($('#min'), {
+                format: 'MMMM Do YYYY'
+            });
+
+            maxDate = new DateTime($('#max'), {
+                format: 'MMMM Do YYYY'
+            });
+
+            let table = $('#availabilities_list_table').DataTable();
+
+            $('#min, #max').on('change', function () {
+                table.draw();
+            });
+
+            let selected_weekdays = [];
+
+            $('.weekday-filter').click(function () {
+                let weekday = $(this).val();
+
+                if ($(this).attr('data-selected') !== 'true') {
+                    $(this).addClass('bg-blue-600');
+                    $(this).attr('data-selected', true);
+                    selected_weekdays.push(weekday);
+                }
+
+                else {
+                    $(this).removeClass('bg-blue-600');
+                    $(this).removeAttr('data-selected');
+                    selected_weekdays = selected_weekdays.filter(function (value, index, arr) {
+                        return value !== weekday;
+                    })
+                }
+
+                let query = selected_weekdays.join('|');
+                filterByWeekday(table, query);
+            })
+        });
+
+        function filterByWeekday(table, weekdays) {
+            if (weekdays !== '') {
+                table.column(4).search('^' + weekdays + '$', true, false).draw();
+            }
+
+            else {
+                table.column(4).search("").draw();
+            }
+        }
+
+        $.fn.dataTable.ext.search.push(
+            function (settings, data, dataIndex) {
+                let min = minDate.val();
+                let max = maxDate.val();
+                let date = new Date(data[1]);
+
+                if (
+                    (min === null && max === null) ||
+                    (min === null && date <= max) ||
+                    (min <= date && max === null) ||
+                    (min <= date && date <= max)
+                ) {
+                    return true;
+                }
+
+                return false;
+            }
+        );
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="min-h-full bg-slate-100">
+        <div class="flex justify-between bg-slate-700">
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">Available Appointments</h1>
+        </div>
+        <div class="bg-white shadow m-8 rounded-xl">
+            <div class="w-full flex justify-between items-center p-4">
+                <div class="flex">
+                    <span>
+                        Select one or any:
+                    </span>
+                    <button class="weekday-filter bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none border-r border-white" value="Saturday">
+                        Saturday
+                    </button>
+                    <button class="weekday-filter bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Sunday">
+                        Sunday
+                    </button>
+                    <button class="weekday-filter bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Monday">
+                        Monday
+                    </button>
+                    <button class="weekday-filter bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Tuesday">
+                        Tuesday
+                    </button>
+                    <button class="weekday-filter bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Wednesday">
+                        Wednesday
+                    </button>
+                    <button class="weekday-filter bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Thursday">
+                        Thursday
+                    </button>
+                    <button class="weekday-filter bg-gray-600 text-white px-2 py-1 rounded-md  rounded-l-none" value="Friday">
+                        Friday
+                    </button>
+                </div>
+                <div>
+                    filter with date: from:
+                    <input type="text" class="py-1 px-1 border border-black rounded-md text-black" id="min">
+                    to:
+                    <input type="text" class="py-1 px-1 border border-black rounded-md text-black" id="max">
+                </div>
+            </div>
+        </div>
+        <form method="post">
+        {% csrf_token %}
+            <div class="m-4">
+                <div class="m-4 p-4 bg-white shadow rounded-lg">
+                    <table class="w-full table-auto text-center" id="availabilities_list_table">
+                        <thead>
+                        <tr class="border-b">
+                            <th class="p-2">
+                                <input type="checkbox">
+                            </th>
+                            <th class="p-2">
+                                Date
+                            </th>
+                            <th class="p-2">
+                                Start Time
+                            </th>
+                            <th class="p-2">
+                                End Time
+                            </th>
+                            <th class="p-2">
+                                Weekday
+                            </th>
+                            <th class="p-2">
+                                Status
+                            </th>
+                            <th class="p-2">
+                                Actions
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for appointment in appointments %}
+                            <tr class="text-center">
+                                <td>
+                                    <input type="checkbox" name="booking_ids" value="{{ appointment.id }}">
+                                </td>
+                                <td>
+                                    {{ appointment.start_date.date }}
+                                </td>
+                                <td>
+                                    {{ appointment.start_date.time }}
+                                </td>
+                                <td>
+                                    {{ appointment.end_date.time }}
+                                </td>
+                                <td class="p-2 render-correct-date">
+                                    {{ appointment.start_date|date:'l' }}
+                                </td>
+                                <td>
+
+                                </td>
+                                <td class="p-2 flex flex-wrap justify-center sm:justify-end gap-2">
+                                    <button type="submit" value="{{ appointment.id }}" class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1" name="Book Appointment">
+                                        <span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                        </span>
+                                        Book Appointment
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="w-full mt-8 md:mt-0">
+                    <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
+                        <a href="{% url "appointments:index" %}">
+                            <button type="button" class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                                <span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </span>
+                                <span>
+                                    Cancel
+                                </span>
+                            </button>
+                        </a>
+                        <button type="submit" value="Book Selected Appointments" class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1" name="Book Selected Appointments">
+                            <span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </span>
+                            <span>
+                                Book Selected Appointments
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}
