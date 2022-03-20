@@ -309,10 +309,10 @@
                         </div>
                     </div>
 
-                    {# Symptoms & Status #}
+                    {# Flaggers & Status #}
                     {% if not usr.is_staff %}
                         <div class="w-full flex flex-wrap xl:flex-nowrap gap-4">
-                            {# Assigned Symptoms #}
+                            {# Flaggers #}
                             <div class="p-4 w-1/2 grow rounded-lg bg-white shadow">
                                 <div class="flex flex-wrap gap-2 justify-between items-center">
                                     <div class="flex items-center gap-2 font-semibold text-gray-900 text-lg">
@@ -327,7 +327,13 @@
                                     </div>
                                 </div>
                                 <div class="w-full flex flex-wrap gap-2 justify-center items-center pt-4">
-                                    <span class="text-center font-semibold">{{ assigned_flags|length }} flags were issued for this user</span>
+                                     <span class="text-center font-semibold">
+                                        {% if assigned_flags|length == 1 %}
+                                            {{ assigned_flags|length }} flag was issued for this user
+                                        {% else %}
+                                            {{ assigned_flags|length }} flags were issued for this user
+                                        {% endif %}
+                                    </span>
                                 </div>
 
                                 <div class="grid md:grid-cols-2 md:gap-x-8 pt-4">
@@ -391,6 +397,53 @@
                                         <div class="text-teal-600">Feb 30, 2022 - 4 minutes ago</div>
                                     </li>
                                 </ul>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="w-full flex flex-wrap xl:flex-nowrap gap-4">
+                            {# Issued flags #}
+                            <div class="p-4 w-1/2 grow rounded-lg bg-white shadow">
+                                <div class="flex flex-wrap gap-2 justify-between items-center">
+                                    <div class="flex items-center gap-2 font-semibold text-gray-900 text-lg">
+                                        <span class="text-green-500">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                      d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>
+                                            </svg>
+                                        </span>
+                                        <span class="align-middle">Flags</span>
+                                    </div>
+                                </div>
+                                <div class="w-full flex flex-wrap gap-2 justify-center items-center pt-4">
+                                    <span class="text-center font-semibold">
+                                        {% if issued_flags|length == 1 %}
+                                            {{ issued_flags|length }} flag was issued by this user
+                                        {% else %}
+                                            {{ issued_flags|length }} flags were issued by this user
+                                        {% endif %}
+                                    </span>
+                                </div>
+
+                                <div class="grid md:grid-cols-2 md:gap-x-8 pt-4">
+                                    {% for flag in issued_flags %}
+                                        <div class="p-2 flex items-center justify-between hover:bg-slate-200">
+                                            <span>{{ flag.patient.first_name }} {{ flag.patient.last_name }}</span>
+                                            <a href="{% url 'accounts:profile' flag.patient.id %}">
+                                                <button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                                                        <span>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                                 viewBox="0 0 24 24" stroke="currentColor">
+                                                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                                            </svg>
+                                                        </span>
+                                                    <span>Profile</span>
+                                                </button>
+                                            </a>
+                                        </div>
+                                    {% endfor %}
+                                </div>
                             </div>
                         </div>
                     {% endif %}

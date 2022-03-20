@@ -239,10 +239,12 @@ def profile(request, user_id):
 
     else:
         assigned_patients = user.staff.get_assigned_patient_users()
+        issued_flags = Flag.objects.filter(staff=user)
 
         return render(request, 'accounts/profile.html', {
             "assigned_patients": assigned_patients,
             "usr": user,
+            "issued_flags": issued_flags,
             "full_view": True
         })
 
