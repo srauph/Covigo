@@ -1,6 +1,7 @@
 {% extends "Covigo/base.html" %}
 {% block styles %}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.css">
+
 {% endblock %}
 {% block script %}
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.js"></script>
@@ -27,7 +28,6 @@
                 events: [
                     {% for e in booked_appointments %}
                         { // this object will be "parsed" into an Event Object
-                      title: 'Appointment with doctor', // a property!
                       start: '{{ e.start_date|date:'Y-m-d H:i:s' }}', // a property!
                       end: '{{ e.end_date|date:'Y-m-d H:i:s' }}' // a property! ** see important note below about 'end' **
                     },
