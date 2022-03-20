@@ -9,13 +9,15 @@
         <div class="flex flex-wrap justify-center md:justify-start gap-4 p-8">
             {% include './cards/latest-messages.html' %}
             {% include './cards/upcoming-appointments.html' %}
-            {% include './cards/status-reminder.html' %}
-            {% include './cards/quarantine-status.html' %}
-            {% include './cards/my-doctor.html' %}
-            {% include './cards/recent-status.html' %}
-            {% include './cards/my-patients.html' %}
-            {% include './cards/covigo-data.html' %}
-
+            {% if not user.is_staff %}
+                {% include './cards/status-reminder.html' %}
+                {% include './cards/quarantine-status.html' %}
+                {% include './cards/my-doctor.html' %}
+            {% else %}
+                {% include './cards/recent-status.html' %}
+                {% include './cards/my-patients.html' %}
+                {% include './cards/covigo-data.html' %}
+            {% endif %}
         </div>
     </div>
 {% endblock %}
