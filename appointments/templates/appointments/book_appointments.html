@@ -103,7 +103,7 @@
 {% block content %}
     <div class="min-h-full bg-slate-100">
         <div class="flex justify-between bg-slate-700">
-            <h1 class="text-2xl text-white font-semibold px-8 py-4">Available Appointments</h1>
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">Available Appointments with Dr. {{ staff_name }}</h1>
         </div>
         <div class="bg-white shadow m-8 rounded-xl">
             <div class="w-full flex justify-between items-center p-4">
@@ -163,9 +163,7 @@
                             <th class="p-2">
                                 Weekday
                             </th>
-                            <th class="p-2">
-                                Status
-                            </th>
+
                             <th class="p-2">
                                 Actions
                             </th>
@@ -188,9 +186,6 @@
                                 </td>
                                 <td class="p-2 render-correct-date">
                                     {{ appointment.start_date|date:'l' }}
-                                </td>
-                                <td>
-
                                 </td>
                                 <td class="p-2 flex flex-wrap justify-center sm:justify-end gap-2">
                                     <button type="submit" value="{{ appointment.id }}" class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1" name="Book Appointment">
