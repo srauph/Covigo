@@ -74,9 +74,12 @@ def index(request):
 def profile(request, user_id):
     user = User.objects.get(id=user_id)
     image = get_or_generate_patient_profile_qr(user_id)
+    all_doctors = User.objects.filter(groups__name='doctor')
+    print(all_doctors)
     return render(request, 'accounts/profile.html',
                   {"qr": image,
                    "usr": user,
+                   "all_doctors": all_doctors,
                    "full_view": True,
                    "allow_editing": is_symptom_editing_allowed(user_id)})
 
