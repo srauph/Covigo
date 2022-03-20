@@ -86,12 +86,31 @@
                                     d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                             </svg>
                         </span>
-                            <span>Assigned Doctor</span>
+                            <span>Assigned Doctor <button id="change_doctor" class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white pl-1 pr-2 py-1 rounded-md flex items-center gap-1">
+                                    <span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                             viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                                        </svg>
+                                    </span>
+                                        <span>
+                                        Change
+                                    </span>
+                                    </button></span>
                         </div>
                         <div class="grid grid-cols-1">
                             <div class="text-center my-2">
-
                                 <a href="#" class="text-main-color">Dr. John Doe</a>
+                                <form action="" class="bg-red-600 p-4" >
+                                    <label for="" class="text-white">Select New Doctor</label>
+                                    <select name="doctor_list" id="" class="w-full border">
+                                        {% for doc in all_doctors %}
+                                            <option value="{{ doc.id }}">{{ doc.first_name }}{{ doc.last_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" value="submit" class="bg-white rounded-md py-1 px-2">submit change</button>
+                                </form>
                             </div>
                         </div>
                     </div>
