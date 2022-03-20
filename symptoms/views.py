@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.shortcuts import render, redirect
@@ -133,7 +133,7 @@ def assign_symptom(request, user_id):
 
             # Assigns symptoms selected for patient
             if action == 'assign':
-                starting_date = datetime.strptime(request.POST['starting_date'], '%Y-%m-%dT%H:%M')
+                starting_date = datetime.combine(datetime.strptime(request.POST['starting_date'], '%Y-%m-%d'), time.max)
                 interval = int(request.POST.get('interval'))
             else:  # Update
                 earliest_due_date = get_earliest_reporting_due_date(user_id)
