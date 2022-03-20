@@ -6,11 +6,27 @@
             <h1 class="font-bold text-2xl text-center">Recent Messages</h1>
             <hr class="border-slate-400 my-2">
             <ul class="list-disc">
-                <li>Jane Doe</li>
-                <li>janedoe@gmail.com</li>
-                <li>(514) 777-9001</li>
-                <li>1000 de la Gauchetiere</li>
-                <li>H3B 4W5</li>
+                {% if messages.unread_urgent|length > 0 %}
+                    <li class="font-bold">You have {{ messages.unread|length }} unread conversation(s)</li>
+                {% elif messages.all|length > 0 %}
+                    <li>You have no unread conversations</li>
+                {% endif %}
+
+                {% if messages.unread_urgent|length > 0 %}
+                    <li class="font-bold text-red-500">You have {{ messages.unread_urgent|length }} unread urgent conversation(s)</li>
+                {% endif %}
+
+                {% if messages.all|length > 0 %}
+                    <li>You have {{ messages.all|length }} active conversation(s)</li>
+                {% else %}
+                    <li>You have no conversations</li>
+                {% endif %}
+
+                {% if messages.urgent|length > 0 %}
+                    <li>You have {{ messages.urgent|length }} active urgent conversation(s)</li>
+                {% elif messages.all|length > 0 %}
+                    <li>You have no urgent conversations</li>
+                {% endif %}
             </ul>
         </div>
     </div>

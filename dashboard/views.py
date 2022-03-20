@@ -1,23 +1,24 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.views.decorators.cache import never_cache
 
 from dashboard.utils import fetch_data_from_file, extract_daily_data
-
+from messaging.models import MessageGroup
 
 @login_required
 @never_cache
 def index(request):
     user = request.user
 
-    messages = []
+    messages = fetch_messaging_info(user)
     appointments = []
 
     if user.is_staff:
         recent_status_updates = []
         assigned_patients = user.staff.get_assigned_patient_users()
         data = fetch_data_from_all_files()
-        
+
         return render(request, 'dashboard/index.html', {
             "messages": messages,
             "appointments": appointments,
@@ -38,6 +39,25 @@ def index(request):
             "quarantine": quarantine,
             "assigned_doctor": assigned_doctor,
         })
+
+
+def fetch_messaging_info(user):
+    msg_group_filter = Q(author=user) | Q(recipient=user)
+    all = MessageGroup.objects.filter(msg_group_filter)
+
+    urgent_msg_group_filter = msg_group_filter & Q(priority=2)
+    urgent = all.filter(urgent_msg_group_filter)
+
+    unread_msg_group_filter = (Q(author=user) & Q(author_seen=False)) | (Q(recipient=user) & Q(recipient_seen=False))
+    unread = all.filter(unread_msg_group_filter)
+    unread_urgent = urgent.filter(unread_msg_group_filter)
+
+    return {
+        "all": all,
+        "urgent": urgent,
+        "unread": unread,
+        "unread_urgent": unread_urgent,
+    }
 
 
 def fetch_data_from_all_files():
