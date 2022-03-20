@@ -159,3 +159,15 @@ def get_assigned_staff_id_by_patient_id(patient_id):
         return Patient.objects.values_list('assigned_staff_id', flat=True).get(user_id=patient_id)
     except Exception:
         return 0
+
+
+def get_users_names(user_id):
+    """
+    Returns the users frist name and last name
+    @param user_id: the user's user id
+    @return: a string containing the users first and last name else empty string
+    """
+    try:
+        return User.objects.get(id=user_id).first_name + " " + User.objects.get(id=user_id).last_name
+    except Exception:
+        return ""
