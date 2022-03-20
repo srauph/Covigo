@@ -333,7 +333,7 @@ def edit_user(request, user_id):
         profile_form = EditProfileForm(request.POST, instance=user.profile, user_id=user_id)
 
         if process_register_or_edit_user_form(request, user_form, profile_form, mode="Edit"):
-            return redirect("accounts:list_users")
+            return redirect("accounts:profile", user_id)
 
     # Create forms
     else:
