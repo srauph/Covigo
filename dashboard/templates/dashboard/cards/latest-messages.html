@@ -1,5 +1,23 @@
-{% block latest_messages_modal %}
-    <div class="bg-white p-3  shadow-sm rounded-sm col-start-2 col-end-6">
+{% extends "dashboard/card-base.html" %}
+
+{% block card %}
+    <div class="flex items-center justify-center w-full h-full rounded-lg bg-blue-100 hover:bg-blue-200">
+        <div>
+            <h1 class="font-bold text-2xl text-center">Recent Messages</h1>
+            <hr class="border-slate-400 my-2">
+            <ul class="list-disc">
+                <li>Jane Doe</li>
+                <li>janedoe@gmail.com</li>
+                <li>(514) 777-9001</li>
+                <li>1000 de la Gauchetiere</li>
+                <li>H3B 4W5</li>
+            </ul>
+        </div>
+    </div>
+{% endblock %}
+
+{% block modal %}
+    <div class="hidden bg-white p-3  shadow-sm rounded-sm col-start-2 col-end-6">
         <div class="grid grid-cols-1">
             <div>
                 <div class="flex items-center justify-between mb-3">
@@ -14,21 +32,19 @@
                     </div>
 
                     <div class="flex gap-2">
-                        {% if not usr.id == user.id %}
-                            <a href="{% url 'messaging:compose_message' usr.id %}">
-                                <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-                                    <span>
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                             viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                                        </svg>
-                                    </span>
-                                    <span>Message</span>
-                                </button>
-                            </a>
-                        {% endif %}
-                        <a href="{% url 'messaging:list_messages' usr.id %}">
+                        <a href="{% url 'messaging:compose_message' user.id %}">
+                            <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                                <span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                         viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                    </svg>
+                                </span>
+                                <span>Message</span>
+                            </button>
+                        </a>
+                        <a href="{% url 'messaging:list_messages' user.id %}">
                             <button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                                 <span>
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"

@@ -2,6 +2,19 @@
 {% load static %}
 
 {% block card %}
+    <div class="flex items-center justify-center w-full h-full rounded-lg bg-orange-100 hover:bg-orange-200">
+        <div class="px-4 py-2">
+            <div>
+                <h1 class="font-bold text-2xl text-center">Case Data</h1>
+                <h2 class="font-light italic text-md text-center">(From within the Covigo system)</h2>
+                <hr class="border-slate-400 my-2">
+                <img src="{% static 'dashboard/hospitalizations.png' %}" alt="Hospitalizations"/>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block modal %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
@@ -28,7 +41,7 @@
         };
     </script>
 
-    <div class="flex items-center justify-center w-full h-full rounded-md shadow bg-green-100 border-green-200 group-hover:bg-green-200">
+    <div class="hidden flex items-center justify-center w-full h-full rounded-md shadow bg-green-100 border-green-200 group-hover:bg-green-200">
         <div class="px-4 py-2">
             <h2 class="font-bold text-2xl text-center">Recoveries (Total)</h2>
             <h3 class="font-light text-sm text-center text-gray-600">(since {{ recoveries.dates.0 }})</h3>
