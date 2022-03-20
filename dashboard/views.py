@@ -14,19 +14,29 @@ def index(request):
     appointments = []
 
     if user.is_staff:
-        patients = user.staff.get_assigned_patient_users()
-        statuses = []
+        recent_status_updates = []
+        assigned_patients = user.staff.get_assigned_patient_users()
         data = fetch_data_from_all_files()
+        
         return render(request, 'dashboard/index.html', {
+            "messages": messages,
+            "appointments": appointments,
+            "recent_status_updates": recent_status_updates,
+            "assigned_patients": assigned_patients,
             "data": data,
         })
 
     else:
         status_reminder = []
-        quarantine_instructions = []
+        quarantine = []
+        assigned_doctor = user.patient.get_assigned_staff_user()
 
         return render(request, 'dashboard/index.html', {
-            "data": []
+            "messages": messages,
+            "appointments": appointments,
+            "status_reminder": status_reminder,
+            "quarantine": quarantine,
+            "assigned_doctor": assigned_doctor,
         })
 
 

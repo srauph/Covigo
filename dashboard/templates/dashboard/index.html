@@ -7,7 +7,7 @@
         </div>
 
         <div class="flex flex-wrap justify-center md:justify-start gap-4 p-8">
-            {% include './cards/latest-messages.html' %}
+            {% include './cards/messages.html' %}
             {% include './cards/upcoming-appointments.html' %}
             {% if not user.is_staff %}
                 {% include './cards/status-reminder.html' %}
