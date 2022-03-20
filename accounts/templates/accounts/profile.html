@@ -183,9 +183,9 @@
                             </div>
 
                             <div class="flex gap-2">
-                                {# Hidden for now until implemented #}
-                                {% if not usr.is_staff and None %}
-                                    <a href="#">
+                                {% if not usr.is_staff %}
+                                    {# Hidden for now until implemented #}
+                                    <a href="#" class="hidden">
                                         <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                                             <span>
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
@@ -197,25 +197,26 @@
                                             <span>Reassign</span>
                                         </button>
                                     </a>
-                                {% endif %}
-                                <a href="{% url 'symptoms:assign_symptom' usr.id %}">
-                                    <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white pl-1 pr-2 py-1 rounded-md flex items-center gap-1">
-                                    <span>
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                             viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
-                                        </svg>
-                                    </span>
+
+                                    <a href="{% url 'symptoms:assign_symptom' usr.id %}">
+                                        <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white pl-1 pr-2 py-1 rounded-md flex items-center gap-1">
                                         <span>
-                                        {% if allow_editing %}
-                                            Edit Symptoms
-                                        {% else %}
-                                            Assign Symptoms
-                                        {% endif %}
-                                    </span>
-                                    </button>
-                                </a>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                 viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                                            </svg>
+                                        </span>
+                                            <span>
+                                            {% if allow_editing %}
+                                                Edit Symptoms
+                                            {% else %}
+                                                Assign Symptoms
+                                            {% endif %}
+                                        </span>
+                                        </button>
+                                    </a>
+                                {% endif %}
                                 <a href="{% url 'accounts:edit_user' usr.id %}">
                                     <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                                         <span>
