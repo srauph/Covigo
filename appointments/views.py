@@ -19,7 +19,7 @@ def index(request):
     staff_id = get_assigned_staff_id_by_patient_id(request.user.id)
     booked_appointments = Appointment.objects.filter(patient=request.user.id, staff=staff_id)
     is_staff = get_is_staff(request.user.id)
-
+    print(booked_appointments)
     return render(request, 'appointments/index.html', {
         'booked_appointments': booked_appointments,
         'is_staff': is_staff
@@ -201,3 +201,4 @@ def cancel_or_delete_appointments_or_availabilities(request):
     return render(request, 'appointments/cancel_appointments.html', {
         'appointments': Appointment.objects.filter(logged_in_filter).all()
     })
+

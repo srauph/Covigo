@@ -1,6 +1,9 @@
 {% extends "Covigo/base.html" %}
-
+{% block styles %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.css">
+{% endblock %}
 {% block script %}
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.js"></script>
     <script>
         let alert_del = document.querySelectorAll('.alert-del');
         alert_del.forEach(
@@ -11,6 +14,14 @@
                 }
             )
         );
+
+        document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('fullcalendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+              initialView: 'dayGridMonth'
+            });
+            calendar.render();
+        });
 
     </script>
 {% endblock %}
@@ -90,7 +101,7 @@
                 </div>
             </div>
             <div class="grow min-h-full w-full xl:w-2/3">
-                {% include "./calendar.html" %}
+                <div id="fullcalendar" class="p-4"></div>
             </div>
         </div>
     </div>
