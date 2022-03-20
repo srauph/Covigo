@@ -1,15 +1,12 @@
 import os.path
 import shortuuid
 import smtplib
-
-from django.contrib.auth.models import User, Permission
+from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-
 from Covigo.settings import HOST_NAME
-
 from accounts.models import Flag, Staff, Patient
 from pathlib import Path
 from qrcode import make

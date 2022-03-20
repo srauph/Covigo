@@ -14,7 +14,6 @@
 {% endblock %}
 
 {% block content %}
-
     <div class="bg-slate-700 border-b">
         <h1 class="text-2xl text-white font-semibold px-8 py-4">Add Availabilities</h1>
     </div>
@@ -24,14 +23,13 @@
             <div class="w-full flex flex-col gap-8 mb-8">
                 <div class="w-full">
                     <h2 class="p-2 text-2xl font-bold">
-                        Availability details
+                        Availability Details
                     </h2>
                     <hr>
                     <!--SUCCESS/ERROR MESSAGES -->
                     {% for message in messages %}
                         {% if message.tags == 'success' %}
-                            <div role="alert"
-                                 class="p-5 rounded-lg border border-green-400 bg-green-300 text-green-900" id="message_box">
+                            <div role="alert" class="p-5 rounded-lg border border-green-400 bg-green-300 text-green-900" id="message_box">
                                 <div class="divide-y-2 divide-solid divide-green-400">
                                     <h2 class="font-bold text-xl flex items-center pb-2">
                                         <span class="mr-2">
@@ -91,15 +89,12 @@
                             {{ availability_form.start_date }}
                         </div>
                     </div>
-
                     <div class="w-full px-2 pt-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2">End date:</label>
-
                         <div class="inline mt-1 pr-5">
                             {{ availability_form.end_date }}
                         </div>
                     </div>
-
                     <div class="w-full max-w-2xl px-2 py-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2">Select days to create availabilities
                             for:</label>
@@ -110,7 +105,6 @@
                             {{ availability_form.availability_days }}
                         </div>
                     </div>
-
                     <div class="w-full px-2 pt-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2 label-start">Start time:</label>
                         <div class="text-red-500 text-sm font-semibold inline hidden" id="time-error">Invalid time
@@ -120,14 +114,12 @@
                             <input id="start_time" class="timepicker_1" name="start_time" required>
                         </div>
                     </div>
-
                     <div class="w-full px-2 pt-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2">End time:</label>
                         <div class="inline mt-1 pr-5">
                             <input id="end_time" class="timepicker_2" name="end_time" required>
                         </div>
                     </div>
-
                     <div class="w-full px-2 py-2">
                         <label class="block text-gray-700 text-sm font-bold mb-2">Slot duration:</label>
                         <div class="text-red-500 text-sm font-semibold hidden" id="slot-error">
@@ -140,7 +132,6 @@
                             minutes
                         </div>
                     </div>
-
                     <div class="w-full px-2 pt-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2">Select availabilities:</label>
                         <div class="text-red-500 text-sm font-semibold hidden" id="availability_error">
@@ -151,44 +142,38 @@
                                     multiple="multiple">
                             </select>
                         </div>
-
                     </div>
-
                     <div class="w-full mt-8 md:mt-0">
                         <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
                             <a href="{% url "appointments:index" %}">
                                 <button type="button"
                                         class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
-                        <span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                                 stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </span>
-                                    <span>Cancel</span>
+                                    <span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </span>
+                                    <span>
+                                        Cancel
+                                    </span>
                                 </button>
                             </a>
                             <button type="submit"
                                     class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1"
                                     name="submit">
-                        <span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                 viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </span>
-                                <span>Create</span>
+                                <span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </span>
+                                <span>
+                                    Create
+                                </span>
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
     </form>
-
-
-
 {% endblock %}
