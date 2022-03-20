@@ -21,7 +21,7 @@ from accounts.utils import (
     get_or_generate_patient_profile_qr,
     get_user_from_uidb64
 )
-from messaging.models import MessageGroup
+from symptoms.utils import is_symptom_editing_allowed
 
 
 class GroupErrors:
@@ -233,7 +233,8 @@ def profile(request, user_id):
             "assigned_staff": assigned_staff,
             "assigned_staff_patient_count": assigned_staff_patient_count,
             "assigned_flags": assigned_flags,
-            "full_view": True
+            "full_view": True,
+            "allow_editing": is_symptom_editing_allowed(user_id)
         })
 
     else:
