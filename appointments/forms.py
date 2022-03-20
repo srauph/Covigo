@@ -2,13 +2,13 @@ import datetime
 from django import forms
 from django.core.exceptions import ValidationError
 
-DAYS = (('monday', 'Monday'),
+DAYS = (('sunday', 'Sunday'),
+        ('monday', 'Monday'),
         ('tuesday', 'Tuesday'),
         ('wednesday', 'Wednesday'),
         ('thursday', 'Thursday'),
         ('friday', 'Friday'),
-        ('saturday', 'Saturday'),
-        ('sunday', 'Sunday'))
+        ('saturday', 'Saturday'))
 
 SLOT_HOURS = [tuple([x, x]) for x in range(0, 24)]
 SLOT_MINUTES = [tuple([x, x]) for x in range(0, 65, 5)]

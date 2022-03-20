@@ -85,6 +85,18 @@
                 return false;
             }
         );
+
+        $('#checkbox').on('click', function() {
+            if($(this).is(':checked',true))
+            {
+                $("#checkbox").is('checked', true);
+            }
+            else
+            {
+                $("#checkbox").prop('checked',false);
+            }
+        }
+        );
     </script>
 {% endblock %}
 
@@ -99,10 +111,7 @@
                     <span>
                         Select one or any:
                     </span>
-                    <button class="weekday-filter bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none border-r border-white" value="Saturday">
-                        Saturday
-                    </button>
-                    <button class="weekday-filter bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Sunday">
+                    <button class="weekday-filter bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none border-r border-white" value="Sunday">
                         Sunday
                     </button>
                     <button class="weekday-filter bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Monday">
@@ -117,8 +126,11 @@
                     <button class="weekday-filter bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Thursday">
                         Thursday
                     </button>
-                    <button class="weekday-filter bg-gray-600 text-white px-2 py-1 rounded-md  rounded-l-none" value="Friday">
+                    <button class="weekday-filter bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Friday">
                         Friday
+                    </button>
+                    <button class="weekday-filter bg-gray-600 text-white px-2 py-1 rounded-md rounded-l-none" value="Saturday">
+                        Saturday
                     </button>
                 </div>
                 <div>
@@ -163,7 +175,7 @@
                         {% for appointment in appointments %}
                             <tr class="text-center">
                                 <td>
-                                    <input type="checkbox" name="booking_ids" value="{{ appointment.id }}">
+                                    <input type="checkbox" name="booking_ids[]" value="{{ appointment.id }}">
                                 </td>
                                 <td>
                                     {{ appointment.start_date.date }}
@@ -195,7 +207,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="w-full mt-8 md:mt-0">
+                <div class="w-full mt-8 md:mt-0 md:-mx-4">
                     <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
                         <a href="{% url "appointments:index" %}">
                             <button type="button" class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
