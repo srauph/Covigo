@@ -75,7 +75,11 @@ def profile(request, user_id):
     user = User.objects.get(id=user_id)
     image = get_or_generate_patient_profile_qr(user_id)
     all_doctors = User.objects.filter(groups__name='doctor')
-    print(all_doctors)
+
+    if request.method == "POST":
+        doctor_staff_id = request.POST.get('doctor_id')
+        user.patient.assigned_staff_id = doctor_staff_id
+        user.save()
     return render(request, 'accounts/profile.html',
                   {"qr": image,
                    "usr": user,
