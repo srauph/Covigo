@@ -1,6 +1,7 @@
 import json
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.core import serializers
 from django.db.models import Q
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -19,10 +20,9 @@ def index(request):
     staff_id = get_assigned_staff_id_by_patient_id(request.user.id)
     booked_appointments = Appointment.objects.filter(patient=request.user.id, staff=staff_id)
     is_staff = get_is_staff(request.user.id)
-    print(booked_appointments)
     return render(request, 'appointments/index.html', {
         'booked_appointments': booked_appointments,
-        'is_staff': is_staff
+        'is_staff': is_staff,
     })
 
 
