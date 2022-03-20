@@ -118,6 +118,9 @@ def book_appointments(request):
         booking = Appointment.objects.get(id=booking_id)
         booking.patient = request.user
         booking.save()
+
+        # success message to show user
+        messages.success(request, 'The appointment was booked successfully.')
         return redirect('appointments:book_appointments')
 
     if request.method == 'POST' and request.POST.get('Book Selected Appointments'):
@@ -128,7 +131,11 @@ def book_appointments(request):
             booking = Appointment.objects.get(id=booking_id)
             booking.patient = request.user
             booking.save()
-        return redirect('appointments:index')
+
+        # success message to show user if appointments were booked
+        if len(booking_ids) > 0:
+            messages.success(request, 'The selected appointments were booked successfully.')
+            return redirect('appointments:index')
 
     return render(request, 'appointments/book_appointments.html', {
         'appointments': Appointment.objects.filter(patient=None, staff=staff_id).all(),
