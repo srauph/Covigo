@@ -10,11 +10,11 @@
         <div class="flex flex-col justify-between grow m-8 p-4 min-h-full bg-white shadow rounded-lg">
             <div class="w-full flex flex-col gap-8 mb-8">
                 {% for r in report %}
-                    <div class="w-full max-w-2xl px-2">
-                        <label> {{ r.symptom.symptom_name }}:</label>
+                    <div class="w-full max-w-2xl px-2 flex">
+                        <label> {{ r.symptom.name }}:</label>
                         <div class="mt-1">
                             <input type="hidden" name="data[id][]" value="{{ r.id }}">
-                            <input type=text name=data[data][]>
+                            <input type=text name=data[data][] class="border p-1 ">
                         </div>
                     </div>
                 {% endfor %}
