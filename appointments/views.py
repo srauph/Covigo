@@ -1,10 +1,10 @@
 import json
-
 from django.contrib import messages
+from django.db.models import Q
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
-
+from accounts.models import Staff
 from accounts.utils import get_assigned_staff_id_by_patient_id
 from appointments.forms import AvailabilityForm
 from datetime import datetime, timedelta
@@ -66,11 +66,10 @@ def add_availabilities(request):
                                 staff=request.user
                             ).values('start_date', 'end_date'))
 
-                            # Check if availabilitiy collides with already existing appointment objects
+                            # Check if availability collides with already existing appointment objects
                             for existing_appt in existing_appointments_at_current_date:
                                 if existing_appt.get('start_date') < start_datetime_object < existing_appt.get(
-                                        'end_date') or existing_appt.get(
-                                    'start_date') < end_datetime_object < existing_appt.get('end_date'):
+                                        'end_date') or existing_appt.get('start_date') < end_datetime_object < existing_appt.get('end_date'):
                                     # Don't create Appointment objects and display error message
                                     messages.error(request,
                                                    'The availability was not created. There already exists an appointment or availability between ' + start_datetime_object.strftime(
@@ -78,7 +77,11 @@ def add_availabilities(request):
                                                        '%Y-%m-%d %H:%M'))
                                     return redirect('appointments:add_availabilities')
 
-                            apt = Appointment.objects.create(staff=request.user, patient=None,
+                            # Get user's Staff Id:
+                            staff_id = Staff.objects.filter(user=request.user).first().id
+
+                            # Create new Appointment object
+                            apt = Appointment.objects.create(staff_id=staff_id, patient=None,
                                                              start_date=start_datetime_object,
                                                              end_date=end_datetime_object)
                             apt.save()
@@ -99,15 +102,58 @@ def add_availabilities(request):
 def book_appointments(request):
     staff_id = get_assigned_staff_id_by_patient_id(request.user.id)
 
-    if request.method == 'POST':
-        booking_ids = request.POST.getlist('booking_ids')
+    if request.method == 'POST' and request.POST.get('Book Appointment'):
+        booking_id = request.POST.get('Book Appointment')
 
-        # books an appointment by adding the patient's id to the appointment's patient_id column
+        # books a single appointment by adding the patient's id to the appointment's patient_id column
+        booking = Appointment.objects.get(id=booking_id)
+        booking.patient = request.user
+        booking.save()
+        return redirect('appointments:book_appointments')
+
+    if request.method == 'POST' and request.POST.get('Book Selected Appointments'):
+        booking_ids = request.POST.getlist('booking_ids[]')
+
+        # books all selected appointments by adding the patient's id to the appointment's patient_id column
         for booking_id in booking_ids:
             booking = Appointment.objects.get(id=booking_id)
             booking.patient = request.user
             booking.save()
+        return redirect('appointments:index')
 
-    return render(request, 'appointments/availabilities.html', {
+    return render(request, 'appointments/book_appointments.html', {
         'appointments': Appointment.objects.filter(patient=None, staff=staff_id).all()
+    })
+
+
+@login_required
+@never_cache
+def cancel_or_delete_appointments_or_availabilities(request):
+    if request.user.is_staff:
+        logged_in_filter = Q(patient_id__isnull=False, staff_id=request.user.staff.id)
+
+    else:
+        logged_in_filter = Q(patient_id=request.user.id)
+
+    if request.method == 'POST' and request.POST.get('Cancel Appointment'):
+        booked_id = request.POST.get('Cancel Appointment')
+
+        # cancels a single appointment by setting the patient's id in the appointment's patient_id column to "None"
+        booked = Appointment.objects.get(id=booked_id)
+        booked.patient = None
+        booked.save()
+        return redirect('appointments:cancel_or_delete_appointments_or_availabilities')
+
+    if request.method == 'POST' and request.POST.get('Cancel Selected Appointments'):
+        booked_ids = request.POST.getlist('booked_ids[]')
+
+        # cancels all selected appointments by setting the patient's id in the appointment's patient_id column to "None"
+        for booked_id in booked_ids:
+            booked = Appointment.objects.get(id=booked_id)
+            booked.patient = None
+            booked.save()
+        return redirect('appointments:index')
+
+    return render(request, 'appointments/cancel_appointments.html', {
+        'appointments': Appointment.objects.filter(logged_in_filter).all()
     })
