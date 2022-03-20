@@ -13,7 +13,8 @@
                     <div class="w-full max-w-2xl px-2">
                         <label> {{ r.symptom.symptom_name }}:</label>
                         <div class="mt-1">
-                            <input type=text name=data[{{ r.symptom.id }}]>
+                            <input type="hidden" name="data[id][]" value="{{ r.id }}">
+                            <input type=text name=data[data][]>
                         </div>
                     </div>
                 {% endfor %}
