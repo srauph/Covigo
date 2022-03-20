@@ -10,6 +10,7 @@ from accounts.utils import get_assigned_staff_id_by_patient_id, get_users_names,
 from appointments.forms import AvailabilityForm
 from datetime import datetime, timedelta
 from appointments.models import Appointment
+from appointments.utils import cancel_appointments
 
 
 @login_required
@@ -186,9 +187,7 @@ def cancel_or_delete_appointments_or_availabilities(request):
         booked_id = request.POST.get('Cancel Appointment')
 
         # cancels a single appointment by setting the patient's id in the appointment's patient_id column to "None"
-        booked = Appointment.objects.get(id=booked_id)
-        booked.patient = None
-        booked.save()
+        cancel_appointments(booked_id)
         return redirect('appointments:cancel_or_delete_appointments_or_availabilities')
 
     if request.method == 'POST' and request.POST.get('Cancel Selected Appointments'):
@@ -196,9 +195,7 @@ def cancel_or_delete_appointments_or_availabilities(request):
 
         # cancels all selected appointments by setting the patient's id in the appointment's patient_id column to "None"
         for booked_id in booked_ids:
-            booked = Appointment.objects.get(id=booked_id)
-            booked.patient = None
-            booked.save()
+            cancel_appointments(booked_id)
         return redirect('appointments:index')
 
     return render(request, 'appointments/cancel_appointments.html', {
