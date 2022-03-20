@@ -182,8 +182,9 @@ def create_patient_report(request):
     report = PatientSymptom.objects.filter(user_id=current_user, due_date__lte=datetime.datetime.now(), data=None)
 
     # Ensure it was a post request
-    report_data = request.POST.getList('data')
+
     if request.method == 'POST':
+        report_data = request.POST.getList('data')
         for s in report_data:
             symptom = PatientSymptom.objects.filter(id=s)
             symptom.data = report_data[s]
