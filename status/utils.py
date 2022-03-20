@@ -1,57 +1,55 @@
 from datetime import time
-from django.db.models import Q
 from django.utils.datetime_safe import datetime
+from django.db.models import Q, Count, QuerySet
 from symptoms.models import PatientSymptom
 
 
-def return_reports(patient_ids, staff_id):
+def get_reports_by_patient(patient_id):
     """
-    Returns a queryset of reports for the patient from the staff.
-    @param patient_ids: the patient user id
-    @param staff_id: the user id of the assigned staff
-    @return: returns a queryset of reports for the patient from the staff
+    Returns a queryset of reports the patient made.
+    @param patient_id: the patient user id
+    @return: returns a queryset of reports the patient made
     """
-    criteria = Q(user_id__in=patient_ids) & Q(user__patients_assigned_flags__staff_id=staff_id)
+    criteria = Q(user_id=patient_id) & ~Q(data=None)
 
-    reports = PatientSymptom.objects.select_related('user').filter(criteria) \
-        .values('date_updated__date', 'user_id', 'is_viewed', 'user__first_name', 'user__last_name',
-                'user__patients_assigned_flags__is_active', 'user__patients_assigned_flags__staff_id') \
-        .distinct()
+    reports = PatientSymptom.objects.values('date_updated__date', 'user_id', 'is_viewed',
+                                            'user__first_name', 'user__last_name',
+                                            'user__patients_assigned_flags__is_active').filter(criteria).annotate(
+        total_entries=Count("*")).order_by('date_updated__date')
     return reports
 
 
-def return_symptom_list(user_id, date_updated, staff_id):
+def get_patient_report_information(user_id, date_updated):
     """
-    Returns a list of symptoms for the patient.
-    @param user_id: the patient user id
-    @param date_updated: date of the submitted symptom
-    @param staff_id: the user id of the assigned staff
-    @return: symptom list
+    Gets the report information (queryset of symptoms that has been reported back to)
+    which includes symptom name, the user response (data) and their name.
+    @param user_id:
+    @param date_updated:
+    @return: queryset of symptoms
     """
-    criteria = Q(user_id=user_id) & Q(date_updated__date=date_updated) & Q(
-        user__patients_assigned_flags__staff_id=staff_id)
+    criteria = Q(user_id=user_id) & ~Q(data=None) & Q(date_updated__date=date_updated)
 
-    report_symptom_list = PatientSymptom.objects.select_related('symptom', 'user') \
-        .filter(criteria) \
-        .values('symptom_id', 'data', 'symptom__name', 'is_viewed', 'user__patients_assigned_flags__is_active',
-                'user__patients_assigned_flags__staff_id', 'user__first_name', 'user__last_name')
-    return report_symptom_list
+    reports = PatientSymptom.objects.values('user__first_name', 'user__last_name', 'symptom_id',
+                                            'data', 'is_viewed',
+                                            'symptom__name').filter(criteria)
+    return reports
 
 
-def return_symptoms(user_id, staff_id):
+def get_reports_for_doctor(patient_ids):
     """
-    Returns a list of symptoms the patient has.
-    @param staff_id:
-    @param user_id: the patient id
-    @return: list of symptoms
+    Gets a queryset for the list of reports for each patient the doctor is assigned.
+    It includes past reports from previous doctors.
+    @param patient_ids: list of doctor patient ids
+    @return: queryset of reports
     """
-    criteria = Q(user_id=user_id) & Q(user__patients_assigned_flags__staff_id=staff_id)
+    criteria = Q(user_id__in=patient_ids) & ~Q(data=None)
 
-    return_patient_symptoms = PatientSymptom.objects.select_related('symptom', 'user').filter(criteria) \
-        .values('symptom_id', 'data', 'symptom__name', 'is_viewed', 'user__patients_assigned_flags__is_active',
-                'user__patients_assigned_flags__staff_id',
-                'user__first_name', 'user__last_name')
-    return return_patient_symptoms
+    reports = PatientSymptom.objects.values('date_updated__date', 'user_id', 'is_viewed',
+                                            'user__first_name', 'user__last_name',
+                                            'user__patients_assigned_flags__is_active').filter(criteria).annotate(
+        total_entries=Count("*")).order_by('date_updated__date')
+
+    return reports
 
 
 def check_report_exist(user_id, date):
