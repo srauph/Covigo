@@ -12,11 +12,18 @@
                     </a>
                 </div>
                 <hr class="mx-4 border-slate-400">
-
                 <div class="m-4">
-                    <a href = "{%  url 'appointments:book_appointments' %}" >
+                    <a href="{%  url 'appointments:book_appointments' %}">
                         <button class="w-full px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white text-2xl font-bold">
                             <h2>Book an appointment</h2>
+                        </button>
+                    </a>
+                </div>
+                <hr class="mx-4 border-slate-400">
+                <div class="m-4">
+                    <a href="{%  url 'appointments:cancel_or_delete_appointments_or_availabilities' %}">
+                        <button class="w-full px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white text-2xl font-bold">
+                            <h2>Cancel an appointment</h2>
                         </button>
                     </a>
                 </div>
@@ -26,8 +33,10 @@
                     <hr class="my-2 border-slate-400">
                     <div class="text-left text-lg font-normal xl:w-96">
                         <ul class="px-8 list-disc">
-                            {% for appt in booked_appointments %}
-                            <li> {{ appt.start_date }} </li>
+                            {% for appointment in booked_appointments %}
+                                <li>
+                                    {{ appointment.start_date }}
+                                </li>
                             {% endfor %}
                         </ul>
                     </div>
