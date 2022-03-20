@@ -100,7 +100,9 @@
         {% endif %}
         <div class="bg-white shadow m-8 rounded-xl">
             <div class="w-full flex justify-between flex-col md:flex-row p-4">
-                <div>
+
+                {% if is_reporting_today %}
+                    <div>
                     <a href="{% url "status:create-status-report" %}">
                         <button class="bg-green-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                        <span>
@@ -115,7 +117,6 @@
                         </button>
                     </a>
                 </div>
-                {% if is_reporting_today %}
                     <div class="text-red-600 font-bold">
                         You should submit your report with all requested data today by 11:59:59, remaining time: <span
                             id="countdown"></span>
