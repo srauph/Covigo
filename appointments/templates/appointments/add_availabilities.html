@@ -2,7 +2,7 @@
 
 {% block styles %}
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
 {% endblock %}
 
 {% block script %}
@@ -29,7 +29,9 @@
                     <!--SUCCESS/ERROR MESSAGES -->
                     {% for message in messages %}
                         {% if message.tags == 'success' %}
-                            <div role="alert" class="p-5 rounded-lg border border-green-400 bg-green-300 text-green-900" id="message_box">
+                            <div role="alert"
+                                 class="p-5 rounded-lg border border-green-400 bg-green-300 text-green-900"
+                                 id="message_box">
                                 <div class="divide-y-2 divide-solid divide-green-400">
                                     <h2 class="font-bold text-xl flex items-center pb-2">
                                         <span class="mr-2">
@@ -54,7 +56,8 @@
                                 </div>
                             </div>
                         {% else %}
-                            <div role="alert" class="p-5 rounded-lg border border-red-400 bg-red-300 text-red-900" id="message_box">
+                            <div role="alert" class="p-5 rounded-lg border border-red-400 bg-red-300 text-red-900"
+                                 id="message_box">
                                 <div class="divide-y-2 divide-solid divide-red-400">
                                     <h2 class="font-bold text-xl flex items-center pb-2">
                                         <span class="mr-2">
@@ -138,7 +141,8 @@
                             Please select at least once availability
                         </div>
                         <div class="inline mt-1 pr-5 flex ">
-                            <select class="availability-select2 inline mt-1 pr-5 w-3/5" name="availability_select[]" id="availability-select"
+                            <select class="availability-select2 inline mt-1 pr-5 w-3/5" name="availability_select[]"
+                                    id="availability-select"
                                     multiple="multiple">
                             </select>
                         </div>
@@ -149,26 +153,40 @@
                                 <button type="button"
                                         class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
                                     <span>
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                            stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                         </svg>
                                     </span>
-                                    <span>
-                                        Cancel
-                                    </span>
+                                    <span>Cancel</span>
                                 </button>
                             </a>
                             <button type="submit"
                                     class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1"
-                                    name="submit">
+                                    name="Create">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                 viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </span>
+                                <span>Create</span>
+                            </button>
+
+                            <button type="submit" value="Create and Return" name="Create and Return"
+                                    class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                 viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </span>
                                 <span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                </span>
-                                <span>
-                                    Create
-                                </span>
+                            Create and Return
+                        </span>
                             </button>
                         </div>
                     </div>
