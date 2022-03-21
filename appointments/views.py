@@ -19,6 +19,7 @@ def index(request):
     is_staff = get_is_staff(request.user.id)
     patient_booked_appointments = []
     doctor_booked_appointments = []
+    doctor_booked_appointments_patient_name_dict = {}
 
     if not is_staff:
         assigned_staff_id = get_assigned_staff_id_by_patient_id(request.user.id)
@@ -26,10 +27,12 @@ def index(request):
     else:
         signed_in_staff_id = Staff.objects.get(user_id=request.user.id).id
         doctor_booked_appointments = Appointment.objects.filter(patient__isnull=False, staff=signed_in_staff_id).all()
+        for appointment in doctor_booked_appointments:
+            doctor_booked_appointments_patient_name_dict[appointment] = get_users_names(appointment.patient.id)
 
     return render(request, 'appointments/index.html', {
         'patient_booked_appointments': patient_booked_appointments,
-        'doctor_booked_appointments': doctor_booked_appointments,
+        'doctor_booked_appointments_patient_name_dict': doctor_booked_appointments_patient_name_dict,
         'is_staff': is_staff
     })
 

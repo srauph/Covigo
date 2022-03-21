@@ -87,9 +87,9 @@
                                     </li>
                                 {% endfor %}
                             {% else %}
-                                {% for appointment in doctor_booked_appointments %}
+                                {% for key, value in doctor_booked_appointments_patient_name_dict.items %}
                                     <li>
-                                        {{ appointment.start_date }}
+                                        {{ key.start_date }} with {{ value }}
                                     </li>
                                 {% endfor %}
                             {% endif %}
