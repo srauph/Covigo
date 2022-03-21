@@ -8,7 +8,7 @@ from django.views.decorators.cache import never_cache
 
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
-from accounts.utils import get_superuser_staff_model, send_email_to_user, send_sms_to_user, reset_password_email_generator, generate_profile_qr
+from accounts.utils import get_superuser_staff_model, send_email_to_user, send_sms_to_user, reset_password_email_generator, get_or_generate_patient_profile_qr
 from accounts.utils import (
     send_email_to_user,
     reset_password_email_generator,
