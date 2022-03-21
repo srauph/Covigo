@@ -12,11 +12,15 @@ class SymptomTestCase(TransactionTestCase):
     # the test "test_user_can_edit_symptom_and_return" when dealing with fetching symptom ids from the database)
     reset_sequences = True
 
-    # initialization of data to be run before every test. Note that not all data initialized here is used
-    # necessarily in all tests and the decision to include "all" of them here was more for readability choice
-    # than anything else (for example, "edited_mocked_form_data2" and "edited_mocked_form_data3" are only ever
-    # used in one test: "test_user_can_edit_symptom_and_return")
     def setUp(self):
+        """
+        initialization of data to be run before every test. Note that not all data initialized here is used
+        necessarily in all tests and the decision to include "all" of them here was more for readability choice
+        than anything else (for example, "edited_mocked_form_data2" and "edited_mocked_form_data3" are only ever
+        used in one test: "test_user_can_edit_symptom_and_return")
+        :return: void
+        """
+
         self.client = Client()
         self.user = User.objects.create(username='admin')
         self.user.set_password('admin')
@@ -29,8 +33,11 @@ class SymptomTestCase(TransactionTestCase):
         self.edited_mocked_form_data3 = {'name': 'Cough', 'description': 'A cough is air that attacks the lungs.'}
         self.response = self.client.get(reverse('symptoms:create_symptom'))
 
-    # this test allows us to test directly for form fields when dealing with empty forms
-    def test_empty_forms(self):
+    def test_empty_create_new_symptom_forms(self):
+        """
+        this test allows us to test directly for form fields when dealing with empty forms
+        :return: void
+        """
 
         # this insures that the specific GET request has succeeded (OK) through
         # the reverse URL naming attribute for the "create_symptom.html" page
@@ -43,9 +50,13 @@ class SymptomTestCase(TransactionTestCase):
         self.assertTrue(Symptom.objects.all().count() == 0)
         self.assertEqual('This field is required.', list(self.response.context['form'].errors.values())[0][0])
 
-    # this test allows us to test for if a symptom that is submitted through a form
-    # (with the "submit and duplicate button") ends up actually being indeed added to the database or not
-    def test_user_can_create_symptom(self):
+    def test_user_can_create_new_symptom(self):
+        """
+        this test allows us to test for if a symptom that is submitted through a form
+        (with the "create" button) ends up actually being indeed added to the database or not
+        :return: void
+        """
+
         self.assertEqual(self.response.status_code, 200)
         self.assertTrue(Symptom.objects.all().count() == 0)
         self.response = self.client.post(reverse('symptoms:create_symptom'), self.mocked_form_data2)
@@ -68,9 +79,13 @@ class SymptomTestCase(TransactionTestCase):
         self.assertEqual(self.mocked_form_data2['name'], self.response.context['form']['name'].value())
         self.assertEqual(self.mocked_form_data2['description'], self.response.context['form']['description'].value())
 
-    # this test allows us to test for if a symptom that is submitted through a form
-    # (with the "submit and return button") ends up actually being indeed added to the database or not
-    def test_user_can_create_symptom_and_return(self):
+    def test_user_can_create_new_symptom_and_return(self):
+        """
+        this test allows us to test for if a symptom that is submitted through a form
+        (with the "create and return" button) ends up actually being indeed added to the database or not
+        :return: void
+        """
+
         self.assertEqual(self.response.status_code, 200)
         self.assertTrue(Symptom.objects.all().count() == 0)
         self.response = self.client.post(reverse('symptoms:create_symptom'), self.mocked_form_data2)
@@ -100,9 +115,13 @@ class SymptomTestCase(TransactionTestCase):
             list(Symptom.objects.values("description"))
         )
 
-    # this test allows us to test for if a symptom that is edited and submitted through a form
-    # ends up actually being indeed properly edited in the list of symptoms and in the database or not
-    def test_user_can_edit_symptom_and_return(self):
+    def test_user_can_edit_existing_symptom_and_return(self):
+        """
+        this test allows us to test for if a symptom that is edited and submitted through a form
+        ends up actually being indeed properly edited in the list of symptoms and in the database or not
+        :return: void
+        """
+
         self.assertEqual(self.response.status_code, 200)
 
         # we should expect to have no symptoms in the database if we start with an empty database

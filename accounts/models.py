@@ -13,6 +13,9 @@ class Profile(models.Model):
     address = models.TextField(blank=True)
     postal_code = models.CharField(max_length=255, blank=True)
 
+    def __str__(self):
+        return f"{self.user}_profile"
+
 
 class Staff(models.Model):
     user = models.OneToOneField(
@@ -20,21 +23,35 @@ class Staff(models.Model):
         on_delete=models.CASCADE,
     )
 
+    def get_assigned_patient_users(self):
+        return User.objects.filter(patient__in=self.assigned_patients.all())
+
+    def __str__(self):
+        return f"{self.user}_staff"
+
 
 class Patient(models.Model):
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
     )
-    staff = models.ForeignKey(
+    assigned_staff = models.ForeignKey(
         Staff,
-        related_name="patients",
+        related_name="assigned_patients",
         on_delete=models.CASCADE,
+        null=True,
+        blank=True
     )
     is_confirmed = models.BooleanField(default=False)
     is_recovered = models.BooleanField(default=False)
     is_quarantining = models.BooleanField(default=False)
     code = models.CharField(max_length=255)
+
+    def get_assigned_staff_user(self):
+        return self.assigned_staff.user
+
+    def __str__(self):
+        return f"{self.user}_patient"
 
 
 class Flag(models.Model):
@@ -58,7 +75,7 @@ class Flag(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.patient}_{self.staff}"
+        return f"{self.patient}_flaggedby_{self.staff}"
 
 
 @receiver(post_save, sender=User)

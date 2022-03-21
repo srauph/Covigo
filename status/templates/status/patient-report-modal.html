@@ -3,15 +3,41 @@
 {% block script %}
     <script>
         $(document).ready(function () {
-            $('#patient_reports__modal_table').DataTable({
-                "bSort": false,
-                "bFilter": false,
+            $('#patient_reports_modal_table').DataTable({
+                "ajax": "{% url 'status:patient-report-modal-table' user_id date %}",
+                "searching": false,
+                responsive: true,
+                "draggable ": false,
+                stripeClasses: [],
+                "orderClasses": false,
+                "columns": [
+                    {"data": "symptom__name"},
+                    {"data": "data"},
+                    {
+                        defaultContent: '<button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">' +
+                            '<span> <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round"stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' +
+                            '</span><span>Resubmit</span></button>'
+                    },
+                ],
+                "columnDefs": [
+                    { // symptom__name
+                        "targets": [0],
+                        "visible": true,
+                        "searchable": false
+                    },
+                    { // data
+                        "targets": [1],
+                        "visible": true,
+                        "searchable": false
+                    }
+                ],
             });
-            $('#flag-button').on('click', function (e) {
+
+            jQuery('#flag-button').on('click', function (e) {
                 e.preventDefault();
-                $.ajax({
+                jQuery.ajax({
                     method: 'POST',
-                    url: $(this).attr('data-url'),
+                    url: jQuery(this).attr('data-url'),
                     data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
                     headers: {
                         "X-Requested-With": "XMLHttpRequest",
@@ -20,7 +46,7 @@
                     success: function (html) {
                         // Set the flag button text and data-url to the appropriate ones
                         let is_flagged = JSON.parse(html).is_flagged;
-                        $('#is-flagged-button-text').text(is_flagged === "True" ? "Unflag Patient" : "Flag Patient");
+                        jQuery('#is-flagged-button-text').text(is_flagged === "True" ? "Unflag Patient" : "Flag Patient");
                         let b = document.getElementById("flag-button");
                         if (is_flagged === "True") {
                             b.setAttribute("data-url", "{% url 'accounts:unflag_user' user_id %}");
@@ -31,6 +57,7 @@
                 });
             });
         });
+
     </script>
 {% endblock %}
 
@@ -41,17 +68,18 @@
         </div>
 
         <div class="bg-white shadow m-8 rounded-xl">
-            <div class="w-full flex justify-between items-center p-4">
+            <div class="w-full flex justify-between flex-col md:flex-row p-4">
                 <div><span>Date: {{ date }}</span></div>
-                <div class="flex gap-2">
-                    <a id="flag-button" data-url="
+                {% if is_staff %}
+                    <div class="flex gap-2">
+                        <a id="flag-button" data-url="
                         {% if is_flagged %}
                             {% url 'accounts:unflag_user' user_id %}
                         {% else %}
                             {% url 'accounts:flag_user' user_id %}
                         {% endif %}
                     ">
-                        <button class="bg-green-600 hover:bg-green-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                            <button class="bg-green-600 hover:bg-green-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                             <span>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                                      stroke="currentColor"
@@ -60,12 +88,12 @@
                                         d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>
                                 </svg>
                             </span>
-                            <span id="is-flagged-button-text">{% if is_flagged %}Unflag Patient{% else %}Flag
-                                Patient{% endif %}</span>
-                        </button>
-                    </a>
-                    <a href="{% url 'messaging:compose_message' user_id %}">
-                        <button class="bg-green-600 hover:bg-green-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                                <span id="is-flagged-button-text">{% if is_flagged %}Unflag Patient{% else %}Flag
+                                    Patient{% endif %}</span>
+                            </button>
+                        </a>
+                        <a href="{% url 'messaging:compose_message' user_id %}">
+                            <button class="bg-green-600 hover:bg-green-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                             <span>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                                      stroke="currentColor">
@@ -73,45 +101,25 @@
                                           d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
                                 </svg>
                             </span>
-                            <span>Send Message</span>
-                        </button>
-                    </a>
-                </div>
+                                <span>Send Message</span>
+                            </button>
+                        </a>
+                    </div>
+                {% endif %}
             </div>
         </div>
-
         <div class="m-4">
             <div class="m-4 p-4 bg-white shadow rounded-lg text-center">
-                <table class="w-full table-auto" id="patient_reports__modal_table">
+                <table class="w-full table-auto display responsive nowrap" style="width:100%"
+                       id="patient_reports_modal_table">
                     <thead>
                     <tr class="border-b">
                         <th class="p-2">Symptom Name</th>
-                        <th class="p-2">Data</th>
+                        <th class="p-2 wrap">Data</th>
                         <th class="p-2"></th>
                     </tr>
                     </thead>
-                    <tbody>
-                    {% for symptoms in report_symptom_list %}
-                        <tr class="hover:bg-slate-200 border-b" data-read="read">
-                            <td class="p-2 text-center" style="text-align:center">{{ symptoms.symptom__name }}</td>
-                            <td class="p-2 text-center">{{ symptoms.data }}</td>
-                            <td class="flex justify-center gap-2">
-                                <a href="">
-                                    <button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-                                        <span>
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                                 viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                      d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                            </svg>
-                                        </span>
-                                        <span>Resubmit</span>
-                                    </button>
-                                </a>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
+                    <!-- Table entries is handled by the DataTable -->
                 </table>
             </div>
         </div>
