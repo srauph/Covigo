@@ -5,7 +5,6 @@ from django.core.exceptions import MultipleObjectsReturned
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
 from django.views.decorators.cache import never_cache
-
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
 from accounts.utils import (
@@ -27,6 +26,7 @@ class GroupErrors:
 
 def unauthorized(request):
     return HttpResponse('Unauthorized', status=401)
+
 
 @login_required
 @never_cache
@@ -314,9 +314,6 @@ def unflaguser(request, user_id):
             return JsonResponse({'is_flagged': f'{flag.is_active}'})
 
     return redirect("accounts:list_users")
-
-
-
 
 
 def convert_permission_name_to_id(request):

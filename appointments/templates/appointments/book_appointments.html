@@ -87,18 +87,18 @@
         );
 
         $('#checkbox').on('click', function() {
-                if($(this).is(':checked',true))
-                {
-                    $("#checkbox").is('checked', true);
-                }
-                else
-                {
-                    $("#checkbox").prop('checked',false);
-                }
+            if($(this).is(':checked',true))
+            {
+                $(".checkbox").prop('checked', true);
             }
-        );
+            else
+            {
+                $(".checkbox").prop('checked',false);
+            }
+        });
 
         let alert_del = document.querySelectorAll('.alert-del');
+
         alert_del.forEach(
             (x) => x.addEventListener(
                 'click',
@@ -107,6 +107,26 @@
                 }
             )
         );
+
+        $(document).ready(function() {
+            if ($("input:checkbox:checked").length >= 1) {
+                $(".book_selected_appointments").show();
+            }
+            else
+            {
+                $(".book_selected_appointments").hide();
+            }
+
+            $('.checkbox').on("change", function() {
+                if ($("input:checkbox:checked").length >= 1) {
+                    $(".book_selected_appointments").show();
+                }
+                else
+                {
+                    $(".book_selected_appointments").hide();
+                }
+            });
+        });
     </script>
 {% endblock %}
 
@@ -181,12 +201,11 @@
             </div>
             <div class="m-4">
                 <div class="m-4 p-4 bg-white shadow rounded-lg">
-
                     <table class="w-full table-auto text-center" id="availabilities_list_table">
                         <thead>
                         <tr class="border-b">
                             <th class="p-2">
-                                <input type="checkbox">
+                                <input type="checkbox" id="checkbox" class="checkbox">
                             </th>
                             <th class="p-2">
                                 Date
@@ -200,9 +219,8 @@
                             <th class="p-2">
                                 Weekday
                             </th>
-
                             <th class="p-2">
-                                Actions
+                                Action
                             </th>
                         </tr>
                         </thead>
@@ -210,7 +228,7 @@
                         {% for appointment in appointments %}
                             <tr class="text-center">
                                 <td>
-                                    <input type="checkbox" name="booking_ids[]" value="{{ appointment.id }}">
+                                    <input type="checkbox" class="checkbox" name="booking_ids[]" value="{{ appointment.id }}">
                                 </td>
                                 <td>
                                     {{ appointment.start_date.date }}
@@ -253,7 +271,7 @@
                                 </span>
                             </button>
                         </a>
-                        <button type="submit" value="Book Selected Appointments" class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1" name="Book Selected Appointments">
+                        <button type="submit" value="Book Selected Appointments" class="book_selected_appointments bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1" name="Book Selected Appointments">
                             <span>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>

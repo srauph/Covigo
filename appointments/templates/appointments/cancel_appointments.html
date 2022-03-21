@@ -42,9 +42,7 @@
                     $(this).addClass('bg-blue-600');
                     $(this).attr('data-selected', true);
                     selected_weekdays.push(weekday);
-                }
-
-                else {
+                } else {
                     $(this).removeClass('bg-blue-600');
                     $(this).removeAttr('data-selected');
                     selected_weekdays = selected_weekdays.filter(function (value, index, arr) {
@@ -60,9 +58,7 @@
         function filterByWeekday(table, weekdays) {
             if (weekdays !== '') {
                 table.column(4).search('^' + weekdays + '$', true, false).draw();
-            }
-
-            else {
+            } else {
                 table.column(4).search("").draw();
             }
         }
@@ -86,13 +82,63 @@
             }
         );
 
+        $('#checkbox').on('click', function () {
+            if ($(this).is(':checked', true)) {
+                $('.checkbox').prop('checked', true);
+            } else {
+                $('.checkbox').prop('checked', false);
+            }
+        });
+
+        let alert_del = document.querySelectorAll('.alert-del');
+
+        alert_del.forEach(
+            (x) => x.addEventListener(
+                'click',
+                function () {
+                    x.parentElement.parentElement.parentElement.parentElement.classList.add('hidden')
+                }
+            )
+        );
+
+        $(document).ready(function () {
+            $('.checkbox').change(function () {
+                if (this.checked) {
+                    if ($(this).closest('tr').children().eq(5).text().trim() === "") {
+                        $('.cancel_selected_appointments').addClass('hidden');
+                    } else {
+                        $('.cancel_selected_appointments').removeClass('hidden');
+                    }
+                } else {
+                    if ($("input:checkbox:checked").length < 1) {
+                        $('.cancel_selected_appointments').addClass('hidden');
+                    }
+                }
+                $('input:checkbox:checked').each(function () {
+                    if ($(this).closest('tr').children().eq(5).text().trim() === "") {
+                        $('.cancel_selected_appointments').addClass('hidden');
+                    }
+                })
+                if ($("input:checkbox:checked").length >= 1) {
+                    $(".delete_selected_availabilities").show();
+                }
+                else
+                {
+                    $(".delete_selected_availabilities").hide();
+                }
+            })
+        })
     </script>
 {% endblock %}
 
 {% block content %}
     <div class="min-h-full bg-slate-100">
         <div class="flex justify-between bg-slate-700">
-            <h1 class="text-2xl text-white font-semibold px-8 py-4">Booked Appointments</h1>
+            {% if is_staff %}
+                <h1 class="text-2xl text-white font-semibold px-8 py-4">All Booked Appointments and Availabilities</h1>
+            {% else %}
+                <h1 class="text-2xl text-white font-semibold px-8 py-4">Booked Appointments with Dr. {{ staff_name }}</h1>
+            {% endif %}
         </div>
         <div class="bg-white shadow m-8 rounded-xl">
             <div class="w-full flex justify-between items-center p-4">
@@ -130,15 +176,41 @@
                 </div>
             </div>
         </div>
+        {% for message in messages %}
+            {% if message.tags == 'success' %}
+                <div role="alert" class="p-5 rounded-lg border m-8 border-green-400 bg-green-300 text-green-900">
+                    <div class="divide-y-2 divide-solid divide-green-400">
+                        <h2 class="font-bold text-xl flex items-center pb-2">
+                            <span class="mr-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                     stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
+                                </svg>
+                            </span>
+                            Success!
+                            <div class="text-xl flex align-center w-full justify-end">
+                                <strong class="alert-del cursor-pointer">
+                                    &times;
+                                </strong>
+                            </div>
+                        </h2>
+                        <p class="pt-2">
+                            {{ message }}
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
         <form method="post">
-        {% csrf_token %}
+            {% csrf_token %}
             <div class="m-4">
                 <div class="m-4 p-4 bg-white shadow rounded-lg">
                     <table class="w-full table-auto text-center" id="availabilities_list_table">
                         <thead>
                         <tr class="border-b">
                             <th class="p-2">
-                                <input type="checkbox">
+                                <input type="checkbox" id="checkbox" class="checkbox">
                             </th>
                             <th class="p-2">
                                 Date
@@ -153,9 +225,6 @@
                                 Weekday
                             </th>
                             <th class="p-2">
-                                Status
-                            </th>
-                            <th class="p-2">
                                 Actions
                             </th>
                         </tr>
@@ -164,7 +233,7 @@
                         {% for appointment in appointments %}
                             <tr class="text-center">
                                 <td>
-                                    <input type="checkbox" name="booked_ids[]" value="{{ appointment.id }}">
+                                    <input type="checkbox" class="checkbox" name="booked_ids[]" value="{{ appointment.id }}">
                                 </td>
                                 <td>
                                     {{ appointment.start_date.date }}
@@ -178,30 +247,36 @@
                                 <td class="p-2 render-correct-date">
                                     {{ appointment.start_date|date:'l' }}
                                 </td>
-                                <td>
-
-                                </td>
                                 <td class="p-2 flex flex-wrap justify-center sm:justify-end gap-2">
-                                    <button type="submit" value="{{ appointment.id }}" class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1" name="Cancel Appointment">
-                                        <span>
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                            </svg>
-                                        </span>
-                                        Cancel Appointment
-                                    </button>
-                                    <button type="submit" value="{{ appointment.id }}" class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1" name="Delete Availability">
-                                        <span>
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 20 20" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7.083,8.25H5.917v7h1.167V8.25z M18.75,3h-5.834V1.25c0-0.323-0.262-0.583-0.582-0.583H7.667
-                                                c-0.322,0-0.583,0.261-0.583,0.583V3H1.25C0.928,3,0.667,3.261,0.667,3.583c0,0.323,0.261,0.583,0.583,0.583h1.167v14
-                                                c0,0.644,0.522,1.166,1.167,1.166h12.833c0.645,0,1.168-0.522,1.168-1.166v-14h1.166c0.322,0,0.584-0.261,0.584-0.583
-                                                C19.334,3.261,19.072,3,18.75,3z M8.25,1.833h3.5V3h-3.5V1.833z M16.416,17.584c0,0.322-0.262,0.583-0.582,0.583H4.167
-                                                c-0.322,0-0.583-0.261-0.583-0.583V4.167h12.833V17.584z M14.084,8.25h-1.168v7h1.168V8.25z M10.583,7.083H9.417v8.167h1.167V7.083 z"/>
-                                            </svg>
-                                        </span>
-                                        Delete Availability
-                                    </button>
+                                    {% if appointment.patient != None %}
+                                        <button type="submit" value="{{ appointment.id }}" class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1" name="Cancel Appointment">
+                                            <span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                     viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                          stroke-width="2"
+                                                          d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                            </span>
+                                            Cancel Appointment
+                                        </button>
+                                    {% endif %}
+
+                                    {# only display the "Delete Availability" button to staff as patients can't delete availabilities #}
+                                    {% if is_staff %}
+                                        <button type="submit" value="{{ appointment.id }}" class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1" name="Delete Availability">
+                                            <span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 20 20" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7.083,8.25H5.917v7h1.167V8.25z M18.75,3h-5.834V1.25c0-0.323-0.262-0.583-0.582-0.583H7.667
+                                                    c-0.322,0-0.583,0.261-0.583,0.583V3H1.25C0.928,3,0.667,3.261,0.667,3.583c0,0.323,0.261,0.583,0.583,0.583h1.167v14
+                                                    c0,0.644,0.522,1.166,1.167,1.166h12.833c0.645,0,1.168-0.522,1.168-1.166v-14h1.166c0.322,0,0.584-0.261,0.584-0.583
+                                                    C19.334,3.261,19.072,3,18.75,3z M8.25,1.833h3.5V3h-3.5V1.833z M16.416,17.584c0,0.322-0.262,0.583-0.582,0.583H4.167
+                                                    c-0.322,0-0.583-0.261-0.583-0.583V4.167h12.833V17.584z M14.084,8.25h-1.168v7h1.168V8.25z M10.583,7.083H9.417v8.167h1.167V7.083 z"/>
+                                                </svg>
+                                            </span>
+                                            Delete Availability
+                                        </button>
+                                    {% endif %}
                                 </td>
                             </tr>
                         {% endfor %}
@@ -222,7 +297,9 @@
                                 </span>
                             </button>
                         </a>
-                        <button type="submit" value="Cancel Selected Appointments" class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1" name="Cancel Selected Appointments">
+
+                        {# only display the "Cancel Selected Appointments" button if at least one existing appointment is selected to be cancelled #}
+                        <button type="submit" value="Cancel Selected Appointments" class="cancel_selected_appointments hidden bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1" name="Cancel Selected Appointments">
                             <span>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -232,20 +309,24 @@
                                 Cancel Selected Appointments
                             </span>
                         </button>
-                        <button type="submit" value="Delete Selected Availabilities" class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1" name="Delete Selected Availabilities">
-                            <span>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 20 20" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7.083,8.25H5.917v7h1.167V8.25z M18.75,3h-5.834V1.25c0-0.323-0.262-0.583-0.582-0.583H7.667
-                                                c-0.322,0-0.583,0.261-0.583,0.583V3H1.25C0.928,3,0.667,3.261,0.667,3.583c0,0.323,0.261,0.583,0.583,0.583h1.167v14
-                                                c0,0.644,0.522,1.166,1.167,1.166h12.833c0.645,0,1.168-0.522,1.168-1.166v-14h1.166c0.322,0,0.584-0.261,0.584-0.583
-                                                C19.334,3.261,19.072,3,18.75,3z M8.25,1.833h3.5V3h-3.5V1.833z M16.416,17.584c0,0.322-0.262,0.583-0.582,0.583H4.167
-                                                c-0.322,0-0.583-0.261-0.583-0.583V4.167h12.833V17.584z M14.084,8.25h-1.168v7h1.168V8.25z M10.583,7.083H9.417v8.167h1.167V7.083 z"/>
-                                </svg>
-                            </span>
-                            <span>
-                                Delete Selected Availabilities
-                            </span>
-                        </button>
+
+                        {# only display the "Delete Selected Availabilities" button to staff and if at least one existing availability is selected to be deleted #}
+                        {% if is_staff %}
+                            <button type="submit" value="Delete Selected Availabilities" class="delete_selected_availabilities hidden bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1" name="Delete Selected Availabilities">
+                                <span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 20 20" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7.083,8.25H5.917v7h1.167V8.25z M18.75,3h-5.834V1.25c0-0.323-0.262-0.583-0.582-0.583H7.667
+                                        c-0.322,0-0.583,0.261-0.583,0.583V3H1.25C0.928,3,0.667,3.261,0.667,3.583c0,0.323,0.261,0.583,0.583,0.583h1.167v14
+                                        c0,0.644,0.522,1.166,1.167,1.166h12.833c0.645,0,1.168-0.522,1.168-1.166v-14h1.166c0.322,0,0.584-0.261,0.584-0.583
+                                        C19.334,3.261,19.072,3,18.75,3z M8.25,1.833h3.5V3h-3.5V1.833z M16.416,17.584c0,0.322-0.262,0.583-0.582,0.583H4.167
+                                        c-0.322,0-0.583-0.261-0.583-0.583V4.167h12.833V17.584z M14.084,8.25h-1.168v7h1.168V8.25z M10.583,7.083H9.417v8.167h1.167V7.083 z"/>
+                                    </svg>
+                                </span>
+                                <span>
+                                    Delete Selected Availabilities
+                                </span>
+                            </button>
+                        {% endif %}
                     </div>
                 </div>
             </div>
