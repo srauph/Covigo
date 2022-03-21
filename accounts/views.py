@@ -1,13 +1,20 @@
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group, Permission
 from django.core.exceptions import MultipleObjectsReturned
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
-from django.contrib.auth.forms import PasswordResetForm
+
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
 from accounts.utils import get_superuser_staff_model, send_email_to_user, send_sms_to_user, reset_password_email_generator, generate_profile_qr
+from accounts.utils import (
+    send_email_to_user,
+    reset_password_email_generator,
+    get_or_generate_patient_profile_qr
+)
+from symptoms.utils import is_symptom_editing_allowed
 
 
 class GroupErrors:
@@ -17,6 +24,10 @@ class GroupErrors:
 
     def has_errors(self):
         return self.blank_name or self.duplicate_name
+
+
+def unauthorized(request):
+    return HttpResponse('Unauthorized', status=401)
 
 @login_required
 @never_cache
@@ -61,16 +72,27 @@ def index(request):
 @login_required
 @never_cache
 def profile(request, user_id):
-    user = User.objects.get(id = user_id)
-    image = generate_profile_qr(user_id)
-    return render(request, 'accounts/profile.html', {"qr": image, "usr": user, "full_view": True})
+    user = User.objects.get(id=user_id)
+    image = get_or_generate_patient_profile_qr(user_id)
+    all_doctors = User.objects.filter(groups__name='doctor')
+
+    if request.method == "POST":
+        doctor_staff_id = request.POST.get('doctor_id')
+        user.patient.assigned_staff_id = doctor_staff_id
+        user.save()
+    return render(request, 'accounts/profile.html',
+                  {"qr": image,
+                   "usr": user,
+                   "all_doctors": all_doctors,
+                   "full_view": True,
+                   "allow_editing": is_symptom_editing_allowed(user_id)})
 
 
 @never_cache
 def profile_from_code(request, code):
-    patient = Patient.objects.get(code = code)
-    user = User.objects.get(patient = patient)
-    image = generate_profile_qr(user.id)
+    patient = Patient.objects.get(code=code)
+    user = User.objects.get(patient=patient)
+    image = get_or_generate_patient_profile_qr(user.id)
     return render(request, 'accounts/profile.html', {"qr": image, "usr": user, "full_view": False})
 
 
@@ -116,7 +138,7 @@ def create_user(request):
             elif not new_user.is_staff:
                 # Since Patient *requires* an assigned staff, set it to the superuser for now.
                 # TODO: discuss if we should keep this behaviour for now or make Patient.staff nullable instead.
-                Patient.objects.create(user=new_user, staff=get_superuser_staff_model())
+                Patient.objects.create(user=new_user)
 
             subject = "Welcome to Covigo!"
             message = "Love, Shahd - Mo - Amir - Nizar - Shu - Avg - Isaac - Justin - Aseel"

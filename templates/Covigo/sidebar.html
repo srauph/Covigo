@@ -44,6 +44,13 @@
                     class="block px-4 py-2 mt-2 text-sm font-semibold text-slate-100 bg-transparent rounded-lg hover:text-slate-800 focus:text-slate-800 hover:bg-white focus:bg-white focus:outline-none focus:shadow-outline" href="#">
                     Accounts
                 </a>
+
+               {% if perms.symptoms.view_patientsymptom %}
+                <a href="{% url 'status:patient-reports' %}"
+                    class="block px-4 py-2 mt-2 text-sm font-semibold text-slate-100 bg-transparent rounded-lg hover:text-slate-800 focus:text-slate-800 hover:bg-white focus:bg-white focus:outline-none focus:shadow-outline" href="#">
+                    My patient reports
+                </a>
+                {% endif %}
             </nav>
         </div>
     </div>

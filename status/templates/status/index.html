@@ -1,94 +1,202 @@
 {% extends "Covigo/base.html" %}
 
+{% block styles %}
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/rowreorder/1.2.8/css/rowReorder.dataTables.min.css">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css"/>
+    <style>
+        table.display tbody tr:nth-child(odd):hover td,
+        table.display tbody tr:nth-child(even):hover td {
+            background-color: rgb(226 232 240) !important;
+        }
+
+        table.dataTable.dtr-inline.collapsed > tbody > tr > td.dtr-control:before,
+        table.dataTable.dtr-inline.collapsed > tbody > tr > th.dtr-control:before {
+            background-color: rgb(6 182 212) !important;
+        }
+
+        #patient_reports_modal_table.dataTable.nowrap th, table.dataTable.nowrap td {
+            white-space: normal !important;
+        }
+    </style>
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/rowreorder/1.2.8/js/dataTables.rowReorder.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
+    <script>
+        jQuery(document).on('click', '.report-modal-link', function (e) {
+            let row = jQuery(this).closest('tr');
+            let date_updated = row.attr('data-date-updated');
+            let user_id = row.attr('data-user-id');
+
+            let url = "{% url 'status:patient-report-modal' 999999999 'date_updated' %}";
+            url = url.replace(999999999, user_id);
+            url = url.replace('date_updated', date_updated);
+
+            e.preventDefault();
+            this.blur();
+            jQuery.ajax({
+                method: 'POST',
+                url: url,
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+                dataType: 'html',
+                success: function (html) {
+                    $('#modal-div').html(html).modal('show');
+                }
+            });
+        });
+        const endOfTheDay = new Date();
+        const now = new Date();
+        endOfTheDay.setHours(23, 59, 59, 999)
+        const eventTime = endOfTheDay.getTime();
+        const currentTime = now.getTime();
+        const diffTime = eventTime - currentTime;
+        let duration = moment.duration(diffTime);
+        const interval = 1000;
+        const countdown = document.querySelector('#countdown')
+
+        setInterval(() => {
+            duration = moment.duration(duration - interval);
+            if (duration === 1) {
+                location.reload()
+            }
+            countdown.innerText = duration.hours() + ":" + duration.minutes() + ":" + duration.seconds();
+        }, interval);
+        countdown.innerText = duration.hours() + ":" + duration.minutes() + ":" + duration.seconds();
+    </script>
+
+{% endblock %}
+
 {% block content %}
     <div class="min-h-full bg-slate-100">
-        <div class="block m-4 p-4 rounded bg-red-400 text-white text-center text-3xl">
-            <h1>Deadline to upload the next status: <b>Today 11.59PM</b></h1>
+        <div class="flex justify-between bg-slate-700">
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">Health Status</h1>
         </div>
-        <hr class="mx-4 border-slate-400">
-        <div class="flex flex-wrap xl:flex-nowrap">
-            <div class="grow xl:w-1/3">
-                <div class="m-4">
-                    <button class="w-full px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white text-2xl font-bold">
-                        <h2>Create a new Status Update</h2>
-                    </button>
-                </div>
-                <hr class="mx-4 border-slate-400">
-                <div class="block m-4 p-4 rounded bg-slate-200 text-slate-800 text-center">
-                    <h2 class="text-lg font-semibold">List of details to provide in your status update</h2>
-                    <hr class="my-2 border-slate-400">
-                    <div class="block mx-4 px-4 my-2 py-2 rounded bg-gray-300 text-left text-md">
-                        <h3 class="font-semibold">Body temperature</h3>
-                        <p>Measure your internal body temperature and report the number</p>
+        {% if is_quarantining %}
+            <div class="bg-white shadow m-8 rounded-xl">
+                <div role="alert">
+                    <div class="bg-red-500 text-white font-bold rounded-t px-4 py-2">
+                        Quarantine Advised
                     </div>
-                    <div class="block mx-4 px-4 my-2 py-2 rounded bg-gray-300 text-left text-md">
-                        <h3 class="font-semibold">Presence/Severity of coughs</h3>
-                    </div>
-                    <div class="block mx-4 px-4 my-2 py-2 rounded bg-gray-300 text-left text-md">
-                        <h3 class="font-semibold">Presence/Severity of sore throat</h3>
-                    </div>
-                    <div class="block mx-4 px-4 my-2 py-2 rounded bg-gray-300 text-left text-md">
-                        <h3 class="font-semibold">Presence/Intensity of stomach pain</h3>
-                    </div>
-                    <div class="block mx-4 px-4 my-2 py-2 rounded bg-gray-300 text-left text-md">
-                        <h3 class="font-semibold">Presence/Intensity of nausea</h3>
-                    </div>
-                    <div class="block mx-4 px-4 my-2 py-2 rounded bg-gray-300 text-left text-md">
-                        <h3 class="font-semibold">Frequency of vomiting (if any)</h3>
-                    </div>
-                    <div class="block mx-4 px-4 my-2 py-2 rounded bg-gray-300 text-left text-md">
-                        <h3 class="font-semibold">Presence of diarrhea</h3>
-                    </div>
-                    <div class="block mx-4 px-4 my-2 py-2 rounded bg-gray-300 text-left text-md">
-                        <h3 class="font-semibold">Presence/Severity of runny nose or nasal congestion</h3>
+                    <div class="border border-t-0 border-red-400 rounded-b bg-red-100 px-4 py-3 text-red-700">
+                        <p>Your doctor has recommended you quarantine. Please read and adhere to your local rules.</p>
                     </div>
                 </div>
             </div>
-            <div class="grow w-full xl:w-2/3">
-                <div class="w-full">
-                    <div class="block m-4 p-4 rounded bg-slate-200 text-slate-800 text-center">
-                        <h3 class="text-lg font-semibold">Latest Status Update</h3>
-                        <hr class="my-2 border-slate-400">
-                        <div class="block mx-4 px-4 my-2 py-2 rounded bg-gray-300 text-left text-md">
-                            <h3 class="font-semibold">Body temperature</h3>
-                            <p>69 degrees</p>
-                        </div>
-                        <div class="block mx-4 px-4 my-2 py-2 rounded bg-gray-300 text-left text-md">
-                            <h3 class="font-semibold">Presence/Severity of coughs</h3>
-                            <p>Occasional coughing</p>
-                        </div>
-                        <div class="block mx-4 px-4 my-2 py-2 rounded bg-gray-300 text-left text-md">
-                            <h3 class="font-semibold">Presence/Severity of sore throat</h3>
-                            <p>Very sore throat</p>
-                        </div>
-                        <div class="block mx-4 px-4 my-2 py-2 rounded bg-gray-300 text-left text-md">
-                            <h3 class="font-semibold">Presence/Intensity of stomach pain</h3>
-                            <p>No stomach pain</p>
-                        </div>
-                        <div class="block mx-4 px-4 my-2 py-2 rounded bg-gray-300 text-left text-md">
-                            <h3 class="font-semibold">Presence/Intensity of nausea</h3>
-                            <p>Severe nausea</p>
-                        </div>
-                        <div class="block mx-4 px-4 my-2 py-2 rounded bg-gray-300 text-left text-md">
-                            <h3 class="font-semibold">Frequency of vomiting (if any)</h3>
-                            <p>Frequent vomiting (every 2-3 hours)</p>
-                        </div>
-                        <div class="block mx-4 px-4 my-2 py-2 rounded bg-gray-300 text-left text-md">
-                            <h3 class="font-semibold">Presence of diarrhea</h3>
-                            <p>No diarrhea</p>
-                        </div>
-                        <div class="block mx-4 px-4 my-2 py-2 rounded bg-gray-300 text-left text-md">
-                            <h3 class="font-semibold">Presence/Severity of runny nose or nasal congestion</h3>
-                            <p>Severe nasal congestion</p>
-                        </div>
-                        <div class="text-left italic font-normal text-sm px-4">
-                            This update was posted on February 30th, 4:20 PM.
-                        </div>
-                    </div>
+        {% endif %}
+        <div class="bg-white shadow m-8 rounded-xl">
+            <div class="w-full flex justify-between flex-col md:flex-row p-4">
+
+                {% if is_reporting_today %}
+                    <div>
+                    <a href="{% url "status:create-status-report" %}">
+                        <button class="bg-green-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                       <span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                             viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                        </svg>
+                        </span>
+                            <span>Submit a new report</span>
+                        </button>
+                    </a>
                 </div>
-                {% include './status-card.html' %}
-                {% include './status-card.html' %}
+                    <div class="text-red-600 font-bold">
+                        You should submit your report with all requested data today by 11:59:59, remaining time: <span
+                            id="countdown"></span>
+                    </div>
+                {% else %}
+                    <div class="text-green-600 font-bold">
+                        You are all set, your doctor will contact you if necessary.
+                    </div>
+                {% endif %}
+                <div>
+                    {#                 #TODO: this won't work for now.#}
+                    <a href="">
+                        <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                       <span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                             viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                        </svg>
+                        </span>
+                            <span>Message My Doctor</span>
+                        </button>
+                    </a>
+                </div>
+
             </div>
+        </div>
+        <div class="flex flex-col sm:flex-row md:flex-row lg:flex-row xl:flex-row">
+            <div class="w-full sm:w-2/6 md:w-2/6 lg:2/6 xl:2/6 p-4">
+                <div class="m-4 p-4 bg-white shadow rounded-lg">
+                    <table class="w-full">
+                        <tr>
+                            <th class="border-b text-left p-2">Symptoms to Report Today</th>
+                        </tr>
+                        {% if is_reporting_today %}
+                            {% for s in symptoms %}
+                                <tr class="border-b ">
+                                    <td class="p-2">{{ s.symptom__name }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr class="border-b ">
+                                <td class="p-2">Nothing to report today.</td>
+                            </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+            <div class="w-full sm:w-4/6 md:w-4/6 lg:4/6 xl:4/6 p-4">
+                <div class="m-4 p-4 bg-white shadow rounded-lg">
+                    <table class="w-full table-auto" id="message_list_table">
+                        <thead>
+                        <tr class="border-b">
+                            <th class="p-2">Date Submitted</th>
+                            <th class="p-2">Viewed By Doctor</th>
+                            <th class="p-2">Action</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        {% for r in reports %}
+                            <tr class="hover:bg-gray-200" data-user-id="{{ r.user_id }}"
+                                data-date-updated="{{ r.date_updated__date|date:'Y-m-d' }}">
+                                <td class="text-center p-2 render-correct-date">{{ r.date_updated__date|date:'Y-m-d' }}</td>
+                                <td class="text-center p-2">{% if r.is_viewed %}Yes{% else %}No{% endif %}</td>
+                                <td class="text-center p-2">
+                                    <button class="report-modal-link bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md">
+                                        View Report
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+        <div id="modal-div" class="modal" style="max-width:1000px;padding: 0 0">
         </div>
     </div>
 {% endblock %}
