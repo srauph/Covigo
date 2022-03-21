@@ -45,7 +45,6 @@
 
 {% block content %}
     <div class="md:-mx-4">
-
         {% for message in messages %}
             {% if message.tags == 'success' %}
                 <div role="alert" class="p-5 rounded-lg border m-8 border-green-400 bg-green-300 text-green-900">
@@ -110,12 +109,20 @@
                     <h3>Upcoming Appointments</h3>
                     <hr class="my-2 border-slate-400">
                     <div class="text-left text-lg font-normal xl:w-96">
-                        <ul class="px-8 list-disc">
-                            {% for appointment in booked_appointments %}
-                                <li>
-                                    {{ appointment.start_date }}
-                                </li>
-                            {% endfor %}
+                        <ul class="px-1 list-disc">
+                            {% if not is_staff %}
+                                {% for appointment in patient_booked_appointments %}
+                                    <li>
+                                        {{ appointment.start_date }}
+                                    </li>
+                                {% endfor %}
+                            {% else %}
+                                {% for key, value in doctor_booked_appointments_patient_name_dict.items %}
+                                    <li>
+                                        {{ key.start_date }} with {{ value }}
+                                    </li>
+                                {% endfor %}
+                            {% endif %}
                         </ul>
                     </div>
                 </div>
