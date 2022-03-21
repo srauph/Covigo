@@ -29,10 +29,11 @@ $(document).ready(function () {
     $('.timepicker_1').timepicker({
         timeFormat: 'h:mm p',
         interval: 15,
-        defaultTime: '8:00',
-        startTime: '8:00',
+        defaultTime: '6:00',
+        startTime: '6:00',
         dropdown: true,
         scrollbar: true,
+        dynamic: false,
         change: function(){
             validateStartEndTime();
             validateSlotDuration();
@@ -44,10 +45,11 @@ $(document).ready(function () {
     $('.timepicker_2').timepicker({
         timeFormat: 'h:mm p',
         interval: 15,
-        defaultTime: '9:00',
-        startTime: '8:00',
+        defaultTime: '7:00',
+        startTime: '6:00',
         dropdown: true,
         scrollbar: true,
+        dynamic: false,
         change: function(){
             validateStartEndTime();
             validateSlotDuration();
