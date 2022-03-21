@@ -19,7 +19,6 @@ from appointments.utils import cancel_appointments, book_appointment
 def index(request):
     is_staff = get_is_staff(request.user.id)
     patient_booked_appointments = []
-    doctor_booked_appointments = []
     doctor_booked_appointments_patient_name_dict = {}
 
     if not is_staff:
