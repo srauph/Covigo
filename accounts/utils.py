@@ -11,7 +11,6 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
 from Covigo.settings import HOST_NAME
-
 from accounts.models import Flag, Staff, Patient
 from pathlib import Path
 from qrcode import make
@@ -257,3 +256,28 @@ def get_assigned_staff_id_by_patient_id(patient_id):
         return Patient.objects.values_list('assigned_staff_id', flat=True).get(user_id=patient_id)
     except Exception:
         return 0
+
+
+def get_users_names(user_id):
+    """
+    Returns the users first name and last name
+    @param user_id: the user's user id
+    @return: a string containing the users first and last name else empty string
+    """
+    try:
+        user = User.objects.get(id=user_id)
+        return f"{user.first_name} {user.last_name}"
+    except User.DoesNotExist:
+        return ""
+
+
+def get_is_staff(user_id):
+    """
+    Returns the is_staff column for a user id in the user table
+    @param user_id: the user's user id
+    @return: is_staff column else -1 if the user does not exist
+    """
+    try:
+        return User.objects.get(id=user_id).is_staff
+    except User.DoesNotExist:
+        return -1

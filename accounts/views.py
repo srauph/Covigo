@@ -219,6 +219,11 @@ def profile(request, user_id):
     # message_group = MessageGroup.objects.filter(messages_filter).order_by('-date_updated')[:3]
 
     if not user.is_staff:
+        if request.method == "POST":
+            doctor_staff_id = request.POST.get('doctor_id')
+            user.patient.assigned_staff_id = doctor_staff_id
+            user.patient.save()
+
         qr = get_or_generate_patient_profile_qr(user_id)
         assigned_staff = user.patient.get_assigned_staff_user()
         try:
@@ -227,6 +232,9 @@ def profile(request, user_id):
             assigned_staff_patient_count = 0
         assigned_flags = Flag.objects.filter(patient=user)
 
+        # all_doctors = User.objects.filter(groups__name='doctor')
+        all_doctors = User.objects.filter(is_staff=True)
+
         return render(request, 'accounts/profile.html', {
             "qr": qr,
             "usr": user,
@@ -234,7 +242,8 @@ def profile(request, user_id):
             "assigned_staff_patient_count": assigned_staff_patient_count,
             "assigned_flags": assigned_flags,
             "full_view": True,
-            "allow_editing": is_symptom_editing_allowed(user_id)
+            "allow_editing": is_symptom_editing_allowed(user_id),
+            "all_doctors": all_doctors,
         })
 
     else:
