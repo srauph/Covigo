@@ -11,8 +11,9 @@ from accounts.models import Flag, Staff, Patient
 from accounts.utils import (
     send_email_to_user,
     reset_password_email_generator,
-    get_or_generate_patient_profile_qr
+    get_or_generate_patient_profile_qr, get_assigned_staff_id_by_patient_id
 )
+from appointments.utils import rebook_appointment_with_new_doctor
 from symptoms.utils import is_symptom_editing_allowed
 
 
@@ -27,6 +28,7 @@ class GroupErrors:
 
 def unauthorized(request):
     return HttpResponse('Unauthorized', status=401)
+
 
 @login_required
 @never_cache
@@ -77,8 +79,13 @@ def profile(request, user_id):
 
     if request.method == "POST":
         doctor_staff_id = request.POST.get('doctor_id')
+
+        # rebooks previously booked appointments with the old doctor with the new doctor if the new doctor has
+        # an availability at the same day and time as the previously booked appointment
+        rebook_appointment_with_new_doctor(doctor_staff_id, get_assigned_staff_id_by_patient_id(user_id), user)
         user.patient.assigned_staff_id = doctor_staff_id
-        user.save()
+        user.patient.save()
+
     return render(request, 'accounts/profile.html',
                   {"qr": image,
                    "usr": user,
@@ -321,9 +328,6 @@ def unflaguser(request, user_id):
             return JsonResponse({'is_flagged': f'{flag.is_active}'})
 
     return redirect("accounts:list_users")
-
-
-
 
 
 def convert_permission_name_to_id(request):
