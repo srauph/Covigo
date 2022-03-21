@@ -28,14 +28,27 @@
 
     <div class="flex justify-center items-center w-full h-full rounded-lg">
         <ul class="w-full list-inside text-center">
-            {{ appointments.all|length }} {{ appointments.today|length }} {{ appointments.tomorrow|length }}
             {% if appointments.today|length > 0 %}
-                <li>Your next appointment is <b>today</b> at <b>{{ appointments.all.0.time }}</b></li>
+                <li class="py-2 hover:bg-slate-200">Your next appointment is <b>today</b> at <b>{{ appointments.all.0.start_date.time }}</b></li>
             {% elif appointments.tomorrow|length > 0 %}
-                <li>Your next appointment is <b>tomorrow</b> at <b>{{ appointments.all.0.time }}</b></li>
+                <li class="py-2 hover:bg-slate-200">Your next appointment is <b>tomorrow</b> at <b>{{ appointments.all.0.start_date.time }}</b></li>
             {% elif appointments.all|length > 0 %}
-                <li>Your next appointment is <b>on {{ appointments.all.0.date }}</b> at <b>{{ appointments.all.0.time }}</b></li>
+                <li class="py-2 hover:bg-slate-200">Your next appointment is on <b>{{ appointments.all.0.start_date.date }}</b> at <b>{{ appointments.all.0.start_date.time }}</b></li>
+            {% endif %}
+
+            {% if appointments.all|length > 0 %}
+                <li class="py-2 hover:bg-slate-200">In total, you have {{ appointments.all|length }} upcoming appointment(s)
+                {% if appointments.today|length > 1 %}
+                    <br>Of them, {{ appointments.today|length }} occur today
+                    {% if appointments.tomorrow|length > 0 %}
+                        and {{ appointments.tomorrow|length }} occur tomorrow
+                    {% endif %}
+                {% elif appointments.tomorrow|length > 1 %}
+                    <br>Of them, {{ appointments.tomorrow|length }} occur tomorrow
+                {% endif %}
+                </li>
             {% else %}
+                <li class="py-2 hover:bg-slate-200">You have no upcoming appointments</li>
             {% endif %}
 {#            {% if messages.unread_urgent|length > 0 %}#}
 {#                <li class="py-2 hover:bg-slate-200 font-bold text-red-500">You have {{ messages.unread_urgent|length }} unread urgent conversation(s)</li>#}
