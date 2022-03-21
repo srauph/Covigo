@@ -35,13 +35,13 @@
             {% if messages.unread_urgent|length > 0 %}
                 <li class="py-2 hover:bg-slate-200 font-bold">You have {{ messages.unread|length }} unread conversation(s)</li>
             {% elif messages.all|length > 0 %}
-                <li class="py-2 hover:bg-slate-200">You have no unread conversations</li>
+                <li class="py-2 hover:bg-slate-200">You are all caught up!</li>
             {% endif %}
 
             {% if messages.urgent|length > 0 %}
                 <li class="py-2 hover:bg-slate-200">In total, you have {{ messages.all|length }} active conversation(s) <br> (including {{ messages.urgent|length }} marked as urgent)</li>
             {% elif messages.all|length > 0 %}
-                <li class="py-2 hover:bg-slate-200">You have {{ messages.all|length }} active conversation(s)</li>
+                <li class="py-2 hover:bg-slate-200">In total, you have {{ messages.all|length }} active conversation(s)</li>
             {% else %}
                 <li class="py-2 hover:bg-slate-200">You have no conversations</li>
             {% endif %}
