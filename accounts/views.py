@@ -11,8 +11,9 @@ from accounts.models import Flag, Staff, Patient
 from accounts.utils import (
     send_email_to_user,
     reset_password_email_generator,
-    get_or_generate_patient_profile_qr
+    get_or_generate_patient_profile_qr, get_is_staff
 )
+from appointments.utils import rebook_appointment_with_new_doctor
 from symptoms.utils import is_symptom_editing_allowed
 
 
@@ -74,6 +75,11 @@ def profile(request, user_id):
     user = User.objects.get(id=user_id)
     image = get_or_generate_patient_profile_qr(user_id)
     all_doctors = User.objects.filter(groups__name='doctor')
+    print(all_doctors)
+    is_staff = get_is_staff(request.user.id)
+
+    if not is_staff:
+        rebook_appointment_with_new_doctor(0, user.patient.assigned_staff_id, user_id)
 
     if request.method == "POST":
         doctor_staff_id = request.POST.get('doctor_id')

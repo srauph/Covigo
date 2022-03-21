@@ -16,12 +16,20 @@ from appointments.utils import cancel_appointments, book_appointment
 @login_required
 @never_cache
 def index(request):
-    staff_id = get_assigned_staff_id_by_patient_id(request.user.id)
-    booked_appointments = Appointment.objects.filter(patient=request.user.id, staff=staff_id)
     is_staff = get_is_staff(request.user.id)
+    patient_booked_appointments = []
+    doctor_booked_appointments = []
+
+    if not is_staff:
+        assigned_staff_id = get_assigned_staff_id_by_patient_id(request.user.id)
+        patient_booked_appointments = Appointment.objects.filter(patient=request.user.id, staff=assigned_staff_id).all()
+    else:
+        signed_in_staff_id = Staff.objects.get(user_id=request.user.id).id
+        doctor_booked_appointments = Appointment.objects.filter(patient__isnull=False, staff=signed_in_staff_id).all()
 
     return render(request, 'appointments/index.html', {
-        'booked_appointments': booked_appointments,
+        'patient_booked_appointments': patient_booked_appointments,
+        'doctor_booked_appointments': doctor_booked_appointments,
         'is_staff': is_staff
     })
 
