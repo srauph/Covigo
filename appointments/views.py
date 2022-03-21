@@ -163,14 +163,14 @@ def book_appointments(request):
         return redirect('appointments:book_appointments')
 
     if request.method == 'POST' and request.POST.get('Book Selected Appointments'):
-        appointment_id = request.POST.getlist('booking_ids[]')
+        appointment_ids = request.POST.getlist('booking_ids[]')
 
         # books all selected appointments by adding the patient's id to the appointment's patient_id column
-        for appointment_id in appointment_id:
+        for appointment_id in appointment_ids:
             book_appointment(appointment_id, request.user)
 
         # success message to show user if appointments were booked
-        if len(appointment_id) > 0:
+        if len(appointment_ids) > 0:
             messages.success(request, 'The selected appointments were booked successfully.')
             return redirect('appointments:index')
 
