@@ -1,17 +1,28 @@
 {% extends "dashboard/card-base.html" %}
 
 {% block card %}
-    <div class="flex items-center justify-center w-full h-full rounded-lg border bg-purple-100 hover:bg-purple-200">
-        <div class="p-4">
-            <h1 class="font-bold text-2xl text-center">Upcoming Appointments</h1>
-            <hr class="border-slate-400 my-2">
-            <ul class="list-disc">
-                <li>Light Yagami</li>
-                <li>L Lawliet</li>
-                <li>Shinya Kogami</li>
-                <li>Jojo Reference</li>
-                <li>Yuzuru Otonashi</li>
-            </ul>
+    <div class="flex flex-wrap gap-2 justify-between items-center">
+        <div class="flex items-center gap-2 font-semibold text-gray-900 text-lg">
+            <span class="text-purple-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+            </span>
+            <span>Upcoming Appointments</span>
         </div>
+        <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+            <span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                </svg>
+            </span>
+            <span>Expand</span>
+        </button>
     </div>
+
+    <hr class="border-slate-400 mx-1 my-2">
 {% endblock %}
