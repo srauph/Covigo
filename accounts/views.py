@@ -228,8 +228,6 @@ def profile(request, user_id):
     if not user.is_staff:
         if request.method == "POST":
             doctor_staff_id = request.POST.get('doctor_id')
-            user.patient.assigned_staff_id = doctor_staff_id
-            user.patient.save()
 
             # rebooks previously booked appointments with the old doctor with the new doctor if the new doctor has
             # an availability at the same day and time as the previously booked appointment
