@@ -26,10 +26,18 @@
                     right: 'prevYear,prev,next,nextYear'
                 },
                 events: [
-                    {% for e in booked_appointments %}
+                    {% for e in patient_booked_appointments %}
                         { // this object will be "parsed" into an Event Object
                             start: '{{ e.start_date|date:'Y-m-d H:i:s' }}', // a property!
                             end: '{{ e.end_date|date:'Y-m-d H:i:s' }}', // a property! ** see important note below about 'end' **,display: 'block',
+                            backgroundColor: '#3b83f6',
+                            display: 'block'
+                        },
+                    {% endfor %}
+                    {% for key, value in doctor_booked_appointments_patient_name_dict.items %}
+                        { // this object will be "parsed" into an Event Object
+                            start: '{{ key.start_date|date:'Y-m-d H:i:s' }}', // a property!
+                            end: '{{ key.end_date|date:'Y-m-d H:i:s' }}', // a property! ** see important note below about 'end' **,display: 'block',
                             backgroundColor: '#3b83f6',
                             display: 'block'
                         },
