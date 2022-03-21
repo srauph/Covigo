@@ -1,6 +1,7 @@
 import json
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.core import serializers
 from django.db.models import Q
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -211,3 +212,4 @@ def cancel_or_delete_appointments_or_availabilities(request):
     return render(request, 'appointments/cancel_appointments.html', {
         'appointments': Appointment.objects.filter(logged_in_filter).all()
     })
+
