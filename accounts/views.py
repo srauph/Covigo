@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordResetForm
@@ -22,6 +24,7 @@ from accounts.utils import (
     get_assigned_staff_id_by_patient_id,
     get_user_from_uidb64
 )
+from appointments.models import Appointment
 from appointments.utils import rebook_appointment_with_new_doctor
 from symptoms.utils import is_symptom_editing_allowed
 
@@ -224,6 +227,13 @@ def profile(request, user_id):
 
     # messages_filter = Q(author_id=user_id) | Q(recipient_id=user_id)
     # message_group = MessageGroup.objects.filter(messages_filter).order_by('-date_updated')[:3]
+    today = datetime.date.today()
+    all_filter = Q(patient__isnull=False) & Q(start_date__gte=today)
+
+    if user.is_staff:
+        all_appointments = Appointment.objects.filter(staff=user).filter(all_filter).order_by("start_date")[:4]
+    else:
+        appointments = Appointment.objects.filter(patient=user).filter(all_filter).order_by("start_date")[:4]
 
     if not user.is_staff:
         if request.method == "POST":
@@ -237,6 +247,8 @@ def profile(request, user_id):
 
         qr = get_or_generate_patient_profile_qr(user_id)
         assigned_staff = user.patient.get_assigned_staff_user()
+        appointments = Appointment.objects.filter(patient=user).filter(all_filter).order_by("start_date")
+        appointments_truncated = appointments[:4]
         try:
             assigned_staff_patient_count = user.patient.assigned_staff.get_assigned_patient_users().count()
         except AttributeError:
@@ -247,8 +259,10 @@ def profile(request, user_id):
         all_doctors = User.objects.filter(is_staff=True)
 
         return render(request, 'accounts/profile.html', {
-            "qr": qr,
             "usr": user,
+            "appointments": appointments,
+            "appointments_truncated": appointments_truncated,
+            "qr": qr,
             "assigned_staff": assigned_staff,
             "assigned_staff_patient_count": assigned_staff_patient_count,
             "assigned_flags": assigned_flags,
@@ -258,12 +272,16 @@ def profile(request, user_id):
         })
 
     else:
+        appointments = Appointment.objects.filter(staff=user).filter(all_filter).order_by("start_date")
+        appointments_truncated = appointments[:4]
         assigned_patients = user.staff.get_assigned_patient_users()
         issued_flags = Flag.objects.filter(staff=user)
 
         return render(request, 'accounts/profile.html', {
-            "assigned_patients": assigned_patients,
             "usr": user,
+            "appointments": appointments,
+            "appointments_truncated": appointments_truncated,
+            "assigned_patients": assigned_patients,
             "issued_flags": issued_flags,
             "full_view": True
         })

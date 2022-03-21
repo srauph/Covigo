@@ -327,7 +327,7 @@
                                     </span>
                                     <span class="tracking-wide">Upcoming Appointments</span>
                                 </div>
-                                <a href="#">
+                                <a href="{% url "appointments:index" %}">
                                     <button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white pl-1 pr-2 py-1 rounded-md flex items-center gap-1">
                                         <span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
@@ -340,21 +340,25 @@
                                     </button>
                                 </a>
                             </div>
-                            <ul class="list-inside  divide-y">
-
-                                <li class="py-2">
-                                    <div class="text-teal-600">Feb 30, 2022 - 4 minutes ago</div>
-                                </li>
-                                <li class="py-2">
-                                    <div class="text-teal-600">Feb 30, 2022 - 4 minutes ago</div>
-                                </li>
-                                <li class="py-2">
-                                    <div class="text-teal-600">Feb 30, 2022 - 4 minutes ago</div>
-                                </li>
-                                <li class="pt-2">
-                                    <div class="text-teal-600">Feb 30, 2022 - 4 minutes ago</div>
-                                </li>
-
+                            <div class="w-full flex flex-wrap gap-2 justify-center items-center pt-4">
+                                     <span class="text-center font-semibold">
+                                        {% if appointments|length == 1 %}
+                                            This user has {{ appointments|length }} upcoming appointment
+                                        {% else %}
+                                            This user has {{ appointments|length }} upcoming appointments
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            <ul class="list-inside divide-y">
+                                {% for appointment in appointments_truncated %}
+                                    <li class="py-2 hover:bg-slate-200">
+                                        {% if usr.is_staff %}
+                                            <div>{{ appointment.start_date }} with {{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</div>
+                                        {% else %}
+                                            <div>{{ appointment.start_date }} with {{ appointment.staff.first_name }} {{ appointment.staff.last_name }}</div>
+                                        {% endif %}
+                                    </li>
+                                {% endfor %}
                             </ul>
                         </div>
                     </div>
