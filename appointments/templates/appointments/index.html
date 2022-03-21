@@ -20,19 +20,22 @@
             var calendarEl = document.getElementById('fullcalendar');
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
-            headerToolbar: {
-                  left: 'dayGridMonth,timeGridWeek,timeGridDay',
-                  center: 'title',
-                  right: 'prevYear,prev,next,nextYear'
+                headerToolbar: {
+                    left: 'dayGridMonth,timeGridWeek,timeGridDay',
+                    center: 'title',
+                    right: 'prevYear,prev,next,nextYear'
                 },
                 events: [
                     {% for e in booked_appointments %}
                         { // this object will be "parsed" into an Event Object
-                      start: '{{ e.start_date|date:'Y-m-d H:i:s' }}', // a property!
-                      end: '{{ e.end_date|date:'Y-m-d H:i:s' }}' // a property! ** see important note below about 'end' **
-                    },
+                            start: '{{ e.start_date|date:'Y-m-d H:i:s' }}', // a property!
+                            end: '{{ e.end_date|date:'Y-m-d H:i:s' }}', // a property! ** see important note below about 'end' **,display: 'block',
+                            backgroundColor: '#3b83f6',
+                            display: 'block'
+                        },
                     {% endfor %}
-                  ]
+                ],
+                dayMaxEvents: true
             });
             calendar.render();
         });
