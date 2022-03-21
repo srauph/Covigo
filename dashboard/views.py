@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.views.decorators.cache import never_cache
 
+from appointments.models import Appointment
 from dashboard.utils import fetch_data_from_file, extract_daily_data
 from messaging.models import MessageGroup
 
@@ -12,9 +13,10 @@ def index(request):
     user = request.user
 
     messages = fetch_messaging_info(user)
-    appointments = []
+    appointments = fetch_appointments_info(user)
 
     if user.is_staff:
+        appointments = Appointment.objects.filter(patient=user)
         recent_status_updates = []
         assigned_patients = user.staff.get_assigned_patient_users()
         data = fetch_data_from_all_files()
@@ -57,6 +59,17 @@ def fetch_messaging_info(user):
         "urgent": urgent,
         "unread": unread,
         "unread_urgent": unread_urgent,
+    }
+
+
+def fetch_appointments_info(user):
+    if user.is_staff:
+        all = Appointment.objects.filter(staff=user)
+    else:
+        all = Appointment.objects.filter(patient=user)
+
+    return {
+        "all": all,
     }
 
 
