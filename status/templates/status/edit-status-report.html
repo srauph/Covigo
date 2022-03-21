@@ -4,14 +4,25 @@
     <form method="POST" class="min-h-full bg-slate-100 flex flex-col">
         {% csrf_token %}
         <div class="bg-slate-700 border-b">
-            <h1 class="text-2xl text-white font-semibold px-8 py-4">Create Status Report</h1>
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">Edit Status Report</h1>
         </div>
 
         <div class="flex flex-col justify-between grow m-8 p-4 min-h-full bg-white shadow rounded-lg">
-            {% for r in report %}
-                <label> {{ r.symptom.symptom__name }}</label>
-                <input type=text name=data>
-            {% endfor %}
+            <div class="w-full flex flex-col gap-8 mb-8">
+                <h2 class="p-2 text-2xl font-bold">Assigned Symptoms</h2>
+                <hr>
+                {% for r in report %}
+                    <div class="mt-1">
+                        <label> {{ r.symptom.name }}:</label>
+                        <input type="hidden" name="data[id][]" value="{{ r.id }}">
+                        <br>
+                        <input type=text id='foo' name=data[data][]
+                               class="h-8 px-2 bg-slate-100 rounded-md border border-slate-400 border p-1">
+                        <br>
+                        <label>({{ r.symptom.description }})</label>
+                    </div>
+                {% endfor %}
+            </div>
             <div class="w-full mt-8 md:mt-0">
                 <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
                     <a href="{% url "status:index" %}">
