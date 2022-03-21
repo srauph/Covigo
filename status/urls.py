@@ -12,4 +12,5 @@ urlpatterns = [
          views.patient_reports_modal_table,
          name='patient-report-modal-table'),
     path('create-status-report/', views.create_patient_report, name='create-status-report'),
+    path('edit-status-report/', views.edit_patient_report, name='edit-status-report'),
 ]

@@ -1,6 +1,7 @@
 import json
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.core import serializers
 from django.db.models import Q
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -10,7 +11,7 @@ from accounts.utils import get_assigned_staff_id_by_patient_id, get_users_names,
 from appointments.forms import AvailabilityForm
 from datetime import datetime, timedelta
 from appointments.models import Appointment
-from appointments.utils import cancel_appointments
+from appointments.utils import cancel_appointments, book_appointment
 
 
 @login_required
@@ -19,10 +20,9 @@ def index(request):
     staff_id = get_assigned_staff_id_by_patient_id(request.user.id)
     booked_appointments = Appointment.objects.filter(patient=request.user.id, staff=staff_id)
     is_staff = get_is_staff(request.user.id)
-
     return render(request, 'appointments/index.html', {
         'booked_appointments': booked_appointments,
-        'is_staff': is_staff
+        'is_staff': is_staff,
     })
 
 
@@ -103,7 +103,9 @@ def add_availabilities(request):
                                     return redirect('appointments:add_availabilities')
 
                             # Create new Appointment object
-                            apt = Appointment.objects.create(staff=request.user, patient=None,
+                            staff_id = Staff.objects.filter(user=request.user).first().id
+
+                            apt = Appointment.objects.create(staff_id=staff_id, patient=None,
                                                              start_date=start_datetime_object,
                                                              end_date=end_datetime_object)
                             apt.save()
@@ -143,28 +145,24 @@ def book_appointments(request):
     staff_name = get_users_names(Staff.objects.get(id=staff_id).user_id)
 
     if request.method == 'POST' and request.POST.get('Book Appointment'):
-        booking_id = request.POST.get('Book Appointment')
+        appointment_id = request.POST.get('Book Appointment')
 
         # books a single appointment by adding the patient's id to the appointment's patient_id column
-        booking = Appointment.objects.get(id=booking_id)
-        booking.patient = request.user
-        booking.save()
+        book_appointment(appointment_id, request.user)
 
         # success message to show user
         messages.success(request, 'The appointment was booked successfully.')
         return redirect('appointments:book_appointments')
 
     if request.method == 'POST' and request.POST.get('Book Selected Appointments'):
-        booking_ids = request.POST.getlist('booking_ids[]')
+        appointment_id = request.POST.getlist('booking_ids[]')
 
         # books all selected appointments by adding the patient's id to the appointment's patient_id column
-        for booking_id in booking_ids:
-            booking = Appointment.objects.get(id=booking_id)
-            booking.patient = request.user
-            booking.save()
+        for appointment_id in appointment_id:
+            book_appointment(appointment_id, request.user)
 
         # success message to show user if appointments were booked
-        if len(booking_ids) > 0:
+        if len(appointment_id) > 0:
             messages.success(request, 'The selected appointments were booked successfully.')
             return redirect('appointments:index')
 
@@ -201,3 +199,4 @@ def cancel_or_delete_appointments_or_availabilities(request):
     return render(request, 'appointments/cancel_appointments.html', {
         'appointments': Appointment.objects.filter(logged_in_filter).all()
     })
+
