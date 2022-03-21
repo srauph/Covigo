@@ -1,3 +1,5 @@
+import datetime
+
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -6,6 +8,7 @@ from django.views.decorators.cache import never_cache
 from appointments.models import Appointment
 from dashboard.utils import fetch_data_from_file, extract_daily_data
 from messaging.models import MessageGroup
+
 
 @login_required
 @never_cache
@@ -16,7 +19,6 @@ def index(request):
     appointments = fetch_appointments_info(user)
 
     if user.is_staff:
-        appointments = Appointment.objects.filter(patient=user)
         recent_status_updates = []
         assigned_patients = user.staff.get_assigned_patient_users()
         data = fetch_data_from_all_files()
@@ -45,17 +47,17 @@ def index(request):
 
 def fetch_messaging_info(user):
     msg_group_filter = Q(author=user) | Q(recipient=user)
-    all = MessageGroup.objects.filter(msg_group_filter)
+    all_messages = MessageGroup.objects.filter(msg_group_filter)
 
     urgent_msg_group_filter = msg_group_filter & Q(priority=2)
-    urgent = all.filter(urgent_msg_group_filter)
+    urgent = all_messages.filter(urgent_msg_group_filter)
 
     unread_msg_group_filter = (Q(author=user) & Q(author_seen=False)) | (Q(recipient=user) & Q(recipient_seen=False))
-    unread = all.filter(unread_msg_group_filter)
+    unread = all_messages.filter(unread_msg_group_filter)
     unread_urgent = urgent.filter(unread_msg_group_filter)
 
     return {
-        "all": all,
+        "all": all_messages,
         "urgent": urgent,
         "unread": unread,
         "unread_urgent": unread_urgent,
@@ -63,13 +65,32 @@ def fetch_messaging_info(user):
 
 
 def fetch_appointments_info(user):
+    print("hi")
+    today = datetime.date.today()
+    tomorrow = today + datetime.timedelta(days=1)
+    in_two_days = tomorrow + datetime.timedelta(days=1)
+
+    all_filter = Q(patient__isnull=False) & Q(start_date__gte=today)
+    today_filter = Q(start_date__gte=today) & Q(start_date__lt=tomorrow)
+    tomorrow_filter = Q(start_date__gte=tomorrow) & Q(start_date__lt=in_two_days)
+
     if user.is_staff:
-        all = Appointment.objects.filter(staff=user)
+        all_appointments = Appointment.objects.filter(staff=user).filter(all_filter).order_by("start_date")
     else:
-        all = Appointment.objects.filter(patient=user)
+        all_appointments = Appointment.objects.filter(patient=user).filter(all_filter)
+
+    today_appointments = all_appointments.filter(today_filter)
+    tomorrow_appointments = all_appointments.filter(tomorrow_filter)
+
+    print("hi")
+    print(all_appointments)
+    print(today_appointments)
+    print(tomorrow_appointments)
 
     return {
-        "all": all,
+        "all": all_appointments,
+        "today": today_appointments,
+        "tomorrow": tomorrow_appointments,
     }
 
 
