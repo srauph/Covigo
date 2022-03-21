@@ -67,6 +67,9 @@ def add_availabilities(request):
                 # Number of created availabilities
                 num_of_created_availabilities = 0
 
+                # Get staff id
+                staff_id = Staff.objects.filter(user=request.user).first().id
+
                 # Create availabilities starting at the start date until the end date
                 while date_current <= date_end:
                     # Only add availabilities at the selected days of the week
@@ -85,7 +88,7 @@ def add_availabilities(request):
                                 start_date__year=date_current.year,
                                 start_date__month=date_current.month,
                                 start_date__day=date_current.day,
-                                staff=request.user
+                                staff_id=staff_id
                             ).values('start_date', 'end_date'))
 
                             # Check if availability collides with already existing appointment objects.
@@ -111,8 +114,6 @@ def add_availabilities(request):
                                     return redirect('appointments:add_availabilities')
 
                             # Create new Appointment object
-                            staff_id = Staff.objects.filter(user=request.user).first().id
-
                             apt = Appointment.objects.create(staff_id=staff_id, patient=None,
                                                              start_date=start_datetime_object,
                                                              end_date=end_datetime_object)
