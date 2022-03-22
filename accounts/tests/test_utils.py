@@ -1,15 +1,12 @@
 import accounts.utils
-
 from django.contrib.auth.models import User
 from django.test import TestCase
-
 from unittest import mock
-
 from accounts.models import Flag, Staff
 from accounts.utils import (
     get_flag,
     get_superuser_staff_model,
-    reset_password_email_generator,
+    generate_and_send_email,
     send_email_to_user,
     get_or_generate_patient_code,
     get_or_generate_patient_profile_qr
@@ -74,6 +71,7 @@ class GetSuperuserStaffModelTests(TestCase):
         Test that for a superuser without a staff object, one is created and assigned to it, and returned
         @return: void
         """
+
         # Arrange
         self.superuser = User.objects.create(username="admin", is_superuser=True)
 
@@ -123,7 +121,7 @@ class ResetEmailPasswordGeneratorTests(TestCase):
         """
 
         # Act
-        reset_password_email_generator(self.user, self.subject, self.template)
+        generate_and_send_email(self.user, self.subject, self.template)
 
         # Assert
         m_render_function.assert_called_once()
@@ -139,7 +137,7 @@ class ResetEmailPasswordGeneratorTests(TestCase):
         """
 
         # Act
-        reset_password_email_generator(self.user, self.subject, self.template)
+        generate_and_send_email(self.user, self.subject, self.template)
 
         # Assert
         m_send_email_function.assert_called_once_with(self.user, self.subject, "email")
@@ -153,6 +151,7 @@ class SendEmailToUserTests(TestCase):
         @param m_smtp: smtplib library mock
         @return: void
         """
+
         # Arrange
         user = User.objects.create(email="test@email.com")
         m_instance = m_smtp.SMTP.return_value

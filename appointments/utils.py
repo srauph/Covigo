@@ -13,6 +13,17 @@ def cancel_appointments(appointment_id):
     booked.save()
 
 
+
+def delete_availabilities(appointment_id):
+    """
+    deletes the entire appointment object row from the database in order to "delete" the availability
+    :param appointment_id: the specific appointment's appointment id
+    :return: void
+    """
+    unbooked = Appointment.objects.get(id=appointment_id)
+    unbooked.delete()
+
+    
 def book_appointment(appointment_id, user):
     """
     Books an appointment in the corresponding appointment availability by setting the patient column to the user
@@ -35,7 +46,10 @@ def rebook_appointment_with_new_doctor(new_doctor_id, old_doctor_id, patient):
     @return: None
     """
     # if the doctor is the same do nothing
-    if int(new_doctor_id) == int(old_doctor_id):
+    try:
+        if int(new_doctor_id) == int(old_doctor_id):
+            return
+    except TypeError:
         return
 
     patient_id = patient.id
@@ -90,3 +104,4 @@ def is_appointment_and_availability_same_datetime(appointment, availability):
     availability.end_date = availability.end_date.replace(microsecond=0, second=0)
 
     return appointment.start_date == availability.start_date and appointment.end_date == availability.end_date
+

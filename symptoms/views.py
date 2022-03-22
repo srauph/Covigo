@@ -7,8 +7,7 @@ from django.views.decorators.cache import never_cache
 from symptoms.models import Symptom, PatientSymptom
 from symptoms.forms import CreateSymptomForm
 from django.contrib import messages
-
-from symptoms.utils import assign_symptom_to_user, get_latest_reporting_due_date, get_earliest_reporting_due_date, \
+from symptoms.utils import assign_symptom_to_user, get_latest_reporting_due_date, get_earliest_reporting_due_date,\
     is_symptom_editing_allowed, get_assigned_symptoms_from_patient
 
 
@@ -73,21 +72,15 @@ def edit_symptom(request, symptom_id):
     if request.method == 'POST':
         edit_symptom_form = CreateSymptomForm(request.POST, instance=symptom)
 
-        # TODO: See what happened here (old code from merge conflict)
-        # if symptom.name == edit_symptom_form.data.get('name') and symptom.description == edit_symptom_form.data.get(
-        #         'description'):
-        #     edit_symptom_form.add_error(None,
-        #                                 "No edits made on this symptom. If you wish to make no changes, please click the \"Cancel\" button to go back to the list of symptoms.")
-
         if not edit_symptom_form.has_changed():
             messages.error(request,
-                           "The symptom was not edited successfully: No edits made on this symptom. If you wish to make no changes, please click the \"Cancel\" button to go back to the list of symptoms.")
+                           f"The symptom was not edited successfully: No edits made on this symptom. If you wish to make no changes, please click the \"Cancel\" button to go back to the list of symptoms.")
             return render(request, 'symptoms/edit_symptom.html', {
                 'form': edit_symptom_form
             })
 
         if edit_symptom_form.is_valid():
-            if not Symptom.objects.filter(name=edit_symptom_form.data.get('name')).exists():
+            if not Symptom.objects.exclude(id=symptom_id).filter(name=edit_symptom_form.data.get('name')).exists():
                 edit_symptom_form.save()
 
                 if request.POST.get('Edit and Return'):
