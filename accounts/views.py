@@ -5,7 +5,6 @@ from django.core.exceptions import MultipleObjectsReturned
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
 from django.views.decorators.cache import never_cache
-
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
 from accounts.utils import (
