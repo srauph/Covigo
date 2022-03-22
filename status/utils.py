@@ -82,3 +82,33 @@ def return_symptoms_for_today(user_id):
         .filter(criteria) \
         .values('symptom_id', 'symptom__name', 'data', 'due_date')
     return query
+
+
+def is_requested(user_id):
+    """
+    Checks if a doctor has requested the patient to resubmit any symptoms today.
+    @param user_id: the user id
+    @return: true if yes or false otherwise
+    """
+    criteria1 = Q(user_id=user_id) & Q(
+        due_date=datetime.combine(datetime.now(), time.max))
+    query = PatientSymptom.objects.filter(criteria1)
+
+    requested_resubmit = False
+    doctor_viewed_report = False
+    has_empty_data = False
+
+    # Checks if there exists at least one instance of a doctor viewing a report + an empty data row
+    # meaning a request was sent for a resubmit
+    for symptoms in query:
+        if symptoms.is_hidden:
+            doctor_viewed_report = True
+        if symptoms.data is None:
+            has_empty_data = True
+
+    # If the doctor viewed the report and there exists empty data
+    if doctor_viewed_report and has_empty_data:
+        # The doctor then requested a resubmit
+        requested_resubmit = True
+
+    return requested_resubmit

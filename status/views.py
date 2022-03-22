@@ -13,7 +13,7 @@ import datetime
 from accounts.models import Flag
 from accounts.utils import get_assigned_staff_id_by_patient_id
 from status.utils import return_symptoms_for_today, get_reports_by_patient, get_patient_report_information, \
-    get_reports_for_doctor
+    get_reports_for_doctor, is_requested
 from symptoms.models import PatientSymptom
 
 
@@ -37,10 +37,12 @@ def index(request):
         # Symptoms to report
         patient_symptoms = return_symptoms_for_today(request.user.id)
 
+        is_resubmit_requested = is_requested(request.user.id)
         return render(request, 'status/index.html', {
             'reports': reports,
             'symptoms': patient_symptoms,
             'is_reporting_today': patient_symptoms.exists(),
+            'is_resubmit_requested': is_resubmit_requested,
             'is_quarantining': request.user.patient.is_quarantining
         })
     raise Http404("The requested resource was not found on this server.")
@@ -167,15 +169,9 @@ def create_patient_report(request):
     @return: create-status-report page
     """
     current_user = request.user.id
-    report = PatientSymptom.objects.filter(user_id=current_user, due_date__date__lte=datetime.datetime.now(), data=None)
-
-    # Ensure it was a post request
-
-    current_user = request.user.id
     report = PatientSymptom.objects.filter(user_id=current_user, due_date__date__lte=datetime.datetime.now())
 
     # Ensure it was a post request
-
     if request.method == 'POST':
         report_data = request.POST.getlist('data[id][]')
         data = request.POST.getlist('data[data][]')
@@ -203,28 +199,32 @@ def edit_patient_report(request):
     current_user_id = request.user.id
     report = PatientSymptom.objects.filter(user_id=current_user_id, due_date__date__lte=datetime.datetime.now(),
                                            is_hidden=False)
-
+    is_resubmit_requested = is_requested(current_user_id)
     # Ensure it was a post request
     if request.method == 'POST':
         report_data = request.POST.getlist('data[id][]')
         data = request.POST.getlist('data[data][]')
         i = 0
         for s in report_data:
-            symptom = PatientSymptom.objects.filter(id=int(s))
-
+            symptom = PatientSymptom.objects.filter(Q(id=int(s)))
+            
             # check if user updated the symptom
             if data[i] != '':
                 # Update the old entry is_hidden to true and keep all old values the same
-                symptom.update(is_hidden=True)
+                if is_resubmit_requested:
+                    symptom.update(is_hidden=False, data=data[i])
+                else:
+                    symptom.update(is_hidden=True)
 
-                # Insert the new empty row
-                new_symptom = symptom.get()
-                new_symptom.pk = None
-                new_symptom.is_hidden = False
-                new_symptom.data = data[i]
-                new_symptom._state.adding = True
-
-                new_symptom.save()
+                # Check if the patient themselves is modifying the report
+                if not is_resubmit_requested:
+                    # Insert the new empty row
+                    new_symptom = symptom.get()
+                    new_symptom.pk = None
+                    new_symptom.is_hidden = False
+                    new_symptom.data = data[i]
+                    new_symptom._state.adding = True
+                    new_symptom.save()
             i = i + 1
 
         return redirect('status:index')
