@@ -1,6 +1,8 @@
 from datetime import time
 from django.utils.datetime_safe import datetime
 from django.db.models import Q, Count, QuerySet
+
+from accounts.utils import get_is_staff
 from symptoms.models import PatientSymptom
 
 
@@ -10,7 +12,7 @@ def get_reports_by_patient(patient_id):
     @param patient_id: the patient user id
     @return: returns a queryset of reports the patient made
     """
-    criteria = Q(user_id=patient_id) & ~Q(data=None)
+    criteria = Q(user_id=patient_id) & ~Q(data=None) & (Q(status=0) | Q(status=3))
 
     reports = PatientSymptom.objects.values('date_updated__date', 'user_id', 'is_viewed',
                                             'user__first_name', 'user__last_name',
@@ -19,19 +21,25 @@ def get_reports_by_patient(patient_id):
     return reports
 
 
-def get_patient_report_information(user_id, date_updated):
+def get_patient_report_information(patient_id, user, date_updated):
     """
     Gets the report information (queryset of symptoms that has been reported back to)
     which includes symptom name, the user response (data) and their name.
-    @param user_id:
-    @param date_updated:
+    @param patient_id: the patient id for the report
+    @param user: the user viewing the report
+    @param date_updated: date of the report
     @return: queryset of symptoms
     """
-    criteria = Q(user_id=user_id) & ~Q(data=None) & Q(date_updated__date=date_updated)
+    # Patient can view updated report input only
+    criteria = Q(user_id=patient_id) & ~Q(data=None) & Q(date_updated__date=date_updated) & Q(is_hidden=False)
+    # Ensure staff can view all submitted updates
+    if user.is_staff:
+        criteria = Q(user_id=patient_id) & ~Q(data=None) & Q(date_updated__date=date_updated)
 
     reports = PatientSymptom.objects.values('user__first_name', 'user__last_name', 'symptom_id',
                                             'data', 'is_viewed',
-                                            'symptom__name').filter(criteria)
+                                            'symptom__name', 'id', 'date_updated', 'status', 'due_date').filter(
+        criteria)
     return reports
 
 
@@ -75,3 +83,26 @@ def return_symptoms_for_today(user_id):
         .filter(criteria) \
         .values('symptom_id', 'symptom__name', 'data', 'due_date')
     return query
+
+
+def is_requested(user_id):
+    """
+    Checks if a doctor has requested the patient to resubmit any symptoms today.
+    @param user_id: the user id
+    @return: true if yes or false otherwise
+    """
+    criteria1 = Q(user_id=user_id) & Q(
+        due_date=datetime.combine(datetime.now(), time.max))
+    query = PatientSymptom.objects.filter(criteria1)
+
+    requested_resubmit = False
+
+    # Checks if there exists at least one instance of a doctor viewing a report + an empty data row
+    # meaning a request was sent for a resubmit
+    for symptoms in query:
+        if symptoms.status == -2:
+            # The doctor then requested a resubmit
+            requested_resubmit = True
+            break
+
+    return requested_resubmit
