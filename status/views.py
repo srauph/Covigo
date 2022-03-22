@@ -206,7 +206,7 @@ def edit_patient_report(request):
                                                is_hidden=False, status=-2)
     else:
         report = PatientSymptom.objects.filter(user_id=current_user_id, due_date__date__lte=datetime.datetime.now(),
-                                               is_hidden=False)
+                                               is_hidden=False, status=0)
     # Ensure it was a post request
     if request.method == 'POST':
         report_data = request.POST.getlist('data[id][]')

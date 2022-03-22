@@ -38,7 +38,7 @@ def get_patient_report_information(patient_id, user, date_updated):
 
     reports = PatientSymptom.objects.values('user__first_name', 'user__last_name', 'symptom_id',
                                             'data', 'is_viewed',
-                                            'symptom__name', 'id', 'date_updated','status').filter(criteria)
+                                            'symptom__name', 'id', 'date_updated', 'status', 'due_date').filter(criteria)
     return reports
 
 
