@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, Select, CharField
 from django.contrib.auth.models import User
 from accounts.models import Profile
-from re import match
+from re import match, sub
 
 STAFF_PATIENT_CHOICES = (
     (True, 'Staff User'),
@@ -100,9 +100,15 @@ class CreateProfileForm(ModelForm):
         }
 
     def clean_phone_number(self):
-        # TODO: Sanitize to a "valid" phone number like 5141112222
+        # TODO: Better phone number sanitization including country codes and similar
         cleaned_phone_number = self.cleaned_data.get("phone_number")
-        return cleaned_phone_number
+        subbed_phone_number = sub("[+() -]", "", cleaned_phone_number)
+
+        if not match(r'^[0-9]{0,14}$', subbed_phone_number):
+            raise forms.ValidationError(
+                "Please enter a valid phone number."
+            )
+        return subbed_phone_number
 
 
 class RegisterUserForm(ModelForm):
@@ -232,13 +238,15 @@ class RegisterProfileForm(ModelForm):
         }
 
     def clean_phone_number(self):
-        # TODO: Sanitize to a "valid" phone number like 5141112222
+        # TODO: Better phone number sanitization including country codes and similar
         cleaned_phone_number = self.cleaned_data.get("phone_number")
-        if cleaned_phone_number == "":
-            raise ValidationError(
-                "Please provide a phone number."
+        subbed_phone_number = sub("[+() -]", "", cleaned_phone_number)
+
+        if not match(r'^[0-9]{0,14}$', subbed_phone_number):
+            raise forms.ValidationError(
+                "Please enter a valid phone number."
             )
-        return cleaned_phone_number
+        return subbed_phone_number
 
     def clean_address(self):
         cleaned_address = self.cleaned_data.get("address")
@@ -366,9 +374,15 @@ class EditProfileForm(ModelForm):
         }
 
     def clean_phone_number(self):
-        # TODO: Sanitize to a "valid" phone number like 5141112222
+        # TODO: Better phone number sanitization including country codes and similar
         cleaned_phone_number = self.cleaned_data.get("phone_number")
-        return cleaned_phone_number
+        subbed_phone_number = sub("[+() -]", "", cleaned_phone_number)
+
+        if not match(r'^[0-9]{0,14}$', subbed_phone_number):
+            raise forms.ValidationError(
+                "Please enter a valid phone number."
+            )
+        return subbed_phone_number
 
 
 class SetPasswordForm(SetPasswordForm):
