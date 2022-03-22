@@ -95,20 +95,13 @@ def is_requested(user_id):
     query = PatientSymptom.objects.filter(criteria1)
 
     requested_resubmit = False
-    doctor_viewed_report = False
-    has_empty_data = False
 
     # Checks if there exists at least one instance of a doctor viewing a report + an empty data row
     # meaning a request was sent for a resubmit
     for symptoms in query:
-        if symptoms.is_hidden:
-            doctor_viewed_report = True
-        if symptoms.data is None:
-            has_empty_data = True
-
-    # If the doctor viewed the report and there exists empty data
-    if doctor_viewed_report and has_empty_data:
-        # The doctor then requested a resubmit
-        requested_resubmit = True
+        if symptoms.status == -1:
+            # The doctor then requested a resubmit
+            requested_resubmit = True
+            break
 
     return requested_resubmit
