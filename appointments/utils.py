@@ -3,10 +3,10 @@ from appointments.models import Appointment
 
 def cancel_appointments(appointment_id):
     """
-    Cancels the booking appointment with the corresponding appointment id.
-    This is done by setting the patient_id of the appointment to None
-    @params: appointment_id: the appointment ID
-    @return: None
+    cancels the booked appointment with the corresponding appointment id:
+    this is done by setting the patient_id column of the specific booked appointment to "None"
+    @params: appointment_id: the appointment's id
+    @return: void
     """
     booked = Appointment.objects.get(id=appointment_id)
     booked.patient = None
@@ -18,7 +18,7 @@ def delete_availabilities(appointment_id):
     """
     deletes the entire appointment object row from the database in order to "delete" the availability
     :param appointment_id: the specific appointment's appointment id
-    :return: void
+    :return: None
     """
     unbooked = Appointment.objects.get(id=appointment_id)
     unbooked.delete()
@@ -26,10 +26,10 @@ def delete_availabilities(appointment_id):
     
 def book_appointment(appointment_id, user):
     """
-    Books an appointment in the corresponding appointment availability by setting the patient column to the user
+    books an appointment in the corresponding appointment availability by setting the patient column to the user
     @params: appointment_id: the  appointment's id
     @params: user: the current patient user object
-    @return: None
+    @return: void
     """
     appointment = Appointment.objects.get(id=appointment_id)
     appointment.patient = user
@@ -38,14 +38,15 @@ def book_appointment(appointment_id, user):
 
 def rebook_appointment_with_new_doctor(new_doctor_id, old_doctor_id, patient):
     """
-    This function is called when a patient has a doctor reassignment.
-    Rebooks a patient's appointments they had with the old doctor to the new doctor if they have an availability at
-    the same time as the appointment time with their original doctor.
-    If there is no corresponding availability, the appointment is cancelled.
-    @params: appointment_id: the appointment ID
-    @return: None
+    this function is called when a patient has a doctor reassignment:
+    rebooks the appointments a patient had with an old, previously assigned, doctor to the new doctor if they have an availability at
+    the same time as the appointment time with their original doctor (if there is no corresponding availability, the appointment is cancelled)
+    @params: new_doctor_id: the newly assigned doctor's id
+    @params: old_doctor_id: the old, previously assigned, doctor's id
+    @params: patient: the specific patient user object
+    @return: void
     """
-    # if the doctor is the same do nothing
+    # if the newly assigned doctor is the same, do nothing
     try:
         if int(new_doctor_id) == int(old_doctor_id):
             return
@@ -57,26 +58,26 @@ def rebook_appointment_with_new_doctor(new_doctor_id, old_doctor_id, patient):
     try:
         booked_appointments = Appointment.objects.filter(staff_id=old_doctor_id, patient_id=patient_id).all()
 
-    # if the patient has no booked appointments with the old doctor do nothing
+    # if the patient has no booked appointments with the old, previously assigned, doctor, do nothing
     except Appointment.DoesNotExist:
         return
 
     new_doctor_availabilities = Appointment.objects.filter(patient=None, staff_id=new_doctor_id).all()
 
-    # if the new doctor does not have any availabilities, cancel all patients appointments
+    # if the newly assigned doctor does not have any availabilities, cancel all the patient's current appointments
     if len(new_doctor_availabilities) == 0:
         for appointment in booked_appointments:
             appointment.patient_id = None
             appointment.save()
 
-    # if the doctor has availabilities
+    # if the newly assigned doctor has availabilities
     else:
-        # check each booked appointment for a corresponding availability at the same day and time with the new doctor
+        # check each booked appointment for a corresponding availability at the same day and time with the newly assigned doctor
         for appointment in booked_appointments:
             found_corresponding_availability = False
             for availability in new_doctor_availabilities:
-                # if a corresponding availability is found cancel the booking with the old doctor and book an
-                #  appointment at the same day and time with the new doctor
+                # if a corresponding availability is found, cancel the corresponding booked appointment with the old, previously assigned, doctor and book a new
+                #  appointment at the same day and time with the newly assigned doctor
                 if is_appointment_and_availability_same_datetime(appointment, availability):
                     appointment.patient_id = None
                     availability.patient = patient
@@ -85,7 +86,7 @@ def rebook_appointment_with_new_doctor(new_doctor_id, old_doctor_id, patient):
                     found_corresponding_availability = True
 
                     break
-            # if a corresponding availability is not found just cancel the booking with the old doctor
+            # if a corresponding availability is not found, just cancel the booked appointment with the old, previously assigned, doctor
             if not found_corresponding_availability:
                 appointment.patient_id = None
                 appointment.save()
@@ -93,10 +94,10 @@ def rebook_appointment_with_new_doctor(new_doctor_id, old_doctor_id, patient):
 
 def is_appointment_and_availability_same_datetime(appointment, availability):
     """
-    Returns a bool if the appointment and availability start and end dates are the same, up to the minute.
-    @params : appointment: an appointment object of a booked appointment with the old doctor
-    @params : availability: an appointment object of an availability with the new doctor
-    @return : True if both arguments have the same start and end dates
+    returns a boolean if the appointment and availability start and end dates are the same, up to the minute
+    @params : appointment: an appointment object of a booked appointment with the old, previously assigned, doctor
+    @params : availability: an appointment object of an availability with the newly assigned doctor
+    @return : True if both arguments have the same start and end dates, else False
     """
     appointment.start_date = appointment.start_date.replace(microsecond=0, second=0)
     appointment.end_date = appointment.end_date.replace(microsecond=0, second=0)

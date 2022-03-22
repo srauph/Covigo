@@ -183,9 +183,15 @@ def book_appointments(request):
         for appointment_id in appointment_ids:
             book_appointment(appointment_id, request.user)
 
-        # success message to show user if appointments were booked
-        messages.success(request, 'The selected appointments were booked successfully.')
-        return redirect('appointments:index')
+        # success message to show user if multiple selected appointments were booked
+        if len(appointment_ids) > 1:
+            messages.success(request, 'The selected appointments were booked successfully.')
+            return redirect('appointments:index')
+        
+        # success message to show user if only one selected appointment was booked
+        else:
+            messages.success(request, 'The selected appointment was booked successfully.')
+            return redirect('appointments:index')
 
     return render(request, 'appointments/book_appointments.html', {
         'appointments': Appointment.objects.filter(patient=None, staff=staff_id).all(),
@@ -221,7 +227,7 @@ def cancel_appointments_or_delete_availabilities(request):
         # cancels a single appointment by setting the patient's id in the appointment's patient_id column to "None"
         cancel_appointments(booked_id)
 
-        # success message to show to the user if the existing appointment was cancelled successfully
+        # success message to show to the user if the existing appointment was canceled successfully
         messages.success(request, 'The appointment was canceled successfully.')
         return redirect('appointments:cancel_appointments_or_delete_availabilities')
 
@@ -242,9 +248,15 @@ def cancel_appointments_or_delete_availabilities(request):
         for booked_id in booked_ids:
             cancel_appointments(booked_id)
 
-        # success message to show to the doctor/staff if all selected existing appointments were cancelled successfully
-        messages.success(request, 'The appointments were canceled successfully.')
-        return redirect('appointments:index')
+        # success message to show to the doctor/staff if multiple selected existing appointments were canceled successfully
+        if len(booked_ids) > 1:
+            messages.success(request, 'The selected appointments were canceled successfully.')
+            return redirect('appointments:index')
+        
+        # success message to show to the doctor/staff if only one selected existing appointment was canceled successfully
+        else:
+            messages.success(request, 'The selected appointment was canceled successfully.')
+            return redirect('appointments:index')
 
     if request.method == 'POST' and request.POST.get('Delete Selected Availabilities'):
         unbooked_ids = request.POST.getlist('booked_ids[]')
@@ -253,9 +265,15 @@ def cancel_appointments_or_delete_availabilities(request):
         for unbooked_id in unbooked_ids:
             delete_availabilities(unbooked_id)
 
-        # success message to show to the doctor/staff if all selected existing availabilities were deleted successfully
-        messages.success(request, 'The availabilities were deleted successfully.')
-        return redirect('appointments:index')
+        # success message to show to the doctor/staff if multiple selected existing availabilities were deleted successfully
+        if len(unbooked_ids) > 1:
+            messages.success(request, 'The selected availabilities were deleted successfully.')
+            return redirect('appointments:index')
+        
+        # success message to show to the doctor/staff if only one selected existing availability was deleted successfully
+        else:
+            messages.success(request, 'The selected availability was deleted successfully.')
+            return redirect('appointments:index')
 
     return render(request, 'appointments/cancel_appointments.html', {
         'appointments': Appointment.objects.filter(logged_in_filter).all(),
