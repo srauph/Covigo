@@ -207,13 +207,15 @@ def edit_patient_report(request):
         i = 0
         for s in report_data:
             symptom = PatientSymptom.objects.filter(Q(id=int(s)))
-            
+
             # check if user updated the symptom
             if data[i] != '':
                 # Update the old entry is_hidden to true and keep all old values the same
                 if is_resubmit_requested:
+                    print("I am here")
                     symptom.update(is_hidden=False, data=data[i])
                 else:
+                    print("I am here 2")
                     symptom.update(is_hidden=True)
 
                 # Check if the patient themselves is modifying the report
@@ -235,13 +237,17 @@ def edit_patient_report(request):
 
 
 def resubmit_request(request, patient_symptom_id):
+    # TODO recode the entire logic
+    # TODO check if the doctor already requested
     symptom = PatientSymptom.objects.filter(id=int(patient_symptom_id)).get()
-    new_symptom = symptom
-    new_symptom.is_hidden = True
-    new_symptom.save()
-    new_symptom.pk = None
-    new_symptom.is_hidden = False
-    new_symptom.data = None
-    new_symptom._state.adding = True
-    new_symptom.save()
+    symptom.is_hidden = True
+    symptom.is_viewed = None
+    symptom.save()
+
+    # Old logic
+    # new_symptom.pk = None
+    # new_symptom.is_hidden = False
+    # new_symptom.data = None
+    # new_symptom._state.adding = True
+    # new_symptom.save()
     return redirect('status:patient-reports')
