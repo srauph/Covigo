@@ -258,8 +258,9 @@ def profile(request, user_id):
             assigned_staff_patient_count = 0
         assigned_flags = Flag.objects.filter(patient=user)
 
-        # all_doctors = User.objects.filter(groups__name='doctor')
-        all_doctors = User.objects.filter(is_staff=True)
+        # TODO: Remove this group name and replace with permission instead
+        all_doctors = User.objects.filter(groups__name='doctor')
+        # all_doctors = User.objects.filter(is_staff=True)
 
         return render(request, 'accounts/profile.html', {
             "usr": user,
