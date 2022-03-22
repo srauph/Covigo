@@ -41,7 +41,9 @@ class ForgotPasswordTests(TestCase):
         self.assertEqual('More than one user with the given email address could be found. Please contact the system '
                          'administrators to fix this issue.', form_error_message)
 
-    def test_non_existing_user_email(self):
+    @mock.patch("accounts.views.send_sms_to_user")
+    @mock.patch("accounts.views.generate_and_send_email")
+    def test_non_existing_user_email(self, m_email_sender, m_sms_sender):
         """
         Test to check if user enters an email that isn't linked to any existing user
         @return: void
@@ -102,7 +104,9 @@ class ForgotPasswordTests(TestCase):
         # Assert
         m_email_generator_and_sender.assert_called_once_with(new_user, subject, template)
 
-    def test_forgot_password_redirects_to_done(self):
+    @mock.patch("accounts.views.send_sms_to_user")
+    @mock.patch("accounts.views.generate_and_send_email")
+    def test_forgot_password_redirects_to_done(self, m_email_sender, m_sms_sender):
         """
         Test to check that completin the forgot password form redirects to the forgot password done page
         @return:
@@ -358,7 +362,9 @@ class AccountsTestCase(TransactionTestCase):
         self.assertTrue(User.objects.all().count() == 1)
         self.assertEqual('Please enter an email address or a phone number.', list(self.response.context['user_form'].errors['__all__'])[0])
 
-    def test_user_can_create_new_user_account(self):
+    @mock.patch("accounts.views.send_sms_to_user")
+    @mock.patch("accounts.views.generate_and_send_email")
+    def test_user_can_create_new_user_account(self, m_email_sender, m_sms_sender):
         """
         this test allows us to test for if an account that is submitted through a form
         (with the "Create" or "Create and Return" buttons) ends up actually being indeed added to the database or not
@@ -428,7 +434,8 @@ class AccountsTestCase(TransactionTestCase):
         self.assertEqual('Cannot select more than one group.', list(self.response.context['user_form']['groups'].errors)[0])
 
     @mock.patch("accounts.views.send_sms_to_user")
-    def test_user_can_edit_existing_user_account(self, _):
+    @mock.patch("accounts.views.generate_and_send_email")
+    def test_user_can_edit_existing_user_account(self, m_email_sender, m_sms_sender):
         """
         this test allows us to test for if an account that is edited and submitted through a form
         ends up actually being indeed properly edited in the list of users and in the database or not
