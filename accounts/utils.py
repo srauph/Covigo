@@ -15,8 +15,6 @@ from accounts.models import Flag, Staff, Patient
 from pathlib import Path
 from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
-from twilio.base.exceptions import TwilioRestException
-from twilio.rest import Client
 from qrcode.main import make
 from qrcode.image.pil import PilImage
 
