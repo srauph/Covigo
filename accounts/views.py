@@ -202,6 +202,10 @@ class ChangePasswordView(PasswordChangeView):
         generate_and_send_email(form.user, subject, template)
         return HttpResponseRedirect(self.get_success_url())
 
+    def form_invalid(self, form):
+        """If the form is invalid, render the invalid form."""
+        return super(PasswordChangeView, self).form_invalid()
+
 
 @login_required
 @never_cache

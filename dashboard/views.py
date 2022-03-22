@@ -28,6 +28,7 @@ def index(request):
             "appointments": appointments,
             "recent_status_updates": recent_status_updates,
             "assigned_patients": assigned_patients,
+            "assigned_patients_length": assigned_patients.count(),
             "data": data,
         })
 
