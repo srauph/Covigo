@@ -243,13 +243,6 @@ class ChangePasswordView(PasswordChangeView):
 def index(request):
     return redirect('accounts:list_users')
 
-
-@login_required
-@never_cache
-def two_factor_authentication(request):
-    return render(request, 'accounts/authentication/2FA.html')
-
-
 @never_cache
 def change_password_done(request):
     return render(request, 'accounts/authentication/change_password_done.html')
