@@ -1,8 +1,8 @@
 from django import forms
 from django.contrib.auth import password_validation
-from django.contrib.auth.forms import SetPasswordForm
+from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm
 from django.core.exceptions import ValidationError
-from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, Select
+from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, Select, CharField
 from django.contrib.auth.models import User
 from accounts.models import Profile
 
@@ -11,8 +11,35 @@ STAFF_PATIENT_CHOICES = (
     (False, 'Patient User')
 )
 
+GUEST_CHARFIELD_CLASS = \
+    'appearance-none ' \
+    'rounded-none ' \
+    'relative ' \
+    'block ' \
+    'w-full ' \
+    'px-3 ' \
+    'py-2 ' \
+    'border ' \
+    'border-gray-300 ' \
+    'placeholder-gray-500 ' \
+    'text-gray-900 ' \
+    'focus:outline-none ' \
+    'focus:ring-indigo-500 ' \
+    'focus:border-indigo-500 ' \
+    'focus:z-10 ' \
+    'sm:text-sm'
 
-class UserForm(ModelForm):
+GUEST_CHARFIELD_CLASS_TOP = GUEST_CHARFIELD_CLASS + ' rounded-t-md'
+GUEST_CHARFIELD_CLASS_MIDDLE = GUEST_CHARFIELD_CLASS
+GUEST_CHARFIELD_CLASS_BOTTOM = GUEST_CHARFIELD_CLASS + ' rounded-b-md'
+GUEST_CHARFIELD_CLASS_STANDALONE = GUEST_CHARFIELD_CLASS + ' rounded-md'
+
+CHARFIELD_CLASS = "w-full h-8 px-2 bg-slate-100 rounded-md border border-slate-400"
+SELECTION_CLASS = "w-full h-8 px-1 bg-slate-100 rounded-md border border-slate-400"
+CHECKBOX_CLASS = "p-2"
+
+
+class CreateUserForm(ModelForm):
     class Meta:
         model = User
         fields = [
@@ -23,18 +50,18 @@ class UserForm(ModelForm):
         widgets = {
             "email": TextInput(
                 attrs={
-                    "class": "w-full h-8 px-2 bg-slate-100 rounded-md border border-slate-400"
+                    "class": CHARFIELD_CLASS
                 }
             ),
             "groups": CheckboxSelectMultiple(
                 attrs={
-                    "class": "p-2"
+                    "class": CHECKBOX_CLASS
                 }
             ),
             "is_staff": Select(
                 choices=STAFF_PATIENT_CHOICES,
                 attrs={
-                    "class": "w-full h-8 px-1 bg-slate-100 rounded-md border border-slate-400"
+                    "class": SELECTION_CLASS
                 }
             ),
         }
@@ -57,7 +84,7 @@ class UserForm(ModelForm):
         return cleaned_groups
 
 
-class ProfileForm(ModelForm):
+class CreateProfileForm(ModelForm):
     class Meta:
         model = Profile
         fields = [
@@ -66,7 +93,7 @@ class ProfileForm(ModelForm):
         widgets = {
             "phone_number": TextInput(
                 attrs={
-                    "class": "w-full h-8 px-2 bg-slate-100 rounded-md border border-slate-400"
+                    "class": CHARFIELD_CLASS
                 }
             )
         }
@@ -74,11 +101,155 @@ class ProfileForm(ModelForm):
     def clean_phone_number(self):
         # TODO: Sanitize to a "valid" phone number like 5141112222
         cleaned_phone_number = self.cleaned_data.get("phone_number")
-        if cleaned_phone_number != "" and Profile.objects.filter(phone_number=cleaned_phone_number).exists():
+        return cleaned_phone_number
+
+
+class RegisterUserForm(ModelForm):
+    username = CharField(
+        # Set required to false here to override django's builtin popup.
+        # The "required-ness" will be checked in clean_username()
+        required=False,
+        widget=TextInput(
+            attrs={
+                "placeholder": "Username",
+                "class": GUEST_CHARFIELD_CLASS_STANDALONE
+            }
+        )
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.user_id = kwargs.pop('user_id')
+        super(RegisterUserForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = User
+        fields = [
+            "username",
+            "email",
+            "first_name",
+            "last_name"
+        ]
+        widgets = {
+            "email": TextInput(
+                attrs={
+                    "placeholder": "Email Address",
+                    "class": GUEST_CHARFIELD_CLASS_STANDALONE
+                }
+            ),
+
+            "first_name": TextInput(
+                attrs={
+                    "placeholder": "First Name",
+                    "class": GUEST_CHARFIELD_CLASS_STANDALONE
+                }
+            ),
+            "last_name": TextInput(
+                attrs={
+                    "placeholder": "Last Name",
+                    "class": GUEST_CHARFIELD_CLASS_STANDALONE
+                }
+            ),
+        }
+
+    def clean_username(self):
+        cleaned_username = self.cleaned_data.get("username")
+        if cleaned_username == "":
             raise ValidationError(
-                "Phone number already in use by another user."
+                "Please provide a username."
+            )
+        if cleaned_username != "" and User.objects.filter(email=cleaned_username).exclude(id=self.user_id).exists():
+            raise ValidationError(
+                "Username already in use by another user."
+            )
+        return cleaned_username
+
+    def clean_email(self):
+        cleaned_email = self.cleaned_data.get("email")
+        if cleaned_email == "":
+            raise ValidationError(
+                "Please provide an email."
+            )
+
+        if cleaned_email != "" and User.objects.filter(email=cleaned_email).exclude(id=self.user_id).exists():
+            raise ValidationError(
+                "Email already in use by another user."
+            )
+        return cleaned_email
+
+    def clean_first_name(self):
+        cleaned_first_name = self.cleaned_data.get("first_name")
+        if cleaned_first_name == "":
+            raise ValidationError(
+                "Please provide your first name."
+            )
+        return cleaned_first_name
+
+    def clean_last_name(self):
+        cleaned_last_name = self.cleaned_data.get("last_name")
+        if cleaned_last_name == "":
+            raise ValidationError(
+                "Please provide your last name."
+            )
+        return cleaned_last_name
+
+
+class RegisterProfileForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.user_id = kwargs.pop('user_id')
+        super(RegisterProfileForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = Profile
+        fields = [
+            "phone_number",
+            "address",
+            "postal_code",
+        ]
+        widgets = {
+            "phone_number": TextInput(
+                attrs={
+                    "placeholder": "Phone Number",
+                    "class": GUEST_CHARFIELD_CLASS_STANDALONE
+                }
+            ),
+            "address": TextInput(
+                attrs={
+                    "placeholder": "Address",
+                    "class": GUEST_CHARFIELD_CLASS_STANDALONE
+                }
+            ),
+            "postal_code": TextInput(
+                attrs={
+                    "placeholder": "Postal Code",
+                    "class": GUEST_CHARFIELD_CLASS_STANDALONE
+                }
+            )
+        }
+
+    def clean_phone_number(self):
+        # TODO: Sanitize to a "valid" phone number like 5141112222
+        cleaned_phone_number = self.cleaned_data.get("phone_number")
+        if cleaned_phone_number == "":
+            raise ValidationError(
+                "Please provide a phone number."
             )
         return cleaned_phone_number
+
+    def clean_address(self):
+        cleaned_address = self.cleaned_data.get("address")
+        if cleaned_address == "":
+            raise ValidationError(
+                "Please provide your address."
+            )
+        return cleaned_address
+
+    def clean_postal_code(self):
+        cleaned_postal_code = self.cleaned_data.get("postal_code")
+        if cleaned_postal_code == "":
+            raise ValidationError(
+                "Please provide your postal code."
+            )
+        return cleaned_postal_code
 
 
 class EditUserForm(ModelForm):
@@ -98,28 +269,28 @@ class EditUserForm(ModelForm):
         widgets = {
             "username": TextInput(
                 attrs={
-                    "class": "w-full h-8 px-2 bg-slate-100 rounded-md border border-slate-400"
+                    "class": CHARFIELD_CLASS
                 }
             ),
             "email": TextInput(
                 attrs={
-                    "class": "w-full h-8 px-2 bg-slate-100 rounded-md border border-slate-400"
+                    "class": CHARFIELD_CLASS
                 }
             ),
 
             "first_name": TextInput(
                 attrs={
-                    "class": "w-full h-8 px-2 bg-slate-100 rounded-md border border-slate-400"
+                    "class": CHARFIELD_CLASS
                 }
             ),
             "last_name": TextInput(
                 attrs={
-                    "class": "w-full h-8 px-2 bg-slate-100 rounded-md border border-slate-400"
+                    "class": CHARFIELD_CLASS
                 }
             ),
             "groups": CheckboxSelectMultiple(
                 attrs={
-                    "class": "p-2"
+                    "class": CHECKBOX_CLASS
                 }
             ),
         }
@@ -157,17 +328,17 @@ class EditProfileForm(ModelForm):
         widgets = {
             "phone_number": TextInput(
                 attrs={
-                    "class": "w-full h-8 px-2 bg-slate-100 rounded-md border border-slate-400"
+                    "class": CHARFIELD_CLASS
                 }
             ),
             "address": TextInput(
                 attrs={
-                    "class": "w-full h-8 px-2 bg-slate-100 rounded-md border border-slate-400"
+                    "class": CHARFIELD_CLASS
                 }
             ),
             "postal_code": TextInput(
                 attrs={
-                    "class": "w-full h-8 px-2 bg-slate-100 rounded-md border border-slate-400"
+                    "class": CHARFIELD_CLASS
                 }
             )
         }
@@ -175,14 +346,10 @@ class EditProfileForm(ModelForm):
     def clean_phone_number(self):
         # TODO: Sanitize to a "valid" phone number like 5141112222
         cleaned_phone_number = self.cleaned_data.get("phone_number")
-        if cleaned_phone_number != "" and Profile.objects.filter(phone_number=cleaned_phone_number).exclude(user=User.objects.get(id=self.user_id)).exists():
-            raise ValidationError(
-                "Phone number already in use by another user."
-            )
         return cleaned_phone_number
 
 
-class ResetPasswordForm(SetPasswordForm):
+class SetPasswordForm(SetPasswordForm):
     error_messages = {
         'password_mismatch': 'The two password fields didn’t match.'
     }
@@ -192,7 +359,7 @@ class ResetPasswordForm(SetPasswordForm):
             attrs={
                 'autocomplete': 'new-password',
                 'placeholder': 'New Password',
-                'class': 'appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm'
+                'class': GUEST_CHARFIELD_CLASS_TOP
             }
         ),
         strip=False,
@@ -205,7 +372,49 @@ class ResetPasswordForm(SetPasswordForm):
             attrs={
                 'autocomplete': 'new-password',
                 'placeholder': 'Confirm Password',
-                'class': 'appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm'
+                'class': GUEST_CHARFIELD_CLASS_BOTTOM
+            }
+        ),
+    )
+
+
+class ChangePasswordForm(PasswordChangeForm):
+    error_messages = {
+        'password_mismatch': 'The two password fields didn’t match.'
+    }
+    old_password = forms.CharField(
+        label="Old Password",
+        widget=forms.PasswordInput(
+            attrs={
+                # TODO: Figure out what goes in the autocomplete here
+                'autocomplete': 'password',
+                'placeholder': 'Old Password',
+                'class': GUEST_CHARFIELD_CLASS_TOP
+            }
+        ),
+        strip=False,
+        help_text=password_validation.password_validators_help_text_html(),
+    )
+    new_password1 = forms.CharField(
+        label="New Password",
+        widget=forms.PasswordInput(
+            attrs={
+                'autocomplete': 'new-password',
+                'placeholder': 'New Password',
+                'class': GUEST_CHARFIELD_CLASS_MIDDLE
+            }
+        ),
+        strip=False,
+        help_text=password_validation.password_validators_help_text_html(),
+    )
+    new_password2 = forms.CharField(
+        label="Confirm Password",
+        strip=False,
+        widget=forms.PasswordInput(
+            attrs={
+                'autocomplete': 'new-password',
+                'placeholder': 'Confirm Password',
+                'class': GUEST_CHARFIELD_CLASS_BOTTOM
             }
         ),
     )
