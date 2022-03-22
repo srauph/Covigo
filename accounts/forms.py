@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, Select, CharField
 from django.contrib.auth.models import User
 from accounts.models import Profile
+from re import match
 
 STAFF_PATIENT_CHOICES = (
     (True, 'Staff User'),
@@ -161,6 +162,10 @@ class RegisterUserForm(ModelForm):
             raise ValidationError(
                 "Username already in use by another user."
             )
+        if not match(r'^[A-Za-z0-9@._-]+$', cleaned_username):
+            raise forms.ValidationError(
+                "Username can only contain letters, numbers, periods '.', underscores '_', hyphens '-', or the at symbol '@'."
+            )
         return cleaned_username
 
     def clean_email(self):
@@ -294,6 +299,23 @@ class EditUserForm(ModelForm):
                 }
             ),
         }
+
+    def clean_username(self):
+        cleaned_username = self.cleaned_data.get("username")
+        old_username = User.objects.get(id=self.user_id).username
+        if cleaned_username == "":
+            raise ValidationError(
+                "Please provide a username."
+            )
+        if cleaned_username != "" and User.objects.filter(email=cleaned_username).exclude(id=self.user_id).exists():
+            raise ValidationError(
+                "Username already in use by another user."
+            )
+        if not cleaned_username == old_username and not match(r'^[A-Za-z0-9@._-]+$', cleaned_username):
+            raise forms.ValidationError(
+                "Username can only contain letters, numbers, periods '.', underscores '_', hyphens '-', or the at symbol '@'."
+            )
+        return cleaned_username
 
     def clean_email(self):
         cleaned_email = self.cleaned_data.get("email")
