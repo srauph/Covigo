@@ -121,8 +121,8 @@ def patient_report_modal(request, user_id, date_updated):
                 is_patient_flagged = False
 
             # Ensure the report has not been viewed before
-            if not report_symptom_list[0]['is_viewed']:
-                # Set the report to viewed
+            if request.user.is_staff and not report_symptom_list[0]['is_viewed']:
+                # Set the report to viewed when a doctor reads it
                 PatientSymptom.objects.filter(
                     Q(user_id=user_id) & Q(date_updated__date=date_updated) & ~Q(data=None)).update(is_viewed=1)
 
