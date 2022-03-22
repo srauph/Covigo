@@ -13,14 +13,11 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from Covigo.settings import HOST_NAME
 from accounts.models import Flag, Staff, Patient
 from pathlib import Path
-from qrcode import *
-import uuid
-import smtplib
 from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
-import shortuuid
-from qrcode import make
+from qrcode import *
 from qrcode.image.pil import PilImage
+
 
 def get_flag(staff_user, patient_user):
     """
