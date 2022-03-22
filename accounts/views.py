@@ -22,7 +22,8 @@ from accounts.utils import (
     generate_and_send_email,
     get_or_generate_patient_profile_qr,
     get_assigned_staff_id_by_patient_id,
-    get_user_from_uidb64
+    get_user_from_uidb64,
+    send_sms_to_user,
 )
 from appointments.models import Appointment
 from appointments.utils import rebook_appointment_with_new_doctor
@@ -352,7 +353,8 @@ def create_user(request):
                 generate_and_send_email(new_user, subject, template)
 
             elif has_phone:
-                send_sms_to_user(new_user, user_phone, message)
+                template = "accounts/messages/register_user_email.html"
+                send_sms_to_user(new_user, user_phone, template)
 
             else:
                 None

@@ -15,7 +15,7 @@ from accounts.models import Flag, Staff, Patient
 from pathlib import Path
 from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
-from qrcode import *
+from qrcode.main import make
 from qrcode.image.pil import PilImage
 
 
@@ -78,6 +78,27 @@ def generate_and_send_email(user, subject, template):
     }
     email = render_to_string(template, c)
     send_email_to_user(user, subject, email)
+
+
+def generate_and_send_sms(user, user_phone, template):
+    """
+    Generate and send a "reset password" email for a user
+    @param user: The user whose password is to be reset
+    @param subject: The name to give the email's subject
+    @param template: The template to use for the email to send
+    @return: void
+    """
+    c = {
+        'email': user.email,
+        'host_name': HOST_NAME,
+        'site_name': 'Covigo',
+        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+        'user': user,
+        'token': default_token_generator.make_token(user),
+    }
+    message = render_to_string(template, c)
+    send_sms_to_user(user, user_phone, message)
+
 
 #takes a user, subject, and message as params and sends the user an email
 def send_email_to_user(user, subject, message):
