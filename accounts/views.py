@@ -146,8 +146,11 @@ def create_user(request):
             if has_email:
                 send_email_to_user(new_user, subject, message)
 
-            if has_phone:
+            elif has_phone:
                 send_sms_to_user(new_user, user_phone, message)
+
+            else:
+                None
 
             return redirect("accounts:list_users")
 
