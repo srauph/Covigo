@@ -13,19 +13,44 @@
             <span>Case Data</span>
             <span class="text-sm font-normal">(Covigo)</span>
         </div>
-        <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-            <span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                     stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
-                </svg>
-            </span>
-            <span>Expand</span>
-        </button>
     </div>
 
     <hr class="border-slate-400 mx-1 my-2">
+
+    <div class="flex justify-center items-center w-full h-full rounded-lg">
+        <table class="w-full list-inside">
+            <tr class="py-1 border-b">
+                <th class="p-1 text-left">Total Confirmed patients:</th>
+                <th class="p-1 text-left">Current</th>
+                <th class="p-1 text-left">Change</th>
+            </tr>
+            <tr class="py-1 hover:bg-slate-200 border-b">
+                <td class="p-1">Total Confirmed patients:</td>
+                <td class="p-1 text-orange-500">{{ covigo_case_data.confirmed.numbers|last }}</td>
+                <td class="p-1 text-orange-500">{{ covigo_case_data.daily_confirmed.numbers|last }}</td>
+            </tr>
+            <tr class="py-1 hover:bg-slate-200 border-b">
+                <td class="p-1">Currently Positive:</td>
+                <td class="p-1 text-red-500">{{ covigo_case_data.current_positives.numbers|last }}</td>
+                <td class="p-1 text-red-500">{{ covigo_case_data.daily_positives.numbers|last }}</td>
+            </tr>
+            <tr class="py-1 hover:bg-slate-200 border-b">
+                <td class="p-1">Currently Recovered:</td>
+                <td class="p-1 text-green-500">{{ covigo_case_data.recoveries.numbers|last }}</td>
+                <td class="p-1 text-green-500">{{ covigo_case_data.daily_recoveries.numbers|last }}</td>
+            </tr>
+            <tr class="py-1 hover:bg-slate-200 border-b">
+                <td class="p-1">Negative Cases:</td>
+                <td class="p-1 text-lime-500">{{ covigo_case_data.unconfirmed_negative.numbers|last }}</td>
+                <td class="p-1 text-lime-500">{{ covigo_case_data.daily_unconfirmed_negative.numbers|last }}</td>
+            </tr>
+            <tr class="py-1 hover:bg-slate-200">
+                <td class="p-1">Probable Cases</td>
+                <td class="p-1 text-blue-500">{{ covigo_case_data.unconfirmed_untested.numbers|last }}</td>
+                <td class="p-1 text-blue-500">{{ covigo_case_data.daily_unconfirmed_untested.numbers|last }}</td>
+            </tr>
+        </table>
+    </div>
 {% endblock %}
 
 {% block modal %}
@@ -58,7 +83,7 @@
     <div class="hidden flex items-center justify-center w-full h-full rounded-md shadow bg-green-100 border-green-200 group-hover:bg-green-200">
         <div class="px-4 py-2">
             <h2 class="font-bold text-2xl text-center">Recoveries (Total)</h2>
-            <h3 class="font-light text-sm text-center text-gray-600">(since {{ recoveries.dates.0 }})</h3>
+            <h3 class="font-light text-sm text-center text-gray-600">(since {{ recoveries.dates.0 }}</h3>
             <hr class="border-slate-400 my-2">
             <dix class="flex items-center justify-center">
                 {#<img src="{% static 'dashboard/qcrecoveriesog.png' %}" alt="Hospitalizations"/>#}

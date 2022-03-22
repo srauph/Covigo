@@ -21,14 +21,14 @@ def index(request):
     if user.is_staff:
         recent_status_updates = []
         assigned_patients = user.staff.get_assigned_patient_users()
-        data = fetch_data_from_all_files()
+        covigo_case_data = fetch_data_from_all_files()
 
         return render(request, 'dashboard/index.html', {
             "messages": messages,
             "appointments": appointments,
             "recent_status_updates": recent_status_updates,
             "assigned_patients": assigned_patients,
-            "data": data,
+            "covigo_case_data": covigo_case_data,
         })
 
     else:
