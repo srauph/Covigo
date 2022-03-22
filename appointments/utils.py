@@ -46,7 +46,10 @@ def rebook_appointment_with_new_doctor(new_doctor_id, old_doctor_id, patient):
     @return: None
     """
     # if the doctor is the same do nothing
-    if int(new_doctor_id) == int(old_doctor_id):
+    try:
+        if int(new_doctor_id) == int(old_doctor_id):
+            return
+    except TypeError:
         return
 
     patient_id = patient.id
