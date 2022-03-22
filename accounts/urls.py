@@ -3,8 +3,6 @@ from django.contrib.auth import views as auth_views
 from . import views
 from .forms import SetPasswordForm, ChangePasswordForm
 
-# from django.conf.urls import include
-
 app_name = 'accounts'
 urlpatterns = [
     path('', views.index, name='index'),
