@@ -112,7 +112,7 @@ def patient_report_modal(request, user_id, date_updated):
         if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
 
             # Gets all symptoms' info required for the report
-            report_symptom_list = get_patient_report_information(user_id, date_updated)
+            report_symptom_list = get_patient_report_information(user_id, request.user, date_updated)
 
             # Check if the patient is flagged
             try:
@@ -150,7 +150,7 @@ def patient_reports_modal_table(request, user_id, date_updated):
     @return: json response of the report
     """
     # Return a query set of all symptoms for the patient
-    report_symptom_list = get_patient_report_information(user_id, date_updated)
+    report_symptom_list = get_patient_report_information(user_id, request.user, date_updated)
 
     # Serialize it in a JSON format for the datatable to parse
     serialized_reports = json.dumps({'data': list(report_symptom_list)}, cls=DjangoJSONEncoder, default=str)
