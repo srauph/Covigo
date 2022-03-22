@@ -12,17 +12,17 @@
             </span>
             <span>My Doctor</span>
         </div>
-        <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-            <span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                     stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
-                </svg>
-            </span>
-            <span>Expand</span>
-        </button>
     </div>
 
     <hr class="border-slate-400 mx-1 my-2">
+
+    <div class="flex flex-col justify-center items-center w-full h-full rounded-lg">
+        <ul class="w-full list-inside text-center">
+            <li class="py-1 hover:bg-slate-200 text-gray-900 font-bold text-xl">{{ assigned_doctor.first_name }} {{ assigned_doctor.last_name }}</li>
+            <li class="py-0.5 hover:bg-slate-200">Email: <a class="text-blue-500" href="mailto:{{ assigned_doctor.email }}">{{ assigned_doctor.email }}</a></li>
+            {% if assigned_doctor.profile.phone_number %}
+                <li class="py-0.5 hover:bg-slate-200">Phone number: {{ assigned_doctor.profile.phone_number }}</li>
+            {% endif %}
+        </ul>
+    </div>
 {% endblock %}

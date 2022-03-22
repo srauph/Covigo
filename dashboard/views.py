@@ -65,7 +65,6 @@ def fetch_messaging_info(user):
 
 
 def fetch_appointments_info(user):
-    print("hi")
     today = datetime.date.today()
     tomorrow = today + datetime.timedelta(days=1)
     in_two_days = tomorrow + datetime.timedelta(days=1)
@@ -81,11 +80,6 @@ def fetch_appointments_info(user):
 
     today_appointments = all_appointments.filter(today_filter)
     tomorrow_appointments = all_appointments.filter(tomorrow_filter)
-
-    print("hi")
-    print(all_appointments)
-    print(today_appointments)
-    print(tomorrow_appointments)
 
     return {
         "all": all_appointments,
