@@ -8,7 +8,8 @@ from django.views.decorators.cache import never_cache
 
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
-from accounts.utils import get_superuser_staff_model, send_email_to_user, send_sms_to_user, reset_password_email_generator, get_or_generate_patient_profile_qr
+from accounts.utils import get_superuser_staff_model, send_email_to_user, send_sms_to_user, \
+    reset_password_email_generator, get_or_generate_patient_profile_qr, generate_otp_code
 from accounts.utils import (
     send_email_to_user,
     reset_password_email_generator,
@@ -32,8 +33,28 @@ def unauthorized(request):
 @login_required
 @never_cache
 def two_factor_authentication(request):
+    user = request.user
+    has_email = user.email != ""
+    has_phone = user.profile.phone_number != ""
+    otp = generate_otp_code()
+    message = "Your OTP is " + otp + ". "
+    subject = "Covigo OTP"
+    if has_phone:
+        send_sms_to_user(user, user.profile.phone_number, message)
+    elif has_email:
+        send_email_to_user(user, subject, message)
+    else:
+        None
+
     return render(request, 'accounts/authentication/2FA.html')
 
+#@login_required()
+@never_cache
+def verify_otp(request):
+    #store
+    #compare
+    #redirect
+    print("Inside verify")
 
 @never_cache
 def forgot_password(request):
