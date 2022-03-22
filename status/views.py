@@ -201,7 +201,8 @@ def edit_patient_report(request):
         @return: edit-status-report page
         """
     current_user = request.user.id
-    report = PatientSymptom.objects.filter(user_id=current_user, due_date__date__lte=datetime.datetime.now())
+    report = PatientSymptom.objects.filter(user_id=current_user, due_date__date__lte=datetime.datetime.now(),
+                                           is_hidden=False)
 
     # Ensure it was a post request
 

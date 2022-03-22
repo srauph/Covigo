@@ -27,7 +27,7 @@ def get_patient_report_information(user_id, date_updated):
     @param date_updated:
     @return: queryset of symptoms
     """
-    criteria = Q(user_id=user_id) & ~Q(data=None) & Q(date_updated__date=date_updated)
+    criteria = Q(user_id=user_id) & ~Q(data=None) & Q(date_updated__date=date_updated) & Q(is_hidden=False)
 
     reports = PatientSymptom.objects.values('user__first_name', 'user__last_name', 'symptom_id',
                                             'data', 'is_viewed',
