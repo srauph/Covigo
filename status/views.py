@@ -221,7 +221,7 @@ def edit_patient_report(request):
                 if is_resubmit_requested:
                     symptom.update(is_hidden=False, data=data[i], status=0)
                 else:
-                    symptom.update(is_hidden=True)
+                    symptom.update(is_hidden=True, status=-3)
 
                 # Check if the patient themselves is modifying the report
                 if not is_resubmit_requested:
@@ -230,6 +230,7 @@ def edit_patient_report(request):
                     new_symptom.pk = None
                     new_symptom.is_hidden = False
                     new_symptom.data = data[i]
+                    new_symptom.status = 3
                     new_symptom._state.adding = True
                     new_symptom.save()
             i = i + 1

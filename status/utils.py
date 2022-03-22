@@ -99,7 +99,7 @@ def is_requested(user_id):
     # Checks if there exists at least one instance of a doctor viewing a report + an empty data row
     # meaning a request was sent for a resubmit
     for symptoms in query:
-        if symptoms.status == -1:
+        if symptoms.status == -2:
             # The doctor then requested a resubmit
             requested_resubmit = True
             break
