@@ -40,6 +40,13 @@ def index(request):
 @login_required
 @never_cache
 def add_availabilities(request):
+    """
+        This function handles the creation of availabilities (Appointment objects with patient_id=null).
+        Before creating the availabilities, it checks if Appointment objects already exist at the specified time slots.
+        :param request: the type of request that is processed in the "add_availabilities.html" template page
+        :return: returns the specific template that is either rendered or redirected to based on the user input logic
+        (either redirected to the "index.html" template page or rendered back to the default "add_availabilities.html" template page)
+    """
     # Only staff can create availabilities for patients to book
     if request.user.is_staff:
 

@@ -1,6 +1,7 @@
 $(document).ready(function () {
 
     //UTILITY FUNCTION
+    //Converts time in format "HH:mm AM/PM" to "HH:mm"
     const convertTime12to24 = (time12h) => {
         const [time, modifier] = time12h.split(' ');
         let [hours, minutes] = time.split(':');
@@ -250,7 +251,7 @@ $(document).ready(function () {
 
 //jQuery for week day selection
 $(document).on('click','.select-multi-days',function(){
-            console.log($(this).attr('data-action'))
+
             if($(this).attr('data-action') == 'select_all_days'){
                 $('input.days_checkbox').prop('checked','checked')
                 $(this).addClass('hidden')
