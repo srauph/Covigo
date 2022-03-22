@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, Select, CharField
 from django.contrib.auth.models import User
 from accounts.models import Profile
+from re import match, sub
 
 STAFF_PATIENT_CHOICES = (
     (True, 'Staff User'),
@@ -99,9 +100,15 @@ class CreateProfileForm(ModelForm):
         }
 
     def clean_phone_number(self):
-        # TODO: Sanitize to a "valid" phone number like 5141112222
+        # TODO: Better phone number sanitization including country codes and similar
         cleaned_phone_number = self.cleaned_data.get("phone_number")
-        return cleaned_phone_number
+        subbed_phone_number = sub("[+() -]", "", cleaned_phone_number)
+
+        if not match(r'^[0-9]{0,14}$', subbed_phone_number):
+            raise forms.ValidationError(
+                "Please enter a valid phone number."
+            )
+        return subbed_phone_number
 
 
 class RegisterUserForm(ModelForm):
@@ -160,6 +167,10 @@ class RegisterUserForm(ModelForm):
         if cleaned_username != "" and User.objects.filter(email=cleaned_username).exclude(id=self.user_id).exists():
             raise ValidationError(
                 "Username already in use by another user."
+            )
+        if not match(r'^[A-Za-z0-9@._-]+$', cleaned_username):
+            raise forms.ValidationError(
+                "Username can only contain letters, numbers, periods '.', underscores '_', hyphens '-', or the at symbol '@'."
             )
         return cleaned_username
 
@@ -227,13 +238,15 @@ class RegisterProfileForm(ModelForm):
         }
 
     def clean_phone_number(self):
-        # TODO: Sanitize to a "valid" phone number like 5141112222
+        # TODO: Better phone number sanitization including country codes and similar
         cleaned_phone_number = self.cleaned_data.get("phone_number")
-        if cleaned_phone_number == "":
-            raise ValidationError(
-                "Please provide a phone number."
+        subbed_phone_number = sub("[+() -]", "", cleaned_phone_number)
+
+        if not match(r'^[0-9]{0,14}$', subbed_phone_number):
+            raise forms.ValidationError(
+                "Please enter a valid phone number."
             )
-        return cleaned_phone_number
+        return subbed_phone_number
 
     def clean_address(self):
         cleaned_address = self.cleaned_data.get("address")
@@ -245,11 +258,16 @@ class RegisterProfileForm(ModelForm):
 
     def clean_postal_code(self):
         cleaned_postal_code = self.cleaned_data.get("postal_code")
+        subbed_postal_code = sub("[._ -]", "", cleaned_postal_code).upper()
         if cleaned_postal_code == "":
             raise ValidationError(
                 "Please provide your postal code."
             )
-        return cleaned_postal_code
+        if not match(r'^[A-Za-z0-9]+$', subbed_postal_code):
+            raise forms.ValidationError(
+                "Please enter a valid postal code."
+            )
+        return subbed_postal_code
 
 
 class EditUserForm(ModelForm):
@@ -294,6 +312,23 @@ class EditUserForm(ModelForm):
                 }
             ),
         }
+
+    def clean_username(self):
+        cleaned_username = self.cleaned_data.get("username")
+        old_username = User.objects.get(id=self.user_id).username
+        if cleaned_username == "":
+            raise ValidationError(
+                "Please provide a username."
+            )
+        if cleaned_username != "" and User.objects.filter(email=cleaned_username).exclude(id=self.user_id).exists():
+            raise ValidationError(
+                "Username already in use by another user."
+            )
+        if not cleaned_username == old_username and not match(r'^[A-Za-z0-9@._-]+$', cleaned_username):
+            raise forms.ValidationError(
+                "Username can only contain letters, numbers, periods '.', underscores '_', hyphens '-', or the at symbol '@'."
+            )
+        return cleaned_username
 
     def clean_email(self):
         cleaned_email = self.cleaned_data.get("email")
@@ -344,14 +379,30 @@ class EditProfileForm(ModelForm):
         }
 
     def clean_phone_number(self):
-        # TODO: Sanitize to a "valid" phone number like 5141112222
+        # TODO: Better phone number sanitization including country codes and similar
         cleaned_phone_number = self.cleaned_data.get("phone_number")
-        return cleaned_phone_number
+        subbed_phone_number = sub("[+() -]", "", cleaned_phone_number)
+
+        if not match(r'^[0-9]{0,14}$', subbed_phone_number):
+            raise forms.ValidationError(
+                "Please enter a valid phone number."
+            )
+        return subbed_phone_number
+
+    def clean_postal_code(self):
+        cleaned_postal_code = self.cleaned_data.get("postal_code")
+        subbed_postal_code = sub("[._ -]", "", cleaned_postal_code).upper()
+
+        if not match(r'^[A-Za-z0-9]+$', subbed_postal_code):
+            raise forms.ValidationError(
+                "Please enter a valid postal code."
+            )
+        return subbed_postal_code
 
 
-class SetPasswordForm(SetPasswordForm):
+class ResetPasswordForm(SetPasswordForm):
     error_messages = {
-        'password_mismatch': 'The two password fields didn’t match.'
+        "password_mismatch": "The two password fields didn't match."
     }
     new_password1 = forms.CharField(
         label="New Password",
@@ -380,41 +431,45 @@ class SetPasswordForm(SetPasswordForm):
 
 class ChangePasswordForm(PasswordChangeForm):
     error_messages = {
-        'password_mismatch': 'The two password fields didn’t match.'
+        "password_incorrect": "Your old password was entered incorrectly. Please enter it again.",
+        "password_mismatch": "The two password fields didn't match."
     }
+
     old_password = forms.CharField(
         label="Old Password",
         widget=forms.PasswordInput(
             attrs={
                 # TODO: Figure out what goes in the autocomplete here
-                'autocomplete': 'password',
-                'placeholder': 'Old Password',
-                'class': GUEST_CHARFIELD_CLASS_TOP
+                "autocomplete": "password",
+                "placeholder": "Old Password",
+                "class": GUEST_CHARFIELD_CLASS_TOP
             }
         ),
         strip=False,
         help_text=password_validation.password_validators_help_text_html(),
     )
+
     new_password1 = forms.CharField(
         label="New Password",
         widget=forms.PasswordInput(
             attrs={
-                'autocomplete': 'new-password',
-                'placeholder': 'New Password',
-                'class': GUEST_CHARFIELD_CLASS_MIDDLE
+                "autocomplete": "new-password",
+                "placeholder": "New Password",
+                "class": GUEST_CHARFIELD_CLASS_MIDDLE
             }
         ),
         strip=False,
         help_text=password_validation.password_validators_help_text_html(),
     )
+
     new_password2 = forms.CharField(
         label="Confirm Password",
         strip=False,
         widget=forms.PasswordInput(
             attrs={
-                'autocomplete': 'new-password',
-                'placeholder': 'Confirm Password',
-                'class': GUEST_CHARFIELD_CLASS_BOTTOM
+                "autocomplete": "new-password",
+                "placeholder": "Confirm Password",
+                "class": GUEST_CHARFIELD_CLASS_BOTTOM
             }
         ),
     )

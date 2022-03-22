@@ -94,9 +94,12 @@ def forgot_password(request):
                 generate_and_send_email(user, subject, template)
                 return redirect("accounts:forgot_password_done")
             except MultipleObjectsReturned:
+                # Should not happen because we don't allow multiple users to share an email.
+                # This can only occur if the database is corrupted somehow
                 password_reset_form.add_error(None, "More than one user with the given email address could be found. Please contact the system administrators to fix this issue.")
             except User.DoesNotExist:
-                password_reset_form.add_error(None, "No user with the given email address could be found.")
+                # Don't let the user know if the email does not exist in our system
+                return redirect("accounts:forgot_password_done")
         else:
             password_reset_form.add_error(None, "Please enter a valid email address or phone number.")
     else:
@@ -201,10 +204,6 @@ class ChangePasswordView(PasswordChangeView):
         template = "accounts/messages/user_changed_password_email.html"
         generate_and_send_email(form.user, subject, template)
         return HttpResponseRedirect(self.get_success_url())
-
-    def form_invalid(self, form):
-        """If the form is invalid, render the invalid form."""
-        return super(PasswordChangeView, self).form_invalid()
 
 
 @login_required
@@ -354,9 +353,6 @@ def create_user(request):
             elif has_phone:
                 template = "accounts/messages/register_user_email.html"
                 send_sms_to_user(new_user, user_phone, template)
-
-            else:
-                None
 
             return redirect("accounts:list_users")
 
