@@ -1,4 +1,6 @@
 import os.path
+import random
+
 import shortuuid
 import smtplib
 from django.contrib.auth.models import User
@@ -9,9 +11,14 @@ from django.utils.http import urlsafe_base64_encode
 from Covigo.settings import HOST_NAME
 from accounts.models import Flag, Staff, Patient
 from pathlib import Path
+from qrcode import *
+import uuid
+import smtplib
+from twilio.base.exceptions import TwilioRestException
+from twilio.rest import Client
+import shortuuid
 from qrcode import make
 from qrcode.image.pil import PilImage
-
 
 def get_flag(staff_user, patient_user):
     """
@@ -43,7 +50,6 @@ def get_superuser_staff_model():
     except Exception:
         return None
 
-
 def reset_password_email_generator(user, subject, template):
     """
     Generate and send a "reset password" email for a user
@@ -64,7 +70,7 @@ def reset_password_email_generator(user, subject, template):
     email = render_to_string(template, c)
     send_email_to_user(user, subject, email)
 
-
+#takes a user, subject, and message as params and sends the user an email
 def send_email_to_user(user, subject, message):
     """
     Send an email to a user
@@ -80,7 +86,22 @@ def send_email_to_user(user, subject, message):
     s.login(email, pwd)
     s.sendmail(email, user.email, f"Subject: {subject}\n{message}")
     s.quit()
+    return None
 
+
+#takes a user, user's phone number, and message as params and sends a text message
+def send_sms_to_user(user, user_phone, message):
+    account = "AC77b343442a4ec3ea3d0258ea5c597289"
+    token = "f9a14a572c2ab1de3683c0d65f7c962b"
+    client = Client(account, token)
+
+    try:
+        message = client.messages.create(to=user_phone, from_="+16626727846",
+                                         body=message)
+    except TwilioRestException as e:
+        print(e)
+
+    return None
 
 def get_or_generate_patient_code(patient):
     """
@@ -184,3 +205,15 @@ def get_is_staff(user_id):
         return User.objects.get(id=user_id).is_staff
     except User.DoesNotExist:
         return -1
+
+#generate 5 digit otp
+def generate_otp_code():
+    number_list = [x for x in range(10)]
+    code_items = []
+
+    for i in range(5):
+        num = random.choice(number_list)
+        code_items.append(num)
+
+    code_string = "".join(str(item) for item in code_items)
+    return code_string

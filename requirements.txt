@@ -1,6 +1,9 @@
 django~=4.0.1
 python-dotenv~=0.19.2
 mysqlclient
-qrcode
+qrcode~=7.3.1
 Pillow
-shortuuid
+shortuuid~=1.0.8
+twilio~=7.7.0
+django-qrcode~=0.3
+codes~=0.1.5

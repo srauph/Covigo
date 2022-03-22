@@ -3,11 +3,14 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group, Permission
 from django.core.exceptions import MultipleObjectsReturned
 from django.http import JsonResponse, HttpResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, Http404
 from django.views.decorators.cache import never_cache
 
+from codes.models import Code
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
+from accounts.utils import get_superuser_staff_model, send_email_to_user, send_sms_to_user, \
+    reset_password_email_generator, get_or_generate_patient_profile_qr, generate_otp_code
 from accounts.utils import (
     send_email_to_user,
     reset_password_email_generator,
@@ -31,8 +34,39 @@ def unauthorized(request):
 @login_required
 @never_cache
 def two_factor_authentication(request):
+    user = request.user
+    has_email = user.email != ""
+    has_phone = user.profile.phone_number != ""
+    code, _ = Code.objects.get_or_create(user=request.user.profile)
+    code.save()
+    otp = code.number
+    message = "Your OTP is " + otp + ". "
+    subject = "Covigo OTP"
+    if has_phone:
+        send_sms_to_user(user, user.profile.phone_number, message)
+    elif has_email:
+        send_email_to_user(user, subject, message)
+    else:
+        None
+
     return render(request, 'accounts/authentication/2FA.html')
 
+#@login_required()
+@never_cache
+def verify_otp(request):
+    code = request.POST.get('code')
+    # import pdb; pdb.set_trace()
+    try:
+        code = Code.objects.get(number=code)
+        return redirect('index')
+    except Code.DoesNotExist:
+        return render(request, 'accounts/authentication/2FA.html', {'error': 'Invalid code'})
+
+
+    #store
+    #compare
+    #redirect
+    print("Inside verify")
 
 @never_cache
 def forgot_password(request):
@@ -144,6 +178,9 @@ def create_user(request):
 
             if has_email:
                 send_email_to_user(new_user, subject, message)
+
+            if has_phone:
+                send_sms_to_user(new_user, user_phone, message)
 
             return redirect("accounts:list_users")
 
@@ -321,9 +358,6 @@ def unflaguser(request, user_id):
             return JsonResponse({'is_flagged': f'{flag.is_active}'})
 
     return redirect("accounts:list_users")
-
-
-
 
 
 def convert_permission_name_to_id(request):
