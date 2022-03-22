@@ -78,6 +78,7 @@ def add_availabilities(request):
                 num_of_created_availabilities = 0
 
                 # Get staff id
+                # TODO This is a temporary fix to get the staff_id, NEEDS TO BE FIXED LATER
                 staff_id = Staff.objects.filter(user=request.user).first().id
 
                 # Create availabilities starting at the start date until the end date
