@@ -199,14 +199,15 @@ def edit_patient_report(request):
     current_user_id = request.user.id
 
     is_resubmit_requested = is_requested(current_user_id)
-    report = PatientSymptom.objects.filter(user_id=current_user_id, due_date__date__lte=datetime.datetime.now(),
-                                           is_hidden=False)
-    if (is_resubmit_requested):
+
+    if is_resubmit_requested:
         report = PatientSymptom.objects.filter(user_id=current_user_id, due_date__date__lte=datetime.datetime.now(),
                                                is_hidden=False, status=-2)
     else:
-        report = PatientSymptom.objects.filter(user_id=current_user_id, due_date__date__lte=datetime.datetime.now(),
-                                               is_hidden=False, status=0)
+        report = PatientSymptom.objects.filter(
+            Q(user_id=current_user_id) & Q(due_date__date__lte=datetime.datetime.now()) & Q(
+                is_hidden=False) & (Q(status=0) | Q(status=3)))
+
     # Ensure it was a post request
     if request.method == 'POST':
         report_data = request.POST.getlist('data[id][]')

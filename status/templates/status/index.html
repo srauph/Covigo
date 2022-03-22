@@ -206,10 +206,7 @@
                                 <td class="text-center p-2">{% if r.is_viewed %}Yes{% else %}No{% endif %}</td>
                                 <td class="text-center p-2">
                                     <a href="{% url "status:edit-status-report" %}">
-                                        <button class="report-modal-link {% if is_resubmit_requested %} bg-gray-600 {% else %} bg-blue-600 {% endif %} {% if is_resubmit_requested %} hover:bg-gray-800 {% else %} hover:bg-blue-800 {% endif %} text-sm font-semibold text-white px-2 py-1 rounded-md"
-                                                {% if is_resubmit_requested %}
-                                                title="Viewing the report is disabled. Please resubmit any symptoms first."
-                                                {% endif %}>
+                                        <button class="report-modal-link bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md">
                                             View Report
                                         </button>
                                     </a>

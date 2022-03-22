@@ -12,7 +12,7 @@ def get_reports_by_patient(patient_id):
     @param patient_id: the patient user id
     @return: returns a queryset of reports the patient made
     """
-    criteria = Q(user_id=patient_id) & ~Q(data=None)
+    criteria = Q(user_id=patient_id) & ~Q(data=None) & (Q(status=0) | Q(status=3))
 
     reports = PatientSymptom.objects.values('date_updated__date', 'user_id', 'is_viewed',
                                             'user__first_name', 'user__last_name',
@@ -38,7 +38,8 @@ def get_patient_report_information(patient_id, user, date_updated):
 
     reports = PatientSymptom.objects.values('user__first_name', 'user__last_name', 'symptom_id',
                                             'data', 'is_viewed',
-                                            'symptom__name', 'id', 'date_updated', 'status', 'due_date').filter(criteria)
+                                            'symptom__name', 'id', 'date_updated', 'status', 'due_date').filter(
+        criteria)
     return reports
 
 
