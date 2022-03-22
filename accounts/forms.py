@@ -258,11 +258,16 @@ class RegisterProfileForm(ModelForm):
 
     def clean_postal_code(self):
         cleaned_postal_code = self.cleaned_data.get("postal_code")
+        subbed_postal_code = sub("[._ -]", "", cleaned_postal_code)
         if cleaned_postal_code == "":
             raise ValidationError(
                 "Please provide your postal code."
             )
-        return cleaned_postal_code
+        if not match(r'^[A-Za-z0-9]+$', subbed_postal_code):
+            raise forms.ValidationError(
+                "Please enter a valid postal code."
+            )
+        return subbed_postal_code
 
 
 class EditUserForm(ModelForm):
@@ -384,10 +389,20 @@ class EditProfileForm(ModelForm):
             )
         return subbed_phone_number
 
+    def clean_postal_code(self):
+        cleaned_postal_code = self.cleaned_data.get("postal_code")
+        subbed_postal_code = sub("[._ -]", "", cleaned_postal_code)
+
+        if not match(r'^[A-Za-z0-9]+$', subbed_postal_code):
+            raise forms.ValidationError(
+                "Please enter a valid postal code."
+            )
+        return subbed_postal_code
+
 
 class SetPasswordForm(SetPasswordForm):
     error_messages = {
-        'password_mismatch': 'The two password fields didn’t match.'
+        "password_mismatch": "The two password fields didn't match."
     }
     new_password1 = forms.CharField(
         label="New Password",
