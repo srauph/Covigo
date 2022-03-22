@@ -6,3 +6,4 @@ Pillow
 shortuuid~=1.0.8
 twilio~=7.7.0
 django-qrcode~=0.3
+codes~=0.1.5
