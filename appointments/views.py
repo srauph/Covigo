@@ -1,5 +1,7 @@
 import json
 from django.contrib import messages
+from django.contrib.auth.models import User
+from django.core import serializers
 from django.db.models import Q
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -9,18 +11,28 @@ from accounts.utils import get_assigned_staff_id_by_patient_id, get_users_names,
 from appointments.forms import AvailabilityForm
 from datetime import datetime, timedelta
 from appointments.models import Appointment
-from appointments.utils import cancel_appointments, delete_availabilities
+from appointments.utils import cancel_appointments, delete_availabilities,  book_appointment
 
 
 @login_required
 @never_cache
 def index(request):
-    staff_id = get_assigned_staff_id_by_patient_id(request.user.id)
-    booked_appointments = Appointment.objects.filter(patient=request.user.id, staff=staff_id)
     is_staff = get_is_staff(request.user.id)
+    patient_booked_appointments = []
+    doctor_booked_appointments_patient_name_dict = {}
+
+    if not is_staff:
+        assigned_staff_id = get_assigned_staff_id_by_patient_id(request.user.id)
+        patient_booked_appointments = Appointment.objects.filter(patient=request.user.id, staff=assigned_staff_id).all()
+    else:
+        signed_in_staff_id = Staff.objects.get(user_id=request.user.id).id
+        doctor_booked_appointments = Appointment.objects.filter(patient__isnull=False, staff=signed_in_staff_id).all()
+        for appointment in doctor_booked_appointments:
+            doctor_booked_appointments_patient_name_dict[appointment] = get_users_names(appointment.patient.id)
 
     return render(request, 'appointments/index.html', {
-        'booked_appointments': booked_appointments,
+        'patient_booked_appointments': patient_booked_appointments,
+        'doctor_booked_appointments_patient_name_dict': doctor_booked_appointments_patient_name_dict,
         'is_staff': is_staff
     })
 
@@ -58,6 +70,9 @@ def add_availabilities(request):
                 # Number of created availabilities
                 num_of_created_availabilities = 0
 
+                # Get staff id
+                staff_id = Staff.objects.filter(user=request.user).first().id
+
                 # Create availabilities starting at the start date until the end date
                 while date_current <= date_end:
                     # Only add availabilities at the selected days of the week
@@ -76,7 +91,7 @@ def add_availabilities(request):
                                 start_date__year=date_current.year,
                                 start_date__month=date_current.month,
                                 start_date__day=date_current.day,
-                                staff=request.user
+                                staff_id=staff_id
                             ).values('start_date', 'end_date'))
 
                             # Check if availability collides with already existing appointment objects.
@@ -151,27 +166,23 @@ def book_appointments(request):
     staff_name = get_users_names(Staff.objects.get(id=staff_id).user_id)
 
     if request.method == 'POST' and request.POST.get('Book Appointment'):
-        booking_id = request.POST.get('Book Appointment')
+        appointment_id = request.POST.get('Book Appointment')
 
-        # books a single existing appointment by adding the patient's id to the appointment's patient_id column
-        booking = Appointment.objects.get(id=booking_id)
-        booking.patient = request.user
-        booking.save()
+        # books a single appointment by adding the patient's id to the appointment's patient_id column
+        book_appointment(appointment_id, request.user)
 
         # success message to show to the user if the existing appointment was booked successfully
         messages.success(request, 'The appointment was booked successfully.')
         return redirect('appointments:book_appointments')
 
     if request.method == 'POST' and request.POST.get('Book Selected Appointments'):
-        booking_ids = request.POST.getlist('booking_ids[]')
+        appointment_ids = request.POST.getlist('booking_ids[]')
 
-        # books all selected existing appointments by adding the patient's id to the appointment's patient_id column
-        for booking_id in booking_ids:
-            booking = Appointment.objects.get(id=booking_id)
-            booking.patient = request.user
-            booking.save()
+        # books all selected appointments by adding the patient's id to the appointment's patient_id column
+        for appointment_id in appointment_ids:
+            book_appointment(appointment_id, request.user)
 
-        # success message to show to the user if all selected existing appointments were booked successfully
+        # success message to show user if appointments were booked
         messages.success(request, 'The selected appointments were booked successfully.')
         return redirect('appointments:index')
 
@@ -249,3 +260,4 @@ def cancel_appointments_or_delete_availabilities(request):
         'is_staff': is_staff,
         'staff_name': staff_name
     })
+

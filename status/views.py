@@ -57,7 +57,7 @@ def patient_reports(request):
     doctor = request.user
 
     # Get doctors patient name(s) and user id(s)
-    if doctor.has_perm('view_patientsymptom'):
+    if doctor.has_perm('symptoms.view_patientsymptom'):
 
         # list of patient ids for the doctor
         patient_ids = list(doctor.staff.get_assigned_patient_users().values_list("id", flat=True))
@@ -167,13 +167,63 @@ def create_patient_report(request):
     @return: create-status-report page
     """
     current_user = request.user.id
-    report = PatientSymptom.objects.filter(user_id=current_user, due_date__lte=datetime.datetime.now(), data=None)
+    report = PatientSymptom.objects.filter(user_id=current_user, due_date__date__lte=datetime.datetime.now(), data=None)
 
     # Ensure it was a post request
+
+    current_user = request.user.id
+    report = PatientSymptom.objects.filter(user_id=current_user, due_date__date__lte=datetime.datetime.now())
+
+    # Ensure it was a post request
+
     if request.method == 'POST':
-        for r in report:
-            report_data = request.POST.get('data')
-            r.save(data=report_data)
+        report_data = request.POST.getlist('data[id][]')
+        data = request.POST.getlist('data[data][]')
+        i = 0
+        for s in report_data:
+            symptom = PatientSymptom.objects.filter(id=int(s)).get()
+            symptom.data = data[i]
+            symptom.save()
+            i = i + 1
+
+        return redirect('status:index')
     return render(request, 'status/create-status-report.html', {
         'report': report
     })
+
+@login_required
+@never_cache
+def edit_patient_report(request):
+        """
+        The view of editing a patient report.
+        @param request: http request from the client
+        @return: edit-status-report page
+        """
+        current_user = request.user.id
+        report = PatientSymptom.objects.filter(user_id=current_user, due_date__date__lte=datetime.datetime.now())
+
+        # Ensure it was a post request
+
+        if request.method == 'POST':
+            report_data = request.POST.getlist('data[id][]')
+            data = request.POST.getlist('data[data][]')
+            i = 0
+            for s in report_data:
+                symptom = PatientSymptom.objects.filter(id=int(s)).get()
+                #check if user updated the symptom
+                if data[i] != '':
+                    new_symptom = symptom
+                    new_symptom.is_hidden = True
+                    new_symptom.save()
+                    new_symptom.pk = None
+                    new_symptom.is_hidden = False
+                    new_symptom.data = data[i]
+                    new_symptom._state.adding = True
+                    new_symptom.save()
+                i = i + 1
+
+            return redirect('status:index')
+
+        return render(request, 'status/edit-status-report.html', {
+                'report': report
+        })

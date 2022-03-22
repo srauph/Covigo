@@ -168,8 +168,9 @@ def get_users_names(user_id):
     @return: a string containing the users first and last name else empty string
     """
     try:
-        return User.objects.get(id=user_id).first_name + " " + User.objects.get(id=user_id).last_name
-    except Exception:
+        user = User.objects.get(id=user_id)
+        return f"{user.first_name} {user.last_name}"
+    except User.DoesNotExist:
         return ""
 
 
@@ -181,5 +182,5 @@ def get_is_staff(user_id):
     """
     try:
         return User.objects.get(id=user_id).is_staff
-    except Exception:
+    except User.DoesNotExist:
         return -1

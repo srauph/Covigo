@@ -1,16 +1,53 @@
 {% extends "Covigo/base.html" %}
+{% block styles %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.css">
 
+{% endblock %}
 {% block script %}
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.js"></script>
     <script>
         let alert_del = document.querySelectorAll('.alert-del');
         alert_del.forEach(
             (x) => x.addEventListener(
-            'click',
-            function(){
-                x.parentElement.parentElement.parentElement.parentElement.classList.add('hidden')
-            }
+                'click',
+                function () {
+                    x.parentElement.parentElement.parentElement.parentElement.classList.add('hidden')
+                }
             )
         );
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var calendarEl = document.getElementById('fullcalendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'dayGridMonth,timeGridWeek,timeGridDay',
+                    center: 'title',
+                    right: 'prevYear,prev,next,nextYear'
+                },
+                events: [
+                    {% for e in patient_booked_appointments %}
+                        { // this object will be "parsed" into an Event Object
+                            start: '{{ e.start_date|date:'Y-m-d H:i:s' }}', // a property!
+                            end: '{{ e.end_date|date:'Y-m-d H:i:s' }}', // a property! ** see important note below about 'end' **,display: 'block',
+                            backgroundColor: '#3b83f6',
+                            display: 'block'
+                        },
+                    {% endfor %}
+                    {% for key, value in doctor_booked_appointments_patient_name_dict.items %}
+                        { // this object will be "parsed" into an Event Object
+                            start: '{{ key.start_date|date:'Y-m-d H:i:s' }}', // a property!
+                            end: '{{ key.end_date|date:'Y-m-d H:i:s' }}', // a property! ** see important note below about 'end' **,display: 'block',
+                            backgroundColor: '#3b83f6',
+                            display: 'block'
+                        },
+                    {% endfor %}
+                ],
+                dayMaxEvents: true
+            });
+            calendar.render();
+        });
+
     </script>
 {% endblock %}
 
@@ -46,7 +83,7 @@
                 {# only display the "Add availabilities" button to staff #}
                 {% if is_staff %}
                     <div class="m-4">
-                        <a href="{% url 'appointments:add_availabilities'%}">
+                        <a href="{% url 'appointments:add_availabilities' %}">
                             <button class="w-full px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white text-2xl font-bold">
                                 <h2>Add availabilities</h2>
                             </button>
@@ -58,7 +95,7 @@
                 {# only display the "Book an appointment" and "Cancel an appointment" buttons to patient as staff can't book appointments #}
                 {% if not is_staff %}
                     <div class="m-4">
-                        <a href="{%  url 'appointments:book_appointments' %}">
+                        <a href="{% url 'appointments:book_appointments' %}">
                             <button class="w-full px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white text-2xl font-bold">
                                 <h2>Book an appointment</h2>
                             </button>
@@ -87,18 +124,26 @@
                     <h3>Upcoming Appointments</h3>
                     <hr class="my-2 border-slate-400">
                     <div class="text-left text-lg font-normal xl:w-96">
-                        <ul class="px-8 list-disc">
-                            {% for appointment in booked_appointments %}
-                                <li>
-                                    {{ appointment.start_date }}
-                                </li>
-                            {% endfor %}
+                        <ul class="px-1 list-disc">
+                            {% if not is_staff %}
+                                {% for appointment in patient_booked_appointments %}
+                                    <li>
+                                        {{ appointment.start_date }}
+                                    </li>
+                                {% endfor %}
+                            {% else %}
+                                {% for key, value in doctor_booked_appointments_patient_name_dict.items %}
+                                    <li>
+                                        {{ key.start_date }} with {{ value }}
+                                    </li>
+                                {% endfor %}
+                            {% endif %}
                         </ul>
                     </div>
                 </div>
             </div>
             <div class="grow min-h-full w-full xl:w-2/3">
-                {% include "./calendar.html" %}
+                <div id="fullcalendar" class="p-4"></div>
             </div>
         </div>
     </div>

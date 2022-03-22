@@ -10,8 +10,9 @@ from accounts.models import Flag, Staff, Patient
 from accounts.utils import (
     send_email_to_user,
     reset_password_email_generator,
-    get_or_generate_patient_profile_qr
+    get_or_generate_patient_profile_qr, get_assigned_staff_id_by_patient_id
 )
+from appointments.utils import rebook_appointment_with_new_doctor
 from symptoms.utils import is_symptom_editing_allowed
 
 
@@ -73,9 +74,21 @@ def index(request):
 def profile(request, user_id):
     user = User.objects.get(id=user_id)
     image = get_or_generate_patient_profile_qr(user_id)
+    all_doctors = User.objects.filter(groups__name='doctor')
+
+    if request.method == "POST":
+        doctor_staff_id = request.POST.get('doctor_id')
+
+        # rebooks previously booked appointments with the old doctor with the new doctor if the new doctor has
+        # an availability at the same day and time as the previously booked appointment
+        rebook_appointment_with_new_doctor(doctor_staff_id, get_assigned_staff_id_by_patient_id(user_id), user)
+        user.patient.assigned_staff_id = doctor_staff_id
+        user.patient.save()
+
     return render(request, 'accounts/profile.html',
                   {"qr": image,
                    "usr": user,
+                   "all_doctors": all_doctors,
                    "full_view": True,
                    "allow_editing": is_symptom_editing_allowed(user_id)})
 

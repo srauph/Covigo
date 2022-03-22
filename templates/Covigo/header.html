@@ -5,7 +5,7 @@
         </div>
         <div class="flex block text-right">
             <div class="inline-block text-sm px-2 py-2 leading-none">
-                <a href="#" class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
+                <a href="{% url 'accounts:profile' user.id %}" class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
                     {{ user.get_username }}
                 </a>
             </div>
