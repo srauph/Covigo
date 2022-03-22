@@ -5,7 +5,7 @@ from django.urls import reverse
 from unittest import mock
 
 from accounts.utils import get_flag
-from accounts.views import flaguser, unflaguser, profile_from_code, convert_permission_name_to_id
+from accounts.views import flag_user, unflag_user, profile_from_code, convert_permission_name_to_id
 from accounts.models import Flag, Patient, Staff
 
 
@@ -81,19 +81,19 @@ class ForgotPasswordTests(TestCase):
         self.assertEqual('This field is required.', form_error_message_1)
         self.assertEqual('Please enter a valid email address or phone number.', form_error_message_2)
 
-    @mock.patch('accounts.views.reset_password_email_generator')
-    def test_forgot_password_calls_reset_password_email_generator(self, m_reset_password_email_generator):
+    @mock.patch('accounts.views.generate_and_send_email')
+    def test_forgot_password_calls_reset_password_email_generator(self, m_email_generator_and_sender):
         """
         Test to check that forgot_password() calls reset_password_email_generator()
-        @param m_reset_password_email_generator:
+        @param m_email_generator_and_sender:
         @return: void
         """
 
         # Arrange
         # Create a new user that doesn't have duplicate emails in the db
         new_user = User.objects.create(id=3, email='qwerty@gmail.com', username='qwerty')
-        subject = "Password Reset Requested"
-        template = "accounts/authentication/reset_password_email.txt"
+        subject = "Covigo - Password Reset Requested"
+        template = "accounts/messages/reset_password_email.html"
 
         # Simulate the user entering a valid in the forgot password form
         mocked_pass_reset_form_data = {'email': 'qwerty@gmail.com'}
@@ -102,7 +102,7 @@ class ForgotPasswordTests(TestCase):
         self.request.POST = self.client.post(reverse('accounts:forgot_password'), mocked_pass_reset_form_data)
 
         # Assert
-        m_reset_password_email_generator.assert_called_once_with(new_user, subject, template)
+        m_email_generator_and_sender.assert_called_once_with(new_user, subject, template)
 
     def test_forgot_password_redirects_to_done(self):
         """
@@ -144,7 +144,7 @@ class FlagAssigningTests(TestCase):
         Flag.objects.create(staff=self.request.user, patient=self.previously_flagged_patient)
 
         # Act
-        response = flaguser(self.request, self.previously_flagged_patient.id)
+        response = flag_user(self.request, self.previously_flagged_patient.id)
 
         # Assert
         self.assertions(response, True, self.previously_flagged_patient)
@@ -156,7 +156,7 @@ class FlagAssigningTests(TestCase):
         """
 
         # Arrange & Act
-        response = flaguser(self.request, self.never_flagged_patient.id)
+        response = flag_user(self.request, self.never_flagged_patient.id)
 
         # Assert
         self.assertions(response, True, self.never_flagged_patient)
@@ -171,7 +171,7 @@ class FlagAssigningTests(TestCase):
         Flag.objects.create(staff=self.request.user, patient=self.previously_flagged_patient, is_active=True)
 
         # Act
-        response = unflaguser(self.request, self.previously_flagged_patient.id)
+        response = unflag_user(self.request, self.previously_flagged_patient.id)
 
         # Assert
         self.assertions(response, False, self.previously_flagged_patient)
@@ -183,7 +183,7 @@ class FlagAssigningTests(TestCase):
         """
 
         # Arrange & Act
-        response = unflaguser(self.request, self.never_flagged_patient.id)
+        response = unflag_user(self.request, self.never_flagged_patient.id)
 
         # Assert
         self.assertIsNone(get_flag(self.request.user, self.never_flagged_patient))

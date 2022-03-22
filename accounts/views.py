@@ -1,19 +1,32 @@
+import datetime
+
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.views import PasswordResetConfirmView, PasswordChangeView
 from django.core.exceptions import MultipleObjectsReturned
-from django.http import JsonResponse, HttpResponse
+from django.db.models import Q
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
+from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.debug import sensitive_post_parameters
 
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
 from accounts.utils import get_superuser_staff_model, send_email_to_user, send_sms_to_user, reset_password_email_generator, get_or_generate_patient_profile_qr
 from accounts.utils import (
-    send_email_to_user,
-    reset_password_email_generator,
-    get_or_generate_patient_profile_qr
+    generate_and_send_email,
+    get_or_generate_patient_profile_qr,
+    get_assigned_staff_id_by_patient_id,
+    get_user_from_uidb64
 )
+from appointments.models import Appointment
+from appointments.utils import rebook_appointment_with_new_doctor
 from symptoms.utils import is_symptom_editing_allowed
 
 
@@ -29,6 +42,40 @@ class GroupErrors:
 def unauthorized(request):
     return HttpResponse('Unauthorized', status=401)
 
+
+def process_register_or_edit_user_form(request, user_form, profile_form, mode=None):
+    user_email = user_form.data.get("email")
+    user_phone = profile_form.data.get("phone_number")
+    user_groups = user_form.data.get("groups")
+    has_email = user_email != ""
+    has_phone = user_phone != ""
+
+    if user_form.is_valid() and profile_form.is_valid() and (has_email or has_phone):
+
+        edited_user = user_form.save(commit=False)
+
+        # TODO: Discuss possibility of having no group and adjust `if` to enforce at least one when editing
+        if user_groups:
+            edited_user.groups.set(user_groups)
+
+        edited_user.save()
+        profile_form.save()
+
+        return True
+
+    else:
+        if mode == "Edit" and not (has_email or has_phone):
+            user_form.add_error(None, "Please enter an email address or a phone number.")
+        return False
+
+
+def convert_permission_name_to_id(request):
+    permission_array = []
+    for perm in request.POST.getlist('perms'):
+        permission_id = Permission.objects.filter(codename=perm).get().id
+        permission_array.append(permission_id)
+    return permission_array
+
 @login_required
 @never_cache
 def two_factor_authentication(request):
@@ -43,13 +90,12 @@ def forgot_password(request):
             data = password_reset_form.cleaned_data['email']
             try:
                 user = User.objects.get(email=data)
-                subject = "Password Reset Requested"
-                template = "accounts/authentication/reset_password_email.txt"
-                reset_password_email_generator(user, subject, template)
+                subject = "Covigo - Password Reset Requested"
+                template = "accounts/messages/reset_password_email.html"
+                generate_and_send_email(user, subject, template)
                 return redirect("accounts:forgot_password_done")
             except MultipleObjectsReturned:
-                password_reset_form.add_error(None,
-                                              "More than one user with the given email address could be found. Please contact the system administrators to fix this issue.")
+                password_reset_form.add_error(None, "More than one user with the given email address could be found. Please contact the system administrators to fix this issue.")
             except User.DoesNotExist:
                 password_reset_form.add_error(None, "No user with the given email address could be found.")
         else:
@@ -63,6 +109,105 @@ def forgot_password(request):
     )
 
 
+@never_cache
+def register_user(request, uidb64, token):
+    return redirect('accounts:register_user_password', uidb64=uidb64, token=token)
+
+
+# Yes it's technically not proper to put a class here but since this is a class-based view that in the flow occurs
+# between the register_user and register_user_password_done views, I think it makes more sense to put it here.
+class RegisterPasswordResetConfirmView(PasswordResetConfirmView):
+    @method_decorator(sensitive_post_parameters())
+    @method_decorator(never_cache)
+    def dispatch(self, *args, **kwargs):
+        self.success_url = reverse_lazy('accounts:register_user_password_done', kwargs={'uidb64': kwargs['uidb64']})
+        return super(RegisterPasswordResetConfirmView, self).dispatch(*args, **kwargs)
+
+
+@never_cache
+def register_user_password_done(request, uidb64):
+    user = get_user_from_uidb64(uidb64)
+    token = default_token_generator.make_token(user)
+    return redirect('accounts:register_user_details', uidb64, token)
+
+
+@never_cache
+def register_user_details(request, uidb64, token):
+    internal_set_details_session_token = "_set_details_token"
+    user = get_user_from_uidb64(uidb64)
+    user_id = user.id
+    valid = False
+
+    if user is not None:
+        if token == 'set-details':
+            session_token = request.session.get(internal_set_details_session_token)
+            if default_token_generator.check_token(user, session_token):
+                # If the token is valid, display the password reset form.
+                valid = True
+        else:
+            if default_token_generator.check_token(user, token):
+                # Store the token in the session and redirect to the
+                # password reset form at a URL without the token. That
+                # avoids the possibility of leaking the token in the
+                # HTTP Referer header.
+                request.session[internal_set_details_session_token] = token
+                redirect_url = request.path.replace(token, 'set-details')
+                return redirect(redirect_url, uidb64, token)
+
+    # Process/Create forms if the link is valid
+    if valid:
+        # Process forms
+        if request.method == "POST":
+            user_form = RegisterUserForm(request.POST, instance=user, user_id=user_id)
+            profile_form = RegisterProfileForm(request.POST, instance=user.profile, user_id=user_id)
+
+            if process_register_or_edit_user_form(request, user_form, profile_form):
+                request.session[internal_set_details_session_token] = None
+                return redirect("accounts:register_user_done")
+
+        # Create forms
+        else:
+            user_form = RegisterUserForm(instance=user, user_id=user_id, initial={"username": None})
+            profile_form = RegisterProfileForm(instance=user.profile, user_id=user_id)
+
+        return render(request, "accounts/registration/register_user_details.html", {
+            "user_form": user_form,
+            "profile_form": profile_form,
+            "validlink": True
+        })
+
+    # Don't process/create forms if the link is expired or invalid
+    else:
+        return render(request, "accounts/registration/register_user_details.html", {
+            "validlink": False
+        })
+
+
+# As before, even though this is a class-based view, I think it makes sense to put it here.
+@method_decorator(sensitive_post_parameters(), name='dispatch')
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name='dispatch')
+class ChangePasswordView(PasswordChangeView):
+    form_class = ChangePasswordForm
+    success_url = reverse_lazy('accounts:change_password_done')
+    template_name = 'accounts/authentication/change_password.html'
+
+    def form_valid(self, form, *args):
+        form.save()
+        # Uncomment this line to enable the following behaviour:
+        # Updating the password logs out all other sessions for the user except the current one.
+        # update_session_auth_hash(self.request, form.user)
+        subject = "Covigo - Password Changed"
+        template = "accounts/messages/user_changed_password_email.html"
+        generate_and_send_email(form.user, subject, template)
+        return HttpResponseRedirect(self.get_success_url())
+
+    def form_invalid(self, form):
+        """If the form is invalid, render the invalid form."""
+        return super(PasswordChangeView, self).form_invalid()
+
+
 @login_required
 @never_cache
 def index(request):
@@ -71,21 +216,80 @@ def index(request):
 
 @login_required
 @never_cache
+def two_factor_authentication(request):
+    return render(request, 'accounts/authentication/2FA.html')
+
+
+@never_cache
+def change_password_done(request):
+    return render(request, 'accounts/authentication/change_password_done.html')
+
+
+@login_required
+@never_cache
 def profile(request, user_id):
     user = User.objects.get(id=user_id)
-    image = get_or_generate_patient_profile_qr(user_id)
-    all_doctors = User.objects.filter(groups__name='doctor')
 
-    if request.method == "POST":
-        doctor_staff_id = request.POST.get('doctor_id')
-        user.patient.assigned_staff_id = doctor_staff_id
-        user.save()
-    return render(request, 'accounts/profile.html',
-                  {"qr": image,
-                   "usr": user,
-                   "all_doctors": all_doctors,
-                   "full_view": True,
-                   "allow_editing": is_symptom_editing_allowed(user_id)})
+    # messages_filter = Q(author_id=user_id) | Q(recipient_id=user_id)
+    # message_group = MessageGroup.objects.filter(messages_filter).order_by('-date_updated')[:3]
+    today = datetime.date.today()
+    all_filter = Q(patient__isnull=False) & Q(start_date__gte=today)
+
+    if user.is_staff:
+        all_appointments = Appointment.objects.filter(staff=user).filter(all_filter).order_by("start_date")[:4]
+    else:
+        appointments = Appointment.objects.filter(patient=user).filter(all_filter).order_by("start_date")[:4]
+
+    if not user.is_staff:
+        if request.method == "POST":
+            doctor_staff_id = request.POST.get('doctor_id')
+
+            # rebooks previously booked appointments with the old doctor with the new doctor if the new doctor has
+            # an availability at the same day and time as the previously booked appointment
+            rebook_appointment_with_new_doctor(doctor_staff_id, get_assigned_staff_id_by_patient_id(user_id), user)
+            user.patient.assigned_staff_id = doctor_staff_id
+            user.patient.save()
+
+        qr = get_or_generate_patient_profile_qr(user_id)
+        assigned_staff = user.patient.get_assigned_staff_user()
+        appointments = Appointment.objects.filter(patient=user).filter(all_filter).order_by("start_date")
+        appointments_truncated = appointments[:4]
+        try:
+            assigned_staff_patient_count = user.patient.assigned_staff.get_assigned_patient_users().count()
+        except AttributeError:
+            assigned_staff_patient_count = 0
+        assigned_flags = Flag.objects.filter(patient=user)
+
+        # all_doctors = User.objects.filter(groups__name='doctor')
+        all_doctors = User.objects.filter(is_staff=True)
+
+        return render(request, 'accounts/profile.html', {
+            "usr": user,
+            "appointments": appointments,
+            "appointments_truncated": appointments_truncated,
+            "qr": qr,
+            "assigned_staff": assigned_staff,
+            "assigned_staff_patient_count": assigned_staff_patient_count,
+            "assigned_flags": assigned_flags,
+            "full_view": True,
+            "allow_editing": is_symptom_editing_allowed(user_id),
+            "all_doctors": all_doctors,
+        })
+
+    else:
+        appointments = Appointment.objects.filter(staff=user).filter(all_filter).order_by("start_date")
+        appointments_truncated = appointments[:4]
+        assigned_patients = user.staff.get_assigned_patient_users()
+        issued_flags = Flag.objects.filter(staff=user)
+
+        return render(request, 'accounts/profile.html', {
+            "usr": user,
+            "appointments": appointments,
+            "appointments_truncated": appointments_truncated,
+            "assigned_patients": assigned_patients,
+            "issued_flags": issued_flags,
+            "full_view": True
+        })
 
 
 @never_cache
@@ -109,8 +313,8 @@ def list_users(request):
 def create_user(request):
     # Process forms
     if request.method == "POST":
-        user_form = UserForm(request.POST)
-        profile_form = ProfileForm(request.POST)
+        user_form = CreateUserForm(request.POST)
+        profile_form = CreateProfileForm(request.POST)
 
         user_email = user_form.data.get("email")
         user_phone = profile_form.data.get("phone_number")
@@ -124,7 +328,10 @@ def create_user(request):
             if has_email:
                 new_user.username = user_email
             else:
-                new_user.username = user_phone
+                if not User.objects.filter(username=user_phone).exists():
+                    new_user.username = user_phone
+                else:
+                    new_user.username = f"{user_phone}-{1 + User.objects.filter(username__startswith=user_phone).count()}"
 
             new_user.save()
             new_user.profile.phone_number = user_phone
@@ -140,11 +347,10 @@ def create_user(request):
                 # TODO: discuss if we should keep this behaviour for now or make Patient.staff nullable instead.
                 Patient.objects.create(user=new_user)
 
-            subject = "Welcome to Covigo!"
-            message = "Love, Shahd - Mo - Amir - Nizar - Shu - Avg - Isaac - Justin - Aseel"
-
             if has_email:
-                send_email_to_user(new_user, subject, message)
+                subject = "Covigo - Account Registration"
+                template = "accounts/messages/register_user_email.html"
+                generate_and_send_email(new_user, subject, template)
 
             elif has_phone:
                 send_sms_to_user(new_user, user_phone, message)
@@ -159,8 +365,8 @@ def create_user(request):
                 user_form.add_error(None, "Please enter an email address or a phone number.")
     # Create forms
     else:
-        user_form = UserForm()
-        profile_form = ProfileForm()
+        user_form = CreateUserForm()
+        profile_form = CreateProfileForm()
 
     return render(request, "accounts/create_user.html", {
         "user_form": user_form,
@@ -172,33 +378,14 @@ def create_user(request):
 @never_cache
 def edit_user(request, user_id):
     user = User.objects.get(id=user_id)
+
     # Process forms
     if request.method == "POST":
         user_form = EditUserForm(request.POST, instance=user, user_id=user_id)
         profile_form = EditProfileForm(request.POST, instance=user.profile, user_id=user_id)
 
-        user_email = user_form.data.get("email")
-        user_phone = profile_form.data.get("phone_number")
-        user_groups = user_form.data.get("groups")
-        has_email = user_email != ""
-        has_phone = user_phone != ""
-
-        if user_form.is_valid() and profile_form.is_valid() and (has_email or has_phone):
-
-            edited_user = user_form.save(commit=False)
-
-            # TODO: Discuss the possibility of having no group and remove `if` if we enforce having at least one
-            if user_groups:
-                edited_user.groups.set(user_groups)
-
-            edited_user.save()
-            profile_form.save()
-
-            return redirect("accounts:list_users")
-
-        else:
-            if not (has_email or has_phone):
-                user_form.add_error(None, "Please enter an email address or a phone number.")
+        if process_register_or_edit_user_form(request, user_form, profile_form, mode="Edit"):
+            return redirect("accounts:profile", user_id)
 
     # Create forms
     else:
@@ -207,7 +394,8 @@ def edit_user(request, user_id):
 
     return render(request, "accounts/edit_user.html", {
         "user_form": user_form,
-        "profile_form": profile_form
+        "profile_form": profile_form,
+        "edited_user": user
     })
 
 
@@ -286,7 +474,7 @@ def edit_group(request, group_id):
 
 
 @login_required
-def flaguser(request, user_id):
+def flag_user(request, user_id):
     user_staff = request.user
     user_patient = User.objects.get(id=user_id)
 
@@ -310,7 +498,7 @@ def flaguser(request, user_id):
 
 
 @login_required
-def unflaguser(request, user_id):
+def unflag_user(request, user_id):
     user_staff = request.user
     user_patient = User.objects.get(id=user_id)
 
