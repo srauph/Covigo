@@ -1,6 +1,5 @@
 import datetime
 
-from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group, Permission

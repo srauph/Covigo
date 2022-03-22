@@ -1,6 +1,6 @@
 import os.path
-import shortuuid
 import smtplib
+import shortuuid
 
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
@@ -80,6 +80,7 @@ def generate_and_send_email(user, subject, template):
     send_email_to_user(user, subject, email)
 
 
+# takes a user, subject, and message as params and sends the user an email
 def generate_and_send_sms(user, user_phone, template):
     """
     Generate and send a "reset password" email for a user
@@ -119,7 +120,7 @@ def send_email_to_user(user, subject, message):
     return None
 
 
-#takes a user, user's phone number, and message as params and sends a text message
+# takes a user, user's phone number, and message as params and sends a text message
 def send_sms_to_user(user, user_phone, message):
     account = "AC77b343442a4ec3ea3d0258ea5c597289"
     token = "f9a14a572c2ab1de3683c0d65f7c962b"
@@ -132,6 +133,7 @@ def send_sms_to_user(user, user_phone, message):
         print(e)
 
     return None
+
 
 def get_or_generate_patient_code(patient, prefix="A"):
     """
