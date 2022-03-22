@@ -88,20 +88,20 @@ def fetch_appointments_info(user):
     }
 
 
-def fetch_data_from_all_files():
-    confirmed = fetch_data_from_file("dashboard/data/confirmed_cases.csv")
+def fetch_data_from_all_files(data_path="dashboard/sample_data"):
+    confirmed = fetch_data_from_file(f"{data_path}/confirmed_cases.csv")
     daily_confirmed = extract_daily_data(confirmed)
 
-    current_positives = fetch_data_from_file("dashboard/data/positive_cases.csv")
+    current_positives = fetch_data_from_file(f"{data_path}/positive_cases.csv")
     daily_positives = extract_daily_data(current_positives)
 
-    recoveries = fetch_data_from_file("dashboard/data/recovered_cases.csv")
+    recoveries = fetch_data_from_file(f"{data_path}/recovered_cases.csv")
     daily_recoveries = extract_daily_data(recoveries)
 
-    unconfirmed_negative = fetch_data_from_file("dashboard/data/unconfirmed_negative.csv")
+    unconfirmed_negative = fetch_data_from_file(f"{data_path}/unconfirmed_negative.csv")
     daily_unconfirmed_negative = extract_daily_data(unconfirmed_negative)
 
-    unconfirmed_untested = fetch_data_from_file("dashboard/data/unconfirmed_untested.csv")
+    unconfirmed_untested = fetch_data_from_file(f"{data_path}/unconfirmed_untested.csv")
     daily_unconfirmed_untested = extract_daily_data(unconfirmed_untested)
 
     return {
