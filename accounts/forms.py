@@ -400,7 +400,7 @@ class EditProfileForm(ModelForm):
         return subbed_postal_code
 
 
-class SetPasswordForm(SetPasswordForm):
+class ResetPasswordForm(SetPasswordForm):
     error_messages = {
         "password_mismatch": "The two password fields didn't match."
     }
