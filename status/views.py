@@ -197,9 +197,16 @@ def edit_patient_report(request):
         @return: edit-status-report page
         """
     current_user_id = request.user.id
+
+    is_resubmit_requested = is_requested(current_user_id)
     report = PatientSymptom.objects.filter(user_id=current_user_id, due_date__date__lte=datetime.datetime.now(),
                                            is_hidden=False)
-    is_resubmit_requested = is_requested(current_user_id)
+    if (is_resubmit_requested):
+        report = PatientSymptom.objects.filter(user_id=current_user_id, due_date__date__lte=datetime.datetime.now(),
+                                               is_hidden=False, status=-2)
+    else:
+        report = PatientSymptom.objects.filter(user_id=current_user_id, due_date__date__lte=datetime.datetime.now(),
+                                               is_hidden=False)
     # Ensure it was a post request
     if request.method == 'POST':
         report_data = request.POST.getlist('data[id][]')
@@ -212,7 +219,7 @@ def edit_patient_report(request):
             if data[i] != '':
                 # Update the old entry is_hidden to true and keep all old values the same
                 if is_resubmit_requested:
-                    symptom.update(is_hidden=False, data=data[i])
+                    symptom.update(is_hidden=False, data=data[i], status=0)
                 else:
                     symptom.update(is_hidden=True)
 
@@ -246,7 +253,7 @@ def resubmit_request(request, patient_symptom_id):
     new_symptom.pk = None
     new_symptom.is_hidden = False
     new_symptom.data = None
-    new_symptom.status = 0
+    new_symptom.status = -2
     new_symptom._state.adding = True
     new_symptom.save()
     return redirect('status:patient-reports')
