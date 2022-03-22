@@ -258,7 +258,7 @@ class RegisterProfileForm(ModelForm):
 
     def clean_postal_code(self):
         cleaned_postal_code = self.cleaned_data.get("postal_code")
-        subbed_postal_code = sub("[._ -]", "", cleaned_postal_code)
+        subbed_postal_code = sub("[._ -]", "", cleaned_postal_code).upper()
         if cleaned_postal_code == "":
             raise ValidationError(
                 "Please provide your postal code."
@@ -391,7 +391,7 @@ class EditProfileForm(ModelForm):
 
     def clean_postal_code(self):
         cleaned_postal_code = self.cleaned_data.get("postal_code")
-        subbed_postal_code = sub("[._ -]", "", cleaned_postal_code)
+        subbed_postal_code = sub("[._ -]", "", cleaned_postal_code).upper()
 
         if not match(r'^[A-Za-z0-9]+$', subbed_postal_code):
             raise forms.ValidationError(
