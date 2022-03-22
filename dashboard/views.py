@@ -27,8 +27,7 @@ def index(request):
             "messages": messages,
             "appointments": appointments,
             "recent_status_updates": recent_status_updates,
-            "assigned_patients": assigned_patients,
-            "assigned_patients_length": assigned_patients.count(),
+            "assigned_patients": list(assigned_patients)*3,
             "data": data,
         })
 
