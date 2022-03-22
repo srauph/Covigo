@@ -212,10 +212,8 @@ def edit_patient_report(request):
             if data[i] != '':
                 # Update the old entry is_hidden to true and keep all old values the same
                 if is_resubmit_requested:
-                    print("I am here")
                     symptom.update(is_hidden=False, data=data[i])
                 else:
-                    print("I am here 2")
                     symptom.update(is_hidden=True)
 
                 # Check if the patient themselves is modifying the report
