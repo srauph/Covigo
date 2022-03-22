@@ -12,8 +12,11 @@
     </div>
       <div class="rounded-md shadow-sm -space-y-px">
         <div>
+            {%  if error  %}
+                <div class="alert alert-danger">{{ error }}</div>
+            {%  endif %}
           <label for="verification-code" class="sr-only">Verification Code</label>
-          <input id="verification-code" name="" type="text"  required class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Verification Code">
+          <input id="verification-code" name="code" type="text"  required class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Verification Code">
         </div>
       </div>
 

@@ -3,9 +3,10 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group, Permission
 from django.core.exceptions import MultipleObjectsReturned
 from django.http import JsonResponse, HttpResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, Http404
 from django.views.decorators.cache import never_cache
 
+from codes.models import Code
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
 from accounts.utils import get_superuser_staff_model, send_email_to_user, send_sms_to_user, \
@@ -36,7 +37,9 @@ def two_factor_authentication(request):
     user = request.user
     has_email = user.email != ""
     has_phone = user.profile.phone_number != ""
-    otp = generate_otp_code()
+    code, _ = Code.objects.get_or_create(user=request.user.profile)
+    code.save()
+    otp = code.number
     message = "Your OTP is " + otp + ". "
     subject = "Covigo OTP"
     if has_phone:
@@ -51,6 +54,15 @@ def two_factor_authentication(request):
 #@login_required()
 @never_cache
 def verify_otp(request):
+    code = request.POST.get('code')
+    # import pdb; pdb.set_trace()
+    try:
+        code = Code.objects.get(number=code)
+        return redirect('index')
+    except Code.DoesNotExist:
+        return render(request, 'accounts/authentication/2FA.html', {'error': 'Invalid code'})
+
+
     #store
     #compare
     #redirect
