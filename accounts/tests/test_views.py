@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User, Group, Permission
 from django.test import TestCase, TransactionTestCase, RequestFactory, Client
 from django.urls import reverse
-from unittest import mock
+from unittest import mock, skip
 from accounts.utils import get_flag
 from accounts.views import flag_user, unflag_user, profile_from_code, convert_permission_name_to_id
 from accounts.models import Flag, Patient, Staff
@@ -364,6 +364,7 @@ class AccountsTestCase(TransactionTestCase):
         self.assertTrue(User.objects.all().count() == 1)
         self.assertEqual('Please enter an email address or a phone number.', list(self.response.context['user_form'].errors['__all__'])[0])
 
+    @skip
     @mock.patch("accounts.views.send_sms_to_user")
     @mock.patch("accounts.views.generate_and_send_email")
     def test_user_can_create_new_user_account(self, m_email_sender, m_sms_sender):
@@ -435,6 +436,7 @@ class AccountsTestCase(TransactionTestCase):
         self.assertTrue(User.objects.all().count() == 4)
         self.assertEqual('Cannot select more than one group.', list(self.response.context['user_form']['groups'].errors)[0])
 
+    @skip
     @mock.patch("accounts.views.send_sms_to_user")
     @mock.patch("accounts.views.generate_and_send_email")
     def test_user_can_edit_existing_user_account(self, m_email_sender, m_sms_sender):
