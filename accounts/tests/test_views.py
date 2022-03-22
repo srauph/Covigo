@@ -427,7 +427,8 @@ class AccountsTestCase(TransactionTestCase):
         self.assertTrue(User.objects.all().count() == 4)
         self.assertEqual('Cannot select more than one group.', list(self.response.context['user_form']['groups'].errors)[0])
 
-    def test_user_can_edit_existing_user_account(self):
+    @mock.patch("accounts.views.send_sms_to_user")
+    def test_user_can_edit_existing_user_account(self, _):
         """
         this test allows us to test for if an account that is edited and submitted through a form
         ends up actually being indeed properly edited in the list of users and in the database or not

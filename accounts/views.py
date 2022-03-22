@@ -98,7 +98,7 @@ def forgot_password(request):
                 # This can only occur if the database is corrupted somehow
                 password_reset_form.add_error(None, "More than one user with the given email address could be found. Please contact the system administrators to fix this issue.")
             except User.DoesNotExist:
-                # Don't let the user know if the email exists in our system or not.
+                # Don't let the user know if the email does not exist in our system
                 return redirect("accounts:forgot_password_done")
         else:
             password_reset_form.add_error(None, "Please enter a valid email address or phone number.")
@@ -353,9 +353,6 @@ def create_user(request):
             elif has_phone:
                 template = "accounts/messages/register_user_email.html"
                 send_sms_to_user(new_user, user_phone, template)
-
-            else:
-                None
 
             return redirect("accounts:list_users")
 
