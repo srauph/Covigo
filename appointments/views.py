@@ -98,7 +98,7 @@ def add_availabilities(request):
                                                    'appointment or availability between ' +
                                                    start_datetime_object.strftime(
                                                        '%Y-%m-%d %H:%M') + ' and ' + end_datetime_object.strftime(
-                                                       '%Y-%m-%d %H:%M'))
+                                                       '%Y-%m-%d %H:%M') + '.')
                                     return redirect('appointments:add_availabilities')
 
                             staff_id = Staff.objects.filter(user=request.user).first().id
@@ -124,7 +124,7 @@ def add_availabilities(request):
                 availability_form = AvailabilityForm()
 
                 # Display success message
-                messages.success(request, 'The availabilities have been created')
+                messages.success(request, 'The availabilities have been created.')
 
                 if request.POST.get('Create and Return'):
                     return redirect('appointments:index')
@@ -147,6 +147,7 @@ def book_appointments(request):
     :return: returns the specific template that is either rendered or redirected to based on the user input logic
     (either redirected to the "index.html" template page or rendered back to the default "book_appointments.html" template page)
     """
+
     staff_id = get_assigned_staff_id_by_patient_id(request.user.id)
     staff_name = get_users_names(Staff.objects.get(id=staff_id).user_id)
 
@@ -191,6 +192,7 @@ def cancel_appointments_or_delete_availabilities(request):
     :return: returns the specific template that is either rendered or redirected to based on the user input logic
     (either redirected to the "index.html" template page or rendered back to the default "cancel_appointments.html" template page)
     """
+
     is_staff = get_is_staff(request.user.id)
 
     if request.user.is_staff:

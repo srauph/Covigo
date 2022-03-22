@@ -1,9 +1,7 @@
 from django.contrib.auth.models import User, Group, Permission
-from django.test import TestCase,TransactionTestCase, RequestFactory, Client
+from django.test import TestCase, TransactionTestCase, RequestFactory, Client
 from django.urls import reverse
-
 from unittest import mock
-
 from accounts.utils import get_flag
 from accounts.views import flaguser, unflaguser, profile_from_code, convert_permission_name_to_id
 from accounts.models import Flag, Patient, Staff
@@ -299,20 +297,21 @@ class ListOrViewAccountTests(TestCase):
         m_generate_profile_qr_function.assert_called_once()
 
 
-class CreateAccountTests(TransactionTestCase):
+class AccountsTestCase(TransactionTestCase):
 
     # this makes sure that the database ids reset to 1 for every test (especially important for
-    # the test "test_user_can_edit_symptom_and_return" when dealing with fetching symptom ids from the database)
+    # the test "test_user_can_edit_existing_user_account" when dealing with fetching user ids from the database)
     reset_sequences = True
 
     def setUp(self):
         """
         initialization of data to be run before every test. Note that not all data initialized here is used
         necessarily in all tests and the decision to include "all" of them here was more for readability choice
-        than anything else (for example, "edited_mocked_form_data2" and "edited_mocked_form_data3" are only ever
-        used in one test: "test_user_can_edit_symptom_and_return")
+        than anything else (for example, "edited_mocked_form_data2" to "edited_mocked_form_data10" are only ever
+        used in one test: "test_user_can_edit_existing_user_account")
         :return: void
         """
+
         self.user = User.objects.create(username='admin')
         self.staff = Staff.objects.create(user=self.user)
         self.user.set_password('admin')
@@ -362,7 +361,7 @@ class CreateAccountTests(TransactionTestCase):
     def test_user_can_create_new_user_account(self):
         """
         this test allows us to test for if an account that is submitted through a form
-        (with the "create" or "create and return" buttons) ends up actually being indeed added to the database or not
+        (with the "Create" or "Create and Return" buttons) ends up actually being indeed added to the database or not
         :return: void
         """
 

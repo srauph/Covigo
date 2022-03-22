@@ -1,6 +1,5 @@
 from django.contrib.auth.models import User
 from django.test import TestCase, Client, RequestFactory
-
 from messaging.models import MessageGroup, MessageContent
 from messaging.views import toggle_read
 
@@ -33,6 +32,7 @@ class MessagingViewReplyTests(TestCase):
         Checks if currently logged-in user can view their authorized messages
         @return:
         """
+
         # Arrange & Act
         response = self.client.get('/messaging/view/1/')
 
@@ -128,6 +128,7 @@ class MessagingListTests(TestCase):
         Check if currently logged-in user can access their message list with id
         @return:
         """
+
         # Arrange & Act
         response = self.client.get('/messaging/list/1')
 
