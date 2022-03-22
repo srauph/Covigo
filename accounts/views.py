@@ -94,9 +94,12 @@ def forgot_password(request):
                 generate_and_send_email(user, subject, template)
                 return redirect("accounts:forgot_password_done")
             except MultipleObjectsReturned:
+                # Should not happen because we don't allow multiple users to share an email.
+                # This can only occur if the database is corrupted somehow
                 password_reset_form.add_error(None, "More than one user with the given email address could be found. Please contact the system administrators to fix this issue.")
             except User.DoesNotExist:
-                password_reset_form.add_error(None, "No user with the given email address could be found.")
+                # Don't let the user know if the email exists in our system or not.
+                return redirect("accounts:forgot_password_done")
         else:
             password_reset_form.add_error(None, "Please enter a valid email address or phone number.")
     else:
