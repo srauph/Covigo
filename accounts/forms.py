@@ -416,41 +416,45 @@ class SetPasswordForm(SetPasswordForm):
 
 class ChangePasswordForm(PasswordChangeForm):
     error_messages = {
-        'password_mismatch': 'The two password fields didn’t match.'
+        "password_incorrect": "Your old password was entered incorrectly. Please enter it again.",
+        "password_mismatch": "The two password fields didn't match."
     }
+
     old_password = forms.CharField(
         label="Old Password",
         widget=forms.PasswordInput(
             attrs={
                 # TODO: Figure out what goes in the autocomplete here
-                'autocomplete': 'password',
-                'placeholder': 'Old Password',
-                'class': GUEST_CHARFIELD_CLASS_TOP
+                "autocomplete": "password",
+                "placeholder": "Old Password",
+                "class": GUEST_CHARFIELD_CLASS_TOP
             }
         ),
         strip=False,
         help_text=password_validation.password_validators_help_text_html(),
     )
+
     new_password1 = forms.CharField(
         label="New Password",
         widget=forms.PasswordInput(
             attrs={
-                'autocomplete': 'new-password',
-                'placeholder': 'New Password',
-                'class': GUEST_CHARFIELD_CLASS_MIDDLE
+                "autocomplete": "new-password",
+                "placeholder": "New Password",
+                "class": GUEST_CHARFIELD_CLASS_MIDDLE
             }
         ),
         strip=False,
         help_text=password_validation.password_validators_help_text_html(),
     )
+
     new_password2 = forms.CharField(
         label="Confirm Password",
         strip=False,
         widget=forms.PasswordInput(
             attrs={
-                'autocomplete': 'new-password',
-                'placeholder': 'Confirm Password',
-                'class': GUEST_CHARFIELD_CLASS_BOTTOM
+                "autocomplete": "new-password",
+                "placeholder": "Confirm Password",
+                "class": GUEST_CHARFIELD_CLASS_BOTTOM
             }
         ),
     )
