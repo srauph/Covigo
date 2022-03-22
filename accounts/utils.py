@@ -1,24 +1,24 @@
 import os.path
 import random
-
-import shortuuid
 import smtplib
+import shortuuid
+
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
+from django.db import IntegrityError
+from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+
 from Covigo.settings import HOST_NAME
 from accounts.models import Flag, Staff, Patient
 from pathlib import Path
-from qrcode import *
-import uuid
-import smtplib
 from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
-import shortuuid
-from qrcode import make
+from qrcode.main import make
 from qrcode.image.pil import PilImage
+
 
 def get_flag(staff_user, patient_user):
     """
@@ -32,6 +32,16 @@ def get_flag(staff_user, patient_user):
         return flag
     except Flag.DoesNotExist:
         return None
+
+
+def get_user_from_uidb64(uidb64):
+    try:
+        # urlsafe_base64_decode() decodes to bytestring
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    return user
 
 
 def get_superuser_staff_model():
@@ -50,7 +60,8 @@ def get_superuser_staff_model():
     except Exception:
         return None
 
-def reset_password_email_generator(user, subject, template):
+
+def generate_and_send_email(user, subject, template):
     """
     Generate and send a "reset password" email for a user
     @param user: The user whose password is to be reset
@@ -59,18 +70,39 @@ def reset_password_email_generator(user, subject, template):
     @return: void
     """
     c = {
-        "email": user.email,
-        'domain': '127.0.0.1:8000',
-        'site_name': 'Website',
-        "uid": urlsafe_base64_encode(force_bytes(user.pk)),
-        "user": user,
+        'email': user.email,
+        'host_name': HOST_NAME,
+        'site_name': 'Covigo',
+        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+        'user': user,
         'token': default_token_generator.make_token(user),
-        'protocol': 'http',
     }
     email = render_to_string(template, c)
     send_email_to_user(user, subject, email)
 
-#takes a user, subject, and message as params and sends the user an email
+
+# takes a user, subject, and message as params and sends the user an email
+def generate_and_send_sms(user, user_phone, template):
+    """
+    Generate and send a "reset password" email for a user
+    @param user: The user whose password is to be reset
+    @param subject: The name to give the email's subject
+    @param template: The template to use for the email to send
+    @return: void
+    """
+    c = {
+        'email': user.email,
+        'host_name': HOST_NAME,
+        'site_name': 'Covigo',
+        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+        'user': user,
+        'token': default_token_generator.make_token(user),
+    }
+    message = render_to_string(template, c)
+    send_sms_to_user(user, user_phone, message)
+
+
+# takes a user, subject, and message as params and sends the user an email
 def send_email_to_user(user, subject, message):
     """
     Send an email to a user
@@ -89,7 +121,7 @@ def send_email_to_user(user, subject, message):
     return None
 
 
-#takes a user, user's phone number, and message as params and sends a text message
+# takes a user, user's phone number, and message as params and sends a text message
 def send_sms_to_user(user, user_phone, message):
     account = "AC77b343442a4ec3ea3d0258ea5c597289"
     token = "f9a14a572c2ab1de3683c0d65f7c962b"
@@ -103,10 +135,12 @@ def send_sms_to_user(user, user_phone, message):
 
     return None
 
-def get_or_generate_patient_code(patient):
+
+def get_or_generate_patient_code(patient, prefix="A"):
     """
     Get a patient's profile code or generate one if it doesn't exist
     @param patient: The patient whose code is to be fetched
+    @param prefix: The prefix to give to the code. A is the default prefix
     @return: The patient's profile code
     """
     # Shortuuid docs recommends removing characters (like 0 and O) that can be confused.
@@ -118,6 +152,8 @@ def get_or_generate_patient_code(patient):
         # Regenerate the code if it exists
         while Patient.objects.filter(code=code).exists():
             code = shortuuid.uuid()[:9]
+
+        code = prefix + code
 
         patient.code = code
         patient.save()
@@ -158,16 +194,97 @@ def get_or_generate_patient_profile_qr(user_id):
         return None
 
 
-def get_active_flag_count_from_patient(user_id):
-    """
-    Gets and returns the active flag count for a patient by staff.
-    @param user_id: patient user ID
-    @return: returns active flag count or else 0
-    """
+# Deprecated function, but I'll leave it here in case it becomes useful later.
+def reset_username_to_email_or_phone(user):
+    # Try setting username to the email if it exists
+    email = user.email
+    if email:
+        user.username = email
+        user.save()
+        return
+
+    # If the user doesn't have an email, set it to the phone number
+    phone_number = user.profile.phone_number
+    if phone_number:
+        user.username = phone_number
+        user.save()
+        return
+
+    # If the user has neither an email nor a phone number, raise an exception
+    # TODO: Raise a more specific exception here
+    raise Exception
+
+
+# Deprecated function, but I'll leave it here in case it becomes useful later.
+def set_username_to_blank(user):
     try:
-        return Flag.objects.filter(patient_id=user_id, is_active=1).count()
-    except Exception:
-        return 0
+        user.username = " "
+        user.save()
+
+    except IntegrityError:
+        user_to_reset = User.objects.get(username=" ")
+        reset_username_to_email_or_phone(user_to_reset)
+        user.username = " "
+        user.save()
+
+
+def get_current_recovered_case_count():
+    """
+    A recovered case is someone who HAD covid but later RECOVERED via NEGATIVE TEST
+    @return:
+    """
+    confirmed = Q(is_confirmed=True)
+    negative = Q(is_negative=True)
+    return Patient.objects.filter(confirmed & negative).count()
+
+
+def get_current_positive_case_count():
+    """
+    A positive case is someone who HAS COVID and DID NOT TEST NEGATIVE YET
+    @return:
+    """
+    confirmed = Q(is_confirmed=True)
+    not_negative = Q(is_negative=False)
+    return Patient.objects.filter(confirmed & not_negative).count()
+
+
+def get_unconfirmed_and_negative_case_count():
+    """
+    This is for cases where someone NEVER HAD COVID and TESTED NEGATIVE, thus being "in the clear".
+    @return: The number of unconfirmed cases who tested negative
+    """
+    not_confirmed = Q(is_confirmed=False)
+    negative = Q(is_negative=True)
+    return Patient.objects.filter(not_confirmed & negative).count()
+
+
+def get_unconfirmed_and_untested_count():
+    """
+    This is for cases where someone NEVER HAD COVID and DID NOT TEST YET, thus need ing to take a Covid test.
+    After their test, they will either become a confirmed case or an unconfirmed, negative case.
+    @return: The number of unconfirmed cases whoa re still untested
+    """
+    not_confirmed = Q(is_confirmed=False)
+    not_negative = Q(is_negative=False)
+    return Patient.objects.filter(not_confirmed & not_negative).count()
+
+
+def get_current_negative_case_count():
+    """
+    This is for all cases where someone's latest test is negative.
+    They may be an unconfirmed case who tested negative or a confirmed case who recovered from having Covid
+    @return: The number of cases whose most recent test was negative
+    """
+    return Patient.objects.filter(is_negative=True).count()
+
+
+def get_current_confirmed_case_count():
+    """
+    This is for all cases where someone is a confirmed case.
+    A confirmed case is anyone who has covid right now, or had Covid earlier and recovered.
+    @return: The total number of confirmed Covid cases
+    """
+    return Patient.objects.filter(is_confirmed=True).count()
 
 
 def get_assigned_staff_id_by_patient_id(patient_id):
@@ -206,7 +323,8 @@ def get_is_staff(user_id):
     except User.DoesNotExist:
         return -1
 
-#generate 5 digit otp
+
+# generate 5 digit otp
 def generate_otp_code():
     number_list = [x for x in range(10)]
     code_items = []

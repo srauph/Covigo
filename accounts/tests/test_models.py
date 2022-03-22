@@ -14,7 +14,7 @@ class PatientTests(TestCase):
             assigned_staff=self.staff,
             user=self.patient_user,
             is_confirmed=True,
-            is_recovered=True,
+            is_negative=True,
             is_quarantining=True,
             code="B0XXYB4B33"
         )
@@ -22,13 +22,13 @@ class PatientTests(TestCase):
 
     def test_patient_set_attributes(self):
         self.assertTrue(self.patient.is_confirmed)
-        self.assertTrue(self.patient.is_recovered)
+        self.assertTrue(self.patient.is_negative)
         self.assertTrue(self.patient.is_quarantining)
         self.assertEqual(self.patient.code, "B0XXYB4B33")
 
     def test_patient_default_attributes(self):
         self.assertFalse(self.patient2.is_confirmed)
-        self.assertFalse(self.patient2.is_recovered)
+        self.assertFalse(self.patient2.is_negative)
         self.assertFalse(self.patient2.is_quarantining)
         self.assertEqual(self.patient2.code, "")
 

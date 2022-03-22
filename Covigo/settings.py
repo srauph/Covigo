@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-
+import json
 from pathlib import Path
 from dotenv import load_dotenv
 from os import getenv
@@ -23,25 +23,27 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# TODO: Make the SECRET_KEY secret
 
-
-# SECURITY WARNING: don't run with debug turned on in production!
+# Configure settings based on "dev mode" or "production mode"
 PRODUCTION_MODE = getenv("PRODUCTION_MODE") == "True"
+
 if PRODUCTION_MODE:
     DEBUG = False
-    ALLOWED_HOSTS = [".covigo.ddns.net"]
+    ALLOWED_HOSTS = getenv("ALLOWED_HOSTS")
     STATIC_ROOT = getenv("STATIC_ROOT")
     SECRET_KEY = getenv("SECRET_KEY")
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
     HOST_NAME = 'https://covigo.ddns.net'
+    STATICFILES_DIRS = [BASE_DIR / 'static',]
 else:
+    try:
+        ALLOWED_HOSTS = json.loads(getenv("ALLOWED_HOSTS"))
+    except TypeError:
+        ALLOWED_HOSTS = []
     DEBUG = True
-    ALLOWED_HOSTS = []
     SECRET_KEY = 'django-insecure-)hrxs16w-%lr2@k@!rfq!lwem55i%uv$7qhiktrme63j!2+1(f'
-    HOST_NAME = 'http://127.0.0.1:8000'
+    HOST_NAME = 'http://localhost:8000'
 
 # Application definition
 
@@ -95,10 +97,6 @@ TEMPLATES = [
             ],
         },
     },
-]
-
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
 ]
 
 WSGI_APPLICATION = 'Covigo.wsgi.application'
