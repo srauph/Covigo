@@ -1,10 +1,7 @@
 import accounts.utils
-
 from django.contrib.auth.models import User
 from django.test import TestCase
-
 from unittest import mock
-
 from accounts.models import Flag, Staff
 from accounts.utils import (
     get_flag,
@@ -74,6 +71,7 @@ class GetSuperuserStaffModelTests(TestCase):
         Test that for a superuser without a staff object, one is created and assigned to it, and returned
         @return: void
         """
+
         # Arrange
         self.superuser = User.objects.create(username="admin", is_superuser=True)
 
@@ -153,6 +151,7 @@ class SendEmailToUserTests(TestCase):
         @param m_smtp: smtplib library mock
         @return: void
         """
+
         # Arrange
         user = User.objects.create(email="test@email.com")
         m_instance = m_smtp.SMTP.return_value
