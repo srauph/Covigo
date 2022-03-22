@@ -23,7 +23,7 @@
                                 month = "0" + month;
                             }
                             let suffix = newDate.getHours() >= 12 ? "PM" : "AM";
-                            return newDate.getFullYear() + "-" + month + "-" + newDate.getDate() + " " + newDate.getHours() + ":" + newDate.getMinutes() + ":" + newDate.getSeconds() + " " + suffix;
+                            return newDate.getFullYear() + "-" + month + "-" + newDate.getDate() + "<br/>" + newDate.getHours() + ":" + ('0' + newDate.getMinutes()).slice(-2) + ":" + ('0' + newDate.getSeconds()).slice(-2) + " " + suffix;
                         }
                     },
                     {

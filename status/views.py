@@ -200,27 +200,30 @@ def edit_patient_report(request):
         @param request: http request from the client
         @return: edit-status-report page
         """
-    current_user = request.user.id
-    report = PatientSymptom.objects.filter(user_id=current_user, due_date__date__lte=datetime.datetime.now(),
+    current_user_id = request.user.id
+    report = PatientSymptom.objects.filter(user_id=current_user_id, due_date__date__lte=datetime.datetime.now(),
                                            is_hidden=False)
 
     # Ensure it was a post request
-
     if request.method == 'POST':
         report_data = request.POST.getlist('data[id][]')
         data = request.POST.getlist('data[data][]')
         i = 0
         for s in report_data:
-            symptom = PatientSymptom.objects.filter(id=int(s)).get()
+            symptom = PatientSymptom.objects.filter(id=int(s))
+
             # check if user updated the symptom
             if data[i] != '':
-                new_symptom = symptom
-                new_symptom.is_hidden = True
-                new_symptom.save()
+                # Update the old entry is_hidden to true and keep all old values the same
+                symptom.update(is_hidden=True)
+
+                # Insert the new empty row
+                new_symptom = symptom.get()
                 new_symptom.pk = None
                 new_symptom.is_hidden = False
                 new_symptom.data = data[i]
                 new_symptom._state.adding = True
+
                 new_symptom.save()
             i = i + 1
 
