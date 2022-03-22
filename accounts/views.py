@@ -18,6 +18,7 @@ from django.views.decorators.debug import sensitive_post_parameters
 
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
+from accounts.utils import get_superuser_staff_model, send_email_to_user, send_sms_to_user, reset_password_email_generator, get_or_generate_patient_profile_qr
 from accounts.utils import (
     generate_and_send_email,
     get_or_generate_patient_profile_qr,
@@ -351,6 +352,12 @@ def create_user(request):
                 template = "accounts/messages/register_user_email.html"
                 generate_and_send_email(new_user, subject, template)
 
+            elif has_phone:
+                send_sms_to_user(new_user, user_phone, message)
+
+            else:
+                None
+
             return redirect("accounts:list_users")
 
         else:
@@ -509,3 +516,11 @@ def unflag_user(request, user_id):
             return JsonResponse({'is_flagged': f'{flag.is_active}'})
 
     return redirect("accounts:list_users")
+
+
+def convert_permission_name_to_id(request):
+    permission_array = []
+    for perm in request.POST.getlist('perms'):
+        permission_id = Permission.objects.filter(codename=perm).get().id
+        permission_array.append(permission_id)
+    return permission_array

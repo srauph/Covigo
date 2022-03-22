@@ -266,7 +266,7 @@ class ListOrViewAccountTests(TestCase):
         self.assertTemplateNotUsed(response, 'accounts/profile.html')
 
     @mock.patch('accounts.views.get_or_generate_patient_profile_qr')
-    def test_profile_logged_in(self, m_generate_profile_qr_function):
+    def test_profile_logged_in(self, m_get_or_generate_patient_profile_qr_function):
         """
         Test that checks if logged-in users can view user profiles
         @return: void
@@ -277,10 +277,10 @@ class ListOrViewAccountTests(TestCase):
 
         # Assert
         self.assertTemplateUsed(response, 'accounts/profile.html')
-        m_generate_profile_qr_function.assert_called_once()
+        m_get_or_generate_patient_profile_qr_function.assert_called_once()
 
     @mock.patch('accounts.views.get_or_generate_patient_profile_qr')
-    def test_profile_from_code(self, m_generate_profile_qr_function):
+    def test_profile_from_code(self, m_get_or_generate_patient_profile_qr_function):
         """
         Test that checks if not logged-in users can view user profiles qr codes using the profile codes
         @return: void
@@ -296,7 +296,7 @@ class ListOrViewAccountTests(TestCase):
         profile_from_code(request, 1)
 
         # Assert
-        m_generate_profile_qr_function.assert_called_once()
+        m_get_or_generate_patient_profile_qr_function.assert_called_once()
 
 
 class CreateAccountTests(TransactionTestCase):
