@@ -16,7 +16,14 @@
                     {
                         "data": "date_updated",
                         "render": function (data, type, full, meta) {
-                            return full.date_updated;
+                            let date = full.date_updated;
+                            let newDate = new Date(date);
+                            let month = (newDate.getMonth() + 1);
+                            if (month < 9) {
+                                month = "0" + month;
+                            }
+                            let suffix = newDate.getHours() >= 12 ? "PM" : "AM";
+                            return newDate.getFullYear() + "-" + month + "-" + newDate.getDate() + " " + newDate.getHours() + ":" + newDate.getMinutes() + ":" + newDate.getSeconds() + " " + suffix;
                         }
                     },
                     {
