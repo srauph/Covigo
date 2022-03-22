@@ -19,7 +19,7 @@ import smtplib
 from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
 import shortuuid
-from qrcode import make
+from qrcode.main import make
 from qrcode.image.pil import PilImage
 
 def get_flag(staff_user, patient_user):
