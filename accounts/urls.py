@@ -10,18 +10,14 @@ urlpatterns = [
     path('list/', views.list_users, name='list_users'),
     path('create/', views.create_user, name='create_user'),
     path('edit/<int:user_id>/', views.edit_user, name='edit_user'),
-
     path('access_control/groups/list/', views.list_group, name='list_group'),
     path('access_control/groups/create/', views.create_group, name='create_group'),
     path('access_control/groups/edit/<int:group_id>/', views.edit_group, name='edit_group'),
-
     path('flag/<int:user_id>/', views.flag_user, name='flag_user'),
     path('unflag/<int:user_id>/', views.unflag_user, name='unflag_user'),
-
     path('two_factor_authentication/', views.two_factor_authentication, name='two_factor_authentication'),
     path('profile/<int:user_id>/', views.profile, name='profile'),
     path('profile/<code>/', views.profile_from_code, name='profile_from_code'),
-
     path(
         'login/',
         auth_views.LoginView.as_view(template_name='accounts/authentication/login.html'),

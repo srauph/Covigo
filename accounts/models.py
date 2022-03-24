@@ -39,6 +39,7 @@ class Staff(models.Model):
         except:
             return 0
 
+
 class Patient(models.Model):
     """
     is_confirmed: A confirmed patient is one who had covid, either now or previously.

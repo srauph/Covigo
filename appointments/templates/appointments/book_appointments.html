@@ -133,7 +133,7 @@
 {% block content %}
     <div class="min-h-full bg-slate-100">
         <div class="flex justify-between bg-slate-700">
-            <h1 class="text-2xl text-white font-semibold px-8 py-4">Available Appointments with Dr. {{ staff_name }}</h1>
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">Available Appointments with Dr. {{ staff_last_name }}</h1>
         </div>
         <div class="bg-white shadow m-8 rounded-xl">
             <div class="w-full flex justify-between items-center p-4">
@@ -226,7 +226,7 @@
                         </thead>
                         <tbody>
                         {% for appointment in appointments %}
-                            <tr class="text-center">
+                            <tr>
                                 <td>
                                     <input type="checkbox" class="checkbox" name="booking_ids[]" value="{{ appointment.id }}">
                                 </td>

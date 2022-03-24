@@ -80,14 +80,14 @@
 
         <div class="m-4 justify-evenly gap-4">
             <div class="m-4 p-4 bg-white shadow rounded-lg">
-                <table class="w-full table-auto" id="user_list_table">
+                <table class="w-full table-auto text-center" id="user_list_table">
                     <thead>
                     <tr class="border-b">
-                        <th class="p-2 text-left">Username</th>
-                        <th class="p-2 text-left">Email</th>
-                        <th class="p-2 text-left">Phone number</th>
-                        <th class="p-2 text-left">Role</th>
-                        <th class="p-2 text-left"></th>
+                        <th class="p-2">Username</th>
+                        <th class="p-2">Email</th>
+                        <th class="p-2">Phone Number</th>
+                        <th class="p-2">Role</th>
+                        <th class="p-2"></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -98,7 +98,7 @@
                             <td class="p-2">{{ usr.profile.phone_number }}</td>
                             <td class="p-2">{{ usr.groups.all.0 }}</td>
                             <td class="flex justify-end gap-2">
-                                {# this is a temprory button, we will move it user profile once user profile is done :) #}
+                                {# this is a temporary button, we will move it to user profile once user profile is done :) #}
                                 <a href="{% url 'accounts:profile' usr.id %}">
                                     <button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                                             <span>

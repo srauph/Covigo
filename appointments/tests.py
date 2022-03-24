@@ -1,6 +1,4 @@
-import datetime
 from unittest import skip
-
 from django.urls import reverse
 from accounts.models import Patient, Staff
 from django.contrib.auth.models import User
@@ -49,6 +47,7 @@ class AppointmentsTestCase(TransactionTestCase):
         end up actually having their user patient_id added to the patient_id column of the respective appointment row in the appointment database or not
         :return: void
         """
+
         self.client = create_test_client(test_user=self.staff_user, test_password='BaldMan123')
         self.mocked_form_data = {
             'start_date': '2022-03-27',

@@ -8,10 +8,10 @@ def cancel_appointments(appointment_id):
     @params: appointment_id: the appointment's id
     @return: void
     """
+
     booked = Appointment.objects.get(id=appointment_id)
     booked.patient = None
     booked.save()
-
 
 
 def delete_availabilities(appointment_id):
@@ -20,6 +20,7 @@ def delete_availabilities(appointment_id):
     :param appointment_id: the specific appointment's appointment id
     :return: None
     """
+
     unbooked = Appointment.objects.get(id=appointment_id)
     unbooked.delete()
 
@@ -31,6 +32,7 @@ def book_appointment(appointment_id, user):
     @params: user: the current patient user object
     @return: void
     """
+
     appointment = Appointment.objects.get(id=appointment_id)
     appointment.patient = user
     appointment.save()
@@ -46,6 +48,7 @@ def rebook_appointment_with_new_doctor(new_doctor_id, old_doctor_id, patient):
     @params: patient: the specific patient user object
     @return: void
     """
+
     # if the newly assigned doctor is the same, do nothing
     try:
         if int(new_doctor_id) == int(old_doctor_id):
@@ -99,10 +102,10 @@ def is_appointment_and_availability_same_datetime(appointment, availability):
     @params : availability: an appointment object of an availability with the newly assigned doctor
     @return : True if both arguments have the same start and end dates, else False
     """
+
     appointment.start_date = appointment.start_date.replace(microsecond=0, second=0)
     appointment.end_date = appointment.end_date.replace(microsecond=0, second=0)
     availability.start_date = availability.start_date.replace(microsecond=0, second=0)
     availability.end_date = availability.end_date.replace(microsecond=0, second=0)
 
     return appointment.start_date == availability.start_date and appointment.end_date == availability.end_date
-

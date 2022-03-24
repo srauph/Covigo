@@ -139,7 +139,7 @@
             {% if is_staff %}
                 <h1 class="text-2xl text-white font-semibold px-8 py-4">All Booked Appointments and Availabilities</h1>
             {% else %}
-                <h1 class="text-2xl text-white font-semibold px-8 py-4">Booked Appointments with Dr. {{ staff_name }}</h1>
+                <h1 class="text-2xl text-white font-semibold px-8 py-4">Booked Appointments with Dr. {{ staff_last_name }}</h1>
             {% endif %}
         </div>
         <div class="bg-white shadow m-8 rounded-xl">
@@ -233,7 +233,7 @@
                         </thead>
                         <tbody>
                         {% for appointment in appointments %}
-                            <tr class="text-center">
+                            <tr>
                                 <td>
                                     <input type="checkbox" class="checkbox" name="booked_ids[]" value="{{ appointment.id }}">
                                 </td>

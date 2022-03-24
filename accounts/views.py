@@ -1,5 +1,4 @@
 import datetime
-
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group, Permission
@@ -14,7 +13,6 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
-
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
 from accounts.utils import (
@@ -75,6 +73,7 @@ def convert_permission_name_to_id(request):
         permission_array.append(permission_id)
     return permission_array
 
+
 @login_required
 @never_cache
 def two_factor_authentication(request):
@@ -96,7 +95,8 @@ def forgot_password(request):
             except MultipleObjectsReturned:
                 # Should not happen because we don't allow multiple users to share an email.
                 # This can only occur if the database is corrupted somehow
-                password_reset_form.add_error(None, "More than one user with the given email address could be found. Please contact the system administrators to fix this issue.")
+                password_reset_form.add_error(None,
+                                              "More than one user with the given email address could be found. Please contact the system administrators to fix this issue.")
             except User.DoesNotExist:
                 # Don't let the user know if the email does not exist in our system
                 return redirect("accounts:forgot_password_done")

@@ -54,7 +54,6 @@ def view_message(request, message_group_id):
             raise Exception("Logged in user is neither author nor recipient")
         message_group.save()
 
-
         # If user sent a reply
         if request.method == 'POST':
             reply_form = ReplyForm(request.POST)
