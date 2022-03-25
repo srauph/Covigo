@@ -5,6 +5,7 @@ from django.views.decorators.cache import never_cache
 from django.db.models import Q
 from messaging.models import MessageGroup, MessageContent
 from messaging.forms import ReplyForm, CreateMessageContentForm, CreateMessageGroupForm
+from messaging.utils import send_notification
 
 
 @login_required
@@ -20,9 +21,9 @@ def list_messages(request, user_id=''):
     current_user = request.user
 
     if user_id == '':
-        filter1 = Q(author_id=current_user.id) | Q(recipient_id=current_user.id)
+        filter1 = (Q(author_id=current_user.id) | Q(recipient_id=current_user.id)) & Q(type=0)
     else:
-        filter1 = Q(author_id=user_id) | Q(recipient_id=user_id)
+        filter1 = (Q(author_id=user_id) | Q(recipient_id=user_id)) & Q(type=0)
 
     message_group = MessageGroup.objects.filter(filter1).all()
 
@@ -38,9 +39,10 @@ def view_message(request, message_group_id):
     # Filters for the queries to check if user is authorized to view the messages with a specific message_group_id
     filter1 = Q(id=message_group_id)
     filter2 = Q(author_id=current_user.id) | Q(recipient_id=current_user.id)
-    if MessageGroup.objects.filter(filter1 & filter2):
+    filter3 = Q(type=0)
+    if MessageGroup.objects.filter(filter1 & filter2 & filter3):
 
-        message_group = MessageGroup.objects.filter(filter1 & filter2).get()
+        message_group = MessageGroup.objects.filter(filter1 & filter2 & filter3).get()
 
         messages = MessageContent.objects.filter(message_id=message_group_id)
 
@@ -66,6 +68,14 @@ def view_message(request, message_group_id):
                 new_reply.author = current_user
                 # Save to db
                 new_reply.save()
+
+                # Send notification
+                if message_group.author.id == current_user.id:
+                    send_notification(message_group.author.id, message_group.recipient.id,
+                                      "New message from " + message_group.author.first_name + " " + message_group.author.last_name)
+                elif message_group.recipient.id == current_user.id:
+                    send_notification(message_group.recipient.id, message_group.author.id,
+                                      "New message from " + message_group.recipient.first_name + " " + message_group.recipient.last_name)
 
                 # Reset the form
                 reply_form = ReplyForm()
@@ -128,6 +138,7 @@ def compose_message(request, user_id):
                 new_msg_group.author = request.user
                 new_msg_group.recipient = recipient_user
                 new_msg_group.author_seen = True
+                new_msg_group.type = 0
                 new_msg_group.save()
                 MessageContent.objects.create(
                     author=new_msg_group.author,
