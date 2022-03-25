@@ -77,10 +77,10 @@ class CreateUserForm(ModelForm):
 
     def clean_groups(self):
         cleaned_groups = self.cleaned_data.get("groups")
-        # TODO: Discuss the possibility of having no group and fix error and if: != 1 if we enforce having at least one
+        # TODO: Discuss the possibility of having no groups and fix error and if: != 1 if we enforce having at least one
         if len(cleaned_groups) > 1:
             raise ValidationError(
-                "Cannot select more than one group."
+                "Cannot select more than one groups."
             )
         return cleaned_groups
 
@@ -340,10 +340,10 @@ class EditUserForm(ModelForm):
 
     def clean_groups(self):
         cleaned_groups = self.cleaned_data.get("groups")
-        # TODO: Discuss the possibility of having no group and fix error and if: != 1 if we enforce having at least one
+        # TODO: Discuss the possibility of having no groups and fix error and if: != 1 if we enforce having at least one
         if len(cleaned_groups) > 1:
             raise ValidationError(
-                "Cannot select more than one group."
+                "Cannot select more than one groups."
             )
         return cleaned_groups
 

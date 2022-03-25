@@ -69,7 +69,7 @@ def view_message(request, message_group_id):
                 # Reset the form
                 reply_form = ReplyForm()
 
-                # Update the message group
+                # Update the message groups
                 message_group.date_updated = new_reply.date_updated
 
                 # Check if we are author or recipient
@@ -100,7 +100,7 @@ def view_message(request, message_group_id):
             'form': reply_form,
             'seen': seen
         })
-    # User is not authorized to view this message group
+    # User is not authorized to view this message groups
     else:
         return redirect('messaging:list_messages')
 

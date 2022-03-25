@@ -25,6 +25,7 @@ from accounts.utils import (
 from appointments.models import Appointment
 from appointments.utils import rebook_appointment_with_new_doctor
 from symptoms.utils import is_symptom_editing_allowed
+from django.contrib import messages
 
 
 class GroupErrors:
@@ -51,7 +52,7 @@ def process_register_or_edit_user_form(request, user_form, profile_form, mode=No
 
         edited_user = user_form.save(commit=False)
 
-        # TODO: Discuss possibility of having no group and adjust `if` to enforce at least one when editing
+        # TODO: Discuss possibility of having no groups and adjust `if` to enforce at least one when editing
         if user_groups:
             edited_user.groups.set(user_groups)
 
@@ -258,7 +259,7 @@ def profile(request, user_id):
             assigned_staff_patient_count = 0
         assigned_flags = Flag.objects.filter(patient=user)
 
-        # TODO: Remove this group name and replace with permission instead
+        # TODO: Remove this groups name and replace with permission instead
         all_doctors = User.objects.filter(groups__name='doctor')
         # all_doctors = User.objects.filter(is_staff=True)
 
@@ -334,7 +335,7 @@ def create_user(request):
 
             new_user.save()
             new_user.profile.phone_number = user_phone
-            # TODO: Discuss the possibility of having no group and remove `if` if we enforce having at least one
+            # TODO: Discuss the possibility of having no groups and remove `if` if we enforce having at least one
             if user_groups:
                 new_user.groups.set(user_groups)
             new_user.save()
@@ -398,8 +399,8 @@ def edit_user(request, user_id):
 
 @login_required
 @never_cache
-def list_group(request):
-    return render(request, 'accounts/access_control/group/list_group.html', {
+def list_groups(request):
+    return render(request, 'accounts/access_control/groups/list_groups.html', {
         'groups': Group.objects.all()
     })
 
@@ -408,16 +409,15 @@ def list_group(request):
 @never_cache
 def create_group(request):
     new_name = ''
-    errors = GroupErrors()
 
     if request.method == 'POST':
         new_name = request.POST['name']
 
         if not new_name:
-            errors.blank_name = True
+            messages.error(request, 'Please enter a group/role name.')
 
         elif Group.objects.filter(name=new_name).exists():
-            errors.duplicate_name = True
+            messages.error(request, 'Another group/role with the same name exists.')
 
         else:
             group = Group(name=new_name)
@@ -426,12 +426,20 @@ def create_group(request):
             permission_array = convert_permission_name_to_id(request)
             group.permissions.set(permission_array)
 
-            return redirect('accounts:list_group')
+            if request.POST.get('Create'):
+                messages.success(request, 'The group/role was created successfully.')
+                return render(request, 'accounts/access_control/groups/create_group.html', {
+                    'permissions': Permission.objects.all(),
+                    'new_name': new_name
+                })
 
-    return render(request, 'accounts/access_control/group/add_group.html', {
+            else:
+                messages.success(request, 'The group/role was created successfully.')
+                return redirect('accounts:list_groups')
+
+    return render(request, 'accounts/access_control/groups/create_group.html', {
         'permissions': Permission.objects.all(),
-        'new_name': new_name,
-        'errors': errors,
+        'new_name': new_name
     })
 
 
@@ -441,16 +449,23 @@ def edit_group(request, group_id):
     group = Group.objects.get(id=group_id)
     old_name = group.name
     new_name = old_name
-    errors = GroupErrors()
 
     if request.method == 'POST':
         new_name = request.POST['name']
 
         if not new_name:
-            errors.blank_name = True
+            messages.error(request, 'Please enter a group/role name.')
+
+        elif new_name == old_name:
+            messages.error(request, f"The group/role name was not edited successfully: No edits made on this group/role. If you wish to make no changes, please click the \"Cancel\" button to go back to the list of groups/roles.")
+            return render(request, 'accounts/access_control/groups/edit_group.html', {
+                'permissions': Permission.objects.all(),
+                'new_name': new_name,
+                'groups': group
+            })
 
         elif Group.objects.exclude(name=old_name).filter(name=new_name).exists():
-            errors.duplicate_name = True
+            messages.error(request, 'Another group/role with the same name exists.')
 
         else:
             group.name = new_name
@@ -460,13 +475,13 @@ def edit_group(request, group_id):
             group.permissions.clear()
             group.permissions.set(permission_array)
 
-            return redirect('accounts:list_group')
+            messages.success(request, 'The group/role was edited successfully.')
+            return redirect('accounts:list_groups')
 
-    return render(request, 'accounts/access_control/group/edit_group.html', {
+    return render(request, 'accounts/access_control/groups/edit_group.html', {
         'permissions': Permission.objects.all(),
         'new_name': new_name,
-        'errors': errors,
-        'group': group
+        'groups': group
     })
 
 
