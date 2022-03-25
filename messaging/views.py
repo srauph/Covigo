@@ -56,7 +56,6 @@ def view_message(request, message_group_id):
             raise Exception("Logged in user is neither author nor recipient")
         message_group.save()
 
-
         # If user sent a reply
         if request.method == 'POST':
             reply_form = ReplyForm(request.POST)
@@ -177,3 +176,38 @@ def toggle_read(request, message_group_id):
     message_group.save()
 
     return redirect('messaging:list_messages')
+
+@login_required
+@never_cache
+def list_notifications(request):
+
+    current_user = request.user
+
+    # Fetch received notifications
+    filter1 = Q(recipient_id=current_user.id) & Q(type=1)
+
+    message_group = MessageGroup.objects.filter(filter1).all()
+
+    return render(request, 'notifications/list_notifications.html', {
+        'message_group': message_group,
+    })
+
+
+@login_required
+@never_cache
+def toggle_read_notification(request, message_group_id):
+    current_user = request.user
+    message_group = MessageGroup.objects.get(id=message_group_id)
+
+    # Check if we are author or recipient
+    if message_group.author.id == current_user.id:
+        message_group.author_seen = not message_group.author_seen
+    elif message_group.recipient.id == current_user.id:
+        message_group.recipient_seen = not message_group.recipient_seen
+    else:
+        # TODO: Proper exception handling
+        raise Exception("Logged in user is neither author nor recipient")
+
+    message_group.save()
+
+    return redirect('/notifications')

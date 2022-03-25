@@ -4,13 +4,21 @@
             <span class="font-semibold text-3xl tracking-tight">Covigo</span>
         </div>
         <div class="flex block text-right">
+            <a href="{% url 'list_notifications' %}" class="inline-block text-sm px-2 py-2 leading-none">
+                <svg class="h-8 w-8 text-white hover:fill-white" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+            </a>
             <div class="inline-block text-sm px-2 py-2 leading-none">
-                <a href="{% url 'accounts:profile' user.id %}" class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
+                <a href="{% url 'accounts:profile' user.id %}"
+                   class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
                     {{ user.get_username }}
                 </a>
             </div>
             <div class="inline-block text-sm mr-4 px-2 py-2 leading-none">
-                <a href="{% url 'accounts:logout' %}" class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
+                <a href="{% url 'accounts:logout' %}"
+                   class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
                     Log out
                 </a>
             </div>
