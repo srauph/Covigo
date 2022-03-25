@@ -1,5 +1,4 @@
 import json
-
 from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Q
@@ -26,6 +25,7 @@ def index(request):
     @param request: http request from the client
     @return: status index page or 404 if user is not a staff
     """
+
     user = request.user
     if not user.is_staff:
         # Assigned staff user id for the viewing user
@@ -56,6 +56,7 @@ def patient_reports(request):
     @param request: http request from the client
     @return: patient report page
     """
+
     doctor = request.user
 
     # Get doctors patient name(s) and user id(s)
@@ -84,6 +85,7 @@ def patient_reports_table(request):
     @param request: http request from the client
     @return: json of the report data
     """
+
     doctor = request.user
 
     # list of patient ids for the doctor
@@ -108,6 +110,7 @@ def patient_report_modal(request, user_id, date_updated):
     @param date_updated: date of the report
     @return: patient report modal page if post request otherwise an invalid request
     """
+
     # When the view report button is pressed a POST request is made
     if request.method == "POST":
         # Ensure this was an ajax call
@@ -151,6 +154,7 @@ def patient_reports_modal_table(request, user_id, date_updated):
     @param date_updated: date of the report
     @return: json response of the report
     """
+
     # Return a query set of all symptoms for the patient
     report_symptom_list = get_patient_report_information(user_id, request.user, date_updated)
 
@@ -168,6 +172,7 @@ def create_patient_report(request):
     @param request: http request from the client
     @return: create-status-report page
     """
+
     current_user = request.user.id
     report = PatientSymptom.objects.filter(user_id=current_user, due_date__date__lte=datetime.datetime.now())
 
@@ -192,10 +197,11 @@ def create_patient_report(request):
 @never_cache
 def edit_patient_report(request):
     """
-        The view of editing a patient report.
-        @param request: http request from the client
-        @return: edit-status-report page
-        """
+    The view of editing a patient report.
+    @param request: http request from the client
+    @return: edit-status-report page
+    """
+
     current_user_id = request.user.id
 
     is_resubmit_requested = is_requested(current_user_id)

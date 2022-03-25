@@ -11,7 +11,7 @@
             <div class="w-full flex flex-col gap-8 mb-8">
                 <h2 class="p-2 text-2xl font-bold">Resubmit Assigned Symptoms</h2>
                 <hr>
-                <p class="p-2">Please leave the field empty, if you wish to not update it.</p>
+                <p class="p-2">Please leave the field empty if you wish to not update it.</p>
                 {% for r in report %}
                     <div class="mt-1">
                         <label> {{ r.symptom.name }}:</label>
@@ -20,7 +20,7 @@
                         <input type=text id='foo' name=data[data][]
                                class="h-8 px-2 bg-slate-100 rounded-md border border-slate-400 border p-1">
                         <br>
-                        <label>Definition: {{ r.symptom.description }}</label>
+                        <label>Symptom Description: {{ r.symptom.description }}</label>
                     </div>
                 {% endfor %}
             </div>
@@ -48,7 +48,7 @@
                                       d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                         </span>
-                        <span>Submit</span>
+                        <span>Submit and Return</span>
                     </button>
                 </div>
             </div>

@@ -13,21 +13,23 @@
 
 
         $(document).ready(function () {
-            var table = $('#message_list_table').DataTable({
+            let table = $('#message_list_table').DataTable({
+                language: {
+                    "zeroRecords": "No messages/active conversations started at this time"
+                },
                 "order": [2, "desc"],
                 "columnDefs": [
                     {
                         "targets": [1],
                         "visible": false,
                         "searchable": true
-
                     }
                 ]
             });
 
             $('#toggleRead').change(function () {
                 $.fn.dataTable.ext.search.pop();
-                var value = $(this).val();
+                let value = $(this).val();
                 if (value == "showAll") {
                     $.fn.dataTable.ext.search.pop();
                     table.draw();
@@ -67,7 +69,7 @@
 
         <div class="m-4">
             <div class="m-4 p-4 bg-white shadow rounded-lg">
-                <table class="w-full table-auto" id="message_list_table">
+                <table class="w-full table-auto text-center" id="message_list_table">
                     <thead>
                         <tr class="border-b">
                             <th class="p-2">Priority</th>
@@ -76,7 +78,7 @@
                             <th class="p-2">Sent On</th>
                             <th class="p-2">Opened On</th>
                             <th class="p-2">Last Reply On</th>
-                            <th class="p-2"></th>
+                            <th class="p-2" data-orderable="false"></th>
                         </tr>
                     </thead>
 

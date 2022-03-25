@@ -27,7 +27,19 @@
                 format: 'MMMM Do YYYY'
             });
 
-            let table = $('#availabilities_list_table').DataTable({});
+            let table = $('#availabilities_list_table').DataTable({
+                language : {
+                    {% if is_staff %}
+                        "zeroRecords": "No booked appointments/availabilities to cancel/delete at this time"
+                    {% else %}
+                        "zeroRecords": "No booked appointments to cancel at this time"
+                    {% endif %}
+                },
+                "columnDefs": [
+                    { "orderable": false, "targets": 0 }
+                ],
+                order: [2, 'asc']
+            });
 
             $('#min, #max').on('change', function () {
                 table.draw();
@@ -249,7 +261,7 @@
                                 <td class="p-2 render-correct-date">
                                     {{ appointment.start_date|date:'l' }}
                                 </td>
-                                <td class="p-2 flex flex-wrap justify-center sm:justify-end gap-2">
+                                <td class="p-2 flex flex-wrap justify-center gap-2">
                                     {% if appointment.patient != None %}
                                         <button type="submit" value="{{ appointment.id }}" class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1" name="Cancel Appointment">
                                             <span>

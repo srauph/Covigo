@@ -154,7 +154,7 @@ def assign_symptom(request, user_id):
                     patient_information.is_quarantining = quarantine_status_changed
                     patient_information.save()
 
-        return redirect('accounts:list_users')
+        return redirect('accounts:profile', user_id=user_id)
 
     return render(request, 'symptoms/assign_symptom.html', {
         'symptoms': Symptom.objects.all(),

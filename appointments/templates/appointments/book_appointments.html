@@ -15,6 +15,7 @@
     <script type="text/javascript" charset="utf8"
             src="https://cdn.datatables.net/datetime/1.1.2/js/dataTables.dateTime.min.js"></script>
     <script>
+
         let minDate;
         let maxDate;
 
@@ -27,7 +28,15 @@
                 format: 'MMMM Do YYYY'
             });
 
-            let table = $('#availabilities_list_table').DataTable();
+            let table = $('#availabilities_list_table').DataTable({
+                language : {
+                    "zeroRecords": "No open availabilities/appointments to book at this time"
+                },
+                "columnDefs": [
+                    { "orderable": false, "targets": 0 }
+                ],
+                order: [2, 'asc']
+            });
 
             $('#min, #max').on('change', function () {
                 table.draw();
@@ -219,8 +228,8 @@
                             <th class="p-2">
                                 Weekday
                             </th>
-                            <th class="p-2">
-                                Action
+                            <th class="p-2" data-orderable="false">
+
                             </th>
                         </tr>
                         </thead>
@@ -242,7 +251,7 @@
                                 <td class="p-2 render-correct-date">
                                     {{ appointment.start_date|date:'l' }}
                                 </td>
-                                <td class="p-2 flex flex-wrap justify-center sm:justify-end gap-2">
+                                <td class="p-2 flex flex-wrap justify-center gap-2">
                                     <button type="submit" value="{{ appointment.id }}" class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1" name="Book Appointment">
                                         <span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
