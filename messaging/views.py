@@ -147,6 +147,11 @@ def compose_message(request, user_id):
                     message=new_msg_group,
                     content=msg_content_form.data.get('content'),
                 )
+
+                # Send notification
+                send_notification(new_msg_group.author.id, new_msg_group.recipient.id,
+                                      "New message from " + new_msg_group.author.first_name + " " + new_msg_group.author.last_name)
+
                 return redirect("messaging:list_messages", request.user.id)
 
         else:
