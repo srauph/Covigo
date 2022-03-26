@@ -12,7 +12,15 @@ def production_mode(request):
 def notifications(request):
     current_user = request.user
 
-    # Fetch received notifications
+    # Fetch all received notifications
     filter1 = Q(recipient_id=current_user.id) & Q(type=1)
 
-    return {'notifications': MessageGroup.objects.filter(filter1).all()}
+    all_notifications = MessageGroup.objects.filter(filter1).all()
+
+    # Fetch unread notifications
+    filter2 = Q(recipient_id=current_user.id) & Q(recipient_seen=False) & Q(type=1)
+
+    num_of_unread_notifications = MessageGroup.objects.filter(filter2).all().count()
+
+    return {'notifications': all_notifications,
+            'num_of_unread_notifications': num_of_unread_notifications}
