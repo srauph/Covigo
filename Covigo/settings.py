@@ -29,7 +29,7 @@ PRODUCTION_MODE = getenv("PRODUCTION_MODE") == "True"
 
 if PRODUCTION_MODE:
     DEBUG = False
-    ALLOWED_HOSTS = getenv("ALLOWED_HOSTS")
+    ALLOWED_HOSTS = json.loads(getenv("ALLOWED_HOSTS"))
     STATIC_ROOT = getenv("STATIC_ROOT")
     SECRET_KEY = getenv("SECRET_KEY")
     CSRF_COOKIE_SECURE = True
