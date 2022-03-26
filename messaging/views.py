@@ -1,10 +1,12 @@
 import json
+import re
 
 from django.contrib.auth.models import User
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from django.db.models import Q
 from messaging.models import MessageGroup, MessageContent
@@ -72,13 +74,19 @@ def view_message(request, message_group_id):
                 # Save to db
                 new_reply.save()
 
+
                 # Send notification
                 if message_group.author.id == current_user.id:
+                    href = reverse('messaging:view_message', args=[message_group.id])
                     send_notification(message_group.author.id, message_group.recipient.id,
-                                      "New message from " + message_group.author.first_name + " " + message_group.author.last_name)
+                                      "New message from " + message_group.author.first_name + " " + message_group.author.last_name,
+                                      href=href)
+
                 elif message_group.recipient.id == current_user.id:
+                    href = reverse('messaging:view_message', args=[message_group.id])
                     send_notification(message_group.recipient.id, message_group.author.id,
-                                      "New message from " + message_group.recipient.first_name + " " + message_group.recipient.last_name)
+                                      "New message from " + message_group.recipient.first_name + " " + message_group.recipient.last_name,
+                                      href=href)
 
                 # Reset the form
                 reply_form = ReplyForm()
@@ -194,7 +202,19 @@ def list_notifications(request):
     # Fetch received notifications
     filter1 = Q(recipient_id=current_user.id) & Q(type=1)
 
-    message_group = MessageGroup.objects.filter(filter1).all()
+    message_group = list(MessageGroup.objects.filter(filter1).all().values())
+    links = dict()
+
+
+    for i in message_group:
+        a = re.sub("<a href=", "", i['title'] )
+        a = re.sub(">.*", "", a)
+
+        i['title'] = re.sub("<a href=[^>]*>", "", i['title'] )
+        i['title'] = re.sub("</a>", "", i['title'])
+
+        i['link'] = a
+
 
     return render(request, 'notifications/list_notifications.html', {
         'message_group': message_group,
