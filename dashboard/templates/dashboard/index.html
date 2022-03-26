@@ -2,16 +2,22 @@
 
 {% block content %}
     <div class="min-h-full bg-slate-100">
-        <div class="m-4 flex flex-wrap justify-evenly gap-4">
-            {% include './cards/user-info.html' %}
-            {% include './cards/my-doctors.html' %}
-            {% include './cards/my-patients.html' %}
-            {% include './cards/hospitalizations-total.html' %}
-            {% include './cards/cases-recovered.html' %}
-            {% include './cards/cases-today.html' %}
-            {% include './cards/cases-total.html' %}
-            {% include './cards/cases-montreal.html' %}
+        <div class="bg-slate-700 border-b">
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">Dashboard</h1>
         </div>
 
+        <div class="flex flex-wrap justify-center md:justify-start gap-4 p-8">
+            {% include './cards/messages.html' %}
+            {% include './cards/upcoming-appointments.html' %}
+            {% if not user.is_staff %}
+{#                {% include './cards/status-reminder.html' %}#}
+                {% include './cards/quarantine-status.html' %}
+                {% include './cards/my-doctor.html' %}
+            {% else %}
+{#                {% include './cards/recent-status.html' %}#}
+                {% include './cards/my-patients.html' %}
+                {% include './cards/covigo-data.html' %}
+            {% endif %}
+        </div>
     </div>
 {% endblock %}

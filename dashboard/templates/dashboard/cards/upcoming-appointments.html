@@ -1,0 +1,45 @@
+{% extends "dashboard/card-base.html" %}
+
+{% block card %}
+    <div class="flex flex-wrap gap-2 justify-between items-center">
+        <div class="flex items-center gap-2 font-semibold text-gray-900 text-lg">
+            <span class="text-purple-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+            </span>
+            <span>Upcoming Appointments</span>
+        </div>
+    </div>
+
+    <hr class="border-slate-400 mx-1 my-2">
+
+    <div class="flex justify-center items-center w-full h-full rounded-lg">
+        <ul class="w-full list-inside text-center">
+            {% if appointments.today|length > 0 %}
+                <li class="py-2 hover:bg-slate-200">Your next appointment is <b>today</b> at <b>{{ appointments.all.0.start_date.time }}</b></li>
+            {% elif appointments.tomorrow|length > 0 %}
+                <li class="py-2 hover:bg-slate-200">Your next appointment is <b>tomorrow</b> at <b>{{ appointments.all.0.start_date.time }}</b></li>
+            {% elif appointments.all|length > 0 %}
+                <li class="py-2 hover:bg-slate-200">Your next appointment is on <b>{{ appointments.all.0.start_date.date }}</b> at <b>{{ appointments.all.0.start_date.time }}</b></li>
+            {% endif %}
+
+            {% if appointments.all|length > 0 %}
+                <li class="py-2 hover:bg-slate-200">In total, you have {{ appointments.all|length }} upcoming appointment(s)
+                {% if appointments.today|length > 1 %}
+                    <br>Of them, {{ appointments.today|length }} occur today
+                    {% if appointments.tomorrow|length > 0 %}
+                        and {{ appointments.tomorrow|length }} occur tomorrow
+                    {% endif %}
+                {% elif appointments.tomorrow|length > 1 %}
+                    <br>Of them, {{ appointments.tomorrow|length }} occur tomorrow
+                {% endif %}
+                </li>
+            {% else %}
+                <li class="py-2 hover:bg-slate-200">You have no upcoming appointments</li>
+            {% endif %}
+        </ul>
+    </div>
+{% endblock %}

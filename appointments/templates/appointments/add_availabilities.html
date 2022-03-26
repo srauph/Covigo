@@ -83,24 +83,42 @@
                             </div>
                         {% endif %}
                     {% endfor %}
-                    <div class="w-full px-2 pt-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Start date:</label>
-                        <div class="text-red-500 text-sm font-semibold hidden" id="date-error">
-                            Invalid start and end dates
+                    <div class="flex w-1/2">
+                        <div class="w-full px-2 pt-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Start date:</label>
+                            <div class="text-red-500 text-sm font-semibold hidden" id="date-error">
+                                Invalid start and end dates
+                            </div>
+                            <div class="inline mt-1 pr-5">
+                                {{ availability_form.start_date }}
+                            </div>
                         </div>
-                        <div class="inline mt-1 pr-5">
-                            {{ availability_form.start_date }}
-                        </div>
-                    </div>
-                    <div class="w-full px-2 pt-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">End date:</label>
-                        <div class="inline mt-1 pr-5">
-                            {{ availability_form.end_date }}
+                        <div class="w-full px-2 pt-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">End date:</label>
+                            <div class="inline mt-1 pr-5">
+                                {{ availability_form.end_date }}
+                            </div>
                         </div>
                     </div>
                     <div class="w-full max-w-2xl px-2 py-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2">Select days to create availabilities
                             for:</label>
+                        <button type="button"
+                                class="bg-blue-900 px-2 py-1 text-white rounded-md text-sm select-multi-days selecta-all"
+                                data-action="select_all_days">Select All
+                        </button>
+                        <button type="button"
+                                class="bg-blue-900 px-2 py-1 text-white rounded-md text-sm select-multi-days hidden deselect"
+                                data-action="deselect_all_days">Deselect All
+                        </button>
+                        <button type="button"
+                                class="bg-blue-900 px-2 py-1 text-white rounded-md text-sm select-multi-days"
+                                data-action="select_weekdays">Select Weekdays
+                        </button>
+                        <button type="button"
+                                class="bg-blue-900 px-2 py-1 text-white rounded-md text-sm select-multi-days"
+                                data-action="select_weekends">Select Weekends
+                        </button>
                         <div class="text-red-500 text-sm font-semibold inline">
                             {{ availability_form.availability_days.errors }}
                         </div>
@@ -108,19 +126,23 @@
                             {{ availability_form.availability_days }}
                         </div>
                     </div>
-                    <div class="w-full px-2 pt-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2 label-start">Start time:</label>
-                        <div class="text-red-500 text-sm font-semibold inline hidden" id="time-error">Invalid time
-                            range
+                    <div class="flex  w-1/2">
+                        <div class="w-full px-2 pt-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2 label-start">Start time:</label>
+                            <div class="text-red-500 text-sm font-semibold inline hidden" id="time-error">Invalid time
+                                range
+                            </div>
+                            <div class=" mt-1 pr-5">
+                                <input id="start_time" class="timepicker_1 border border-black px-1 rounded-md"
+                                       name="start_time" required>
+                            </div>
                         </div>
-                        <div class=" mt-1 pr-5">
-                            <input id="start_time" class="timepicker_1" name="start_time" required>
-                        </div>
-                    </div>
-                    <div class="w-full px-2 pt-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">End time:</label>
-                        <div class="inline mt-1 pr-5">
-                            <input id="end_time" class="timepicker_2" name="end_time" required>
+                        <div class="w-full px-2 pt-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">End time:</label>
+                            <div class="inline mt-1 pr-5">
+                                <input id="end_time" class="timepicker_2 border border-black px-1 rounded-md"
+                                       name="end_time" required>
+                            </div>
                         </div>
                     </div>
                     <div class="w-full px-2 py-2">
@@ -135,13 +157,13 @@
                             minutes
                         </div>
                     </div>
-                    <div class="w-full px-2 pt-4">
+                    <div class="w-1/2 px-2 pt-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2">Select availabilities:</label>
                         <div class="text-red-500 text-sm font-semibold hidden" id="availability_error">
                             Please select at least once availability
                         </div>
                         <div class="inline mt-1 pr-5 flex ">
-                            <select class="availability-select2 inline mt-1 pr-5 w-3/5" name="availability_select[]"
+                            <select class="availability-select2 inline mt-1 pr-5 w-full" name="availability_select[]"
                                     id="availability-select"
                                     multiple="multiple">
                             </select>
@@ -153,10 +175,11 @@
                                 <button type="button"
                                         class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
                                     <span>
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                                            stroke="currentColor">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                             viewBox="0 0 24 24"
+                                             stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                         </svg>
                                     </span>
                                     <span>Cancel</span>

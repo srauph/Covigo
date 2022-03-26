@@ -1,0 +1,32 @@
+{% extends "dashboard/card-base.html" %}
+
+{% block card %}
+    <div class="flex flex-wrap gap-2 justify-between items-center">
+        <div class="flex items-center gap-2 font-semibold text-gray-900 text-lg">
+            <span class="text-cyan-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+            </span>
+            <span>My Doctor</span>
+        </div>
+    </div>
+
+    <hr class="border-slate-400 mx-1 my-2">
+
+    <div class="flex flex-col justify-center items-center w-full h-full rounded-lg">
+        <ul class="w-full list-inside text-center">
+            {% if assigned_doctor %}
+                <li class="py-1 hover:bg-slate-200 text-gray-900 font-bold text-xl">{{ assigned_doctor.first_name }} {{ assigned_doctor.last_name }}</li>
+                <li class="py-0.5 hover:bg-slate-200">Email: <a class="text-blue-500" href="mailto:{{ assigned_doctor.email }}">{{ assigned_doctor.email }}</a></li>
+                {% if assigned_doctor.profile.phone_number %}
+                    <li class="py-0.5 hover:bg-slate-200">Phone number: {{ assigned_doctor.profile.phone_number }}</li>
+                {% endif %}
+            {% else %}
+                <li class="py-2 hover:bg-slate-200">You do not currently have an assigned doctor</li>
+            {% endif %}
+        </ul>
+    </div>
+{% endblock %}

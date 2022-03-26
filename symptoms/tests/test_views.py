@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase, TransactionTestCase, Client, RequestFactory
 
 
-class SymptomTestCase(TransactionTestCase):
+class SymptomsTestCase(TransactionTestCase):
 
     # this makes sure that the database ids reset to 1 for every test (especially important for
     # the test "test_user_can_edit_symptom_and_return" when dealing with fetching symptom ids from the database)
@@ -53,7 +53,7 @@ class SymptomTestCase(TransactionTestCase):
     def test_user_can_create_new_symptom(self):
         """
         this test allows us to test for if a symptom that is submitted through a form
-        (with the "create" button) ends up actually being indeed added to the database or not
+        (with the "Create" button) ends up actually being indeed added to the database or not
         :return: void
         """
 
@@ -82,7 +82,7 @@ class SymptomTestCase(TransactionTestCase):
     def test_user_can_create_new_symptom_and_return(self):
         """
         this test allows us to test for if a symptom that is submitted through a form
-        (with the "create and return" button) ends up actually being indeed added to the database or not
+        (with the "Create and Return" button) ends up actually being indeed added to the database or not
         :return: void
         """
 

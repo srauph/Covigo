@@ -1,6 +1,7 @@
 $(document).ready(function () {
 
     //UTILITY FUNCTION
+    //Converts time in format "HH:mm AM/PM" to "HH:mm"
     const convertTime12to24 = (time12h) => {
         const [time, modifier] = time12h.split(' ');
         let [hours, minutes] = time.split(':');
@@ -29,10 +30,11 @@ $(document).ready(function () {
     $('.timepicker_1').timepicker({
         timeFormat: 'h:mm p',
         interval: 15,
-        defaultTime: '8:00',
-        startTime: '8:00',
+        defaultTime: '6:00',
+        startTime: '6:00',
         dropdown: true,
         scrollbar: true,
+        dynamic: false,
         change: function(){
             validateStartEndTime();
             validateSlotDuration();
@@ -44,10 +46,11 @@ $(document).ready(function () {
     $('.timepicker_2').timepicker({
         timeFormat: 'h:mm p',
         interval: 15,
-        defaultTime: '9:00',
-        startTime: '8:00',
+        defaultTime: '7:00',
+        startTime: '6:00',
         dropdown: true,
         scrollbar: true,
+        dynamic: false,
         change: function(){
             validateStartEndTime();
             validateSlotDuration();
@@ -242,5 +245,40 @@ $(document).ready(function () {
 
     $('.message_close_button').click(function(){
         $('#message_box').addClass('hidden')
-    })
+    });
+
 });
+
+//jQuery for week day selection
+$(document).on('click','.select-multi-days',function(){
+
+            if($(this).attr('data-action') == 'select_all_days'){
+                $('input.days_checkbox').prop('checked','checked')
+                $(this).addClass('hidden')
+                $(".deselect").removeClass('hidden')
+            }
+            if($(this).attr('data-action') == 'deselect_all_days'){
+                $('input.days_checkbox').prop('checked',false)
+                $('.selecta-all').removeClass('hidden')
+                $(this).addClass('hidden')
+            }
+            if($(this).attr('data-action') == 'select_weekdays'){
+                $('input.days_checkbox').each(function(){
+                    if($(this).closest('label').text().trim() != "Saturday" && $(this).closest('label').text().trim() != "Sunday"){
+                        $(this).prop('checked','checked')
+                    }
+                })
+                $('.selecta-all').addClass('hidden')
+                $('.deselect').removeClass('hidden')
+            }
+
+            if($(this).attr('data-action') == 'select_weekends'){
+                $('input.days_checkbox').each(function(){
+                    if($(this).closest('label').text().trim() == "Saturday" || $(this).closest('label').text().trim() == "Sunday"){
+                        $(this).prop('checked','checked')
+                    }
+                })
+                $('.selecta-all').addClass('hidden')
+                $('.deselect').removeClass('hidden')
+            }
+        })
