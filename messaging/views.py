@@ -150,7 +150,7 @@ def compose_message(request, user_id):
 
                 # Send notification
                 send_notification(new_msg_group.author.id, new_msg_group.recipient.id,
-                                      "New message from " + new_msg_group.author.first_name + " " + new_msg_group.author.last_name)
+                                  "New message from " + new_msg_group.author.first_name + " " + new_msg_group.author.last_name)
 
                 return redirect("messaging:list_messages", request.user.id)
 
@@ -224,18 +224,13 @@ def toggle_read_notification(request, message_group_id):
 def get_notifications(request):
     current_user = request.user
 
-    # Fetch all received notifications
-    filter1 = Q(recipient_id=current_user.id) & Q(type=1)
+    # Fetch all unread notifications
+    filter1 = Q(recipient_id=current_user.id) & Q(recipient_seen=False) & Q(type=1)
 
     all_notifications = list(MessageGroup.objects.filter(filter1).order_by('-date_created').all().values())
 
-    # Fetch unread notifications
-    filter2 = Q(recipient_id=current_user.id) & Q(recipient_seen=False) & Q(type=1)
+    result = {'notifications': all_notifications}
 
-    num_of_unread_notifications = MessageGroup.objects.filter(filter2).all().count()
-
-    result = {'notifications': all_notifications, 'num_of_unread_notifications': num_of_unread_notifications}
-
-    json_result = json.dumps({'data':result}, cls=DjangoJSONEncoder, default=str)
+    json_result = json.dumps({'data': result}, cls=DjangoJSONEncoder, default=str)
 
     return HttpResponse(json_result, content_type='application/json')

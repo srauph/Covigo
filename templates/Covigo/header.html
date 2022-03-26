@@ -1,9 +1,18 @@
 {% block script %}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"
             integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timeago/1.6.7/jquery.timeago.min.js"
+            integrity="sha512-RlGrSmkje9EE/FXpJKWf0fvOlg4UULy/blvNsviBX9LFwMj/uewXVoanRbxTIRDXy/0A3fBQppTmJ/qOboJzmA=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
-        $(document).ready(function () {
-            $.ajax({
+        //Timeago was not working without using jquery like this:
+        var $j = jQuery.noConflict();
+        $j(document).ready(function () {
+            $j("time.timeago").timeago();
+        });
+        $j(document).ready(function () {
+            $j.ajax({
                 type: "GET",
                 url: "{% url 'messaging:get_notifications' %}",
                 dataType: "json",
@@ -12,23 +21,38 @@
                 },
                 success: function (response) {
                     const allNotifications = response.data.notifications;
-                    const numOfUnreadNotifications = response.data.num_of_unread_notifications;
 
                     for (let i = 0; i < allNotifications.length; i++) {
-                        const li = "<li class='flex items-center px-4 py-3 border-b text-gray-700 hover:bg-slate-100'>" + allNotifications[i].title + "</li>"
-                        $("#notification-list").append(li);
+                        let dateObj = new Date(allNotifications[i].date_created);
+
+                        let li = "<li class='flex items-center px-4 py-3 border-b h-14 min-h-full text-gray-700 hover:bg-slate-100 text-left relative'>"
+                            + "<div class='font-bold absolute top-1.5'>" + allNotifications[i].title + "</div>"
+                            + "<div class='absolute bottom-0.5'>" + $j.timeago(dateObj.toISOString()) + "</div>"
+                            + "</li>";
+
+                        $j("#notification-list").append(li);
+
+                        //Display maximum 10 notifications
+                        if (i == 9) {
+                            const remainingNumOfNotifications = allNotifications.length - 10;
+                            if (remainingNumOfNotifications > 0) {
+                                const differenceRow = "<li class='flex text-center items-center px-4 py-3 border-b text-gray-700 hover:bg-slate-100 '>+" + remainingNumOfNotifications + " notifications</li>";
+                                $j("#notification-list").append(differenceRow);
+                            }
+                            break;
+                        }
                     }
 
                     //Last row is a button that opens the list of all notifications
-                    const lastRow = "<a href='{% url 'list_notifications' %}'><li class='block bg-slate-900 text-white text-center font-bold py-2'>See all notifications</li></a>";
-                    $("#notification-list").append(lastRow);
+                    const lastRow = "<a href='{% url 'list_notifications' %}'><li class='block bg-slate-900 text-white text-center font-bold py-2'>View all notifications</li></a>";
+                    $j("#notification-list").append(lastRow);
 
-                    $('#unread-notifications').html(numOfUnreadNotifications);
+                    $j('#unread-notifications').html(allNotifications.length);
 
-                    if (numOfUnreadNotifications == 0) {
-                        $('#unread-notifications').addClass('hidden');
+                    if (allNotifications.length == 0) {
+                        $j('#unread-notifications').addClass('hidden');
                     } else {
-                        $('#unread-notifications').removeClass('hidden');
+                        $j('#unread-notifications').removeClass('hidden');
                     }
 
                     console.log(response)
@@ -36,13 +60,12 @@
             });
 
             //Open and close the notification dropdown
-            $('#notification-icon').click(function(){
+            $j('#notification-icon').click(function () {
 
-                if ($('#notification-dropdown').is(":hidden")){
-                    $('#notification-dropdown').removeClass("hidden");
-                }
-                else{
-                    $('#notification-dropdown').addClass("hidden");
+                if ($j('#notification-dropdown').is(":hidden")) {
+                    $j('#notification-dropdown').removeClass("hidden");
+                } else {
+                    $j('#notification-dropdown').addClass("hidden");
                 }
 
             });
@@ -69,7 +92,8 @@
                     <span id="unread-notifications"
                           class="absolute rounded-full bg-red-500 hover:bg-red-400 right-0 py-1 px-2 -top-px right-px">x</span>
                 </a>
-                <div id="notification-dropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg overflow-hidden z-20 hidden">
+                <div id="notification-dropdown"
+                     class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg overflow-hidden z-20 hidden">
                     <ul id="notification-list">
 
                     </ul>
