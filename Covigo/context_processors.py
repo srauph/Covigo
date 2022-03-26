@@ -9,7 +9,7 @@ def production_mode(request):
     return {'PRODUCTION_MODE': settings.PRODUCTION_MODE}
 
 
-def get_notifications(request):
+def notifications(request):
     current_user = request.user
 
     # Fetch received notifications
