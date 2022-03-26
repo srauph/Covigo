@@ -143,7 +143,7 @@
                                         {% csrf_token %}
                                         <label for="" class="text-black">New Doctor:</label>
                                         <div class="flex justify-between gap-2">
-                                            <select name="doctor_id" id="" class="grow bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md">
+                                            <select name="doctor_id" id="" class="cursor-pointer grow bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md">
                                                 {% for doc in all_doctors %}
                                                     <option value="{{ doc.staff.id }}">
                                                         {{ doc.first_name }} {{ doc.last_name }}
