@@ -6,7 +6,7 @@
         <div class="bg-slate-700 border-b">
             <h1 class="text-2xl text-white font-semibold px-8 py-4">
                 {% if allow_editing %}
-                    Edit Symptoms
+                    Update Assigned Symptoms
                 {% else %}
                     Assign Symptoms
                 {% endif %}
@@ -18,7 +18,7 @@
                 <div class="w-full">
                     <h2 class="p-2 text-2xl font-bold">
                         {% if allow_editing %}
-                            Edit Symptoms for {{ patient_name }}
+                            Update Assigned Symptoms for {{ patient_name }}
                         {% else %}
                             Assign Symptoms to {{ patient_name }}</h2>
                         {% endif %}

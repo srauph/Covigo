@@ -15,7 +15,7 @@
                 initComplete: function () {
                     this.api().columns(3).every(function () {
                         let column = this;
-                        let select = $('<select class="border-2"><option value="">Filter ...</option></select>')
+                        let select = $('<select class="border-2 cursor-pointer"><option value="">Filter ...</option></select>')
                             .appendTo($(column.header()))
                             .on('change', function () {
                                 let val = $.fn.dataTable.util.escapeRegex(
@@ -49,7 +49,7 @@
                     {# TODO: Filters should go HERE #}
                     <span class="font-semibold px-2">Filters:</span>
                     <select name="" id="toggleRead"
-                            class=" bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md">
+                            class="cursor-pointer bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md">
                         <option value="showAll">Show All Roles</option>
                     </select>
                 </div>
