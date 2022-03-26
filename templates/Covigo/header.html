@@ -1,18 +1,80 @@
+{% block script %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                type: "GET",
+                url: "{% url 'messaging:get_notifications' %}",
+                dataType: "json",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+                success: function (response) {
+                    const allNotifications = response.data.notifications;
+                    const numOfUnreadNotifications = response.data.num_of_unread_notifications;
+
+                    for (let i = 0; i < allNotifications.length; i++) {
+                        const li = "<li class='flex items-center px-4 py-3 border-b text-gray-700 hover:bg-slate-100'>" + allNotifications[i].title + "</li>"
+                        $("#notification-list").append(li);
+                    }
+
+                    //Last row is a button that opens the list of all notifications
+                    const lastRow = "<a href='{% url 'list_notifications' %}'><li class='block bg-slate-900 text-white text-center font-bold py-2'>See all notifications</li></a>";
+                    $("#notification-list").append(lastRow);
+
+                    $('#unread-notifications').html(numOfUnreadNotifications);
+
+                    if (numOfUnreadNotifications == 0) {
+                        $('#unread-notifications').addClass('hidden');
+                    } else {
+                        $('#unread-notifications').removeClass('hidden');
+                    }
+
+                    console.log(response)
+                }
+            });
+
+            //Open and close the notification dropdown
+            $('#notification-icon').click(function(){
+
+                if ($('#notification-dropdown').is(":hidden")){
+                    $('#notification-dropdown').removeClass("hidden");
+                }
+                else{
+                    $('#notification-dropdown').addClass("hidden");
+                }
+
+            });
+
+
+        });
+    </script>
+{% endblock %}
+
 {% block header %}
     <nav class="bg-slate-900 text-white flex items-center justify-between bg-teal p-3">
         <div class="flex items-center flex-no-shrink px-4 py-2 mr-6">
             <span class="font-semibold text-3xl tracking-tight">Covigo</span>
         </div>
         <div class="flex block text-right">
-            <a href="{% url 'list_notifications' %}" class="inline-block text-sm px-3 py-2 leading-none relative">
-                <svg class="h-8 w-8 text-white hover:fill-white" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
-                          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                </svg>
-                {% if num_of_unread_notifications != 0 %}
-                    <span class="absolute rounded-full bg-red-500 hover:bg-red-400  right-0 py-1 px-2 -top-px right-px	">{{ num_of_unread_notifications }}</span>
-                {% endif %}
-            </a>
+
+
+            <div class="relative">
+                <a id="notification-icon" href="#" class="inline-block text-sm px-3 py-2 leading-none relative">
+                    <svg class="h-8 w-8 text-white hover:fill-white" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    <span id="unread-notifications"
+                          class="absolute rounded-full bg-red-500 hover:bg-red-400 right-0 py-1 px-2 -top-px right-px">x</span>
+                </a>
+                <div id="notification-dropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg overflow-hidden z-20 hidden">
+                    <ul id="notification-list">
+
+                    </ul>
+                </div>
+            </div>
 
             <div class="inline-block text-sm px-2 py-2 leading-none">
                 <a href="{% url 'accounts:profile' user.id %}"

@@ -1,4 +1,8 @@
+import json
+
 from django.contrib.auth.models import User
+from django.core.serializers.json import DjangoJSONEncoder
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
@@ -118,7 +122,6 @@ def view_message(request, message_group_id):
 @login_required
 @never_cache
 def compose_message(request, user_id):
-
     # To prevent users from being able to send messages to themselves
     if request.user.id != user_id:
 
@@ -177,10 +180,10 @@ def toggle_read(request, message_group_id):
 
     return redirect('messaging:list_messages')
 
+
 @login_required
 @never_cache
 def list_notifications(request):
-
     current_user = request.user
 
     # Fetch received notifications
@@ -211,3 +214,23 @@ def toggle_read_notification(request, message_group_id):
     message_group.save()
 
     return redirect('/notifications')
+
+
+def get_notifications(request):
+    current_user = request.user
+
+    # Fetch all received notifications
+    filter1 = Q(recipient_id=current_user.id) & Q(type=1)
+
+    all_notifications = list(MessageGroup.objects.filter(filter1).order_by('-date_created').all().values())
+
+    # Fetch unread notifications
+    filter2 = Q(recipient_id=current_user.id) & Q(recipient_seen=False) & Q(type=1)
+
+    num_of_unread_notifications = MessageGroup.objects.filter(filter2).all().count()
+
+    result = {'notifications': all_notifications, 'num_of_unread_notifications': num_of_unread_notifications}
+
+    json_result = json.dumps({'data':result}, cls=DjangoJSONEncoder, default=str)
+
+    return HttpResponse(json_result, content_type='application/json')
