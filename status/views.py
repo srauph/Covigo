@@ -253,7 +253,7 @@ def edit_patient_report(request):
         # Create href for notification redirection
         href = reverse('status:patient-reports')
         send_notification(current_user_id, doctor_id,
-                          'New patient report from ' + request.user.first_name + " " + request.user.last_name,
+                          'New patient report update from ' + request.user.first_name + " " + request.user.last_name,
                           href=href)
 
         return redirect('status:index')
