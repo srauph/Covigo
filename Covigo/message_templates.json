@@ -19,6 +19,5 @@
             "body": "accounts/messages/email/user_changed_password_email.html"
         },
         "sms": "accounts/messages/sms/user_changed_password_sms.html"
-    },
-    "status_reminder"
+    }
 }

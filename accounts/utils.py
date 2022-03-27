@@ -69,8 +69,8 @@ def send_email_from_template(user, template, c=None):
     @return: void
     """
 
-    body = template["email"]["body"]
-    subject = template["email"]["subject"]
+    body = template["body"]
+    subject = template["subject"]
 
     if not c:
         c = dict()
@@ -95,7 +95,7 @@ def send_sms_from_template(user, template, c=None):
     @return: void
     """
 
-    body = template["email"]["body"]
+    body = template
 
     if not c:
         c = dict()
@@ -148,14 +148,14 @@ def send_system_message_to_user(user, message=None, template=None, subject=None,
     # TODO: Insert "user subscribed to emails"
     if user.email:
         if template:
-            send_email_from_template(user, template["email"], c)
+            send_email_from_template(user, template.get("email"), c)
         else:
             send_email_to_user(user, message, subject)
 
     # TODO: Insert "user subscribed to sms"
-    if user.profile.phone:
+    if user.profile.phone_number:
         if template:
-            send_sms_from_template(user, template["sms"], c)
+            send_sms_from_template(user, template.get("sms"), c)
         else:
             send_sms_to_user(user, message)
 

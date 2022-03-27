@@ -89,7 +89,7 @@ def forgot_password(request):
             data = password_reset_form.cleaned_data['email']
             try:
                 user = User.objects.get(email=data)
-                template = Messages.RESET_PASSWORD
+                template = Messages.RESET_PASSWORD.value
                 c = {
                     'token': default_token_generator.make_token(user),
                 }
@@ -202,7 +202,7 @@ class ChangePasswordView(PasswordChangeView):
         # Uncomment this line to enable the following behaviour:
         # Updating the password logs out all other sessions for the user except the current one.
         # update_session_auth_hash(self.request, form.user)
-        template = Messages.CHANGED_PASSWORD
+        template = Messages.CHANGED_PASSWORD.value
         send_system_message_to_user(form.user, template=template)
         return HttpResponseRedirect(self.get_success_url())
 
@@ -347,7 +347,7 @@ def create_user(request):
                 # TODO: discuss if we should keep this behaviour for now or make Patient.staff nullable instead.
                 Patient.objects.create(user=new_user)
 
-            template = Messages.REGISTER_USER
+            template = Messages.REGISTER_USER.value
             c = {
                 'token': default_token_generator.make_token(new_user),
             }
