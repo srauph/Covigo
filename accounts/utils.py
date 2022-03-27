@@ -60,49 +60,52 @@ def get_superuser_staff_model():
         return None
 
 
-def send_email_from_template(user, template):
+def send_email_from_template(user, template, c=None):
     """
     Generate and send a "reset password" email for a user
     @param user: The user whose password is to be reset
-    @param subject: The name to give the email's subject
     @param template: The template to use for the email to send
+    @param c: Context variables to use to generate the email
     @return: void
     """
 
     body = template["email"]["body"]
     subject = template["email"]["subject"]
 
-    c = {
-        'email': user.email,
-        'host_name': HOST_NAME,
-        'site_name': 'Covigo',
-        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-        'user': user,
-        'token': default_token_generator.make_token(user),
-    }
+    if not c:
+        c = dict()
+
+    c['email'] = user.email
+    c['host_name'] = HOST_NAME
+    c['site_name'] = 'Covigo'
+    c['user'] = user
+    c['uid'] = urlsafe_base64_encode(force_bytes(user.pk))
+
     email = render_to_string(body, c)
     send_email_to_user(user, subject, email)
 
 
 # takes a user, subject, and body as params and sends the user an email
-def send_sms_from_template(user, template):
+def send_sms_from_template(user, template, c=None):
     """
     Generate and send a "reset password" email for a user
     @param user: The user whose password is to be reset
     @param template: The template to use for the email to send
+    @param c: Context variables to use to generate the email
     @return: void
     """
 
     body = template["email"]["body"]
 
-    c = {
-        'email': user.email,
-        'host_name': HOST_NAME,
-        'site_name': 'Covigo',
-        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-        'user': user,
-        'token': default_token_generator.make_token(user),
-    }
+    if not c:
+        c = dict()
+
+    c['email'] = user.email
+    c['host_name'] = HOST_NAME
+    c['site_name'] = 'Covigo'
+    c['user'] = user
+    c['uid'] = urlsafe_base64_encode(force_bytes(user.pk))
+
     message = render_to_string(body, c)
     send_sms_to_user(user.profile.phone_number, message)
 
@@ -141,21 +144,20 @@ def send_sms_to_user(user, body):
     return None
 
 
-def send_system_message_to_user(user, message=None, template=None, subject=None):
+def send_system_message_to_user(user, message=None, template=None, subject=None, c=None):
     # TODO: Insert "user subscribed to emails"
     if user.email:
         if template:
-            send_email_from_template(user, template["email"])
+            send_email_from_template(user, template["email"], c)
         else:
             send_email_to_user(user, message, subject)
 
     # TODO: Insert "user subscribed to sms"
     if user.profile.phone:
         if template:
-            send_sms_from_template(user, template["sms"])
+            send_sms_from_template(user, template["sms"], c)
         else:
             send_sms_to_user(user, message)
-
 
 
 def get_or_generate_patient_code(patient, prefix="A"):

@@ -90,7 +90,10 @@ def forgot_password(request):
             try:
                 user = User.objects.get(email=data)
                 template = Messages.RESET_PASSWORD
-                send_system_message_to_user(user, template=template)
+                c = {
+                    'token': default_token_generator.make_token(user),
+                }
+                send_system_message_to_user(user, template=template, c=c)
                 return redirect("accounts:forgot_password_done")
             except MultipleObjectsReturned:
                 # Should not happen because we don't allow multiple users to share an email.
@@ -345,7 +348,10 @@ def create_user(request):
                 Patient.objects.create(user=new_user)
 
             template = Messages.REGISTER_USER
-            send_system_message_to_user(new_user, template=template)
+            c = {
+                'token': default_token_generator.make_token(new_user),
+            }
+            send_system_message_to_user(new_user, template=template, c=c)
 
             return redirect("accounts:list_users")
 
