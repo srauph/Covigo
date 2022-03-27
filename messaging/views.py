@@ -227,11 +227,11 @@ def list_notifications(request):
 
     # Only for the notifications list, reformat the message groups titles to not include the hrefs
     for i in message_group:
-        a = re.sub("<a href=", "", i['title'])
+        a = re.sub("<span class='notification-link' data-href=", "", i['title'])
         a = re.sub(">.*", "", a)
 
-        i['title'] = re.sub("<a href=[^>]*>", "", i['title'])
-        i['title'] = re.sub("</a>", "", i['title'])
+        i['title'] = re.sub("<span class='notification-link' data-href=[^>]*>", "", i['title'])
+        i['title'] = re.sub("</span>", "", i['title'])
 
         # Create new "attribute" to hold the href for the notification
         i['link'] = a
