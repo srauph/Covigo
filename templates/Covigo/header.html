@@ -8,10 +8,9 @@
     <script>
         //Timeago was not working without using jquery like this:
         var $j = jQuery.noConflict();
-        $j(document).ready(function () {
-            $j("time.timeago").timeago();
-        });
-        $j(document).ready(function () {
+
+        //This function will be called once when the page loads, and again every 15 seconds to refresh notifications
+        function initialize() {
             $j.ajax({
                 type: "GET",
                 url: "{% url 'messaging:get_notifications' %}",
@@ -22,10 +21,12 @@
                 success: function (response) {
                     const allNotifications = response.data.notifications;
 
+                    $j("#notification-list").empty();
+
                     for (let i = 0; i < allNotifications.length; i++) {
                         let dateObj = new Date(allNotifications[i].date_created);
 
-                        let li = "<li data-notif-id="+allNotifications[i].id+" id='notification-item' class='notification-item flex items-center px-4 py-3 border-b h-14 min-h-full text-gray-700 hover:bg-slate-100 text-left relative'" + " value=" + allNotifications[i].id + ">"
+                        let li = "<li data-notif-id=" + allNotifications[i].id + " id='notification-item' class='notification-item flex items-center px-4 py-3 border-b h-14 min-h-full text-gray-700 hover:bg-slate-100 text-left relative'" + " value=" + allNotifications[i].id + ">"
                             + "<div class='font-bold absolute top-1.5'>" + allNotifications[i].title + "</div>"
                             + "<div class='absolute bottom-0.5'>"
                             + "<svg xmlns='http://www.w3.org/2000/svg' class='pr-1 h-5 w-5 inline-block pb-0.5 ' viewBox='0 0 20 20'fill='currentColor'><path fill-rule='evenodd'd='M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z'clip-rule='evenodd'/> <title>Time</title> </svg>"
@@ -60,7 +61,13 @@
 
                 }
             });
+        }
 
+        $j(document).ready(function () {
+            $j("time.timeago").timeago();
+        });
+        $j(document).ready(function () {
+            initialize();
 
             //Open and close the notification dropdown
             $j('#notification-icon').click(function () {
@@ -74,29 +81,34 @@
             });
         });
 
+        function refreshNotifications() {
+            initialize();
+            //refresh notifications every 15 seconds
+            setTimeout(refreshNotifications, 15000);
+        }
+
+        refreshNotifications();
+
         //Delay execution of opening the href link of the notification item to make it read beforehand
-        $j(document).on('click','.notification-item', function(){
+        $j(document).on('click', '.notification-item', function () {
 
             //Get the notification id (message group object id)
             var notif_id = $j(this).attr('data-notif-id');
             var _this = $j(this)
 
-             let url = "{% url 'read_notification' 999999999 %}";
-                        url = url.replace(999999999, notif_id);
-                        $j.ajax({
-                           method: 'POST',
-                           url: url,
-                           data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
-                           dataType: 'html',
-                            success: function(html){
-                               //Continue execution of href link
-                              window.location.replace(_this.find('.notification-link').attr('data-href'));
-                            }
-                        });
+            let url = "{% url 'read_notification' 999999999 %}";
+            url = url.replace(999999999, notif_id);
+            $j.ajax({
+                method: 'POST',
+                url: url,
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+                dataType: 'html',
+                success: function (html) {
+                    //Continue execution of href link
+                    window.location.replace(_this.find('.notification-link').attr('data-href'));
+                }
+            });
         });
-
-
-
 
     </script>
 {% endblock %}
