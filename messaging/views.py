@@ -242,6 +242,7 @@ def list_notifications(request):
             notification = MessageGroup.objects.filter(id=notif).first()
             notification.recipient_seen = True
             notification.save()
+        return redirect('/notifications')
 
     if request.method == 'POST' and request.POST.get('mark_selected_notifications_unread'):
         selected_notification_ids = request.POST.getlist('selected_notification_ids[]')
@@ -249,6 +250,7 @@ def list_notifications(request):
             notification = MessageGroup.objects.filter(id=notif).first()
             notification.recipient_seen = False
             notification.save()
+        return redirect('/notifications')
 
 
     return render(request, 'notifications/list_notifications.html', {
