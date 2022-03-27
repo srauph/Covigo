@@ -106,3 +106,12 @@ def is_appointment_and_availability_same_datetime(appointment, availability):
 
     return appointment.start_date == availability.start_date and appointment.end_date == availability.end_date
 
+
+def convert_dict_of_bools_to_list(dict_to_process):
+    output_list = []
+
+    for i in dict_to_process:
+        if dict_to_process[i]:
+            output_list.append(i)
+
+    return output_list

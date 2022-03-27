@@ -25,7 +25,7 @@ from accounts.utils import (
     send_system_message_to_user,
 )
 from appointments.models import Appointment
-from appointments.utils import rebook_appointment_with_new_doctor
+from appointments.utils import rebook_appointment_with_new_doctor, convert_dict_of_bools_to_list
 from symptoms.utils import is_symptom_editing_allowed
 
 
@@ -422,7 +422,13 @@ def edit_preferences(request, user_id):
             return redirect("accounts:list_users")
     # Create forms
     else:
-        preferences_form = EditPreferencesForm()
+        old_preferences = dict()
+
+        if profile.preferences:
+            for preference in profile.preferences:
+                old_preferences[preference] = convert_dict_of_bools_to_list(profile.preferences[preference])
+
+        preferences_form = EditPreferencesForm(old_preferences)
 
     return render(request, "accounts/edit_preferences.html", {
         "preferences_form": preferences_form,
