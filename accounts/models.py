@@ -12,6 +12,7 @@ class Profile(models.Model):
     phone_number = models.CharField(max_length=255, blank=True)
     address = models.TextField(blank=True)
     postal_code = models.CharField(max_length=255, blank=True)
+    preferences = models.JSONField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.user}_profile"
@@ -64,7 +65,10 @@ class Patient(models.Model):
     code = models.CharField(max_length=255)
 
     def get_assigned_staff_user(self):
-        return self.assigned_staff.user
+        try:
+            return self.assigned_staff.user
+        except AttributeError:
+            return None
 
     def __str__(self):
         return f"{self.user}_patient"

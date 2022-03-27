@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-
+import json
 from pathlib import Path
 from dotenv import load_dotenv
 from os import getenv
@@ -29,7 +29,7 @@ PRODUCTION_MODE = getenv("PRODUCTION_MODE") == "True"
 
 if PRODUCTION_MODE:
     DEBUG = False
-    ALLOWED_HOSTS = getenv("ALLOWED_HOSTS")
+    ALLOWED_HOSTS = json.loads(getenv("ALLOWED_HOSTS"))
     STATIC_ROOT = getenv("STATIC_ROOT")
     SECRET_KEY = getenv("SECRET_KEY")
     CSRF_COOKIE_SECURE = True
@@ -37,10 +37,13 @@ if PRODUCTION_MODE:
     HOST_NAME = 'https://covigo.ddns.net'
     STATICFILES_DIRS = [BASE_DIR / 'static',]
 else:
+    try:
+        ALLOWED_HOSTS = json.loads(getenv("ALLOWED_HOSTS"))
+    except TypeError:
+        ALLOWED_HOSTS = []
     DEBUG = True
-    ALLOWED_HOSTS = []
     SECRET_KEY = 'django-insecure-)hrxs16w-%lr2@k@!rfq!lwem55i%uv$7qhiktrme63j!2+1(f'
-    HOST_NAME = 'http://127.0.0.1:8000'
+    HOST_NAME = 'http://localhost:8000'
 
 # Application definition
 
@@ -139,6 +142,7 @@ LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'US/Eastern'
 DATETIME_FORMAT = '%d-%m-%Y %H:%M:%S'
 L10N=False
+
 USE_I18N = False
 
 USE_TZ = False

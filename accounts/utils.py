@@ -1,9 +1,8 @@
 import os.path
-import shortuuid
 import smtplib
+import shortuuid
 
 from django.contrib.auth.models import User
-from django.contrib.auth.tokens import default_token_generator
 from django.db import IntegrityError
 from django.db.models import Q
 from django.template.loader import render_to_string
@@ -11,10 +10,12 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
 from Covigo.settings import HOST_NAME
-
 from accounts.models import Flag, Staff, Patient
+from accounts.preferences import SystemMessagesPreference
 from pathlib import Path
-from qrcode import make
+from twilio.base.exceptions import TwilioRestException
+from twilio.rest import Client
+from qrcode.main import make
 from qrcode.image.pil import PilImage
 
 
@@ -59,32 +60,13 @@ def get_superuser_staff_model():
         return None
 
 
-def generate_and_send_email(user, subject, template):
-    """
-    Generate and send a "reset password" email for a user
-    @param user: The user whose password is to be reset
-    @param subject: The name to give the email's subject
-    @param template: The template to use for the email to send
-    @return: void
-    """
-    c = {
-        'email': user.email,
-        'host_name': HOST_NAME,
-        'site_name': 'Covigo',
-        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-        'user': user,
-        'token': default_token_generator.make_token(user),
-    }
-    email = render_to_string(template, c)
-    send_email_to_user(user, subject, email)
-
-
-def send_email_to_user(user, subject, message):
+#takes a user, subject, and body as params and sends the user an email
+def send_email_to_user(user, subject, body):
     """
     Send an email to a user
     @param user: The user to send the email to
     @param subject: The subject of the email to send
-    @param message: The message of the email to send
+    @param body: The body of the email to send
     @return: void
     """
     s = smtplib.SMTP('smtp.gmail.com', 587)
@@ -92,14 +74,77 @@ def send_email_to_user(user, subject, message):
     email = 'shahdextra@gmail.com'
     pwd = 'roses12345!%'
     s.login(email, pwd)
-    s.sendmail(email, user.email, f"Subject: {subject}\n{message}")
+    s.sendmail(email, user.email, f"Subject: {subject}\n{body}")
     s.quit()
+    return None
 
 
-def get_or_generate_patient_code(patient):
+# takes a user, user's phone number, and body as params and sends a text body
+def send_sms_to_user(user, body):
+    account = "AC77b343442a4ec3ea3d0258ea5c597289"
+    token = "f9a14a572c2ab1de3683c0d65f7c962b"
+    client = Client(account, token)
+
+    try:
+        body = client.messages.create(to=user.profile.phone_number, from_="+16626727846",
+                                      body=body)
+    except TwilioRestException as e:
+        print(e)
+
+    return None
+
+
+def _send_system_message_from_template(user, template, c=None, is_email=True):
+    """
+    Generate and send a system message a user
+    @param user: The user who the system message should be sent to
+    @param template: The template to use for the system message to send
+    @param c: Context variables to use to generate the system message
+    @param is_email: Whether the system message is an email or not
+    @return: void
+    """
+
+    if not c:
+        c = dict()
+
+    c['email'] = user.email
+    c['host_name'] = HOST_NAME
+    c['site_name'] = 'Covigo'
+    c['user'] = user
+    c['uid'] = urlsafe_base64_encode(force_bytes(user.pk))
+
+    if is_email:
+        body = template["body"]
+        subject = template["subject"]
+        email = render_to_string(body, c)
+        send_email_to_user(user, subject, email)
+    else:
+        body = template
+        message = render_to_string(body, c)
+        send_sms_to_user(user, message)
+
+
+def send_system_message_to_user(user, message=None, template=None, subject=None, c=None):
+    preferences = user.profile.preferences[SystemMessagesPreference.NAME.value]
+
+    if user.email and (not preferences or preferences[SystemMessagesPreference.EMAIL.value]):
+        if template:
+            _send_system_message_from_template(user, template.get("email"), c, is_email=True)
+        else:
+            send_email_to_user(user, message, subject)
+
+    if user.profile.phone_number and (not preferences or preferences[SystemMessagesPreference.SMS.value]):
+        if template:
+            _send_system_message_from_template(user, template.get("sms"), c, is_email=False)
+        else:
+            send_sms_to_user(user, message)
+
+
+def get_or_generate_patient_code(patient, prefix="A"):
     """
     Get a patient's profile code or generate one if it doesn't exist
     @param patient: The patient whose code is to be fetched
+    @param prefix: The prefix to give to the code. A is the default prefix
     @return: The patient's profile code
     """
     # Shortuuid docs recommends removing characters (like 0 and O) that can be confused.
@@ -111,6 +156,8 @@ def get_or_generate_patient_code(patient):
         # Regenerate the code if it exists
         while Patient.objects.filter(code=code).exists():
             code = shortuuid.uuid()[:9]
+
+        code = prefix + code
 
         patient.code = code
         patient.save()
@@ -215,11 +262,11 @@ def get_unconfirmed_and_negative_case_count():
     return Patient.objects.filter(not_confirmed & negative).count()
 
 
-def get_unconfirmed_and_must_test_case_count():
+def get_unconfirmed_and_untested_count():
     """
     This is for cases where someone NEVER HAD COVID and DID NOT TEST YET, thus need ing to take a Covid test.
     After their test, they will either become a confirmed case or an unconfirmed, negative case.
-    @return: The number of unconfirmed cases who must test
+    @return: The number of unconfirmed cases whoa re still untested
     """
     not_confirmed = Q(is_confirmed=False)
     not_negative = Q(is_negative=False)
@@ -242,3 +289,50 @@ def get_current_confirmed_case_count():
     @return: The total number of confirmed Covid cases
     """
     return Patient.objects.filter(is_confirmed=True).count()
+
+
+def get_assigned_staff_id_by_patient_id(patient_id):
+    """
+    Returns the staff id of the assigned user for the patient.
+    @param patient_id: patient user id
+    @return: assigned staff id or else 0
+    """
+    try:
+        return Patient.objects.values_list('assigned_staff_id', flat=True).get(user_id=patient_id)
+    except Exception:
+        return 0
+
+
+def get_users_names(user_id):
+    """
+    Returns the users first name and last name
+    @param user_id: the user's user id
+    @return: a string containing the users first and last name else empty string
+    """
+    try:
+        user = User.objects.get(id=user_id)
+        return f"{user.first_name} {user.last_name}"
+    except User.DoesNotExist:
+        return ""
+
+
+def get_is_staff(user_id):
+    """
+    Returns the is_staff column for a user id in the user table
+    @param user_id: the user's user id
+    @return: is_staff column else -1 if the user does not exist
+    """
+    try:
+        return User.objects.get(id=user_id).is_staff
+    except User.DoesNotExist:
+        return -1
+
+
+def convert_dict_of_bools_to_list(dict_to_process):
+    output_list = []
+
+    for i in dict_to_process:
+        if dict_to_process[i]:
+            output_list.append(i)
+
+    return output_list

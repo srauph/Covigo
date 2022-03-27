@@ -1,9 +1,9 @@
 from django.contrib.auth.models import User, Group, Permission
-from django.test import TestCase,TransactionTestCase, RequestFactory, Client
+from django.test import TestCase, TransactionTestCase, RequestFactory, Client
 from django.urls import reverse
+from unittest import mock, skip
 
-from unittest import mock
-
+from Covigo.messages import Messages
 from accounts.utils import get_flag
 from accounts.views import flag_user, unflag_user, profile_from_code, convert_permission_name_to_id
 from accounts.models import Flag, Patient, Staff
@@ -43,23 +43,27 @@ class ForgotPasswordTests(TestCase):
         self.assertEqual('More than one user with the given email address could be found. Please contact the system '
                          'administrators to fix this issue.', form_error_message)
 
-    def test_non_existing_user_email(self):
+    @mock.patch("accounts.views.send_system_message_to_user")
+    def test_non_existing_user_email(self, m_system_message_sender):
         """
         Test to check if user enters an email that isn't linked to any existing user
         @return: void
         """
 
         # Arrange
-        # Simulate the user entering a non-existing email in the forgot password form
-        mocked_pass_reset_form_data = {'email': 'bruh@gmail.com'}
+        # Create a new user that doesn't have duplicate email in the db
+        new_user = User.objects.create(id=3, username='qwerty')
+        subject = "Covigo - Password Reset Requested"
+        template = "reset_password"
+
+        # Simulate the user entering a valid in the forgot password form
+        mocked_pass_reset_form_data = {'email': 'bruh@lol.com'}
 
         # Act
-        response = self.client.post(reverse('accounts:forgot_password'), mocked_pass_reset_form_data)
-
-        form_error_message = list(response.context['form'].errors.values())[0][0]
+        self.request.POST = self.client.post(reverse('accounts:forgot_password'), mocked_pass_reset_form_data)
 
         # Assert
-        self.assertEqual('No user with the given email address could be found.', form_error_message)
+        m_system_message_sender.assert_not_called()
 
     def test_empty_email(self):
         """
@@ -81,19 +85,22 @@ class ForgotPasswordTests(TestCase):
         self.assertEqual('This field is required.', form_error_message_1)
         self.assertEqual('Please enter a valid email address or phone number.', form_error_message_2)
 
-    @mock.patch('accounts.views.generate_and_send_email')
-    def test_forgot_password_calls_reset_password_email_generator(self, m_email_generator_and_sender):
+    @mock.patch('accounts.views.default_token_generator.make_token', return_value="token")
+    @mock.patch('accounts.views.send_system_message_to_user')
+    def test_forgot_password_calls_system_message_sender(self, m_system_message_sender, m_token_generator):
         """
         Test to check that forgot_password() calls reset_password_email_generator()
-        @param m_email_generator_and_sender:
+        @param m_system_message_sender:
         @return: void
         """
 
         # Arrange
-        # Create a new user that doesn't have duplicate emails in the db
+        # Create a new user that doesn't have duplicate email in the db
         new_user = User.objects.create(id=3, email='qwerty@gmail.com', username='qwerty')
-        subject = "Covigo - Password Reset Requested"
-        template = "accounts/messages/reset_password_email.html"
+        template = Messages.RESET_PASSWORD.value
+        c = {
+            'token': "token",
+        }
 
         # Simulate the user entering a valid in the forgot password form
         mocked_pass_reset_form_data = {'email': 'qwerty@gmail.com'}
@@ -102,19 +109,18 @@ class ForgotPasswordTests(TestCase):
         self.request.POST = self.client.post(reverse('accounts:forgot_password'), mocked_pass_reset_form_data)
 
         # Assert
-        m_email_generator_and_sender.assert_called_once_with(new_user, subject, template)
+        m_system_message_sender.assert_called_once_with(new_user, template=template, c=c)
 
-    def test_forgot_password_redirects_to_done(self):
+    @mock.patch("accounts.views.send_system_message_to_user")
+    def test_forgot_password_redirects_to_done(self, m_system_message_sender):
         """
         Test to check that completin the forgot password form redirects to the forgot password done page
         @return:
         """
 
         # Arrange
-        # Create a new user that doesn't have duplicate emails in the db
+        # Create a new user that doesn't have duplicate email in the db
         new_user = User.objects.create(id=3, email='qwerty@gmail.com', username='qwerty')
-        subject = "Password Reset Requested"
-        template = "accounts/authentication/reset_password_email.txt"
 
         # Simulate the user entering a non-existing email in the forgot password form
         mocked_pass_reset_form_data = {'email': 'qwerty@gmail.com'}
@@ -266,7 +272,7 @@ class ListOrViewAccountTests(TestCase):
         self.assertTemplateNotUsed(response, 'accounts/profile.html')
 
     @mock.patch('accounts.views.get_or_generate_patient_profile_qr')
-    def test_profile_logged_in(self, m_generate_profile_qr_function):
+    def test_profile_logged_in(self, m_get_or_generate_patient_profile_qr_function):
         """
         Test that checks if logged-in users can view user profiles
         @return: void
@@ -277,10 +283,10 @@ class ListOrViewAccountTests(TestCase):
 
         # Assert
         self.assertTemplateUsed(response, 'accounts/profile.html')
-        m_generate_profile_qr_function.assert_called_once()
+        m_get_or_generate_patient_profile_qr_function.assert_called_once()
 
     @mock.patch('accounts.views.get_or_generate_patient_profile_qr')
-    def test_profile_from_code(self, m_generate_profile_qr_function):
+    def test_profile_from_code(self, m_get_or_generate_patient_profile_qr_function):
         """
         Test that checks if not logged-in users can view user profiles qr codes using the profile codes
         @return: void
@@ -296,23 +302,24 @@ class ListOrViewAccountTests(TestCase):
         profile_from_code(request, 1)
 
         # Assert
-        m_generate_profile_qr_function.assert_called_once()
+        m_get_or_generate_patient_profile_qr_function.assert_called_once()
 
 
-class CreateAccountTests(TransactionTestCase):
+class AccountsTestCase(TransactionTestCase):
 
     # this makes sure that the database ids reset to 1 for every test (especially important for
-    # the test "test_user_can_edit_symptom_and_return" when dealing with fetching symptom ids from the database)
+    # the test "test_user_can_edit_existing_user_account" when dealing with fetching user ids from the database)
     reset_sequences = True
 
     def setUp(self):
         """
         initialization of data to be run before every test. Note that not all data initialized here is used
         necessarily in all tests and the decision to include "all" of them here was more for readability choice
-        than anything else (for example, "edited_mocked_form_data2" and "edited_mocked_form_data3" are only ever
-        used in one test: "test_user_can_edit_symptom_and_return")
+        than anything else (for example, "edited_mocked_form_data2" to "edited_mocked_form_data10" are only ever
+        used in one test: "test_user_can_edit_existing_user_account")
         :return: void
         """
+
         self.user = User.objects.create(username='admin')
         self.staff = Staff.objects.create(user=self.user)
         self.user.set_password('admin')
@@ -359,10 +366,13 @@ class CreateAccountTests(TransactionTestCase):
         self.assertTrue(User.objects.all().count() == 1)
         self.assertEqual('Please enter an email address or a phone number.', list(self.response.context['user_form'].errors['__all__'])[0])
 
-    def test_user_can_create_new_user_account(self):
+    @skip
+    @mock.patch("accounts.views.send_sms_to_user")
+    @mock.patch("accounts.views.generate_and_send_email")
+    def test_user_can_create_new_user_account(self, m_email_sender, m_sms_sender):
         """
         this test allows us to test for if an account that is submitted through a form
-        (with the "create" or "create and return" buttons) ends up actually being indeed added to the database or not
+        (with the "Create" or "Create and Return" buttons) ends up actually being indeed added to the database or not
         :return: void
         """
 
@@ -397,9 +407,9 @@ class CreateAccountTests(TransactionTestCase):
         self.assertEqual(self.mocked_form_data4['is_staff'], User.objects.get(id=4).is_staff)
         self.assertEqual(User.objects.get(id=3).groups.get().id, User.objects.get(id=4).groups.get().id)
 
-        # here, I am testing for the valid email address form error message by making sure that it works:
+        # here, I am testing for the valid email address form error body by making sure that it works:
         # If I use a non-valid email address inside mocked form data and try to call a POST request on it,
-        # I should expect the error message to be shown on the view, alerting me of my mistake,
+        # I should expect the error body to be shown on the view, alerting me of my mistake,
         # and prevent me from creating an account in the database, thus my database user count
         # should not increase (intended behaviour)
         self.response = self.client.post(reverse('accounts:create_user'), self.mocked_form_data5)
@@ -418,9 +428,9 @@ class CreateAccountTests(TransactionTestCase):
         self.assertEqual('Email already in use by another user.', list(self.response.context['user_form'].errors['email'])[0])
         self.assertEqual('Phone number already in use by another user.', list(self.response.context['profile_form'].errors['phone_number'])[0])
 
-        # here, I am testing for the multiple groups/roles form error message by making sure that it works:
+        # here, I am testing for the multiple groups/roles form error body by making sure that it works:
         # If I try to post mocked form data that contains more than one group/role by calling a POST request on it,
-        # I should expect the error message to be shown on the view, alerting me of my mistake,
+        # I should expect the error body to be shown on the view, alerting me of my mistake,
         # and prevent me from creating an account in the database, thus my database user count
         # should not increase (intended behaviour)
         self.response = self.client.post(reverse('accounts:create_user'), self.mocked_form_data6)
@@ -428,7 +438,10 @@ class CreateAccountTests(TransactionTestCase):
         self.assertTrue(User.objects.all().count() == 4)
         self.assertEqual('Cannot select more than one group.', list(self.response.context['user_form']['groups'].errors)[0])
 
-    def test_user_can_edit_existing_user_account(self):
+    @skip
+    @mock.patch("accounts.views.send_sms_to_user")
+    @mock.patch("accounts.views.generate_and_send_email")
+    def test_user_can_edit_existing_user_account(self, m_email_sender, m_sms_sender):
         """
         this test allows us to test for if an account that is edited and submitted through a form
         ends up actually being indeed properly edited in the list of users and in the database or not
@@ -497,9 +510,9 @@ class CreateAccountTests(TransactionTestCase):
         self.assertEqual(User.objects.get(id=2).groups.get().id, User.objects.get(id=4).groups.get().id)
 
         # here, I am testing for the empty edited username field (in another already existing account)
-        # form error message by making sure that it works: If I try to submit edited mocked form data
-        # with no username by calling a POST request on it, I should expect the error message to be shown
-        # on the view as the form should return the error message and alert me of my mistake (intended behaviour)
+        # form error body by making sure that it works: If I try to submit edited mocked form data
+        # with no username by calling a POST request on it, I should expect the error body to be shown
+        # on the view as the form should return the error body and alert me of my mistake (intended behaviour)
         self.response = self.client.post(
             reverse('accounts:edit_user',
                     kwargs={'user_id': User.objects.get(id=4).id}
@@ -508,10 +521,10 @@ class CreateAccountTests(TransactionTestCase):
         )
         self.assertEqual('This field is required.', list(self.response.context['user_form'].errors.values())[0][0])
 
-        # here, I am testing for the valid email address form error message by making sure that it works:
+        # here, I am testing for the valid email address form error body by making sure that it works:
         # If I try to submit edited mocked form data with a non-valid email address by calling a POST request on it,
-        # I should expect the error message to be shown on the view as the form should return
-        # the error message and alert me of my mistake (intended behaviour)
+        # I should expect the error body to be shown on the view as the form should return
+        # the error body and alert me of my mistake (intended behaviour)
         self.response = self.client.post(
             reverse('accounts:edit_user',
                     kwargs={'user_id': User.objects.get(id=4).id}
@@ -521,10 +534,10 @@ class CreateAccountTests(TransactionTestCase):
 
         self.assertEqual('Enter a valid email address.', list(self.response.context['user_form'].errors['email'])[0])
 
-        # here, I am testing for the empty edited email and phone number fields form error message by making sure that it works:
+        # here, I am testing for the empty edited email and phone number fields form error body by making sure that it works:
         # If I try to submit edited mocked form data with no email and phone number by calling a POST request on it,
-        # I should expect the error message to be shown on the view as the form should return
-        # the error message and alert me of my mistake (intended behaviour)
+        # I should expect the error body to be shown on the view as the form should return
+        # the error body and alert me of my mistake (intended behaviour)
         self.response = self.client.post(
             reverse('accounts:edit_user',
                     kwargs={'user_id': User.objects.get(id=4).id}
@@ -534,10 +547,10 @@ class CreateAccountTests(TransactionTestCase):
 
         self.assertEqual('Please enter an email address or a phone number.', list(self.response.context['user_form'].errors['__all__'])[0])
 
-        # here, I am testing for the multiple groups/roles form error message by making sure that it works:
+        # here, I am testing for the multiple groups/roles form error body by making sure that it works:
         # If I try to post edited mocked form data that contains more than one group/role by calling a POST request on it,
-        # I should expect the error message to be shown on the view as the form should return
-        # the error message and alert me of my mistake (intended behaviour)
+        # I should expect the error body to be shown on the view as the form should return
+        # the error body and alert me of my mistake (intended behaviour)
         self.response = self.client.post(
             reverse('accounts:edit_user',
                     kwargs={'user_id': User.objects.get(id=4).id}

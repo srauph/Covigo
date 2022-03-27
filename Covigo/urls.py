@@ -17,10 +17,10 @@ from django.contrib import admin
 from django.shortcuts import redirect
 from django.urls import path, include
 
+from Covigo.settings import PRODUCTION_MODE
 
 urlpatterns = [
     path('', lambda request: redirect('dashboard:index'), name='index'),
-    path('admin/', admin.site.urls),
     path('management/', include('manager.urls')),
     path('accounts/', include('accounts.urls')),
     path('dashboard/', include('dashboard.urls')),
@@ -29,3 +29,6 @@ urlpatterns = [
     path('messaging/', include('messaging.urls')),
     path('symptoms/', include('symptoms.urls')),
 ]
+
+if not PRODUCTION_MODE:
+    urlpatterns.append(path('admin/', admin.site.urls))

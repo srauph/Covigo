@@ -1,10 +1,12 @@
-from django.contrib.auth import update_session_auth_hash
+import datetime
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView, PasswordChangeView
 from django.core.exceptions import MultipleObjectsReturned
+from django.db.models import Q
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
@@ -13,13 +15,20 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 
+from Covigo.messages import Messages
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
+from accounts.preferences import SystemMessagesPreference
 from accounts.utils import (
-    generate_and_send_email,
+    convert_dict_of_bools_to_list,
     get_or_generate_patient_profile_qr,
-    get_user_from_uidb64
+    get_assigned_staff_id_by_patient_id,
+    get_user_from_uidb64,
+    send_system_message_to_user,
 )
+from appointments.models import Appointment
+from appointments.utils import rebook_appointment_with_new_doctor
+from symptoms.utils import is_symptom_editing_allowed
 
 
 class GroupErrors:
@@ -68,6 +77,11 @@ def convert_permission_name_to_id(request):
         permission_array.append(permission_id)
     return permission_array
 
+@login_required
+@never_cache
+def two_factor_authentication(request):
+    return render(request, 'accounts/authentication/2FA.html')
+
 
 @never_cache
 def forgot_password(request):
@@ -77,14 +91,19 @@ def forgot_password(request):
             data = password_reset_form.cleaned_data['email']
             try:
                 user = User.objects.get(email=data)
-                subject = "Covigo - Password Reset Requested"
-                template = "accounts/messages/reset_password_email.html"
-                generate_and_send_email(user, subject, template)
+                template = Messages.RESET_PASSWORD.value
+                c = {
+                    'token': default_token_generator.make_token(user),
+                }
+                send_system_message_to_user(user, template=template, c=c)
                 return redirect("accounts:forgot_password_done")
             except MultipleObjectsReturned:
+                # Should not happen because we don't allow multiple users to share an email.
+                # This can only occur if the database is corrupted somehow
                 password_reset_form.add_error(None, "More than one user with the given email address could be found. Please contact the system administrators to fix this issue.")
             except User.DoesNotExist:
-                password_reset_form.add_error(None, "No user with the given email address could be found.")
+                # Don't let the user know if the email does not exist in our system
+                return redirect("accounts:forgot_password_done")
         else:
             password_reset_form.add_error(None, "Please enter a valid email address or phone number.")
     else:
@@ -185,9 +204,8 @@ class ChangePasswordView(PasswordChangeView):
         # Uncomment this line to enable the following behaviour:
         # Updating the password logs out all other sessions for the user except the current one.
         # update_session_auth_hash(self.request, form.user)
-        subject = "Covigo - Password Changed"
-        template = "accounts/messages/user_changed_password_email.html"
-        generate_and_send_email(form.user, subject, template)
+        template = Messages.CHANGED_PASSWORD.value
+        send_system_message_to_user(form.user, template=template)
         return HttpResponseRedirect(self.get_success_url())
 
 
@@ -212,8 +230,68 @@ def change_password_done(request):
 @never_cache
 def profile(request, user_id):
     user = User.objects.get(id=user_id)
-    image = get_or_generate_patient_profile_qr(user_id)
-    return render(request, 'accounts/profile.html', {"qr": image, "usr": user, "full_view": True})
+
+    # messages_filter = Q(author_id=user_id) | Q(recipient_id=user_id)
+    # message_group = MessageGroup.objects.filter(messages_filter).order_by('-date_updated')[:3]
+    today = datetime.date.today()
+    all_filter = Q(patient__isnull=False) & Q(start_date__gte=today)
+
+    if user.is_staff:
+        all_appointments = Appointment.objects.filter(staff=user).filter(all_filter).order_by("start_date")[:4]
+    else:
+        appointments = Appointment.objects.filter(patient=user).filter(all_filter).order_by("start_date")[:4]
+
+    if not user.is_staff:
+        if request.method == "POST":
+            doctor_staff_id = request.POST.get('doctor_id')
+
+            # rebooks previously booked appointments with the old doctor with the new doctor if the new doctor has
+            # an availability at the same day and time as the previously booked appointment
+            rebook_appointment_with_new_doctor(doctor_staff_id, get_assigned_staff_id_by_patient_id(user_id), user)
+            user.patient.assigned_staff_id = doctor_staff_id
+            user.patient.save()
+
+        qr = get_or_generate_patient_profile_qr(user_id)
+        assigned_staff = user.patient.get_assigned_staff_user()
+        appointments = Appointment.objects.filter(patient=user).filter(all_filter).order_by("start_date")
+        appointments_truncated = appointments[:4]
+        try:
+            assigned_staff_patient_count = user.patient.assigned_staff.get_assigned_patient_users().count()
+        except AttributeError:
+            assigned_staff_patient_count = 0
+        assigned_flags = Flag.objects.filter(patient=user)
+
+        # TODO: Remove this group name and replace with permission instead
+        all_doctors = User.objects.filter(groups__name='doctor')
+        # all_doctors = User.objects.filter(is_staff=True)
+
+        return render(request, 'accounts/profile.html', {
+            "usr": user,
+            "appointments": appointments,
+            "appointments_truncated": appointments_truncated,
+            "qr": qr,
+            "assigned_staff": assigned_staff,
+            "assigned_staff_patient_count": assigned_staff_patient_count,
+            "assigned_flags": assigned_flags,
+            "full_view": True,
+            "allow_editing": is_symptom_editing_allowed(user_id),
+            "all_doctors": all_doctors,
+        })
+
+    else:
+        appointments = Appointment.objects.filter(staff=user).filter(all_filter).order_by("start_date")
+        appointments_truncated = appointments[:4]
+        assigned_patients = user.staff.get_assigned_patient_users()
+        issued_flags = Flag.objects.filter(staff=user)
+
+        return render(request, 'accounts/profile.html', {
+            "usr": user,
+            "appointments": appointments,
+            "appointments_truncated": appointments_truncated,
+            "assigned_patients": assigned_patients,
+            "issued_flags": issued_flags,
+            "full_view": True
+        })
 
 
 @never_cache
@@ -271,10 +349,12 @@ def create_user(request):
                 # TODO: discuss if we should keep this behaviour for now or make Patient.staff nullable instead.
                 Patient.objects.create(user=new_user)
 
-            if has_email:
-                subject = "Covigo - Account Registration"
-                template = "accounts/messages/register_user_email.html"
-                generate_and_send_email(new_user, subject, template)
+            template = Messages.REGISTER_USER.value
+            c = {
+                'token': default_token_generator.make_token(new_user),
+            }
+
+            send_system_message_to_user(new_user, template=template, c=c)
 
             return redirect("accounts:list_users")
 
@@ -303,7 +383,7 @@ def edit_user(request, user_id):
         profile_form = EditProfileForm(request.POST, instance=user.profile, user_id=user_id)
 
         if process_register_or_edit_user_form(request, user_form, profile_form, mode="Edit"):
-            return redirect("accounts:list_users")
+            return redirect("accounts:profile", user_id)
 
     # Create forms
     else:
@@ -314,6 +394,45 @@ def edit_user(request, user_id):
         "user_form": user_form,
         "profile_form": profile_form,
         "edited_user": user
+    })
+
+
+@login_required
+@never_cache
+def edit_preferences(request, user_id):
+    profile = User.objects.get(id=user_id).profile
+
+    # Process forms
+    if request.method == "POST":
+        preferences_form = EditPreferencesForm(request.POST)
+
+        if preferences_form.is_valid():
+            system_msg_preferences = preferences_form.cleaned_data.get(SystemMessagesPreference.NAME.value)
+
+            preferences = {
+                SystemMessagesPreference.NAME.value: {
+                    SystemMessagesPreference.EMAIL.value: "use_email" in system_msg_preferences,
+                    SystemMessagesPreference.SMS.value: "use_sms" in system_msg_preferences
+                }
+            }
+
+            profile.preferences = preferences
+            profile.save()
+
+            return redirect("accounts:profile", user_id)
+    # Create forms
+    else:
+        if profile.preferences:
+            old_preferences = dict()
+            for preference in profile.preferences:
+                old_preferences[preference] = convert_dict_of_bools_to_list(profile.preferences[preference])
+
+            preferences_form = EditPreferencesForm(old_preferences)
+        else:
+            preferences_form = EditPreferencesForm()
+
+    return render(request, "accounts/edit_preferences.html", {
+        "preferences_form": preferences_form,
     })
 
 

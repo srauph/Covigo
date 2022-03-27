@@ -1,15 +1,14 @@
 import accounts.utils
-
 from django.contrib.auth.models import User
 from django.test import TestCase
-
 from unittest import mock
 
+from Covigo.messages import Messages
 from accounts.models import Flag, Staff
 from accounts.utils import (
     get_flag,
     get_superuser_staff_model,
-    generate_and_send_email,
+    _send_system_message_from_template,
     send_email_to_user,
     get_or_generate_patient_code,
     get_or_generate_patient_profile_qr
@@ -74,6 +73,7 @@ class GetSuperuserStaffModelTests(TestCase):
         Test that for a superuser without a staff object, one is created and assigned to it, and returned
         @return: void
         """
+
         # Arrange
         self.superuser = User.objects.create(username="admin", is_superuser=True)
 
@@ -105,8 +105,7 @@ class GetSuperuserStaffModelTests(TestCase):
 class ResetEmailPasswordGeneratorTests(TestCase):
     def setUp(self):
         self.user = User.objects.create(username="user")
-        self.subject = "Test Subject"
-        self.template = "Test Template"
+        self.template = Messages.RESET_PASSWORD.value["email"]
 
     # NOTE: TO ANYONE WHO USES THIS AS INSPIRATION FOR DOING MULTIPLE MOCKS:
     # The decorators wrap the function and are thus loaded in "reverse order"!
@@ -123,7 +122,7 @@ class ResetEmailPasswordGeneratorTests(TestCase):
         """
 
         # Act
-        generate_and_send_email(self.user, self.subject, self.template)
+        _send_system_message_from_template(self.user, template=self.template)
 
         # Assert
         m_render_function.assert_called_once()
@@ -139,10 +138,10 @@ class ResetEmailPasswordGeneratorTests(TestCase):
         """
 
         # Act
-        generate_and_send_email(self.user, self.subject, self.template)
+        _send_system_message_from_template(self.user, template=self.template)
 
         # Assert
-        m_send_email_function.assert_called_once_with(self.user, self.subject, "email")
+        m_send_email_function.assert_called_once_with(self.user, self.template["subject"], "email")
 
 
 class SendEmailToUserTests(TestCase):
@@ -153,15 +152,16 @@ class SendEmailToUserTests(TestCase):
         @param m_smtp: smtplib library mock
         @return: void
         """
+
         # Arrange
         user = User.objects.create(email="test@email.com")
         m_instance = m_smtp.SMTP.return_value
         sender_email = 'shahdextra@gmail.com'
         sender_pass = 'roses12345!%'
-        email_contents = f"Subject: test subject\ntest message"
+        email_contents = f"Subject: test subject\ntest body"
 
         # Act
-        send_email_to_user(user, "test subject", "test message")
+        send_email_to_user(user, "test subject", "test body")
 
         # Assert
         m_smtp.SMTP.assert_called_once_with('smtp.gmail.com', 587)

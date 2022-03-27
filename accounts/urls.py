@@ -1,9 +1,7 @@
 from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
 from . import views
-from .forms import SetPasswordForm, ChangePasswordForm
-
-# from django.conf.urls import include
+from .forms import ResetPasswordForm
 
 app_name = 'accounts'
 urlpatterns = [
@@ -12,6 +10,7 @@ urlpatterns = [
     path('list/', views.list_users, name='list_users'),
     path('create/', views.create_user, name='create_user'),
     path('edit/<int:user_id>/', views.edit_user, name='edit_user'),
+    path('preferences/<int:user_id>/', views.edit_preferences, name='edit_preferences'),
 
     path('access_control/groups/list/', views.list_group, name='list_group'),
     path('access_control/groups/create/', views.create_group, name='create_group'),
@@ -57,7 +56,7 @@ urlpatterns = [
     path(
         'reset_password/<uidb64>/<token>/',
         auth_views.PasswordResetConfirmView.as_view(
-            form_class=SetPasswordForm,
+            form_class=ResetPasswordForm,
             template_name='accounts/authentication/reset_password.html',
             success_url=reverse_lazy('accounts:reset_password_done')
         ),
@@ -76,7 +75,7 @@ urlpatterns = [
     path(
         'register/password/<uidb64>/<token>/',
         views.RegisterPasswordResetConfirmView.as_view(
-            form_class=SetPasswordForm,
+            form_class=ResetPasswordForm,
             template_name='accounts/registration/register_user_password.html',
         ),
         name='register_user_password'
