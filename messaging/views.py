@@ -203,7 +203,6 @@ def read_notification(request, message_group_id):
     This function is called when a user clicks on a notification to make it seen before opening it
     """
     if request.method == "POST":
-
         message_group = MessageGroup.objects.get(id=message_group_id)
 
         message_group.recipient_seen = True
@@ -251,7 +250,6 @@ def list_notifications(request):
             notification.recipient_seen = False
             notification.save()
         return redirect('/notifications')
-
 
     return render(request, 'notifications/list_notifications.html', {
         'message_group': message_group,
