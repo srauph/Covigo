@@ -74,7 +74,6 @@ def view_message(request, message_group_id):
                 # Save to db
                 new_reply.save()
 
-
                 # Send notification
                 if message_group.author.id == current_user.id:
                     href = reverse('messaging:view_message', args=[message_group.id])
@@ -199,6 +198,25 @@ def toggle_read(request, message_group_id):
 
 @login_required
 @never_cache
+def read_notification(request, message_group_id):
+    """
+    This function is called when a user clicks on a notification to make it seen before opening it
+    """
+    if request.method == "POST":
+
+        message_group = MessageGroup.objects.get(id=message_group_id)
+
+        message_group.recipient_seen = True
+
+        message_group.save()
+
+        json_result = json.dumps({'success': 'Operation successful'}, cls=DjangoJSONEncoder, default=str)
+
+    return HttpResponse(json_result, content_type='application/json')
+
+
+@login_required
+@never_cache
 def list_notifications(request):
     current_user = request.user
 
@@ -209,15 +227,14 @@ def list_notifications(request):
 
     # Only for the notifications list, reformat the message groups titles to not include the hrefs
     for i in message_group:
-        a = re.sub("<a href=", "", i['title'] )
+        a = re.sub("<a href=", "", i['title'])
         a = re.sub(">.*", "", a)
 
-        i['title'] = re.sub("<a href=[^>]*>", "", i['title'] )
+        i['title'] = re.sub("<a href=[^>]*>", "", i['title'])
         i['title'] = re.sub("</a>", "", i['title'])
 
         # Create new "attribute" to hold the href for the notification
         i['link'] = a
-
 
     return render(request, 'notifications/list_notifications.html', {
         'message_group': message_group,

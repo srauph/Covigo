@@ -25,7 +25,7 @@
                     for (let i = 0; i < allNotifications.length; i++) {
                         let dateObj = new Date(allNotifications[i].date_created);
 
-                        let li = "<li class='flex items-center px-4 py-3 border-b h-14 min-h-full text-gray-700 hover:bg-slate-100 text-left relative'>"
+                        let li = "<li data-notif-id="+allNotifications[i].id+" id='notification-item' class='notification-item flex items-center px-4 py-3 border-b h-14 min-h-full text-gray-700 hover:bg-slate-100 text-left relative'" + " value=" + allNotifications[i].id + ">"
                             + "<div class='font-bold absolute top-1.5'>" + allNotifications[i].title + "</div>"
                             + "<div class='absolute bottom-0.5'>" + $j.timeago(dateObj.toISOString()) + "</div>"
                             + "</li>";
@@ -54,10 +54,11 @@
                     } else {
                         $j('#unread-notifications').removeClass('hidden');
                     }
-
                     console.log(response)
+
                 }
             });
+
 
             //Open and close the notification dropdown
             $j('#notification-icon').click(function () {
@@ -69,9 +70,32 @@
                 }
 
             });
-
-
         });
+
+        //Delay execution of opening the href link of the notification item to make it read beforehand
+        $j(document).on('click','.notification-item', function(){
+
+            //Get the notification id (message group object id)
+            var notif_id = $j(this).attr('data-notif-id');
+            var _this = $j(this)
+
+             let url = "{% url 'read_notification' 999999999 %}";
+                        url = url.replace(999999999, notif_id);
+                        $j.ajax({
+                           method: 'POST',
+                           url: url,
+                           data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+                           dataType: 'html',
+                            success: function(html){
+                               //Continue execution of href link
+                              window.location.replace(_this.find('.notification-link').attr('data-href'));
+                            }
+                        });
+        });
+
+
+
+
     </script>
 {% endblock %}
 

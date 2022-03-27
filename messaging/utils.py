@@ -24,7 +24,7 @@ def send_notification(sender_id, recipient_id, notification_message, app_name=No
         href = reverse(f"{app_name}:index")
 
     # Adding the href directly to the message group title text
-    message_with_link = f"<a href={href}>{notification_message}</a>"
+    message_with_link = f"<span class='notification-link' data-href={href}>{notification_message}</span>"
 
     notification = MessageGroup.objects.create(author_id=sender_id, recipient_id=recipient_id,
                                                title=message_with_link, type=1)
