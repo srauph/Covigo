@@ -15,14 +15,16 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 
+from Covigo.messages import Messages
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
+from accounts.preferences import SystemMessagesPreference
 from accounts.utils import (
-    generate_and_send_email,
+    convert_dict_of_bools_to_list,
     get_or_generate_patient_profile_qr,
     get_assigned_staff_id_by_patient_id,
     get_user_from_uidb64,
-    send_sms_to_user,
+    send_system_message_to_user,
 )
 from appointments.models import Appointment
 from appointments.utils import rebook_appointment_with_new_doctor
@@ -89,9 +91,11 @@ def forgot_password(request):
             data = password_reset_form.cleaned_data['email']
             try:
                 user = User.objects.get(email=data)
-                subject = "Covigo - Password Reset Requested"
-                template = "accounts/messages/reset_password_email.html"
-                generate_and_send_email(user, subject, template)
+                template = Messages.RESET_PASSWORD.value
+                c = {
+                    'token': default_token_generator.make_token(user),
+                }
+                send_system_message_to_user(user, template=template, c=c)
                 return redirect("accounts:forgot_password_done")
             except MultipleObjectsReturned:
                 # Should not happen because we don't allow multiple users to share an email.
@@ -200,9 +204,8 @@ class ChangePasswordView(PasswordChangeView):
         # Uncomment this line to enable the following behaviour:
         # Updating the password logs out all other sessions for the user except the current one.
         # update_session_auth_hash(self.request, form.user)
-        subject = "Covigo - Password Changed"
-        template = "accounts/messages/user_changed_password_email.html"
-        generate_and_send_email(form.user, subject, template)
+        template = Messages.CHANGED_PASSWORD.value
+        send_system_message_to_user(form.user, template=template)
         return HttpResponseRedirect(self.get_success_url())
 
 
@@ -346,14 +349,12 @@ def create_user(request):
                 # TODO: discuss if we should keep this behaviour for now or make Patient.staff nullable instead.
                 Patient.objects.create(user=new_user)
 
-            if has_email:
-                subject = "Covigo - Account Registration"
-                template = "accounts/messages/register_user_email.html"
-                generate_and_send_email(new_user, subject, template)
+            template = Messages.REGISTER_USER.value
+            c = {
+                'token': default_token_generator.make_token(new_user),
+            }
 
-            elif has_phone:
-                template = "accounts/messages/register_user_email.html"
-                send_sms_to_user(new_user, user_phone, template)
+            send_system_message_to_user(new_user, template=template, c=c)
 
             return redirect("accounts:list_users")
 
@@ -393,6 +394,45 @@ def edit_user(request, user_id):
         "user_form": user_form,
         "profile_form": profile_form,
         "edited_user": user
+    })
+
+
+@login_required
+@never_cache
+def edit_preferences(request, user_id):
+    profile = User.objects.get(id=user_id).profile
+
+    # Process forms
+    if request.method == "POST":
+        preferences_form = EditPreferencesForm(request.POST)
+
+        if preferences_form.is_valid():
+            system_msg_preferences = preferences_form.cleaned_data.get(SystemMessagesPreference.NAME.value)
+
+            preferences = {
+                SystemMessagesPreference.NAME.value: {
+                    SystemMessagesPreference.EMAIL.value: "use_email" in system_msg_preferences,
+                    SystemMessagesPreference.SMS.value: "use_sms" in system_msg_preferences
+                }
+            }
+
+            profile.preferences = preferences
+            profile.save()
+
+            return redirect("accounts:profile", user_id)
+    # Create forms
+    else:
+        if profile.preferences:
+            old_preferences = dict()
+            for preference in profile.preferences:
+                old_preferences[preference] = convert_dict_of_bools_to_list(profile.preferences[preference])
+
+            preferences_form = EditPreferencesForm(old_preferences)
+        else:
+            preferences_form = EditPreferencesForm()
+
+    return render(request, "accounts/edit_preferences.html", {
+        "preferences_form": preferences_form,
     })
 
 
@@ -513,11 +553,3 @@ def unflag_user(request, user_id):
             return JsonResponse({'is_flagged': f'{flag.is_active}'})
 
     return redirect("accounts:list_users")
-
-
-def convert_permission_name_to_id(request):
-    permission_array = []
-    for perm in request.POST.getlist('perms'):
-        permission_id = Permission.objects.filter(codename=perm).get().id
-        permission_array.append(permission_id)
-    return permission_array

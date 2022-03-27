@@ -105,4 +105,3 @@ def is_appointment_and_availability_same_datetime(appointment, availability):
     availability.end_date = availability.end_date.replace(microsecond=0, second=0)
 
     return appointment.start_date == availability.start_date and appointment.end_date == availability.end_date
-

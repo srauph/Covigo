@@ -2,8 +2,8 @@ from django import forms
 from django.contrib.auth import password_validation
 from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm
 from django.core.exceptions import ValidationError
+from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, Select, CharField, Form, MultipleChoiceField
 from django.db import connection
-from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, Select, CharField
 from django.contrib.auth.models import User
 from accounts.models import Profile
 from re import match, sub
@@ -11,6 +11,11 @@ from re import match, sub
 STAFF_PATIENT_CHOICES = (
     (True, 'Staff User'),
     (False, 'Patient User')
+)
+
+SYSTEM_MESSAGE_CHOICES = (
+    ("use_email", "Receive system messages by email"),
+    ("use_sms", "Receive system messages by sms"),
 )
 
 GUEST_CHARFIELD_CLASS = \
@@ -405,6 +410,18 @@ class EditProfileForm(ModelForm):
                 "Please enter a valid postal code."
             )
         return subbed_postal_code
+
+
+class EditPreferencesForm(Form):
+    system_msg_methods = MultipleChoiceField(
+        choices=SYSTEM_MESSAGE_CHOICES,
+        widget=CheckboxSelectMultiple(
+            attrs={
+                "class": CHECKBOX_CLASS
+            }
+        ),
+        required=True
+    )
 
 
 class ResetPasswordForm(SetPasswordForm):
