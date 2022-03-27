@@ -1,0 +1,5 @@
+{% autoescape off %}
+Welcome to Covigo! To complete the registration of your new Covigo account, please visit the link below.
+
+{{ host_name }}{% url 'accounts:register_user' uidb64=uid token=token %}
+{% endautoescape %}
