@@ -236,6 +236,21 @@ def list_notifications(request):
         # Create new "attribute" to hold the href for the notification
         i['link'] = a
 
+    if request.method == 'POST' and request.POST.get('mark_selected_notifications_read'):
+        selected_notification_ids = request.POST.getlist('selected_notification_ids[]')
+        for notif in selected_notification_ids:
+            notification = MessageGroup.objects.filter(id=notif).first()
+            notification.recipient_seen = True
+            notification.save()
+
+    if request.method == 'POST' and request.POST.get('mark_selected_notifications_unread'):
+        selected_notification_ids = request.POST.getlist('selected_notification_ids[]')
+        for notif in selected_notification_ids:
+            notification = MessageGroup.objects.filter(id=notif).first()
+            notification.recipient_seen = False
+            notification.save()
+
+
     return render(request, 'notifications/list_notifications.html', {
         'message_group': message_group,
     })
@@ -244,17 +259,9 @@ def list_notifications(request):
 @login_required
 @never_cache
 def toggle_read_notification(request, message_group_id):
-    current_user = request.user
     message_group = MessageGroup.objects.get(id=message_group_id)
 
-    # Check if we are author or recipient
-    if message_group.author.id == current_user.id:
-        message_group.author_seen = not message_group.author_seen
-    elif message_group.recipient.id == current_user.id:
-        message_group.recipient_seen = not message_group.recipient_seen
-    else:
-        # TODO: Proper exception handling
-        raise Exception("Logged in user is neither author nor recipient")
+    message_group.recipient_seen = not message_group.recipient_seen
 
     message_group.save()
 
