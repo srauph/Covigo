@@ -1,4 +1,5 @@
 cd /var/django_projects/Covigo/
+source venv/bin/activate
 git pull git@github.com:srauph/Covigo.git
 python3.10 -m pip install -r requirements.txt
 cd ./tailwind
