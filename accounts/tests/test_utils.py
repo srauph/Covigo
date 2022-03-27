@@ -6,7 +6,7 @@ from accounts.models import Flag, Staff
 from accounts.utils import (
     get_flag,
     get_superuser_staff_model,
-    send_email_from_template,
+    _send_system_message_from_template,
     send_email_to_user,
     get_or_generate_patient_code,
     get_or_generate_patient_profile_qr
@@ -121,7 +121,7 @@ class ResetEmailPasswordGeneratorTests(TestCase):
         """
 
         # Act
-        send_email_from_template(self.user, self.subject, self.template)
+        _send_system_message_from_template(self.user, self.subject, self.template)
 
         # Assert
         m_render_function.assert_called_once()
@@ -137,7 +137,7 @@ class ResetEmailPasswordGeneratorTests(TestCase):
         """
 
         # Act
-        send_email_from_template(self.user, self.subject, self.template)
+        _send_system_message_from_template(self.user, self.subject, self.template)
 
         # Assert
         m_send_email_function.assert_called_once_with(self.user, self.subject, "email")

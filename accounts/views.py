@@ -351,6 +351,9 @@ def create_user(request):
             c = {
                 'token': default_token_generator.make_token(new_user),
             }
+
+            print(new_user)
+
             send_system_message_to_user(new_user, template=template, c=c)
 
             return redirect("accounts:list_users")

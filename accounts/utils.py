@@ -60,56 +60,6 @@ def get_superuser_staff_model():
         return None
 
 
-def send_email_from_template(user, template, c=None):
-    """
-    Generate and send a "reset password" email for a user
-    @param user: The user whose password is to be reset
-    @param template: The template to use for the email to send
-    @param c: Context variables to use to generate the email
-    @return: void
-    """
-
-    body = template["body"]
-    subject = template["subject"]
-
-    if not c:
-        c = dict()
-
-    c['email'] = user.email
-    c['host_name'] = HOST_NAME
-    c['site_name'] = 'Covigo'
-    c['user'] = user
-    c['uid'] = urlsafe_base64_encode(force_bytes(user.pk))
-
-    email = render_to_string(body, c)
-    send_email_to_user(user, subject, email)
-
-
-# takes a user, subject, and body as params and sends the user an email
-def send_sms_from_template(user, template, c=None):
-    """
-    Generate and send a "reset password" email for a user
-    @param user: The user whose password is to be reset
-    @param template: The template to use for the email to send
-    @param c: Context variables to use to generate the email
-    @return: void
-    """
-
-    body = template
-
-    if not c:
-        c = dict()
-
-    c['email'] = user.email
-    c['host_name'] = HOST_NAME
-    c['site_name'] = 'Covigo'
-    c['user'] = user
-    c['uid'] = urlsafe_base64_encode(force_bytes(user.pk))
-
-    message = render_to_string(body, c)
-    send_sms_to_user(user.profile.phone_number, message)
-
-
 #takes a user, subject, and body as params and sends the user an email
 def send_email_to_user(user, subject, body):
     """
@@ -144,18 +94,48 @@ def send_sms_to_user(user, body):
     return None
 
 
+def _send_system_message_from_template(user, template, c=None, is_email=True):
+    """
+    Generate and send a system message a user
+    @param user: The user who the system message should be sent to
+    @param template: The template to use for the system message to send
+    @param c: Context variables to use to generate the system message
+    @param is_email: Whether the system message is an email or not
+    @return: void
+    """
+
+    if not c:
+        c = dict()
+
+    c['email'] = user.email
+    c['host_name'] = HOST_NAME
+    c['site_name'] = 'Covigo'
+    c['user'] = user
+    c['uid'] = urlsafe_base64_encode(force_bytes(user.pk))
+
+    if is_email:
+        body = template["body"]
+        subject = template["subject"]
+        email = render_to_string(body, c)
+        send_email_to_user(user, subject, email)
+    else:
+        body = template
+        message = render_to_string(body, c)
+        send_sms_to_user(user, message)
+
+
 def send_system_message_to_user(user, message=None, template=None, subject=None, c=None):
-    # TODO: Insert "user subscribed to emails"
+    # TODO: Insert "user subscribed to emails" into if
     if user.email:
         if template:
-            send_email_from_template(user, template.get("email"), c)
+            _send_system_message_from_template(user, template.get("email"), c, is_email=True)
         else:
             send_email_to_user(user, message, subject)
 
-    # TODO: Insert "user subscribed to sms"
+    # TODO: Insert "user subscribed to sms" into if
     if user.profile.phone_number:
         if template:
-            send_sms_from_template(user, template.get("sms"), c)
+            _send_system_message_from_template(user, template.get("sms"), c, is_email=False)
         else:
             send_sms_to_user(user, message)
 
