@@ -3,7 +3,6 @@ import smtplib
 import shortuuid
 
 from django.contrib.auth.models import User
-from django.contrib.auth.tokens import default_token_generator
 from django.db import IntegrityError
 from django.db.models import Q
 from django.template.loader import render_to_string
@@ -12,6 +11,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
 from Covigo.settings import HOST_NAME
 from accounts.models import Flag, Staff, Patient
+from accounts.preferences import SystemMessagesPreference
 from pathlib import Path
 from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
@@ -125,15 +125,15 @@ def _send_system_message_from_template(user, template, c=None, is_email=True):
 
 
 def send_system_message_to_user(user, message=None, template=None, subject=None, c=None):
-    # TODO: Insert "user subscribed to emails" into if
-    if user.email:
+    preferences = user.profile.preferences[SystemMessagesPreference.NAME.value]
+
+    if user.email and (not preferences or preferences[SystemMessagesPreference.EMAIL.value]):
         if template:
             _send_system_message_from_template(user, template.get("email"), c, is_email=True)
         else:
             send_email_to_user(user, message, subject)
 
-    # TODO: Insert "user subscribed to sms" into if
-    if user.profile.phone_number:
+    if user.profile.phone_number and (not preferences or preferences[SystemMessagesPreference.SMS.value]):
         if template:
             _send_system_message_from_template(user, template.get("sms"), c, is_email=False)
         else:
@@ -326,3 +326,13 @@ def get_is_staff(user_id):
         return User.objects.get(id=user_id).is_staff
     except User.DoesNotExist:
         return -1
+
+
+def convert_dict_of_bools_to_list(dict_to_process):
+    output_list = []
+
+    for i in dict_to_process:
+        if dict_to_process[i]:
+            output_list.append(i)
+
+    return output_list
