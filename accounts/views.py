@@ -22,7 +22,7 @@ from accounts.utils import (
     get_or_generate_patient_profile_qr,
     get_assigned_staff_id_by_patient_id,
     get_user_from_uidb64,
-    send_sms_to_user,
+    send_sms_to_user, send_email_to_user,
 )
 from appointments.models import Appointment
 from appointments.utils import rebook_appointment_with_new_doctor
@@ -210,13 +210,6 @@ class ChangePasswordView(PasswordChangeView):
 @never_cache
 def index(request):
     return redirect('accounts:list_users')
-
-
-@login_required
-@never_cache
-def two_factor_authentication(request):
-    return render(request, 'accounts/authentication/2FA.html')
-
 
 @never_cache
 def change_password_done(request):

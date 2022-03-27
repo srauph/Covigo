@@ -1,4 +1,5 @@
 import os.path
+import random
 import smtplib
 import shortuuid
 
@@ -101,7 +102,7 @@ def generate_and_send_sms(user, user_phone, template):
     send_sms_to_user(user, user_phone, message)
 
 
-#takes a user, subject, and message as params and sends the user an email
+# takes a user, subject, and message as params and sends the user an email
 def send_email_to_user(user, subject, message):
     """
     Send an email to a user
@@ -321,3 +322,16 @@ def get_is_staff(user_id):
         return User.objects.get(id=user_id).is_staff
     except User.DoesNotExist:
         return -1
+
+
+# generate 5 digit otp
+def generate_otp_code():
+    number_list = [x for x in range(10)]
+    code_items = []
+
+    for i in range(5):
+        num = random.choice(number_list)
+        code_items.append(num)
+
+    code_string = "".join(str(item) for item in code_items)
+    return code_string
