@@ -26,9 +26,9 @@
                     for (let i = 0; i < allNotifications.length; i++) {
                         let dateObj = new Date(allNotifications[i].date_created);
 
-                        let li = "<li data-notif-id=" + allNotifications[i].id + " id='notification-item' class='notification-item flex items-center px-4 py-3 border-b h-14 min-h-full text-gray-700 hover:bg-slate-100 text-left relative'" + " value=" + allNotifications[i].id + ">"
-                            + "<div class='font-bold absolute top-1.5'>" + allNotifications[i].title + "</div>"
-                            + "<div class='absolute bottom-0.5'>"
+                        let li = "<li data-notif-id=" + allNotifications[i].id + " id='notification-item' class='notification-item h-min px-4 py-3 border-b text-gray-700 hover:bg-slate-100 text-left' " + " value=" + allNotifications[i].id + ">"
+                            + "<div class='w-full font-bold  top-1.5'>" + allNotifications[i].title + "</div>"
+                            + "<div class='w-full bottom-0.5 '>"
                             + "<svg xmlns='http://www.w3.org/2000/svg' class='pr-1 h-5 w-5 inline-block pb-0.5 ' viewBox='0 0 20 20'fill='currentColor'><path fill-rule='evenodd'd='M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z'clip-rule='evenodd'/> <title>Time</title> </svg>"
                             + $j.timeago(dateObj.toISOString()) + "</div>"
                             + "</li>";
