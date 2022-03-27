@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import password_validation
 from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm
 from django.core.exceptions import ValidationError
-from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, Select, CharField
+from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, Select, CharField, Form, MultipleChoiceField
 from django.contrib.auth.models import User
 from accounts.models import Profile
 from re import match, sub
@@ -10,6 +10,11 @@ from re import match, sub
 STAFF_PATIENT_CHOICES = (
     (True, 'Staff User'),
     (False, 'Patient User')
+)
+
+SYSTEM_MESSAGE_CHOICES = (
+    ("use_email", "Receive system messages by email"),
+    ("use_sms", "Receive system messages by sms"),
 )
 
 GUEST_CHARFIELD_CLASS = \
@@ -377,6 +382,14 @@ class EditProfileForm(ModelForm):
                 }
             )
         }
+    def clean_groups(self):
+        cleaned_groups = self.cleaned_data.get("groups")
+        # TODO: Discuss the possibility of having no group and fix error and if: != 1 if we enforce having at least one
+        if len(cleaned_groups) > 1:
+            raise ValidationError(
+                "Cannot select more than one group."
+            )
+        return cleaned_groups
 
     def clean_phone_number(self):
         # TODO: Better phone number sanitization including country codes and similar
@@ -398,6 +411,18 @@ class EditProfileForm(ModelForm):
                 "Please enter a valid postal code."
             )
         return subbed_postal_code
+
+
+class EditPreferencesForm(Form):
+    system_msg_methods = MultipleChoiceField(
+        choices=SYSTEM_MESSAGE_CHOICES,
+        widget=CheckboxSelectMultiple(
+            attrs={
+                "class": CHECKBOX_CLASS
+            }
+        ),
+        required=True
+    )
 
 
 class ResetPasswordForm(SetPasswordForm):

@@ -352,8 +352,6 @@ def create_user(request):
                 'token': default_token_generator.make_token(new_user),
             }
 
-            print(new_user)
-
             send_system_message_to_user(new_user, template=template, c=c)
 
             return redirect("accounts:list_users")
@@ -394,6 +392,40 @@ def edit_user(request, user_id):
         "user_form": user_form,
         "profile_form": profile_form,
         "edited_user": user
+    })
+
+
+@login_required
+@never_cache
+def edit_preferences(request, user_id):
+    profile = User.objects.get(id=user_id).profile
+
+    # Process forms
+    if request.method == "POST":
+        preferences_form = EditPreferencesForm(request.POST)
+
+        if preferences_form.is_valid():
+            system_msg_preferences = preferences_form.cleaned_data.get("system_msg_methods")
+
+            preferences = {
+                "system_msg_methods": {
+                    "use_email": "use_email" in system_msg_preferences,
+                    "use_sms": "use_sms" in system_msg_preferences
+                }
+            }
+
+            profile.preferences = preferences
+            profile.save()
+
+            print(User.objects.get(id=user_id).profile.preferences)
+
+            return redirect("accounts:list_users")
+    # Create forms
+    else:
+        preferences_form = EditPreferencesForm()
+
+    return render(request, "accounts/edit_preferences.html", {
+        "preferences_form": preferences_form,
     })
 
 
