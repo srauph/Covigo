@@ -60,7 +60,7 @@ def get_superuser_staff_model():
         return None
 
 
-def generate_and_send_email(user, subject, template):
+def send_email_from_template(user, template):
     """
     Generate and send a "reset password" email for a user
     @param user: The user whose password is to be reset
@@ -68,6 +68,10 @@ def generate_and_send_email(user, subject, template):
     @param template: The template to use for the email to send
     @return: void
     """
+
+    body = template["email"]["body"]
+    subject = template["email"]["subject"]
+
     c = {
         'email': user.email,
         'host_name': HOST_NAME,
@@ -76,19 +80,21 @@ def generate_and_send_email(user, subject, template):
         'user': user,
         'token': default_token_generator.make_token(user),
     }
-    email = render_to_string(template, c)
+    email = render_to_string(body, c)
     send_email_to_user(user, subject, email)
 
 
-# takes a user, subject, and message as params and sends the user an email
-def generate_and_send_sms(user, user_phone, template):
+# takes a user, subject, and body as params and sends the user an email
+def send_sms_from_template(user, template):
     """
     Generate and send a "reset password" email for a user
     @param user: The user whose password is to be reset
-    @param subject: The name to give the email's subject
     @param template: The template to use for the email to send
     @return: void
     """
+
+    body = template["email"]["body"]
+
     c = {
         'email': user.email,
         'host_name': HOST_NAME,
@@ -97,17 +103,17 @@ def generate_and_send_sms(user, user_phone, template):
         'user': user,
         'token': default_token_generator.make_token(user),
     }
-    message = render_to_string(template, c)
-    send_sms_to_user(user, user_phone, message)
+    message = render_to_string(body, c)
+    send_sms_to_user(user.profile.phone_number, message)
 
 
-#takes a user, subject, and message as params and sends the user an email
-def send_email_to_user(user, subject, message):
+#takes a user, subject, and body as params and sends the user an email
+def send_email_to_user(user, subject, body):
     """
     Send an email to a user
     @param user: The user to send the email to
     @param subject: The subject of the email to send
-    @param message: The message of the email to send
+    @param body: The body of the email to send
     @return: void
     """
     s = smtplib.SMTP('smtp.gmail.com', 587)
@@ -115,24 +121,41 @@ def send_email_to_user(user, subject, message):
     email = 'shahdextra@gmail.com'
     pwd = 'roses12345!%'
     s.login(email, pwd)
-    s.sendmail(email, user.email, f"Subject: {subject}\n{message}")
+    s.sendmail(email, user.email, f"Subject: {subject}\n{body}")
     s.quit()
     return None
 
 
-# takes a user, user's phone number, and message as params and sends a text message
-def send_sms_to_user(user, user_phone, message):
+# takes a user, user's phone number, and body as params and sends a text body
+def send_sms_to_user(user, body):
     account = "AC77b343442a4ec3ea3d0258ea5c597289"
     token = "f9a14a572c2ab1de3683c0d65f7c962b"
     client = Client(account, token)
 
     try:
-        message = client.messages.create(to=user_phone, from_="+16626727846",
-                                         body=message)
+        body = client.messages.create(to=user.profile.phone_number, from_="+16626727846",
+                                      body=body)
     except TwilioRestException as e:
         print(e)
 
     return None
+
+
+def send_system_message_to_user(user, message=None, template=None, subject=None):
+    # TODO: Insert "user subscribed to emails"
+    if user.email:
+        if template:
+            send_email_from_template(user, template["email"])
+        else:
+            send_email_to_user(user, message, subject)
+
+    # TODO: Insert "user subscribed to sms"
+    if user.profile.phone:
+        if template:
+            send_sms_from_template(user, template["sms"])
+        else:
+            send_sms_to_user(user, message)
+
 
 
 def get_or_generate_patient_code(patient, prefix="A"):

@@ -15,14 +15,14 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 
+from Covigo.messages import Messages
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
 from accounts.utils import (
-    generate_and_send_email,
     get_or_generate_patient_profile_qr,
     get_assigned_staff_id_by_patient_id,
     get_user_from_uidb64,
-    send_sms_to_user,
+    send_system_message_to_user,
 )
 from appointments.models import Appointment
 from appointments.utils import rebook_appointment_with_new_doctor
@@ -89,9 +89,8 @@ def forgot_password(request):
             data = password_reset_form.cleaned_data['email']
             try:
                 user = User.objects.get(email=data)
-                subject = "Covigo - Password Reset Requested"
-                template = "accounts/messages/reset_password_email.html"
-                generate_and_send_email(user, subject, template)
+                template = Messages.RESET_PASSWORD
+                send_system_message_to_user(user, template=template)
                 return redirect("accounts:forgot_password_done")
             except MultipleObjectsReturned:
                 # Should not happen because we don't allow multiple users to share an email.
@@ -200,9 +199,8 @@ class ChangePasswordView(PasswordChangeView):
         # Uncomment this line to enable the following behaviour:
         # Updating the password logs out all other sessions for the user except the current one.
         # update_session_auth_hash(self.request, form.user)
-        subject = "Covigo - Password Changed"
-        template = "accounts/messages/user_changed_password_email.html"
-        generate_and_send_email(form.user, subject, template)
+        template = Messages.CHANGED_PASSWORD
+        send_system_message_to_user(form.user, template=template)
         return HttpResponseRedirect(self.get_success_url())
 
 
@@ -346,14 +344,8 @@ def create_user(request):
                 # TODO: discuss if we should keep this behaviour for now or make Patient.staff nullable instead.
                 Patient.objects.create(user=new_user)
 
-            if has_email:
-                subject = "Covigo - Account Registration"
-                template = "accounts/messages/register_user_email.html"
-                generate_and_send_email(new_user, subject, template)
-
-            elif has_phone:
-                template = "accounts/messages/register_user_email.html"
-                send_sms_to_user(new_user, user_phone, template)
+            template = Messages.REGISTER_USER
+            send_system_message_to_user(new_user, template=template)
 
             return redirect("accounts:list_users")
 

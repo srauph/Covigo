@@ -49,10 +49,10 @@ class ForgotPasswordTests(TestCase):
         """
 
         # Arrange
-        # Create a new user that doesn't have duplicate emails in the db
+        # Create a new user that doesn't have duplicate email in the db
         new_user = User.objects.create(id=3, username='qwerty')
         subject = "Covigo - Password Reset Requested"
-        template = "accounts/messages/reset_password_email.html"
+        template = "reset_password"
 
         # Simulate the user entering a valid in the forgot password form
         mocked_pass_reset_form_data = {'email': 'bruh@lol.com'}
@@ -92,10 +92,10 @@ class ForgotPasswordTests(TestCase):
         """
 
         # Arrange
-        # Create a new user that doesn't have duplicate emails in the db
+        # Create a new user that doesn't have duplicate email in the db
         new_user = User.objects.create(id=3, email='qwerty@gmail.com', username='qwerty')
         subject = "Covigo - Password Reset Requested"
-        template = "accounts/messages/reset_password_email.html"
+        template = "reset_password"
 
         # Simulate the user entering a valid in the forgot password form
         mocked_pass_reset_form_data = {'email': 'qwerty@gmail.com'}
@@ -115,10 +115,10 @@ class ForgotPasswordTests(TestCase):
         """
 
         # Arrange
-        # Create a new user that doesn't have duplicate emails in the db
+        # Create a new user that doesn't have duplicate email in the db
         new_user = User.objects.create(id=3, email='qwerty@gmail.com', username='qwerty')
         subject = "Password Reset Requested"
-        template = "accounts/authentication/reset_password_email.txt"
+        template = "reset_password"
 
         # Simulate the user entering a non-existing email in the forgot password form
         mocked_pass_reset_form_data = {'email': 'qwerty@gmail.com'}
@@ -405,9 +405,9 @@ class AccountsTestCase(TransactionTestCase):
         self.assertEqual(self.mocked_form_data4['is_staff'], User.objects.get(id=4).is_staff)
         self.assertEqual(User.objects.get(id=3).groups.get().id, User.objects.get(id=4).groups.get().id)
 
-        # here, I am testing for the valid email address form error message by making sure that it works:
+        # here, I am testing for the valid email address form error body by making sure that it works:
         # If I use a non-valid email address inside mocked form data and try to call a POST request on it,
-        # I should expect the error message to be shown on the view, alerting me of my mistake,
+        # I should expect the error body to be shown on the view, alerting me of my mistake,
         # and prevent me from creating an account in the database, thus my database user count
         # should not increase (intended behaviour)
         self.response = self.client.post(reverse('accounts:create_user'), self.mocked_form_data5)
@@ -426,9 +426,9 @@ class AccountsTestCase(TransactionTestCase):
         self.assertEqual('Email already in use by another user.', list(self.response.context['user_form'].errors['email'])[0])
         self.assertEqual('Phone number already in use by another user.', list(self.response.context['profile_form'].errors['phone_number'])[0])
 
-        # here, I am testing for the multiple groups/roles form error message by making sure that it works:
+        # here, I am testing for the multiple groups/roles form error body by making sure that it works:
         # If I try to post mocked form data that contains more than one group/role by calling a POST request on it,
-        # I should expect the error message to be shown on the view, alerting me of my mistake,
+        # I should expect the error body to be shown on the view, alerting me of my mistake,
         # and prevent me from creating an account in the database, thus my database user count
         # should not increase (intended behaviour)
         self.response = self.client.post(reverse('accounts:create_user'), self.mocked_form_data6)
@@ -508,9 +508,9 @@ class AccountsTestCase(TransactionTestCase):
         self.assertEqual(User.objects.get(id=2).groups.get().id, User.objects.get(id=4).groups.get().id)
 
         # here, I am testing for the empty edited username field (in another already existing account)
-        # form error message by making sure that it works: If I try to submit edited mocked form data
-        # with no username by calling a POST request on it, I should expect the error message to be shown
-        # on the view as the form should return the error message and alert me of my mistake (intended behaviour)
+        # form error body by making sure that it works: If I try to submit edited mocked form data
+        # with no username by calling a POST request on it, I should expect the error body to be shown
+        # on the view as the form should return the error body and alert me of my mistake (intended behaviour)
         self.response = self.client.post(
             reverse('accounts:edit_user',
                     kwargs={'user_id': User.objects.get(id=4).id}
@@ -519,10 +519,10 @@ class AccountsTestCase(TransactionTestCase):
         )
         self.assertEqual('This field is required.', list(self.response.context['user_form'].errors.values())[0][0])
 
-        # here, I am testing for the valid email address form error message by making sure that it works:
+        # here, I am testing for the valid email address form error body by making sure that it works:
         # If I try to submit edited mocked form data with a non-valid email address by calling a POST request on it,
-        # I should expect the error message to be shown on the view as the form should return
-        # the error message and alert me of my mistake (intended behaviour)
+        # I should expect the error body to be shown on the view as the form should return
+        # the error body and alert me of my mistake (intended behaviour)
         self.response = self.client.post(
             reverse('accounts:edit_user',
                     kwargs={'user_id': User.objects.get(id=4).id}
@@ -532,10 +532,10 @@ class AccountsTestCase(TransactionTestCase):
 
         self.assertEqual('Enter a valid email address.', list(self.response.context['user_form'].errors['email'])[0])
 
-        # here, I am testing for the empty edited email and phone number fields form error message by making sure that it works:
+        # here, I am testing for the empty edited email and phone number fields form error body by making sure that it works:
         # If I try to submit edited mocked form data with no email and phone number by calling a POST request on it,
-        # I should expect the error message to be shown on the view as the form should return
-        # the error message and alert me of my mistake (intended behaviour)
+        # I should expect the error body to be shown on the view as the form should return
+        # the error body and alert me of my mistake (intended behaviour)
         self.response = self.client.post(
             reverse('accounts:edit_user',
                     kwargs={'user_id': User.objects.get(id=4).id}
@@ -545,10 +545,10 @@ class AccountsTestCase(TransactionTestCase):
 
         self.assertEqual('Please enter an email address or a phone number.', list(self.response.context['user_form'].errors['__all__'])[0])
 
-        # here, I am testing for the multiple groups/roles form error message by making sure that it works:
+        # here, I am testing for the multiple groups/roles form error body by making sure that it works:
         # If I try to post edited mocked form data that contains more than one group/role by calling a POST request on it,
-        # I should expect the error message to be shown on the view as the form should return
-        # the error message and alert me of my mistake (intended behaviour)
+        # I should expect the error body to be shown on the view as the form should return
+        # the error body and alert me of my mistake (intended behaviour)
         self.response = self.client.post(
             reverse('accounts:edit_user',
                     kwargs={'user_id': User.objects.get(id=4).id}
