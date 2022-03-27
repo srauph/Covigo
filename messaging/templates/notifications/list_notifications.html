@@ -38,6 +38,28 @@
                 }
             })
         });
+
+        //Delay execution of opening the href link of the notification item to make it 'read' beforehand
+        $(document).on('click', '.view-notification', function () {
+
+            //Get the notification id (message group object id)
+            var notif_id = $(this).attr('data-notif-id');
+            var _this = $(this)
+            let url = "{% url 'read_notification' 999999999 %}";
+            url = url.replace(999999999, notif_id);
+            $j.ajax({
+                method: 'POST',
+                url: url,
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+                dataType: 'html',
+                success: function (html) {
+                    //Continue execution of href link
+                    window.location.replace(_this.attr('data-href'));
+                }
+            });
+
+
+        });
     </script>
 {% endblock %}
 
@@ -108,7 +130,7 @@
                                     </button>
                                 </a>
 
-                            <a href="{{ msg.link }}">
+                            <a class="view-notification" data-notif-id="{{ msg.id }}" data-href="{{ msg.link }}">
                                     <button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                                         <span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
