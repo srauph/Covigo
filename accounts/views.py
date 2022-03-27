@@ -231,8 +231,6 @@ def change_password_done(request):
 def profile(request, user_id):
     user = User.objects.get(id=user_id)
 
-    # messages_filter = Q(author_id=user_id) | Q(recipient_id=user_id)
-    # message_group = MessageGroup.objects.filter(messages_filter).order_by('-date_updated')[:3]
     today = datetime.date.today()
     all_filter = Q(patient__isnull=False) & Q(start_date__gte=today)
 
@@ -345,7 +343,7 @@ def create_user(request):
             if new_user.is_staff:
                 Staff.objects.create(user=new_user)
             elif not new_user.is_staff:
-                # Since Patient *requires* an assigned staff, set it to the superuser for now.
+                # TODO: Figure out if the next todo has been addressed already or not.
                 # TODO: discuss if we should keep this behaviour for now or make Patient.staff nullable instead.
                 Patient.objects.create(user=new_user)
 
@@ -409,6 +407,7 @@ def edit_preferences(request, user_id):
         if preferences_form.is_valid():
             system_msg_preferences = preferences_form.cleaned_data.get(SystemMessagesPreference.NAME.value)
 
+            # Convert to dict to store in profile
             preferences = {
                 SystemMessagesPreference.NAME.value: {
                     SystemMessagesPreference.EMAIL.value: "use_email" in system_msg_preferences,
@@ -420,8 +419,10 @@ def edit_preferences(request, user_id):
             profile.save()
 
             return redirect("accounts:profile", user_id)
+
     # Create forms
     else:
+        # Try to load current preferences
         if profile.preferences:
             old_preferences = dict()
             for preference in profile.preferences:
