@@ -2,6 +2,8 @@ import accounts.utils
 from django.contrib.auth.models import User
 from django.test import TestCase
 from unittest import mock
+
+from Covigo.messages import Messages
 from accounts.models import Flag, Staff
 from accounts.utils import (
     get_flag,
@@ -103,8 +105,7 @@ class GetSuperuserStaffModelTests(TestCase):
 class ResetEmailPasswordGeneratorTests(TestCase):
     def setUp(self):
         self.user = User.objects.create(username="user")
-        self.subject = "Test Subject"
-        self.template = "Test Template"
+        self.template = Messages.RESET_PASSWORD.value["email"]
 
     # NOTE: TO ANYONE WHO USES THIS AS INSPIRATION FOR DOING MULTIPLE MOCKS:
     # The decorators wrap the function and are thus loaded in "reverse order"!
@@ -121,7 +122,7 @@ class ResetEmailPasswordGeneratorTests(TestCase):
         """
 
         # Act
-        _send_system_message_from_template(self.user, self.subject, self.template)
+        _send_system_message_from_template(self.user, template=self.template)
 
         # Assert
         m_render_function.assert_called_once()
@@ -137,10 +138,10 @@ class ResetEmailPasswordGeneratorTests(TestCase):
         """
 
         # Act
-        _send_system_message_from_template(self.user, self.subject, self.template)
+        _send_system_message_from_template(self.user, template=self.template)
 
         # Assert
-        m_send_email_function.assert_called_once_with(self.user, self.subject, "email")
+        m_send_email_function.assert_called_once_with(self.user, self.template["subject"], "email")
 
 
 class SendEmailToUserTests(TestCase):
