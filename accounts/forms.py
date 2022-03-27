@@ -3,6 +3,7 @@ from django.contrib.auth import password_validation
 from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm
 from django.core.exceptions import ValidationError
 from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, Select, CharField, Form, MultipleChoiceField
+from django.db import connection
 from django.contrib.auth.models import User
 from accounts.models import Profile
 from re import match, sub
@@ -263,14 +264,20 @@ class RegisterProfileForm(ModelForm):
 
     def clean_postal_code(self):
         cleaned_postal_code = self.cleaned_data.get("postal_code")
-        subbed_postal_code = sub("[._ -]", "", cleaned_postal_code).upper()
+        subbed_postal_code = sub("[._-]", "", cleaned_postal_code).upper()
         if cleaned_postal_code == "":
             raise ValidationError(
                 "Please provide your postal code."
             )
-        if not match(r'^[A-Za-z0-9]+$', subbed_postal_code):
+        if not match(r'(?!.*[DFIOQU])[A-VXY][0-9][A-Z][\s][0-9][A-Z][0-9]$', subbed_postal_code):
             raise forms.ValidationError(
                 "Please enter a valid postal code."
+            )
+        c = connection.cursor()
+        r = c.execute('SELECT id from postal_codes where POSTAL_CODE = %s', [subbed_postal_code])
+        if r != 1:
+            raise forms.ValidationError(
+                "The postal code entered may not exist; check spelling and try again"
             )
         return subbed_postal_code
 
