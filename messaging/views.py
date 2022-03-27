@@ -156,9 +156,12 @@ def compose_message(request, user_id):
                     content=msg_content_form.data.get('content'),
                 )
 
+                # Create href for notification
+                href = reverse('messaging:view_message', args=[new_msg_group.id])
                 # Send notification
                 send_notification(new_msg_group.author.id, new_msg_group.recipient.id,
-                                  "New message from " + new_msg_group.author.first_name + " " + new_msg_group.author.last_name)
+                                  "New message from " + new_msg_group.author.first_name + " " + new_msg_group.author.last_name,
+                                  href=href)
 
                 return redirect("messaging:list_messages", request.user.id)
 
@@ -203,9 +206,8 @@ def list_notifications(request):
     filter1 = Q(recipient_id=current_user.id) & Q(type=1)
 
     message_group = list(MessageGroup.objects.filter(filter1).all().values())
-    links = dict()
 
-
+    # Only for the notifications list, reformat the message groups titles to not include the hrefs
     for i in message_group:
         a = re.sub("<a href=", "", i['title'] )
         a = re.sub(">.*", "", a)
@@ -213,6 +215,7 @@ def list_notifications(request):
         i['title'] = re.sub("<a href=[^>]*>", "", i['title'] )
         i['title'] = re.sub("</a>", "", i['title'])
 
+        # Create new "attribute" to hold the href for the notification
         i['link'] = a
 
 
