@@ -1,15 +1,5 @@
-import smtplib
-
-from django.template.loader import render_to_string
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
-from twilio.base.exceptions import TwilioRestException
-from twilio.rest import Client
-
 from Covigo.messages import Messages
-from Covigo.settings import HOST_NAME
 from accounts.models import Patient
-from accounts.preferences import SystemMessagesPreference
 from appointments.models import Appointment
 from accounts.utils import send_system_message_to_user
 
@@ -22,22 +12,24 @@ def cancel_appointments(appointment_id):
     @return: void
     """
     booked = Appointment.objects.get(id=appointment_id)
-    patient = Patient.objects.get(id=booked.patient_id)
-    doctor = patient.get_assigned_staff_user()
+    patient_user = booked.patient
+    doctor = patient_user.patient.get_assigned_staff_user()
     template = Messages.APPOINTMENT_CANCELLED.value
     booked.patient = None
     booked.save()
     c_doctor = {
-        "other_person": patient,
+        "other_person": patient_user,
         "is_doctor": True,
-        "appointment": booked
+        "date": str(booked.start_date.date()),
+        "time": str(booked.start_date.time())
     }
     c_patient = {
         "other_person": doctor,
         "is_doctor": False,
-        "appointment": booked
+        "date": str(booked.start_date.date()),
+        "time": str(booked.start_date.time())
     }
-    send_system_message_to_user(patient, template=template, c=c_patient)
+    send_system_message_to_user(patient_user, template=template, c=c_patient)
     send_system_message_to_user(doctor, template=template, c=c_doctor)
 
 
@@ -63,21 +55,22 @@ def book_appointment(appointment_id, user):
     """
     appointment = Appointment.objects.get(id=appointment_id)
     appointment.patient = user
-    patient = Patient.objects.get(id=appointment.patient_id)
-    doctor = patient.get_assigned_staff_user()
+    doctor = user.patient.get_assigned_staff_user()
     template = Messages.APPOINTMENT_BOOKED.value
     appointment.save()
     c_doctor = {
-        "other_person": patient,
+        "other_person": user,
         "is_doctor": True,
-        "appointment": appointment
+        "date": str(appointment.start_date.date()),
+        "time": str(appointment.start_date.time())
     }
     c_patient = {
         "other_person": doctor,
         "is_doctor": False,
-        "appointment": appointment
+        "date": str(appointment.start_date.date()),
+        "time": str(appointment.start_date.time())
     }
-    send_system_message_to_user(patient, template=template, c=c_patient)
+    send_system_message_to_user(user, template=template, c=c_patient)
     send_system_message_to_user(doctor, template=template, c=c_doctor)
 
 

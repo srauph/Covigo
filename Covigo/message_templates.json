@@ -30,15 +30,15 @@
     "appointment_booked": {
         "email": {
             "subject": "Covigo - Appointment Booked",
-            "body": "appointments/templates/messages/email/appointment_booked_email.html"
+            "body": "appointments/messages/email/appointment_booked_email.html"
         },
-        "sms": "appointments/templates/messages/sms/appointment_booked_sms.html"
+        "sms": "appointments/messages/sms/appointment_booked_sms.html"
     },
     "appointment_cancelled": {
         "email": {
             "subject": "Covigo - Appointment Cancelled",
-            "body": "appointments/templates/messages/email/appointment_cancelled_email.html"
+            "body": "appointments/messages/email/appointment_cancelled_email.html"
         },
-        "sms": "appointments/templates/messages/sms/appointment_cancelled_sms.html"
+        "sms": "appointments/messages/sms/appointment_cancelled_sms.html"
     }
 }
