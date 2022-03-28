@@ -1,12 +1,5 @@
 {% autoescape off %}
-Hello {{ user.first_name }} {{ user.last_name }},
-
 You have successfully cancelled your appointment with your doctor on {{ appointment.date }}, at {{ appointement.time }}.
 
-To book a new appointment, proceed to the link below:
-
-{{ host_name }}{% url 'appointments:book_appointments'%}
-
-Covigo
-2022 Soen Squad
+You may book a new appointment using: {{ host_name }}{% url 'appointments:book_appointments'%}
 {% endautoescape %}
