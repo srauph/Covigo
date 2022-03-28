@@ -21,7 +21,7 @@ class MessagingViewReplyTests(TestCase):
         doctor_1.save()
 
         msg_group_1 = MessageGroup.objects.create(id=1, author=user_1, recipient=doctor_1,
-                                                  title="Question about my fever")
+                                                  title="Question about my fever", type=0)
         MessageContent.objects.create(message=msg_group_1, author=user_1,
                                       content="Hello doctor, I have a question about my fever", id=1)
         MessageContent.objects.create(message=msg_group_1, author=doctor_1,

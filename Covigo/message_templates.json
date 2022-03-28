@@ -23,9 +23,9 @@
     "status_update": {
         "email": {
             "subject": "Covigo - Status Update Reminder",
-            "body": "accounts/templates/accounts/messages/email/status_update_reminder_email.html"
+            "body": "accounts/messages/email/status_update_reminder_email.html"
         },
-        "sms": "accounts/templates/accounts/messages/sms/status_update_reminder_sms.html"
+        "sms": "accounts/messages/sms/status_update_reminder_sms.html"
     },
     "appointment_booked": {
         "email": {

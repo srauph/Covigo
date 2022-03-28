@@ -3,11 +3,14 @@ import smtplib
 import shortuuid
 
 from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
+from django.db import IntegrityError, connection
 from django.db import IntegrityError
 from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from geopy import distance
 
 from Covigo.settings import HOST_NAME
 from accounts.models import Flag, Staff, Patient
@@ -326,6 +329,42 @@ def get_is_staff(user_id):
         return User.objects.get(id=user_id).is_staff
     except User.DoesNotExist:
         return -1
+
+
+def dictfetchall(cursor):
+    "Return all rows from a cursor as a dict"
+    columns = [col[0] for col in cursor.description]
+    return [
+        dict(zip(columns, row))
+        for row in cursor.fetchall()
+    ]
+
+
+def get_distance_of_all_doctors_to_postal_code(postal_code):
+    doc_dict = []
+    all_doctors = User.objects.raw(
+        "SELECT * FROM `auth_user` INNER JOIN `auth_user_groups` ON (`auth_user`.`id` = `auth_user_groups`.`user_id`) INNER JOIN `auth_group` ON (`auth_user_groups`.`group_id` = `auth_group`.`id`) LEFT OUTER JOIN `accounts_profile` ON (`auth_user`.`id` = `accounts_profile`.`user_id`) JOIN `postal_codes` ON (`accounts_profile`.`postal_code` = `postal_codes`.POSTAL_CODE) WHERE `auth_group`.`name` = %s",
+        ['doctor'])
+    c = connection.cursor()
+    c.execute('SELECT * from postal_codes where POSTAL_CODE = %s', [postal_code])
+    r = dictfetchall(c)
+    patient_postal_code_lat_long = (float(r[0]['LATITUDE']), float(r[0]['LONGITUDE']))
+
+    for docs in all_doctors:
+        doctor_postal_code_lat_long = (float(docs.LATITUDE), float(docs.LONGITUDE))
+        distance_patient_to_doctor = distance.distance(patient_postal_code_lat_long, doctor_postal_code_lat_long).m
+        doctor_number_of_patients = docs.staff.assigned_patients.count()
+        doc_dict.append((docs, int(distance_patient_to_doctor), doctor_number_of_patients))
+    sorted_doc_dict = sorted(doc_dict, key=lambda tup: tup[1])
+    return sorted_doc_dict
+
+
+def return_closest_with_least_patients_doctor(postal_code):
+    docs_list = get_distance_of_all_doctors_to_postal_code(postal_code)
+    sliced_list = docs_list[0:4]
+    sorted_sliced_doc_list = sorted(sliced_list, key=lambda tup: tup[2])
+    closest_with_least_patients = sorted_sliced_doc_list[0]
+    return closest_with_least_patients[0]
 
 
 def convert_dict_of_bools_to_list(dict_to_process):
