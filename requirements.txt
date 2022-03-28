@@ -6,8 +6,4 @@ Pillow
 shortuuid~=1.0.8
 twilio~=7.7.0
 django-qrcode~=0.3
-codes~=0.1.5
-django-otp~=1.1.3
-django-two-factor-auth~=1.13.2
-users~=1.0.dev0
-phonenumbers~=8.12.45
+geopy
