@@ -1,13 +1,17 @@
 {% autoescape off %}
 Hello {{ user.first_name }},
 
+Your status update for the following symptom(s) are due soon:
 
-Your status update is due soon ! This is a kind reminder to make a status update before it is due at {{ date }},
-    {{ time }}.
+{% for s in symptom %}
+    - {{ s }}
+{% endfor %}
+
+This is a kind reminder to make a status update before it is due on {{ date }}, at {{ time }}
 
 You can make a status update before the due date on the page in the link below:
 
-{{ host_name }}{% url 'status:create-status-report' uidb64=uid token=token %}
+{{ host_name }}{% url 'status:create-status-report' %}
 
 
 Covigo
