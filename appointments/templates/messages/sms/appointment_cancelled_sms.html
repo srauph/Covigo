@@ -1,5 +1,5 @@
 {% autoescape off %}
-You have successfully cancelled your appointment with Dr. {{ c.first_name }} {{ c.last_name }}, on {{ appointment.date }}, at {{ appointement.time }}.
+Your appointment with {{ is_doctor|yesno: "your patient,Dr." }} {{ other_person.first_name }} {{ other_person.last_name }}, on {{ appointment.date }}, at {{ appointement.time }} has been cancelled.
 
-You may book a new appointment using: {{ host_name }}{% url 'appointments:book_appointments'%}
+You may book an appointment using this link: {{ host_name }}{% url 'appointments:book_appointments'%}
 {% endautoescape %}

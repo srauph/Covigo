@@ -26,7 +26,18 @@ def cancel_appointments(appointment_id):
     template = Messages.APPOINTMENT_CANCELLED.value
     booked.patient = None
     booked.save()
-    send_system_message_to_user(patient, message=None, template=template, subject=None, c=doctor)
+    c_doctor = {
+        "other_person": patient,
+        "is_doctor": True,
+        "appointment": booked
+    }
+    c_patient = {
+        "other_person": doctor,
+        "is_doctor": False,
+        "appointment": booked
+    }
+    send_system_message_to_user(patient, template=template, c=c_patient)
+    send_system_message_to_user(doctor, template=template, c=c_doctor)
 
 
 
@@ -37,6 +48,8 @@ def delete_availabilities(appointment_id):
     :return: None
     """
     unbooked = Appointment.objects.get(id=appointment_id)
+    if unbooked.patient:
+        cancel_appointments(appointment_id)
     unbooked.delete()
 
     
@@ -53,7 +66,18 @@ def book_appointment(appointment_id, user):
     doctor = patient.get_assigned_staff_user()
     template = Messages.APPOINTMENT_BOOKED.value
     appointment.save()
-    send_system_message_to_user(patient, message=None, template=template, subject=None, c=doctor)
+    c_doctor = {
+        "other_person": patient,
+        "is_doctor": True,
+        "appointment": booked
+    }
+    c_patient = {
+        "other_person": doctor,
+        "is_doctor": False,
+        "appointment": booked
+    }
+    send_system_message_to_user(patient, template=template, c=c_patient)
+    send_system_message_to_user(doctor, template=template, c=c_doctor)
 
 
 def rebook_appointment_with_new_doctor(new_doctor_id, old_doctor_id, patient):
@@ -192,22 +216,6 @@ def _send_system_message_from_template(user, template, c=None, is_email=True):
 
 
 def send_system_message_to_user(user, message=None, template=None, subject=None, c=None):
-    preferences = user.profile.preferences[SystemMessagesPreference.NAME.value]
-
-    if user.email and (not preferences or preferences[SystemMessagesPreference.EMAIL.value]):
-        if template:
-            _send_system_message_from_template(user, template.get("email"), c, is_email=True)
-        else:
-            send_email_to_user(user, message, subject)
-
-    if user.profile.phone_number and (not preferences or preferences[SystemMessagesPreference.SMS.value]):
-        if template:
-            _send_system_message_from_template(user, template.get("sms"), c, is_email=False)
-        else:
-            send_sms_to_user(user, message)
-
-
-def send_system_message_to_doctor(user, message=None, template=None, subject=None, c=None):
     preferences = user.profile.preferences[SystemMessagesPreference.NAME.value]
 
     if user.email and (not preferences or preferences[SystemMessagesPreference.EMAIL.value]):

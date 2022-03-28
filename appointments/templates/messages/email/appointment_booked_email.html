@@ -1,7 +1,7 @@
 {% autoescape off %}
-Hello {{ user.first_name }} {{ user.last_name }},
+Hello {{ is_doctor|yesno: ",Dr." }} {{ user.first_name }} {{ user.last_name }},
 
-You have successfully booked your appointment with Dr. {{ c.first_name }} {{ c.last_name }}, on {{ appointment.date }}, at {{ appointement.time }}.
+Your appointment with {{ is_doctor|yesno: "your patient,Dr." }} {{ other_person.first_name }} {{ other_person.last_name }}, on {{ appointment.date }}, at {{ appointement.time }} has been booked.
 
 To cancel your appointment, proceed to the link below:
 
