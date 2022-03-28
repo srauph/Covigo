@@ -1,0 +1,12 @@
+{% autoescape off %}
+Hello {{ is_doctor|yesno:"Dr.," }} {{ user.first_name }} {{ user.last_name }},
+
+Your appointment with {{ is_doctor|yesno:"your patient,Dr." }} {{ other_person.first_name }} {{ other_person.last_name }}, on {{ date }}, at {{ time }} has been booked.
+
+To cancel your appointment, proceed to the link below:
+
+{{ host_name }}{% url 'appointments:cancel_appointments_or_delete_availabilities'%}
+
+Covigo
+2022 Soen Squad
+{% endautoescape %}

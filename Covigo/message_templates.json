@@ -26,5 +26,19 @@
             "body": "accounts/messages/email/status_update_reminder_email.html"
         },
         "sms": "accounts/messages/sms/status_update_reminder_sms.html"
+    },
+    "appointment_booked": {
+        "email": {
+            "subject": "Covigo - Appointment Booked",
+            "body": "appointments/messages/email/appointment_booked_email.html"
+        },
+        "sms": "appointments/messages/sms/appointment_booked_sms.html"
+    },
+    "appointment_cancelled": {
+        "email": {
+            "subject": "Covigo - Appointment Cancelled",
+            "body": "appointments/messages/email/appointment_cancelled_email.html"
+        },
+        "sms": "appointments/messages/sms/appointment_cancelled_sms.html"
     }
 }
