@@ -1,4 +1,5 @@
 import datetime
+import json
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordResetForm
@@ -560,3 +561,23 @@ def unflag_user(request, user_id):
             return JsonResponse({'is_flagged': f'{flag.is_active}'})
 
     return redirect("accounts:list_users")
+
+
+def get_distance_from_postal_code_to_current_location(request, postal_code, current_lat, current_long):
+    c = connection.cursor()
+    c.execute('SELECT * from postal_codes where POSTAL_CODE = %s', [postal_code])
+    r = dictfetchall(c)
+    patient_postal_code_lat_long = (float(r[0]['LATITUDE']), float(r[0]['LONGITUDE']))
+    distance_patient_to_doctor = distance.distance(patient_postal_code_lat_long, (current_lat, current_long)).m
+    if distance_patient_to_doctor > 1000:
+        array = []
+        if request.user.profile.violation is not None:
+            array = list(json.loads(request.user.profile.violation))
+        array.append({
+            'type': 'quarantine non-compliance',
+            'date-time': datetime.datetime.now()
+        })
+        request.user.profile.violation = json.dumps(array, indent=4, sort_keys=True, default=str)
+        request.user.profile.save()
+
+    return HttpResponse(distance_patient_to_doctor)

@@ -1,13 +1,144 @@
 {% extends 'Covigo/base.html' %}
+{% block styles %}
+    <style>
+        .loader {
+              border: 16px solid #f3f3f3;
+              border-radius: 50%;
+              border-top: 16px solid blue;
+              border-bottom: 16px solid blue;
+            width: 120px;
+            height: 120px;
+            -webkit-animation: spin 2s linear infinite;
+            animation: spin 2s linear infinite;
+        }
 
+        @-webkit-keyframes spin {
+            0% {
+                -webkit-transform: rotate(0deg);
+            }
+            100% {
+                -webkit-transform: rotate(360deg);
+            }
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+{% endblock %}
+{% block script %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script>
+        var x = document.getElementById("location-prompt");
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+
+            } else {
+                x.innerHTML = "Geolocation is not supported by this browser.";
+            }
+        }
+
+        $(document).ready(function () {
+            getLocation()
+
+        })
+
+        function showPosition(position) {
+            get_distance(position)
+        }
+
+        function showForm(){
+            $('#status-form').removeClass('hidden')
+        }
+
+        function get_distance(position) {
+            let url = '{% url 'accounts:get_distance' patient_postal_code 8888 9999 %}'
+            url = url.replace(8888, position.coords.latitude);
+            url = url.replace(9999, position.coords.longitude);
+            $.get(url, function (data, status) {
+                if (data < 1000) {
+                    showForm()
+                    $('#compliance').removeClass('hidden')
+                    $('.loader-container').addClass('hidden')
+                } else {
+                    showForm()
+                    $('#non-compliance').removeClass('hidden')
+                    $('.loader-container').addClass('hidden')
+                }
+            })
+        }
+
+        function showError(error) {
+            $('#error-geoloc').removeClass('hidden')
+            $('.loader-container').addClass('hidden')
+            showForm()
+            switch (error.code) {
+                case error.PERMISSION_DENIED:
+                    x.innerHTML = "Our system detects there is problem to fetch your location. this will result in non-compliance. please consult our IT helpline to fix this matter"
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    x.innerHTML = "Location information is unavailable."
+                    break;
+                case error.TIMEOUT:
+                    x.innerHTML = "The request to get user location timed out."
+                    break;
+                case error.UNKNOWN_ERROR:
+                    x.innerHTML = "An unknown error occurred."
+                    break;
+            }
+        }
+    </script>
+{% endblock %}
 {% block content %}
     <form method="POST" class="min-h-full bg-slate-100 flex flex-col">
+
+
         {% csrf_token %}
         <div class="bg-slate-700 border-b">
             <h1 class="text-2xl text-white font-semibold px-8 py-4">Create Status Report</h1>
         </div>
+        <div class="flex  justify-between  mx-8 my-4 p-4  bg-white shadow rounded-lg "
+        >
+            we use your location to verify compliance with quarantine rules imposed by your local health unit. we do not
+            store your
+            location information nor we sell it to any third party.
+        </div>
+    <div class="bg-red-100 rounded-lg  mx-8 my-4 p-4  text-base text-red-700 inline-flex items-center w-full hidden" role="alert" id="error-geoloc">
+          <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="times-circle" class="w-4 h-4 mr-2 fill-current" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+            <path fill="currentColor" d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm121.6 313.1c4.7 4.7 4.7 12.3 0 17L338 377.6c-4.7 4.7-12.3 4.7-17 0L256 312l-65.1 65.6c-4.7 4.7-12.3 4.7-17 0L134.4 338c-4.7-4.7-4.7-12.3 0-17l65.6-65-65.6-65.1c-4.7-4.7-4.7-12.3 0-17l39.6-39.6c4.7-4.7 12.3-4.7 17 0l65 65.7 65.1-65.6c4.7-4.7 12.3-4.7 17 0l39.6 39.6c4.7 4.7 4.7 12.3 0 17L312 256l65.6 65.1z"></path>
+          </svg>
+        <div id="location-prompt"></div>
+    </div>
 
-        <div class="flex flex-col justify-between grow m-8 p-4 min-h-full bg-white shadow rounded-lg">
+        <div class="bg-red-100 rounded-lg  mx-8 my-4 p-4  text-base text-red-700 inline-flex items-center w-full hidden" role="alert" id="non-compliance">
+          <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="times-circle" class="w-4 h-4 mr-2 fill-current" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+            <path fill="currentColor" d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm121.6 313.1c4.7 4.7 4.7 12.3 0 17L338 377.6c-4.7 4.7-12.3 4.7-17 0L256 312l-65.1 65.6c-4.7 4.7-12.3 4.7-17 0L134.4 338c-4.7-4.7-4.7-12.3 0-17l65.6-65-65.6-65.1c-4.7-4.7-4.7-12.3 0-17l39.6-39.6c4.7-4.7 12.3-4.7 17 0l65 65.7 65.1-65.6c4.7-4.7 12.3-4.7 17 0l39.6 39.6c4.7 4.7 4.7 12.3 0 17L312 256l65.6 65.1z"></path>
+          </svg>
+          Our System detects your location is not the same as what you declared, authorities will contact you to further investiage this matter.
+        </div>
+
+        <div class="bg-green-100 rounded-lg mx-8 my-4 p-4 text-base text-green-700 inline-flex items-center w-full hidden" role="alert" id="compliance">
+          <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="check-circle" class="w-4 h-4 mr-2 fill-current" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+            <path fill="currentColor" d="M504 256c0 136.967-111.033 248-248 248S8 392.967 8 256 119.033 8 256 8s248 111.033 248 248zM227.314 387.314l184-184c6.248-6.248 6.248-16.379 0-22.627l-22.627-22.627c-6.248-6.249-16.379-6.249-22.628 0L216 308.118l-70.059-70.059c-6.248-6.248-16.379-6.248-22.628 0l-22.627 22.627c-6.248 6.248-6.248 16.379 0 22.627l104 104c6.249 6.249 16.379 6.249 22.628.001z"></path>
+          </svg>
+         Our System detects you are complying with quarantine rules.
+        </div>
+
+        <div class="mx-auto loader-container">
+            <div class="loader mx-auto"></div>
+            <div class="">fetching your current location</div>
+        </div>
+        <div class="flex flex-col justify-between grow mx-8 my-4 p-4 min-h-full bg-white shadow rounded-lg hidden"
+             id="status-form">
+
             <div class="w-full flex flex-col gap-8 mb-8">
                 <h2 class="p-2 text-2xl font-bold">Assigned Symptoms</h2>
                 <hr>

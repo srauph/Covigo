@@ -2,6 +2,7 @@ import json
 
 from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db import connection
 from django.db.models import Q
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
@@ -12,7 +13,7 @@ from django.utils.datetime_safe import datetime
 from django.views.decorators.cache import never_cache
 import datetime
 from accounts.models import Flag, Staff
-from accounts.utils import get_assigned_staff_id_by_patient_id
+from accounts.utils import get_assigned_staff_id_by_patient_id, dictfetchall
 from messaging.utils import send_notification
 from status.utils import return_symptoms_for_today, get_reports_by_patient, get_patient_report_information, \
     get_reports_for_doctor, is_requested
@@ -195,7 +196,8 @@ def create_patient_report(request):
 
         return redirect('status:index')
     return render(request, 'status/create-status-report.html', {
-        'report': report
+        'report': report,
+        'patient_postal_code': request.user.profile.postal_code
     })
 
 
