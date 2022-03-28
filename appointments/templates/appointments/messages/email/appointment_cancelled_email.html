@@ -2,7 +2,7 @@
 Hello {{ is_doctor|yesno:"Dr.," }} {{ user.first_name }} {{ user.last_name }},
 
 Your appointment with {{ is_doctor|yesno:"your patient,Dr." }} {{ other_person.first_name }} {{ other_person.last_name }}, on {{ date }}, at {{ time }} has been cancelled.
-{% if is_doctor %}
+{% if not is_doctor %}
 To book a new appointment, proceed to the link below:
 
 {{ host_name }}{% url 'appointments:book_appointments'%}
