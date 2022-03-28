@@ -1,5 +1,5 @@
 {% autoescape off %}
-You have successfully booked your appointment with your doctor on {{ appointment.date }}, at {{ appointement.time }}.
+You have successfully booked your appointment with Dr. {{ c.first_name }} {{ c.last_name }}, on {{ appointment.date }}, at {{ appointement.time }}.
 
 You may cancel your appointment using: {{ host_name }}{% url 'appointments:cancel_appointments_or_delete_availabilities'%}
 {% endautoescape %}

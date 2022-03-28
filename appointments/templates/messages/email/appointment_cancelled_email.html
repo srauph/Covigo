@@ -1,7 +1,7 @@
 {% autoescape off %}
 Hello {{ user.first_name }} {{ user.last_name }},
 
-You have successfully cancelled your appointment with your doctor on {{ appointment.date }}, at {{ appointement.time }}.
+You have successfully cancelled your appointment with Dr. {{ c.first_name }} {{ c.last_name }}, on {{ appointment.date }}, at {{ appointement.time }}.
 
 To book a new appointment, proceed to the link below:
 

@@ -6,7 +6,9 @@ from django.utils.encoding import force_bytes
 from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
 
+from Covigo.messages import Messages
 from Covigo.settings import HOST_NAME
+from accounts.models import Patient
 from accounts.preferences import SystemMessagesPreference
 from appointments.models import Appointment
 
@@ -19,8 +21,12 @@ def cancel_appointments(appointment_id):
     @return: void
     """
     booked = Appointment.objects.get(id=appointment_id)
+    patient = Patient.objects.get(id=booked.patient_id)
+    doctor = patient.get_assigned_staff_user()
+    template = Messages.APPOINTMENT_CANCELLED.value
     booked.patient = None
     booked.save()
+    send_system_message_to_user(patient, message=None, template=template, subject=None, c=doctor)
 
 
 
@@ -43,7 +49,11 @@ def book_appointment(appointment_id, user):
     """
     appointment = Appointment.objects.get(id=appointment_id)
     appointment.patient = user
+    patient = Patient.objects.get(id=appointment.patient_id)
+    doctor = patient.get_assigned_staff_user()
+    template = Messages.APPOINTMENT_BOOKED.value
     appointment.save()
+    send_system_message_to_user(patient, message=None, template=template, subject=None, c=doctor)
 
 
 def rebook_appointment_with_new_doctor(new_doctor_id, old_doctor_id, patient):
@@ -182,6 +192,22 @@ def _send_system_message_from_template(user, template, c=None, is_email=True):
 
 
 def send_system_message_to_user(user, message=None, template=None, subject=None, c=None):
+    preferences = user.profile.preferences[SystemMessagesPreference.NAME.value]
+
+    if user.email and (not preferences or preferences[SystemMessagesPreference.EMAIL.value]):
+        if template:
+            _send_system_message_from_template(user, template.get("email"), c, is_email=True)
+        else:
+            send_email_to_user(user, message, subject)
+
+    if user.profile.phone_number and (not preferences or preferences[SystemMessagesPreference.SMS.value]):
+        if template:
+            _send_system_message_from_template(user, template.get("sms"), c, is_email=False)
+        else:
+            send_sms_to_user(user, message)
+
+
+def send_system_message_to_doctor(user, message=None, template=None, subject=None, c=None):
     preferences = user.profile.preferences[SystemMessagesPreference.NAME.value]
 
     if user.email and (not preferences or preferences[SystemMessagesPreference.EMAIL.value]):
