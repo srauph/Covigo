@@ -2,7 +2,7 @@ import datetime
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordResetForm
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import Group, Permission, User
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView, PasswordChangeView
 from django.core.exceptions import MultipleObjectsReturned
@@ -14,6 +14,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
+from geopy import distance
 
 from Covigo.messages import Messages
 from accounts.forms import *
@@ -24,10 +25,12 @@ from accounts.utils import (
     get_or_generate_patient_profile_qr,
     get_assigned_staff_id_by_patient_id,
     get_user_from_uidb64,
+    send_sms_to_user, get_distance_of_all_doctors_to_postal_code, return_closest_with_least_patients_doctor,
     send_system_message_to_user,
 )
 from appointments.models import Appointment
 from appointments.utils import rebook_appointment_with_new_doctor
+from accounts.utils import dictfetchall
 from symptoms.utils import is_symptom_editing_allowed
 
 
@@ -168,6 +171,10 @@ def register_user_details(request, uidb64, token):
             profile_form = RegisterProfileForm(request.POST, instance=user.profile, user_id=user_id)
 
             if process_register_or_edit_user_form(request, user_form, profile_form):
+                patient = user.patient
+                patient.assigned_staff_id = return_closest_with_least_patients_doctor(
+                    profile_form.data.get("postal_code")).staff.id
+                patient.save()
                 request.session[internal_set_details_session_token] = None
                 return redirect("accounts:register_user_done")
 

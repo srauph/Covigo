@@ -16,6 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.shortcuts import redirect
 from django.urls import path, include
+from messaging.views import list_notifications, toggle_read_notification, read_notification
 
 from Covigo.settings import PRODUCTION_MODE
 
@@ -28,6 +29,12 @@ urlpatterns = [
     path('appointments/', include('appointments.urls')),
     path('messaging/', include('messaging.urls')),
     path('symptoms/', include('symptoms.urls')),
+    path('notifications/', list_notifications, name='list_notifications'),
+    path('read_notification/<int:message_group_id>/', read_notification,
+         name='read_notification'),
+    path('toggle_read_notification/<int:message_group_id>/', toggle_read_notification,
+         name='toggle_read_notification'),
+
 ]
 
 if not PRODUCTION_MODE:
