@@ -11,6 +11,7 @@ from Covigo.settings import HOST_NAME
 from accounts.models import Patient
 from accounts.preferences import SystemMessagesPreference
 from appointments.models import Appointment
+from accounts.utils import send_system_message_to_user
 
 
 def cancel_appointments(appointment_id):
@@ -69,12 +70,12 @@ def book_appointment(appointment_id, user):
     c_doctor = {
         "other_person": patient,
         "is_doctor": True,
-        "appointment": booked
+        "appointment": appointment
     }
     c_patient = {
         "other_person": doctor,
         "is_doctor": False,
-        "appointment": booked
+        "appointment": appointment
     }
     send_system_message_to_user(patient, template=template, c=c_patient)
     send_system_message_to_user(doctor, template=template, c=c_doctor)
@@ -149,83 +150,3 @@ def is_appointment_and_availability_same_datetime(appointment, availability):
     availability.end_date = availability.end_date.replace(microsecond=0, second=0)
 
     return appointment.start_date == availability.start_date and appointment.end_date == availability.end_date
-
-
-#takes a user, subject, and body as params and sends the user an email
-def send_email_to_user(user, subject, body):
-    """
-    Send an email to a user
-    @param user: The user to send the email to
-    @param subject: The subject of the email to send
-    @param body: The body of the email to send
-    @return: void
-    """
-    s = smtplib.SMTP('smtp.gmail.com', 587)
-    s.starttls()
-    email = 'shahdextra@gmail.com'
-    pwd = 'roses12345!%'
-    s.login(email, pwd)
-    s.sendmail(email, user.email, f"Subject: {subject}\n{body}")
-    s.quit()
-    return None
-
-
-# takes a user, user's phone number, and body as params and sends a text body
-def send_sms_to_user(user, body):
-    account = "AC77b343442a4ec3ea3d0258ea5c597289"
-    token = "f9a14a572c2ab1de3683c0d65f7c962b"
-    client = Client(account, token)
-
-    try:
-        body = client.messages.create(to=user.profile.phone_number, from_="+16626727846",
-                                      body=body)
-    except TwilioRestException as e:
-        print(e)
-
-    return None
-
-
-def _send_system_message_from_template(user, template, c=None, is_email=True):
-    """
-    Generate and send a system message a user
-    @param user: The user who the system message should be sent to
-    @param template: The template to use for the system message to send
-    @param c: Context variables to use to generate the system message
-    @param is_email: Whether the system message is an email or not
-    @return: void
-    """
-
-    if not c:
-        c = dict()
-
-    c['email'] = user.email
-    c['host_name'] = HOST_NAME
-    c['site_name'] = 'Covigo'
-    c['user'] = user
-    c['uid'] = urlsafe_base64_encode(force_bytes(user.pk))
-
-    if is_email:
-        body = template["body"]
-        subject = template["subject"]
-        email = render_to_string(body, c)
-        send_email_to_user(user, subject, email)
-    else:
-        body = template
-        message = render_to_string(body, c)
-        send_sms_to_user(user, message)
-
-
-def send_system_message_to_user(user, message=None, template=None, subject=None, c=None):
-    preferences = user.profile.preferences[SystemMessagesPreference.NAME.value]
-
-    if user.email and (not preferences or preferences[SystemMessagesPreference.EMAIL.value]):
-        if template:
-            _send_system_message_from_template(user, template.get("email"), c, is_email=True)
-        else:
-            send_email_to_user(user, message, subject)
-
-    if user.profile.phone_number and (not preferences or preferences[SystemMessagesPreference.SMS.value]):
-        if template:
-            _send_system_message_from_template(user, template.get("sms"), c, is_email=False)
-        else:
-            send_sms_to_user(user, message)
