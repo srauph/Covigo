@@ -172,33 +172,36 @@ def create_patient_report(request):
     @return: create-status-report page
     """
     current_user = request.user.id
-    report = PatientSymptom.objects.filter(user_id=current_user, due_date__date__lte=datetime.datetime.now())
+    if request.user.has_perm('change_patientsymptom'):
+        report = PatientSymptom.objects.filter(user_id=current_user, due_date__date__lte=datetime.datetime.now())
 
-    # Ensure it was a post request
-    if request.method == 'POST':
-        report_data = request.POST.getlist('data[id][]')
-        data = request.POST.getlist('data[data][]')
-        i = 0
-        for s in report_data:
-            symptom = PatientSymptom.objects.filter(id=int(s)).get()
-            symptom.data = data[i]
-            symptom.save()
-            i = i + 1
+        # Ensure it was a post request
+        if request.method == 'POST':
+            report_data = request.POST.getlist('data[id][]')
+            data = request.POST.getlist('data[data][]')
+            i = 0
+            for s in report_data:
+                symptom = PatientSymptom.objects.filter(id=int(s)).get()
+                symptom.data = data[i]
+                symptom.save()
+                i = i + 1
 
-        # SEND NOTIFICATION TO DOCTOR
-        staff_id = get_assigned_staff_id_by_patient_id(current_user)
-        doctor_id = Staff.objects.filter(id=staff_id).first().user_id
-        # Create href for notification redirection
-        href = reverse('status:patient-reports')
-        send_notification(current_user, doctor_id,
-                          'New patient report from ' + request.user.first_name + " " + request.user.last_name,
-                          href=href)
+            # SEND NOTIFICATION TO DOCTOR
+            staff_id = get_assigned_staff_id_by_patient_id(current_user)
+            doctor_id = Staff.objects.filter(id=staff_id).first().user_id
+            # Create href for notification redirection
+            href = reverse('status:patient-reports')
+            send_notification(current_user, doctor_id,
+                              'New patient report from ' + request.user.first_name + " " + request.user.last_name,
+                              href=href)
 
-        return redirect('status:index')
-    return render(request, 'status/create-status-report.html', {
-        'report': report,
-        'patient_postal_code': request.user.profile.postal_code
-    })
+            return redirect('status:index')
+        return render(request, 'status/create-status-report.html', {
+            'report': report,
+            'patient_postal_code': request.user.profile.postal_code
+        })
+    else:
+        raise PermissionDenied
 
 
 @login_required
@@ -211,59 +214,61 @@ def edit_patient_report(request):
         """
     current_user_id = request.user.id
 
-    is_resubmit_requested = is_requested(current_user_id)
+    if request.user.has_perm('change_patientsymptom'):
+        is_resubmit_requested = is_requested(current_user_id)
 
-    if is_resubmit_requested:
-        report = PatientSymptom.objects.filter(user_id=current_user_id, due_date__date__lte=datetime.datetime.now(),
-                                               is_hidden=False, status=-2)
+        if is_resubmit_requested:
+            report = PatientSymptom.objects.filter(user_id=current_user_id, due_date__date__lte=datetime.datetime.now(),
+                                                   is_hidden=False, status=-2)
+        else:
+            report = PatientSymptom.objects.filter(
+                Q(user_id=current_user_id) & Q(due_date__date__lte=datetime.datetime.now()) & Q(
+                    is_hidden=False) & (Q(status=0) | Q(status=3)))
+
+        # Ensure it was a post request
+        if request.method == 'POST':
+            report_data = request.POST.getlist('data[id][]')
+            data = request.POST.getlist('data[data][]')
+            i = 0
+            for s in report_data:
+                symptom = PatientSymptom.objects.filter(Q(id=int(s)))
+
+                # check if user updated the symptom
+                if data[i] != '':
+                    # Update the old entry is_hidden to true and keep all old values the same
+                    if is_resubmit_requested:
+                        symptom.update(is_hidden=False, data=data[i], status=0)
+                    else:
+                        symptom.update(is_hidden=True, status=-3)
+
+                    # Check if the patient themselves is modifying the report
+                    if not is_resubmit_requested:
+                        # Insert the new empty row
+                        new_symptom = symptom.get()
+                        new_symptom.pk = None
+                        new_symptom.is_hidden = False
+                        new_symptom.data = data[i]
+                        new_symptom.status = 3
+                        new_symptom._state.adding = True
+                        new_symptom.save()
+                i = i + 1
+
+            # SEND NOTIFICATION TO DOCTOR
+            staff_id = get_assigned_staff_id_by_patient_id(current_user_id)
+            doctor_id = Staff.objects.filter(id=staff_id).first().user_id
+            # Create href for notification redirection
+            href = reverse('status:patient-reports')
+            send_notification(current_user_id, doctor_id,
+                              'New patient report update from ' + request.user.first_name + " " + request.user.last_name,
+                              href=href)
+
+            return redirect('status:index')
+
+        return render(request, 'status/edit-status-report.html', {
+            'report': report
+        })
     else:
-        report = PatientSymptom.objects.filter(
-            Q(user_id=current_user_id) & Q(due_date__date__lte=datetime.datetime.now()) & Q(
-                is_hidden=False) & (Q(status=0) | Q(status=3)))
-
-    # Ensure it was a post request
-    if request.method == 'POST':
-        report_data = request.POST.getlist('data[id][]')
-        data = request.POST.getlist('data[data][]')
-        i = 0
-        for s in report_data:
-            symptom = PatientSymptom.objects.filter(Q(id=int(s)))
-
-            # check if user updated the symptom
-            if data[i] != '':
-                # Update the old entry is_hidden to true and keep all old values the same
-                if is_resubmit_requested:
-                    symptom.update(is_hidden=False, data=data[i], status=0)
-                else:
-                    symptom.update(is_hidden=True, status=-3)
-
-                # Check if the patient themselves is modifying the report
-                if not is_resubmit_requested:
-                    # Insert the new empty row
-                    new_symptom = symptom.get()
-                    new_symptom.pk = None
-                    new_symptom.is_hidden = False
-                    new_symptom.data = data[i]
-                    new_symptom.status = 3
-                    new_symptom._state.adding = True
-                    new_symptom.save()
-            i = i + 1
-
-        # SEND NOTIFICATION TO DOCTOR
-        staff_id = get_assigned_staff_id_by_patient_id(current_user_id)
-        doctor_id = Staff.objects.filter(id=staff_id).first().user_id
-        # Create href for notification redirection
-        href = reverse('status:patient-reports')
-        send_notification(current_user_id, doctor_id,
-                          'New patient report update from ' + request.user.first_name + " " + request.user.last_name,
-                          href=href)
-
-        return redirect('status:index')
-
-    return render(request, 'status/edit-status-report.html', {
-        'report': report
-    })
-
+        raise PermissionDenied
 
 def resubmit_request(request, patient_symptom_id):
     # TODO recode the entire logic
