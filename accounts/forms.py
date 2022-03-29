@@ -432,7 +432,7 @@ class EditPreferencesForm(Form):
         choices=REMINDER_INTERVAL_CHOICES,
         widget=Select(
             attrs={
-                "class": CHECKBOX_CLASS
+                "class": SELECTION_CLASS
             }
         ),
         required=True
