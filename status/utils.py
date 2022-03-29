@@ -112,18 +112,18 @@ def is_requested(user_id):
     return requested_resubmit
 
 
-def send_status_reminder(date=None):
+def send_status_reminder(date=datetime.now(), current_date=datetime.now()):
     """
     Sends an email/sms to each user that has a symptom status update due either today or on the date specified
     @params: date -> allows the date being checked to be specified
     """
 
-    if date is not None:
-        statuses = PatientSymptom.objects.filter(data=None, due_date=datetime.combine(date, time.max))
-        my_due_date = datetime.combine(date, time.max)
-    else:
-        statuses = PatientSymptom.objects.filter(data=None, due_date=datetime.combine(datetime.now(), time.max))
-        my_due_date = datetime.combine(datetime.now(), time.max)
+    current_hour = current_date.hour
+
+    patients_to_remind = None
+
+    statuses = PatientSymptom.objects.filter(data=None, due_date=datetime.combine(date, time.max))
+    my_due_date = datetime.combine(date, time.max)
 
     # get user ids for the patients that have status reports due on the day
     user_ids_with_duplicates = []
