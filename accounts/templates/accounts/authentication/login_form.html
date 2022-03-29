@@ -4,21 +4,11 @@
         <input type="hidden" name="remember" value="true">
 
         <div class="rounded-md shadow-sm -space-y-px">
-            <div class="mb-2 flex items-center justify-center text-red-500 text-sm font-semibold">
-                <div>
-                    {{ form.non_field_errors }}
-                </div>
-            </div>
             <div>
                 <label for="email-address" class="sr-only">{{ form.username.label_tag }}</label>
                 <input id="email-address" name="{{ form.username.html_name }}" type="text" required
                        class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                        placeholder="Username">
-                <div class="text-red-500 text-sm font-semibold">
-                    <div class="absolute">
-                        {{ form.username.errors }}
-                    </div>
-                </div>
             </div>
             <div>
                 <label for="password" class="sr-only">{{ form.password.label_tag }}</label>
@@ -26,11 +16,6 @@
                        autocomplete="current-password" required
                        class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                        placeholder="Password">
-                <div class="text-red-500 text-sm font-semibold">
-                    <div class="absolute">
-                        {{ form.password.errors }}
-                    </div>
-                </div>
             </div>
         </div>
 

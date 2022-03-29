@@ -15,7 +15,6 @@
     <script type="text/javascript" charset="utf8"
             src="https://cdn.datatables.net/datetime/1.1.2/js/dataTables.dateTime.min.js"></script>
     <script>
-
         let minDate;
         let maxDate;
 
@@ -106,17 +105,6 @@
             }
         });
 
-        let alert_del = document.querySelectorAll('.alert-del');
-
-        alert_del.forEach(
-            (x) => x.addEventListener(
-                'click',
-                function(){
-                    x.parentElement.parentElement.parentElement.parentElement.classList.add('hidden')
-                }
-            )
-        );
-
         $(document).ready(function() {
             if ($("input:checkbox:checked").length >= 1) {
                 $(".book_selected_appointments").show();
@@ -136,6 +124,13 @@
                 }
             });
         });
+    </script>
+    <script>
+        Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
+            x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
+        }
+        )
+        );
     </script>
 {% endblock %}
 
@@ -183,9 +178,19 @@
         <form method="post">
             {% csrf_token %}
             <div class="m-4 p-4 rounded-lg">
+
+                {% if messages %}
+                    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+                    <script>
+                        setTimeout(function() {
+                            $('.message').fadeOut('fast');
+                            }, 10000); // <-- time in milliseconds
+                    </script>
+                {% endif %}
+
                 {% for message in messages %}
                     {% if message.tags == 'success'%}
-                        <div role="alert" class="p-5 rounded-lg border border-green-400 bg-green-300 text-green-900">
+                        <div role="alert" class="message p-5 rounded-lg border border-green-400 bg-green-300 text-green-900">
                             <div class="divide-y-2 divide-solid divide-green-400">
                                 <h2 class="font-bold text-xl flex items-center pb-2">
                                         <span class="mr-2">
@@ -207,6 +212,7 @@
                         </div>
                     {% endif %}
                 {% endfor %}
+
             </div>
             <div class="m-4">
                 <div class="m-4 p-4 bg-white shadow rounded-lg">

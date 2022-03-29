@@ -1,8 +1,6 @@
 from datetime import time
 from django.utils.datetime_safe import datetime
-from django.db.models import Q, Count, QuerySet
-
-from accounts.utils import get_is_staff
+from django.db.models import Q, Count
 from symptoms.models import PatientSymptom
 
 
@@ -75,7 +73,6 @@ def return_symptoms_for_today(user_id):
     """
     Returns a queryset of symptoms from a user id that has a report due at midnight of the current day.
     @param user_id: user id
-    @param due_date: due date of the symptom
     @return: queryset of symptoms due today
     """
     criteria = Q(user_id=user_id) & Q(due_date=datetime.combine(datetime.now(), time.max)) & Q(data=None)

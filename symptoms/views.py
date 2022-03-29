@@ -128,6 +128,21 @@ def assign_symptom(request, user_id):
             if action == 'assign':
                 starting_date = datetime.combine(datetime.strptime(request.POST['starting_date'], '%Y-%m-%d'), time.max)
                 interval = int(request.POST.get('interval'))
+
+                if len(symptom_list) > 1:
+                    messages.success(request, 'The symptoms were assigned to this patient successfully.')
+
+                elif len(symptom_list) == 1:
+                    messages.success(request, 'The symptom was assigned to this patient successfully.')
+
+                else:
+                    messages.error(request, 'No symptoms were selected to be assigned to this patient. If you wish to not assign any symptoms to this patient at this point in time, please click the \"Cancel\" button to go back to this patient\'s profile. Otherwise, please select at least one symptom to assign.')
+                    return render(request, 'symptoms/assign_symptom.html', {
+                        'symptoms': Symptom.objects.all(),
+                        'patient': patient,
+                        'patient_name': patient_name
+                    })
+
             else:  # Update
                 earliest_due_date = get_earliest_reporting_due_date(user_id)
                 latest_due_date = get_latest_reporting_due_date(user_id)
@@ -146,6 +161,8 @@ def assign_symptom(request, user_id):
                 query = PatientSymptom.objects.filter(
                     Q(user_id=user_id) & Q(data=None) & ~Q(symptom_id__in=symptom_list))
                 query.delete()
+
+                messages.success(request, 'The assigned symptoms to this patient were updated successfully.')
 
             if action == 'assign':
                 # Assigns quarantine status for patient

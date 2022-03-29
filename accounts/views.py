@@ -49,6 +49,9 @@ def process_register_or_edit_user_form(request, user_form, profile_form, mode=No
     has_phone = user_phone != ""
 
     if user_form.is_valid() and profile_form.is_valid() and (has_email or has_phone):
+        if mode == "Edit" and not user_form.has_changed() and not profile_form.has_changed():
+            messages.error(request, "The account was not edited successfully: No edits made on this account. If you wish to make no changes, please click the \"Cancel\" button to go back to the profile page.")
+            return False
 
         edited_user = user_form.save(commit=False)
 
@@ -63,7 +66,34 @@ def process_register_or_edit_user_form(request, user_form, profile_form, mode=No
 
     else:
         if mode == "Edit" and not (has_email or has_phone):
-            user_form.add_error(None, "Please enter an email address or a phone number.")
+            messages.error(request, 'Please enter an email address or a phone number.')
+
+        if not user_form.is_valid():
+            if "username" in user_form.errors:
+                messages.error(request, list(user_form['username'].errors)[0])
+
+            if "email" in user_form.errors:
+                messages.error(request, list(user_form['email'].errors)[0])
+
+            if "first_name" in user_form.errors:
+                messages.error(request, list(user_form['first_name'].errors)[0])
+
+            if "last_name" in user_form.errors:
+                messages.error(request, list(user_form['last_name'].errors)[0])
+
+            if "groups" in user_form.errors:
+                messages.error(request, list(user_form['groups'].errors)[0])
+
+        if not profile_form.is_valid():
+            if "phone_number" in profile_form.errors:
+                messages.error(request, list(profile_form['phone_number'].errors)[0])
+
+            if "address" in profile_form.errors:
+                messages.error(request, list(profile_form['address'].errors)[0])
+
+            if "postal_code" in profile_form.errors:
+                messages.error(request, list(profile_form['postal_code'].errors)[0])
+
         return False
 
 
@@ -96,13 +126,12 @@ def forgot_password(request):
             except MultipleObjectsReturned:
                 # Should not happen because we don't allow multiple users to share an email.
                 # This can only occur if the database is corrupted somehow
-                password_reset_form.add_error(None,
-                                              "More than one user with the given email address could be found. Please contact the system administrators to fix this issue.")
+                messages.error(request, "More than one user with the given email address could be found. Please contact the system administrators to fix this issue.")
             except User.DoesNotExist:
                 # Don't let the user know if the email does not exist in our system
                 return redirect("accounts:forgot_password_done")
         else:
-            password_reset_form.add_error(None, "Please enter a valid email address or phone number.")
+            messages.error(request, "Please enter a valid email address or phone number.")
     else:
         password_reset_form = PasswordResetForm()
     return render(
@@ -213,12 +242,6 @@ def index(request):
     return redirect('accounts:list_users')
 
 
-@login_required
-@never_cache
-def two_factor_authentication(request):
-    return render(request, 'accounts/authentication/2FA.html')
-
-
 @never_cache
 def change_password_done(request):
     return render(request, 'accounts/authentication/change_password_done.html')
@@ -251,6 +274,13 @@ def profile(request, user_id):
 
         qr = get_or_generate_patient_profile_qr(user_id)
         assigned_staff = user.patient.get_assigned_staff_user()
+
+        if request.POST.get('Reassign'):
+            messages.success(request, "This patient was reassigned to the new doctor successfully.")
+
+        if request.POST.get('Assign'):
+            messages.success(request, "This patient was assigned a new doctor successfully.")
+
         appointments = Appointment.objects.filter(patient=user).filter(all_filter).order_by("start_date")
         appointments_truncated = appointments[:4]
         try:
@@ -356,11 +386,31 @@ def create_user(request):
                 template = "accounts/messages/register_user_email.html"
                 send_sms_to_user(new_user, user_phone, template)
 
-            return redirect("accounts:list_users")
+            if request.POST.get('Create'):
+                messages.success(request, 'The account was created successfully.')
+                return render(request, "accounts/create_user.html", {
+                    "user_form": user_form,
+                    "profile_form": profile_form
+                })
+
+            else:
+                messages.success(request, 'The account was created successfully.')
+                return redirect('accounts:list_users')
 
         else:
             if not (has_email or has_phone):
-                user_form.add_error(None, "Please enter an email address or a phone number.")
+                messages.error(request, 'Please enter an email address or a phone number.')
+
+            if not user_form.is_valid():
+                if "email" in user_form.errors:
+                    messages.error(request, list(user_form['email'].errors)[0])
+
+                if "groups" in user_form.errors:
+                    messages.error(request, list(user_form['groups'].errors)[0])
+
+            if not profile_form.is_valid():
+                messages.error(request, list(profile_form.errors.values())[0][0])
+
     # Create forms
     else:
         user_form = CreateUserForm()
@@ -383,7 +433,8 @@ def edit_user(request, user_id):
         profile_form = EditProfileForm(request.POST, instance=user.profile, user_id=user_id)
 
         if process_register_or_edit_user_form(request, user_form, profile_form, mode="Edit"):
-            return redirect("accounts:profile", user_id)
+            messages.success(request, 'The account was edited successfully.')
+            return redirect('accounts:profile', user_id)
 
     # Create forms
     else:

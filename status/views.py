@@ -1,4 +1,5 @@
 import json
+from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Q
@@ -69,7 +70,7 @@ def patient_reports(request):
         # if it's viewed and if the patient is flagged
         reports = get_reports_for_doctor(patient_ids)
 
-        return render(request, 'status/patient-reports.html', {
+        return render(request, 'status/patient_reports.html', {
             'patient_reports': reports
         })
     else:
@@ -132,7 +133,7 @@ def patient_report_modal(request, user_id, date_updated):
                     Q(user_id=user_id) & Q(date_updated__date=date_updated) & ~Q(data=None)).update(is_viewed=1)
 
             # Render as an httpResponse for the modal to use
-            return HttpResponse(render_to_string('status/patient-report-modal.html', context={
+            return HttpResponse(render_to_string('status/patient_report_modal.html', context={
                 'user_id': user_id,
                 'date': date_updated,
                 'is_staff': request.user.is_staff,
@@ -170,7 +171,7 @@ def create_patient_report(request):
     """
     The view of creating a patient report.
     @param request: http request from the client
-    @return: create-status-report page
+    @return: create_status_report page
     """
 
     current_user = request.user.id
@@ -180,6 +181,15 @@ def create_patient_report(request):
     if request.method == 'POST':
         report_data = request.POST.getlist('data[id][]')
         data = request.POST.getlist('data[data][]')
+
+        for submitted_data in data:
+            if submitted_data == "":
+                messages.error(request, 'Missing information in the status report: Please make sure you have filled all the fields in the status report.')
+                return render(request, 'status/create_status_report.html', {
+                    'report': report
+                })
+                break
+
         i = 0
         for s in report_data:
             symptom = PatientSymptom.objects.filter(id=int(s)).get()
@@ -188,7 +198,7 @@ def create_patient_report(request):
             i = i + 1
 
         return redirect('status:index')
-    return render(request, 'status/create-status-report.html', {
+    return render(request, 'status/create_status_report.html', {
         'report': report
     })
 
@@ -199,7 +209,7 @@ def edit_patient_report(request):
     """
     The view of editing a patient report.
     @param request: http request from the client
-    @return: edit-status-report page
+    @return: edit_status_report page
     """
 
     current_user_id = request.user.id
@@ -244,7 +254,7 @@ def edit_patient_report(request):
 
         return redirect('status:index')
 
-    return render(request, 'status/edit-status-report.html', {
+    return render(request, 'status/edit_status_report.html', {
         'report': report
     })
 
@@ -264,4 +274,4 @@ def resubmit_request(request, patient_symptom_id):
     new_symptom.status = -2
     new_symptom._state.adding = True
     new_symptom.save()
-    return redirect('status:patient-reports')
+    return redirect('status:patient_reports')

@@ -80,7 +80,7 @@ class CreateUserForm(ModelForm):
         # TODO: Discuss the possibility of having no groups and fix error and if: != 1 if we enforce having at least one
         if len(cleaned_groups) > 1:
             raise ValidationError(
-                "Cannot select more than one groups."
+                "Cannot select more than one group."
             )
         return cleaned_groups
 
@@ -343,7 +343,7 @@ class EditUserForm(ModelForm):
         # TODO: Discuss the possibility of having no groups and fix error and if: != 1 if we enforce having at least one
         if len(cleaned_groups) > 1:
             raise ValidationError(
-                "Cannot select more than one groups."
+                "Cannot select more than one group."
             )
         return cleaned_groups
 

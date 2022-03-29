@@ -437,7 +437,7 @@ class AccountsTestCase(TransactionTestCase):
         self.response = self.client.post(reverse('accounts:create_user'), self.mocked_form_data7)
 
         self.assertTrue(User.objects.all().count() == 4)
-        self.assertEqual('Cannot select more than one groups.', list(self.response.context['user_form']['groups'].errors)[0])
+        self.assertEqual('Cannot select more than one group.', list(self.response.context['user_form']['groups'].errors)[0])
 
     @mock.patch("accounts.views.send_sms_to_user")
     @mock.patch("accounts.views.generate_and_send_email")
@@ -594,7 +594,7 @@ class AccountsTestCase(TransactionTestCase):
                     ),
             self.edited_mocked_form_data12
         )
-        self.assertEqual('Cannot select more than one groups.', list(self.response.context['user_form']['groups'].errors)[0])
+        self.assertEqual('Cannot select more than one group.', list(self.response.context['user_form']['groups'].errors)[0])
 
         # here, I am testing for the duplicate username, email and phone number fields (in another already existing account)
         # form error messages by making sure that they work: If I try to post edited mocked form data that contains

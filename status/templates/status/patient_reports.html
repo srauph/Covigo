@@ -32,11 +32,10 @@
     <script type="text/javascript"
             src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
-
     <script>
         $(document).ready(function () {
             let table = $('#patient_reports_table').DataTable({
-                "ajax": "{% url 'status:patient-reports-table' %}",
+                "ajax": "{% url 'status:patient_reports_table' %}",
                 createdRow: function (row, data, index) {
                     $(row).attr('data-read', data.is_viewed)
                     if (data.is_viewed === false) {
@@ -144,7 +143,7 @@
                     user_id = data.user_id;
                     table_date = data.date_updated__date;
                 }
-                let url = "{% url 'status:patient-report-modal' 999999999 'date_updated' %}";
+                let url = "{% url 'status:patient_report_modal' 999999999 'date_updated' %}";
                 url = url.replace(999999999, user_id);
                 url = url.replace('date_updated', table_date);
 
@@ -162,7 +161,7 @@
 
                         $('#modal-div').html(html).modal('show');
 
-                        //Re-laod table to update that it has been read
+                        //Reload table to update that it has been read
                         table.ajax.reload();
                     }
                 });

@@ -25,7 +25,7 @@
             </div>
             <nav :class="{'block': open, 'hidden': !open}" class="flex-grow md:block px-4 pb-4 md:pb-0 md:overflow-y-auto">
                  {% if perms.symptoms.view_patientsymptom %}
-                    <a href="{% url 'status:patient-reports' %}"
+                    <a href="{% url 'status:patient_reports' %}"
                         class="block px-4 py-2 mt-2 text-sm font-semibold text-slate-100 bg-transparent rounded-lg hover:text-slate-800 focus:text-slate-800 hover:bg-white focus:bg-white focus:outline-none focus:shadow-outline" href="#">
                         Patient Reports
                     </a>

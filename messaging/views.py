@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -133,6 +134,7 @@ def compose_message(request, user_id):
                     message=new_msg_group,
                     content=msg_content_form.data.get('content'),
                 )
+                messages.success(request, "The new message was successfully sent to " + recipient_user.first_name + " " + recipient_user.last_name + "!")
                 return redirect("messaging:list_messages", request.user.id)
 
         else:
