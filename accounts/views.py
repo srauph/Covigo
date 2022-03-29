@@ -86,19 +86,12 @@ def convert_permission_name_to_id(request):
 @never_cache
 def two_factor_authentication(request):
     user = request.user
-    has_email = user.email != ""
-    has_phone = user.profile.phone_number != ""
     code, _ = Code.objects.get_or_create(user=request.user.profile)
     code.save()
     otp = code.number
     message = "Your OTP is " + otp + ". "
     subject = "Covigo OTP"
-    if has_phone:
-        send_sms_to_user(user, user.profile.phone_number, message)
-    elif has_email:
-        send_email_to_user(user, subject, message)
-    else:
-        None
+    send_system_message_to_user(user, message=message, subject=subject)
 
     return render(request, 'accounts/authentication/2FA.html')
 

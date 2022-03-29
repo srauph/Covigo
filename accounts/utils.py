@@ -127,7 +127,10 @@ def _send_system_message_from_template(user, template, c=None, is_email=True):
 
 
 def send_system_message_to_user(user, message=None, template=None, subject=None, c=None):
-    preferences = user.profile.preferences[SystemMessagesPreference.NAME.value]
+    try:
+        preferences = user.profile.preferences[SystemMessagesPreference.NAME.value]
+    except TypeError:
+        preferences = None
 
     if user.email and (not preferences or preferences[SystemMessagesPreference.EMAIL.value]):
         if template:
