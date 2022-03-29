@@ -6,6 +6,8 @@ from django.utils.datetime_safe import datetime
 from django.db.models import Q, Count, QuerySet
 
 from Covigo.messages import Messages
+from accounts.models import Profile
+from accounts.preferences import StatusReminderPreference
 from accounts.utils import get_is_staff, send_system_message_to_user
 from symptoms.models import PatientSymptom, Symptom
 
@@ -120,8 +122,6 @@ def send_status_reminder(date=datetime.now(), current_date=datetime.now()):
 
     current_hour = current_date.hour
 
-    patients_to_remind = None
-
     statuses = PatientSymptom.objects.filter(data=None, due_date=datetime.combine(date, time.max))
     my_due_date = datetime.combine(date, time.max)
 
@@ -131,14 +131,27 @@ def send_status_reminder(date=datetime.now(), current_date=datetime.now()):
         user_ids_with_duplicates.append(status.user_id)
     user_ids_no_duplicates = list(set(user_ids_with_duplicates))
 
+    # Filter to only the profiles who are to be reminded
+    profiles = Profile.objects.filter(user_id__in=user_ids_no_duplicates)
+    users_to_remind = []
+    time_to_match = 24-current_hour
+
+    for profile in profiles:
+        if profile.preferences and StatusReminderPreference.NAME.value in profile.preferences:
+            if int(profile.preferences[StatusReminderPreference.NAME.value]) == time_to_match:
+                users_to_remind.append(profile.user)
+        else:
+            if current_hour == 22:
+                users_to_remind.append(profile.user)
+
     symptoms = []
     template = Messages.STATUS_UPDATE.value
-    for user_id in user_ids_no_duplicates:
-        selected_user = User.objects.get(id=user_id)
+
+    for selected_user in users_to_remind:
 
         # get the all symptoms due on that day per user
         for status in statuses:
-            if status.user_id == user_id:
+            if status.user_id == selected_user.id:
                 symptoms.append(Symptom.objects.get(id=status.symptom_id).name)
         c = {
             'date': my_due_date.date(),
@@ -149,7 +162,3 @@ def send_status_reminder(date=datetime.now(), current_date=datetime.now()):
         # send email/sms to user concerning the symptoms they need to update
         send_system_message_to_user(selected_user, template=template, c=c)
         symptoms.clear()
-
-
-def send_status_reminders(current_date=datetime.now()):
-    print(current_date)

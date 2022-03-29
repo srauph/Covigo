@@ -6,5 +6,6 @@ class SystemMessagesPreference(Enum):
     EMAIL = "use_email"
     SMS = "use_sms"
 
+
 class StatusReminderPreference(Enum):
-    INTERVAL = ""
+    NAME = "status_reminder_interval"

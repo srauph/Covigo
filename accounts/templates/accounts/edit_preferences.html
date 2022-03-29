@@ -28,6 +28,18 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="w-full max-w-2xl px-2">
+                    <label>System Messages:</label>
+                    <div class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400">
+                        {{ preferences_form.status_reminder_interval }}
+                    </div>
+                    <div class="text-red-500 text-sm font-semibold">
+                        <div class="absolute">
+                            {{ preferences_form.status_reminder_interval.errors }}
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="w-full mt-8 md:mt-0">
                 <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">

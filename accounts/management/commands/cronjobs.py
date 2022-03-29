@@ -2,7 +2,7 @@ import datetime
 
 from django.core.management.base import BaseCommand, CommandError
 
-from status.utils import send_status_reminders
+from status.utils import send_status_reminder
 
 
 class Command(BaseCommand):
@@ -18,8 +18,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         jobs_to_run = [
-            send_status_reminders,
+            send_status_reminder,
         ]
+
         if options['hour']:
             current_hour = options['hour']
         else:
