@@ -151,5 +151,5 @@ def send_status_reminder(date=None):
         symptoms.clear()
 
 
-def send_status_reminders():
-    print("hi")
+def send_status_reminders(current_date=datetime.now()):
+    print(current_date)
