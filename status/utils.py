@@ -114,7 +114,7 @@ def is_requested(user_id):
     return requested_resubmit
 
 
-def send_status_reminder(date=datetime.now(), current_date=datetime.now()):
+def send_status_reminders(date=datetime.now(), current_date=datetime.now()):
     """
     Sends an email/sms to each user that has a symptom status update due either today or on the date specified
     @params: date -> allows the date being checked to be specified
