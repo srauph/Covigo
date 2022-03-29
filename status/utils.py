@@ -149,3 +149,7 @@ def send_status_reminder(date=None):
         # send email/sms to user concerning the symptoms they need to update
         send_system_message_to_user(selected_user, template=template, c=c)
         symptoms.clear()
+
+
+def send_status_reminders():
+    print("hi")
