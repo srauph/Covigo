@@ -13,4 +13,5 @@ urlpatterns = [
          name='patient-report-modal-table'),
     path('create-status-report/', views.create_patient_report, name='create-status-report'),
     path('edit-status-report/', views.edit_patient_report, name='edit-status-report'),
+    path('resubmit-request/<int:patient_symptom_id>', views.resubmit_request, name='resubmit-request')
 ]

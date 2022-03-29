@@ -30,6 +30,8 @@ class PatientSymptom(models.Model):
         on_delete=models.CASCADE,
     )
     data = models.TextField(blank=True, null=True)
+    # Approved 0, Rejected -1, Useless for Patient View (Patient Resubmit) -2
+    status = models.IntegerField(default=0, null=True)
     is_hidden = models.BooleanField(default=False)
     is_viewed = models.BooleanField(default=False)
     due_date = models.DateTimeField(blank=True, null=True)

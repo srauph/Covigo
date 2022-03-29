@@ -1,16 +1,152 @@
+{% block script %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timeago/1.6.7/jquery.timeago.min.js"
+            integrity="sha512-RlGrSmkje9EE/FXpJKWf0fvOlg4UULy/blvNsviBX9LFwMj/uewXVoanRbxTIRDXy/0A3fBQppTmJ/qOboJzmA=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        //Timeago was not working without using jquery like this:
+        var $j = jQuery.noConflict();
+
+        //This function will be called once when the page loads, and again every 15 seconds to refresh notifications
+        function initialize() {
+            $j.ajax({
+                type: "GET",
+                url: "{% url 'messaging:get_notifications' %}",
+                dataType: "json",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+                success: function (response) {
+                    const allNotifications = response.data.notifications;
+
+                    $j("#notification-list").empty();
+
+                    for (let i = 0; i < allNotifications.length; i++) {
+                        let dateObj = new Date(allNotifications[i].date_created);
+
+                        let li = "<li data-notif-id=" + allNotifications[i].id + " id='notification-item' class='notification-item h-min px-4 py-3 border-b text-gray-700 hover:bg-slate-100 text-left' " + " value=" + allNotifications[i].id + ">"
+                            + "<div class='w-full font-bold  top-1.5'>" + allNotifications[i].title + "</div>"
+                            + "<div class='w-full bottom-0.5 '>"
+                            + "<svg xmlns='http://www.w3.org/2000/svg' class='pr-1 h-5 w-5 inline-block pb-0.5 ' viewBox='0 0 20 20'fill='currentColor'><path fill-rule='evenodd'd='M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z'clip-rule='evenodd'/> <title>Time</title> </svg>"
+                            + $j.timeago(dateObj.toISOString()) + "</div>"
+                            + "</li>";
+
+                        $j("#notification-list").append(li);
+
+                        //Display maximum 10 notifications
+                        if (i == 9) {
+                            const remainingNumOfNotifications = allNotifications.length - 10;
+                            if (remainingNumOfNotifications > 0) {
+                                const differenceRow = "<li class='flex text-center items-center px-4 py-3 border-b text-gray-700 hover:bg-slate-100 '>+" + remainingNumOfNotifications + " notifications</li>";
+                                $j("#notification-list").append(differenceRow);
+                            }
+                            break;
+                        }
+                    }
+
+                    //Last row is a button that opens the list of all notifications
+                    const lastRow = "<a href='{% url 'list_notifications' %}'><li class='block bg-slate-900 text-white text-center font-bold py-2'>View all notifications</li></a>";
+                    $j("#notification-list").append(lastRow);
+
+                    $j('#unread-notifications').html(allNotifications.length);
+
+                    if (allNotifications.length == 0) {
+                        $j('#unread-notifications').addClass('hidden');
+                    } else {
+                        $j('#unread-notifications').removeClass('hidden');
+                    }
+                    console.log(response)
+
+                }
+            });
+        }
+
+        $j(document).ready(function () {
+            $j("time.timeago").timeago();
+        });
+        $j(document).ready(function () {
+            initialize();
+
+            //Open and close the notification dropdown
+            $j('#notification-icon').click(function () {
+
+                if ($j('#notification-dropdown').is(":hidden")) {
+                    $j('#notification-dropdown').removeClass("hidden");
+                } else {
+                    $j('#notification-dropdown').addClass("hidden");
+                }
+
+            });
+        });
+
+        function refreshNotifications() {
+            initialize();
+            //refresh notifications every 15 seconds
+            setTimeout(refreshNotifications, 15000);
+        }
+
+        refreshNotifications();
+
+        //Delay execution of opening the href link of the notification item to make it read beforehand
+        $j(document).on('click', '.notification-item', function () {
+
+            //Get the notification id (message group object id)
+            var notif_id = $j(this).attr('data-notif-id');
+            var _this = $j(this)
+
+            let url = "{% url 'read_notification' 999999999 %}";
+            url = url.replace(999999999, notif_id);
+            $j.ajax({
+                method: 'POST',
+                url: url,
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+                dataType: 'html',
+                success: function (html) {
+                    //Continue execution of href link
+                    window.location.replace(_this.find('.notification-link').attr('data-href'));
+                }
+            });
+        });
+
+    </script>
+{% endblock %}
+
 {% block header %}
     <nav class="bg-slate-900 text-white flex items-center justify-between bg-teal p-3">
         <div class="flex items-center flex-no-shrink px-4 py-2 mr-6">
             <span class="font-semibold text-3xl tracking-tight">Covigo</span>
         </div>
         <div class="flex block text-right">
+
+
+            <div class="relative">
+                <a id="notification-icon" href="#" class="inline-block text-sm px-3 py-2 leading-none relative">
+                    <svg class="h-8 w-8 text-white hover:fill-white" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    <span id="unread-notifications"
+                          class="absolute rounded-full bg-red-500 hover:bg-red-400 right-0 py-1 px-2 -top-px right-px">x</span>
+                </a>
+                <div id="notification-dropdown"
+                     class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg overflow-hidden z-20 hidden">
+                    <ul id="notification-list">
+
+                    </ul>
+                </div>
+            </div>
+
             <div class="inline-block text-sm px-2 py-2 leading-none">
-                <a href="{% url 'accounts:profile' user.id %}" class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
+                <a href="{% url 'accounts:profile' user.id %}"
+                   class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
                     {{ user.get_username }}
                 </a>
             </div>
             <div class="inline-block text-sm mr-4 px-2 py-2 leading-none">
-                <a href="{% url 'accounts:logout' %}" class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
+                <a href="{% url 'accounts:logout' %}"
+                   class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
                     Log out
                 </a>
             </div>
