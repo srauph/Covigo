@@ -30,10 +30,14 @@
                 </div>
 
                 <div class="w-full max-w-2xl px-2">
-                    <label>System Messages:</label>
+                    <label>Status Update Deadline Reminder:</label>
                     <div class="mt-1">
                         {{ preferences_form.status_reminder_interval }}
                     </div>
+                    <p class="text-sm text-slate-600">
+                        Specify the number of hours of advance warning to give for an upcoming status update deadline,
+                        if it is not submitted yet for the day.
+                    </p>
                     <div class="text-red-500 text-sm font-semibold">
                         <div class="absolute">
                             {{ preferences_form.status_reminder_interval.errors }}
