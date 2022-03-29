@@ -441,6 +441,7 @@ def edit_preferences(request, user_id):
             if StatusReminderPreference.NAME.value in profile.preferences:
                 old_preferences[StatusReminderPreference.NAME.value] = profile.preferences[StatusReminderPreference.NAME.value]
             else:
+                # TODO: Replace this with admin-defined default advance warning, if we implement it.
                 old_preferences[StatusReminderPreference.NAME.value] = 2
 
             preferences_form = EditPreferencesForm(old_preferences)

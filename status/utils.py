@@ -122,6 +122,10 @@ def send_status_reminders(date=datetime.now(), current_date=datetime.now()):
 
     current_hour = current_date.hour
 
+    # Earliest time to send reminders is 6pm, so don't do anything if it's not 6pm.
+    if current_hour < 18:
+        return
+
     statuses = PatientSymptom.objects.filter(data=None, due_date=datetime.combine(date, time.max))
     my_due_date = datetime.combine(date, time.max)
 
@@ -134,13 +138,19 @@ def send_status_reminders(date=datetime.now(), current_date=datetime.now()):
     # Filter to only the profiles who are to be reminded
     profiles = Profile.objects.filter(user_id__in=user_ids_no_duplicates)
     users_to_remind = []
-    time_to_match = 24-current_hour
+
+    # The value stored in preferences is the interval (number of advance hours warning) to give.
+    # Thus, we need to convert from the current hour to the corresponding interval.
+    # EG: if it is currently 21:00, we need to match users whose preference is set to 24-21 = 3 hours notice
+    interval_to_match = 24-current_hour
 
     for profile in profiles:
         if profile.preferences and StatusReminderPreference.NAME.value in profile.preferences:
-            if int(profile.preferences[StatusReminderPreference.NAME.value]) == time_to_match:
+            if int(profile.preferences[StatusReminderPreference.NAME.value]) == interval_to_match:
                 users_to_remind.append(profile.user)
         else:
+            # Default time in case the user did not set a preference.
+            # TODO: Replace this with admin-defined default advance warning, if we implement it.
             if current_hour == 22:
                 users_to_remind.append(profile.user)
 
