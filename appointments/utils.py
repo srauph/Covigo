@@ -1,4 +1,7 @@
+from Covigo.messages import Messages
+from accounts.models import Patient
 from appointments.models import Appointment
+from accounts.utils import send_system_message_to_user
 
 
 def cancel_appointments(appointment_id):
@@ -9,8 +12,25 @@ def cancel_appointments(appointment_id):
     @return: void
     """
     booked = Appointment.objects.get(id=appointment_id)
+    patient_user = booked.patient
+    doctor = patient_user.patient.get_assigned_staff_user()
+    template = Messages.APPOINTMENT_CANCELLED.value
     booked.patient = None
     booked.save()
+    c_doctor = {
+        "other_person": patient_user,
+        "is_doctor": True,
+        "date": str(booked.start_date.date()),
+        "time": str(booked.start_date.time())
+    }
+    c_patient = {
+        "other_person": doctor,
+        "is_doctor": False,
+        "date": str(booked.start_date.date()),
+        "time": str(booked.start_date.time())
+    }
+    send_system_message_to_user(patient_user, template=template, c=c_patient)
+    send_system_message_to_user(doctor, template=template, c=c_doctor)
 
 
 
@@ -21,6 +41,8 @@ def delete_availabilities(appointment_id):
     :return: None
     """
     unbooked = Appointment.objects.get(id=appointment_id)
+    if unbooked.patient:
+        cancel_appointments(appointment_id)
     unbooked.delete()
 
     
@@ -33,7 +55,23 @@ def book_appointment(appointment_id, user):
     """
     appointment = Appointment.objects.get(id=appointment_id)
     appointment.patient = user
+    doctor = user.patient.get_assigned_staff_user()
+    template = Messages.APPOINTMENT_BOOKED.value
     appointment.save()
+    c_doctor = {
+        "other_person": user,
+        "is_doctor": True,
+        "date": str(appointment.start_date.date()),
+        "time": str(appointment.start_date.time())
+    }
+    c_patient = {
+        "other_person": doctor,
+        "is_doctor": False,
+        "date": str(appointment.start_date.date()),
+        "time": str(appointment.start_date.time())
+    }
+    send_system_message_to_user(user, template=template, c=c_patient)
+    send_system_message_to_user(doctor, template=template, c=c_doctor)
 
 
 def rebook_appointment_with_new_doctor(new_doctor_id, old_doctor_id, patient):
@@ -105,4 +143,3 @@ def is_appointment_and_availability_same_datetime(appointment, availability):
     availability.end_date = availability.end_date.replace(microsecond=0, second=0)
 
     return appointment.start_date == availability.start_date and appointment.end_date == availability.end_date
-

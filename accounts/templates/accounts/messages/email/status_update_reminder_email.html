@@ -1,0 +1,20 @@
+{% autoescape off %}
+Hello {{ user.first_name }},
+
+Your status update for the following symptom(s) are due soon:
+
+{% for s in symptom %}
+    - {{ s }}
+{% endfor %}
+
+This is a kind reminder to make a status update before it is due on {{ date }}, at {{ time }}
+
+You can make a status update before the due date on the page in the link below:
+
+{{ host_name }}{% url 'status:create-status-report' %}
+
+
+Covigo
+2022 Soen Squad
+
+{% endautoescape %}
