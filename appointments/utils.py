@@ -25,7 +25,7 @@ def delete_availabilities(appointment_id):
     unbooked.delete()
 
     
-def book_appointment(appointment_id, user):
+def book_appointments(appointment_id, user):
     """
     books an appointment in the corresponding appointment availability by setting the patient column to the user
     @params: appointment_id: the  appointment's id
@@ -57,7 +57,6 @@ def rebook_appointment_with_new_doctor(new_doctor_id, old_doctor_id, patient):
         return
 
     patient_id = patient.id
-    booked_appointments = []
     try:
         booked_appointments = Appointment.objects.filter(staff_id=old_doctor_id, patient_id=patient_id).all()
 

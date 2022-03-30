@@ -1,13 +1,15 @@
-from unittest import skip
+import datetime
 from django.urls import reverse
 from accounts.models import Patient, Staff
 from django.contrib.auth.models import User
 from django.test import TransactionTestCase
 from accounts.tests.test_views import create_test_client
 from appointments.models import Appointment
+from appointments.utils import book_appointments, cancel_appointments, delete_availabilities, rebook_appointment_with_new_doctor
 
 
 class AppointmentsTestCase(TransactionTestCase):
+
     # this makes sure that the database ids reset to 1 for every test (especially important for
     # the tests "test_user_can_cancel_appointments" and "test_doctor_can_delete_availabilities" when dealing with fetching appointment ids from the database)
     reset_sequences = True
@@ -16,64 +18,214 @@ class AppointmentsTestCase(TransactionTestCase):
         """
         initialization of data to be run before every test. Note that not all data initialized here is used
         necessarily in all tests and the decision to include "all" of them here was more for readability choice
-        than anything else (for example, "edited_mocked_form_data2" and "edited_mocked_form_data3" are only ever
-        used in one test: "test_user_can_edit_symptom_and_return")
+        than anything else (for example, "mocked_appointment_data4" and "mocked_appointment_data5" are only ever
+        used in one test: "test_appointments_rebooked_with_new_reassigned_doctor")
         :return: void
         """
 
-        self.staff_user = User.objects.create(username='PhillyB1', is_staff=True, first_name="Phil",
-                                              last_name="Baldhead")
-        self.staff = Staff.objects.create(user=self.staff_user)
-        self.staff_user.set_password('BaldMan123')
-        self.staff_user.save()
+        self.staff1_user = User.objects.create(username='PhillyB1', is_staff=True, first_name="Phil", last_name="Baldhead")
+        self.doctor1 = Staff.objects.create(user=self.staff1_user)
+        self.staff1_user.set_password('BaldMan123')
+        self.staff1_user.save()
 
         self.patient_user = User.objects.create(username='JohnnyD2', is_staff=False, first_name="John", last_name="Doe")
-        self.patient = Patient.objects.create(user=self.patient_user, assigned_staff=self.staff_user.staff)
+        self.patient = Patient.objects.create(user=self.patient_user, assigned_staff=self.doctor1)
         self.patient_user.set_password('JohnGuy123')
         self.patient_user.save()
 
-        self.mocked_form_data1 = {'name': '', 'description': ''}
-        self.mocked_form_data2 = {'name': 'Fever', 'description': 'A fever is a temperature problem.'}
-        self.mocked_form_data3 = {'name': 'Cold', 'description': 'A cold is a virus that attacks the thing.'}
-        self.edited_mocked_form_data2 = {'name': 'Runny Nose', 'description': 'A runny nose is a joke of a problem.'}
-        self.edited_mocked_form_data3 = {'name': 'Cough', 'description': 'A cough is air that attacks the lungs.'}
+        self.staff2_user = User.objects.create(username='DocOck13', is_staff=True, first_name="Doc", last_name="Ock")
+        self.doctor2 = Staff.objects.create(user=self.staff2_user)
+        self.staff2_user.set_password('CookieMan69420')
+        self.staff2_user.save()
 
-    # def test_doctor_can_add_availabilities(self):
+        self.mocked_appointment_data1 = Appointment.objects.create(start_date=datetime.datetime(2022, 5, 20, 6, 0), end_date=datetime.datetime(2022, 5, 20, 7, 0), staff_id=self.doctor1.id)
+        self.mocked_appointment_data2 = Appointment.objects.create(start_date=datetime.datetime(2022, 5, 21, 6, 0), end_date=datetime.datetime(2022, 5, 21, 7, 0), staff_id=self.doctor1.id)
+        self.mocked_appointment_data3 = Appointment.objects.create(start_date=datetime.datetime(2022, 5, 22, 6, 0), end_date=datetime.datetime(2022, 5, 22, 7, 0), staff_id=self.doctor1.id)
+        self.mocked_appointment_data4 = Appointment.objects.create(start_date=datetime.datetime(2022, 5, 20, 6, 0), end_date=datetime.datetime(2022, 5, 20, 7, 0), staff_id=self.doctor2.id)
+        self.mocked_appointment_data5 = Appointment.objects.create(start_date=datetime.datetime(2022, 5, 21, 6, 0), end_date=datetime.datetime(2022, 5, 21, 7, 0), staff_id=self.doctor2.id)
+        self.mocked_appointment_data6 = Appointment.objects.create(start_date=datetime.datetime(2022, 5, 22, 6, 0), end_date=datetime.datetime(2022, 5, 22, 7, 0), staff_id=self.doctor2.id)
 
-    @skip
     def test_patient_can_book_appointments(self):
         """
-        this test allows us to test for if one or multiple appointments that are booked by a patient (with the "Book Appointment" and "Book Selected Appointments" button)
-        end up actually having their user patient_id added to the patient_id column of the respective appointment row in the appointment database or not
+        this test allows us to test for if one or multiple appointments that are booked by a patient (with the "Book Appointment" and "Book Selected Appointments" buttons)
+        ends up actually having their user patient_id added to the patient_id column of the respective appointment row in the appointment database or not
         :return: void
         """
 
-        self.client = create_test_client(test_user=self.staff_user, test_password='BaldMan123')
-        self.mocked_form_data = {
-            'start_date': '2022-03-27',
-            'end_date': '2022-04-02',
-            'availability_days': ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-            'slot_duration_hours': 1,
-            'slot_duration_minutes': 0,
-        }
-        self.response = self.client.get(reverse('appointments:add_availabilities'))
+        self.client = create_test_client(test_user=self.patient_user, test_password='JohnGuy123')
+
+        self.response = self.client.get(reverse('appointments:book_appointments'))
         self.assertEqual(self.response.status_code, 200)
-        self.assertTrue(Appointment.objects.all().count() == 0)
-        self.response = self.client.post(reverse('appointments:add_availabilities'), self.mocked_form_data)
 
-        # since I am using the default start and end times (6:00 AM to 7:00 AM), we expect 7 "open" appointments/availabilities (1 hour slot duration from 6 AM to 7 AM * 7 selected weekdays)
-        # to be added to the database here, since proper form data has been inputted in the form fields, and a success message to be displayed on the template for the doctor to see
-        self.assertEqual(7, Appointment.objects.all().count())
-        self.assertEqual('The availabilities have been created.', str(list(self.response.context['messages'])[0]))
-        self.assertEqual(self.mocked_form_data2['name'], self.response.context['form']['name'].value())
-        self.assertEqual(self.mocked_form_data2['description'], self.response.context['form']['description'].value())
+        # here, I am checking that, indeed, the proper number of appointment objects were
+        # created in the database and are displayed on the template view page for the patient to see
+        self.assertTrue(Appointment.objects.filter(staff_id=self.doctor1.id).count() == 3)
+        self.assertEqual(self.mocked_appointment_data1.start_date, self.response.context['appointments'][0].start_date)
+        self.assertEqual(self.mocked_appointment_data1.end_date, self.response.context['appointments'][0].end_date)
 
-        # here, I am testing for the form error message by making sure that it works: If I
-        # use the same mocked form data and try to call a POST request on it, I should expect the error message to be shown
-        # on the view, alerting me of my mistake, and prevent me from creating a duplicate symptom in the database, thus my database symptom count
-        # should not increase (intended behaviour)
-        # self.response = self.client.post(reverse('symptoms:create_symptom'), self.mocked_form_data2)
-        # self.assertTrue(Appointment.objects.all().count() == 1)
-        # self.assertEqual('The symptom was not created successfully: This symptom name already exists for a given symptom. Please change the                symptom name.', str(list(self.response.context['messages'])[0]))
-        # self.assertEqual(self.mocked_form_data2['name'], self.response.context['form']['name'].value())
-        # self.assertEqual(self.mocked_form_data2['description'], self.response.context['form']['description'].value())
+        self.booked_appointment = book_appointments(self.mocked_appointment_data1.id, self.patient_user)
+        self.response = self.client.post(reverse('appointments:book_appointments'), self.booked_appointment)
+
+        # here, we expect the user patient's id to be added to the patient_id column
+        # of this specific appointment to signal that it was indeed properly booked by this
+        # patient (simulates the patient booking only one individual appointment
+        # using the "Book Appointment" button), thus, logically, there should be one
+        # less available appointment (2 remaining appointments offered by this currently
+        # assigned doctor) in the template/page context
+        self.assertTrue(Appointment.objects.get(id=1).patient_id == self.patient_user.id)
+        self.assertEqual(2, (len(list(self.response.context['appointments']))))
+        self.assertEqual(self.mocked_appointment_data2.start_date, self.response.context['appointments'][0].start_date)
+        self.assertEqual(self.mocked_appointment_data2.end_date, self.response.context['appointments'][0].end_date)
+        self.assertEqual(self.mocked_appointment_data3.start_date, self.response.context['appointments'][1].start_date)
+        self.assertEqual(self.mocked_appointment_data3.end_date, self.response.context['appointments'][1].end_date)
+
+        book_selected_appointments = [self.mocked_appointment_data2.id, self.mocked_appointment_data3.id]
+
+        for mocked_appointment_id in book_selected_appointments:
+            self.booked_appointments = book_appointments(mocked_appointment_id, self.patient_user)
+
+        self.response = self.client.post(reverse('appointments:book_appointments'), self.booked_appointments)
+
+        # here, we expect the user patient's id to be added to the patient_id column
+        # of the remaining 2 appointments to signal that they were indeed properly booked by this
+        # patient (simulates the patient booking all selected appointments
+        # using the "Book Selected Appointments" button), thus, logically, there
+        # should be no more available appointments (0 remaining appointments offered by this
+        # currently assigned doctor) in the template/page context
+        self.assertTrue(Appointment.objects.get(id=2).patient_id == self.patient_user.id)
+        self.assertTrue(Appointment.objects.get(id=3).patient_id == self.patient_user.id)
+        self.assertEqual(0, (len(list(self.response.context['appointments']))))
+
+    def test_user_can_cancel_appointments(self):
+        """
+        this test allows us to test for if one or multiple appointments that are canceled by a user, whether patient or doctor, (with the "Cancel Appointment" and "Cancel Selected Appointments" buttons)
+        end up actually setting the patient's id in the respective appointment's patient_id column to "None" in the appointment database or not
+        :return: void
+        """
+
+        self.client = create_test_client(test_user=self.patient_user, test_password='JohnGuy123')
+
+        self.response = self.client.get(reverse('appointments:cancel_appointments_or_delete_availabilities'))
+        self.assertEqual(self.response.status_code, 200)
+
+        # here, I am checking that, indeed, the proper number of
+        # appointment objects are already present in the database
+        self.assertTrue(Appointment.objects.filter(staff_id=self.doctor1.id).count() == 3)
+
+        self.booked_appointment = book_appointments(self.mocked_appointment_data1.id, self.patient_user)
+        self.unbooked_appointment = cancel_appointments(self.mocked_appointment_data1.id)
+        self.response = self.client.post(reverse('appointments:cancel_appointments_or_delete_availabilities'), self.unbooked_appointment)
+
+        # here, we expect the user patient's id to be removed from the patient_id column
+        # of this specific booked appointment by setting the patient_id column to "None"
+        # to signal that it was indeed properly canceled by this user/patient (simulates the user/patient
+        # cancelling only one individual appointment using the "Cancel Appointment" button)
+        self.assertTrue(Appointment.objects.get(id=1).patient_id is None)
+
+        self.booked_appointment = book_appointments(self.mocked_appointment_data2.id, self.patient_user)
+        self.booked_appointment = book_appointments(self.mocked_appointment_data3.id, self.patient_user)
+
+        cancel_selected_appointments = [self.mocked_appointment_data2.id, self.mocked_appointment_data3.id]
+
+        for mocked_appointment_id in cancel_selected_appointments:
+            self.unbooked_appointments = cancel_appointments(mocked_appointment_id)
+
+        self.response = self.client.post(reverse('appointments:cancel_appointments_or_delete_availabilities'), self.unbooked_appointments)
+
+        # here, we expect the user patient's id to be removed from the patient_id column
+        # of the remaining 2 booked appointments to signal that they were indeed properly canceled by this
+        # user/patient (simulates the user/patient cancelling all selected appointments
+        # using the "Cancel Selected Appointments" button), thus, logically, there
+        # should be no more booked appointments (0 remaining booked appointments with this
+        # currently assigned doctor) in the template/page context
+        self.assertTrue(Appointment.objects.get(id=2).patient_id is None)
+        self.assertTrue(Appointment.objects.get(id=3).patient_id is None)
+        self.assertEqual(0, (len(list(self.response.context['appointments']))))
+
+    def test_doctor_can_delete_availabilities(self):
+        """
+        this test allows us to test for if one or multiple availabilities that are deleted by a doctor (with the "Delete Availability" and "Delete Selected Availabilities" buttons)
+        end up actually being deleted from the appointment database or not by deleting the entire respective appointment object row
+        :return: void
+        """
+
+        self.client = create_test_client(test_user=self.staff1_user, test_password='BaldMan123')
+
+        self.response = self.client.get(reverse('appointments:cancel_appointments_or_delete_availabilities'))
+        self.assertEqual(self.response.status_code, 200)
+
+        # here, I am checking that, indeed, the proper number of
+        # appointment objects are already present in the database
+        self.assertTrue(Appointment.objects.filter(staff_id=self.doctor1.id).count() == 3)
+
+        self.deleted_appointment = delete_availabilities(self.mocked_appointment_data1.id)
+        self.response = self.client.post(reverse('appointments:cancel_appointments_or_delete_availabilities'), self.deleted_appointment)
+
+        # here, we expect the entire respective appointment object to be deleted completely from the database
+        # to signal that it was indeed properly deleted by this doctor (simulates the doctor deleting only one individual
+        # availability using the "Delete Availability" button), thus, logically, there should be one less open
+        # availability (2 remaining availabilities this currently assigned doctor has) in the template/page context
+        self.assertTrue(Appointment.objects.filter(staff_id=self.doctor1.id).count() == 2)
+        self.assertEqual(2, (len(list(self.response.context['appointments']))))
+
+        delete_selected_availabilities = [self.mocked_appointment_data2.id, self.mocked_appointment_data3.id]
+
+        for mocked_appointment_id in delete_selected_availabilities:
+            self.deleted_appointments = delete_availabilities(mocked_appointment_id)
+
+        self.response = self.client.post(reverse('appointments:cancel_appointments_or_delete_availabilities'), self.deleted_appointments)
+
+        # here, we expect the remaining 2 appointment objects to be deleted completely from the database
+        # to signal that they were indeed properly deleted by this doctor (simulates the doctor deleting all
+        # selected availabilities using the "Delete Selected Availabilities" button), thus, logically,
+        # there should be no more open availability (0 remaining availabilities this currently
+        # assigned doctor has) in the template/page context
+        self.assertTrue(Appointment.objects.filter(staff_id=self.doctor1.id).count() == 0)
+        self.assertEqual(0, (len(list(self.response.context['appointments']))))
+
+    def test_appointments_rebooked_with_new_reassigned_doctor(self):
+        """
+        this test allows us to test for if one or multiple appointments that are booked by a patient with one doctor end up actually
+        being transferred to another newly assigned doctor, if this new doctor has the same appointment availabilities as the old one, or not
+        :return: void
+        """
+
+        self.mocked_appointment_data7 = Appointment.objects.create(start_date=datetime.datetime(2022, 5, 23, 6, 0), end_date=datetime.datetime(2022, 5, 23, 7, 0), staff_id=self.doctor1.id)
+
+        self.client = create_test_client(test_user=self.patient_user, test_password='JohnGuy123')
+
+        self.response = self.client.get(reverse('appointments:book_appointments'))
+        self.assertEqual(self.response.status_code, 200)
+
+        # here, I am checking that, indeed, the proper number of
+        # appointment objects are already present in the database
+        self.assertTrue(Appointment.objects.all().count() == 7)
+
+        book_selected_appointments = [self.mocked_appointment_data1.id, self.mocked_appointment_data2.id, self.mocked_appointment_data3.id]
+
+        for mocked_appointment_id in book_selected_appointments:
+            self.booked_appointments = book_appointments(mocked_appointment_id, self.patient_user)
+
+        rebook_appointment_with_new_doctor(self.mocked_appointment_data4.staff_id, self.mocked_appointment_data1.staff_id, self.patient_user)
+
+        # here, we expect the user patient's id to be added to the patient_id column
+        # of all 3 appointment objects that represent the identical availabilities
+        # of the newly assigned doctor in order to signal that they were indeed properly
+        # reassigned to the newly assigned doctor (simulates an administrator
+        # reassigning a new doctor to a patient with the same appointment availabilities)
+        self.assertTrue(Appointment.objects.get(id=4).patient_id == self.patient_user.id)
+        self.assertTrue(Appointment.objects.get(id=5).patient_id == self.patient_user.id)
+        self.assertTrue(Appointment.objects.get(id=6).patient_id == self.patient_user.id)
+
+        self.booked_appointment = book_appointments(self.mocked_appointment_data7.id, self.patient_user)
+        rebook_appointment_with_new_doctor(self.mocked_appointment_data4.staff_id, self.mocked_appointment_data1.staff_id, self.patient_user)
+
+        # here, since the newly assigned doctor does not have an identical open availability
+        # like the previously assigned doctor, we expect this specific booked appointment object
+        # to be canceled by the system when the reassignment is done by removing the patient's id
+        # from the patient_id column of this specific booked appointment and setting its value to "None"
+        self.assertTrue(Appointment.objects.get(id=7).patient_id is None)
+
+        # here, I am checking that, indeed, all the appointment objects are still present in the database
+        # and that the specific appointment was not indeed deleted from the database but rather simply canceled
+        self.assertTrue(Appointment.objects.all().count() == 7)

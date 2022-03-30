@@ -10,7 +10,7 @@ from accounts.utils import get_assigned_staff_id_by_patient_id, get_users_names,
 from appointments.forms import AvailabilityForm
 from datetime import datetime, timedelta
 from appointments.models import Appointment
-from appointments.utils import cancel_appointments, delete_availabilities,  book_appointment
+from appointments.utils import cancel_appointments, delete_availabilities, book_appointments as book_appointments_util
 
 
 @login_required
@@ -178,7 +178,7 @@ def book_appointments(request):
         appointment_id = request.POST.get('Book Appointment')
 
         # books a single appointment by adding the patient's id to the appointment's patient_id column
-        book_appointment(appointment_id, request.user)
+        book_appointments_util(appointment_id, request.user)
 
         # success message to show to the user if the existing appointment was booked successfully
         messages.success(request, 'The appointment was booked successfully.')
@@ -189,7 +189,7 @@ def book_appointments(request):
 
         # books all selected appointments by adding the patient's id to the appointment's patient_id column
         for appointment_id in appointment_ids:
-            book_appointment(appointment_id, request.user)
+            book_appointments_util(appointment_id, request.user)
 
         # success message to show user if multiple selected appointments were booked
         if len(appointment_ids) > 1:
