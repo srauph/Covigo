@@ -380,7 +380,7 @@ def convert_dict_of_bools_to_list(dict_to_process):
     return output_list
 
 
-def hour_options_generater(number_of_hours, step=1):
+def hour_options_generator(number_of_hours, step=1):
     hours_list = []
 
     for i in range(step, number_of_hours+step, step):
