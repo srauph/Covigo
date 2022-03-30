@@ -159,7 +159,7 @@ def send_status_reminders(date=datetime.now(), current_date=datetime.now()):
 
     for selected_user in users_to_remind:
 
-        # get the all symptoms due on that day per user
+        # get all the symptoms due on that day per user
         for status in statuses:
             if status.user_id == selected_user.id:
                 symptoms.append(Symptom.objects.get(id=status.symptom_id).name)
