@@ -1,5 +1,4 @@
 from Covigo.messages import Messages
-from accounts.models import Patient
 from appointments.models import Appointment
 from accounts.utils import send_system_message_to_user
 
@@ -11,6 +10,7 @@ def cancel_appointments(appointment_id):
     @params: appointment_id: the appointment's id
     @return: void
     """
+
     booked = Appointment.objects.get(id=appointment_id)
     patient_user = booked.patient
     doctor = patient_user.patient.get_assigned_staff_user()
@@ -33,26 +33,27 @@ def cancel_appointments(appointment_id):
     send_system_message_to_user(doctor, template=template, c=c_doctor)
 
 
-
 def delete_availabilities(appointment_id):
     """
     deletes the entire appointment object row from the database in order to "delete" the availability
     :param appointment_id: the specific appointment's appointment id
     :return: None
     """
+
     unbooked = Appointment.objects.get(id=appointment_id)
     if unbooked.patient:
         cancel_appointments(appointment_id)
     unbooked.delete()
 
     
-def book_appointment(appointment_id, user):
+def book_appointments(appointment_id, user):
     """
     books an appointment in the corresponding appointment availability by setting the patient column to the user
     @params: appointment_id: the  appointment's id
     @params: user: the current patient user object
     @return: void
     """
+
     appointment = Appointment.objects.get(id=appointment_id)
     appointment.patient = user
     doctor = user.patient.get_assigned_staff_user()
@@ -84,6 +85,7 @@ def rebook_appointment_with_new_doctor(new_doctor_id, old_doctor_id, patient):
     @params: patient: the specific patient user object
     @return: void
     """
+
     # if the newly assigned doctor is the same, do nothing
     try:
         if int(new_doctor_id) == int(old_doctor_id):
@@ -92,7 +94,6 @@ def rebook_appointment_with_new_doctor(new_doctor_id, old_doctor_id, patient):
         return
 
     patient_id = patient.id
-    booked_appointments = []
     try:
         booked_appointments = Appointment.objects.filter(staff_id=old_doctor_id, patient_id=patient_id).all()
 
@@ -137,6 +138,7 @@ def is_appointment_and_availability_same_datetime(appointment, availability):
     @params : availability: an appointment object of an availability with the newly assigned doctor
     @return : True if both arguments have the same start and end dates, else False
     """
+
     appointment.start_date = appointment.start_date.replace(microsecond=0, second=0)
     appointment.end_date = appointment.end_date.replace(microsecond=0, second=0)
     availability.start_date = availability.start_date.replace(microsecond=0, second=0)

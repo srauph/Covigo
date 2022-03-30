@@ -25,7 +25,7 @@
 
     <div class="grid grid-cols-1 justify-center items-center w-full h-full rounded-lg">
         {% if assigned_patients|length == 0 %}
-            <span class="py-2 hover:bg-slate-200 text-center">You do not currently have any assigned patients</span>
+            <span class="py-2 hover:bg-slate-200 text-center">You currently do not have any assigned patients</span>
         {% else %}
             <div class="grid {% if assigned_patients|length > 14 %}grid-cols-3{% else %}grid-cols-2{% endif %}">
                 {% for patient_user in assigned_patients %}

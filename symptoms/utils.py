@@ -1,5 +1,6 @@
 from django.db.models import Count, Q, Max, Min
 from django.utils.datetime_safe import datetime
+
 from symptoms.models import PatientSymptom
 
 
