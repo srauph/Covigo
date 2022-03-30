@@ -2,6 +2,10 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
+# Info for field "type": This implementation increases the flexibility of the MessageGroup model in case a new
+# feature is to be added in the future.
+# 0 -> MessageGroup object for message group.
+# 1 -> MessageGroup object for notifications.
 class MessageGroup(models.Model):
     author = models.ForeignKey(
         User,
@@ -19,6 +23,7 @@ class MessageGroup(models.Model):
     recipient_seen = models.BooleanField(default=False)
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
+    type = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
         return self.title

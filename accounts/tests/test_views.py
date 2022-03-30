@@ -2,6 +2,8 @@ from django.contrib.auth.models import User, Group, Permission
 from django.test import TestCase, TransactionTestCase, RequestFactory, Client
 from django.urls import reverse
 from unittest import mock
+
+from Covigo.messages import Messages
 from accounts.utils import get_flag
 from accounts.views import flag_user, unflag_user, profile_from_code, convert_permission_name_to_id
 from accounts.models import Flag, Patient, Staff
@@ -41,18 +43,18 @@ class ForgotPasswordTests(TestCase):
         self.assertEqual('More than one user with the given email address could be found. Please contact the system '
                          'administrators to fix this issue.', form_error_message)
 
-    @mock.patch("accounts.views.generate_and_send_email")
-    def test_non_existing_user_email(self, m_email_generator_and_sender):
+    @mock.patch("accounts.views.send_system_message_to_user")
+    def test_non_existing_user_email(self, m_system_message_sender):
         """
         Test to check if user enters an email that isn't linked to any existing user
         @return: void
         """
 
         # Arrange
-        # Create a new user that doesn't have duplicate emails in the db
+        # Create a new user that doesn't have duplicate email in the db
         new_user = User.objects.create(id=3, username='qwerty')
         subject = "Covigo - Password Reset Requested"
-        template = "accounts/messages/reset_password_email.html"
+        template = "reset_password"
 
         # Simulate the user entering a valid in the forgot password form
         mocked_pass_reset_form_data = {'email': 'bruh@lol.com'}
@@ -61,7 +63,7 @@ class ForgotPasswordTests(TestCase):
         self.request.POST = self.client.post(reverse('accounts:forgot_password'), mocked_pass_reset_form_data)
 
         # Assert
-        m_email_generator_and_sender.assert_not_called()
+        m_system_message_sender.assert_not_called()
 
     def test_empty_email(self):
         """
@@ -83,19 +85,22 @@ class ForgotPasswordTests(TestCase):
         self.assertEqual('This field is required.', form_error_message_1)
         self.assertEqual('Please enter a valid email address or phone number.', form_error_message_2)
 
-    @mock.patch('accounts.views.generate_and_send_email')
-    def test_forgot_password_calls_reset_password_email_generator(self, m_email_generator_and_sender):
+    @mock.patch('accounts.views.default_token_generator.make_token', return_value="token")
+    @mock.patch('accounts.views.send_system_message_to_user')
+    def test_forgot_password_calls_system_message_sender(self, m_system_message_sender, m_token_generator):
         """
         Test to check that forgot_password() calls reset_password_email_generator()
-        @param m_email_generator_and_sender:
+        @param m_system_message_sender:
         @return: void
         """
 
         # Arrange
-        # Create a new user that doesn't have duplicate emails in the db
+        # Create a new user that doesn't have duplicate email in the db
         new_user = User.objects.create(id=3, email='qwerty@gmail.com', username='qwerty')
-        subject = "Covigo - Password Reset Requested"
-        template = "accounts/messages/reset_password_email.html"
+        template = Messages.RESET_PASSWORD.value
+        c = {
+            'token': "token",
+        }
 
         # Simulate the user entering a valid in the forgot password form
         mocked_pass_reset_form_data = {'email': 'qwerty@gmail.com'}
@@ -104,21 +109,18 @@ class ForgotPasswordTests(TestCase):
         self.request.POST = self.client.post(reverse('accounts:forgot_password'), mocked_pass_reset_form_data)
 
         # Assert
-        m_email_generator_and_sender.assert_called_once_with(new_user, subject, template)
+        m_system_message_sender.assert_called_once_with(new_user, template=template, c=c)
 
-    @mock.patch("accounts.views.send_sms_to_user")
-    @mock.patch("accounts.views.generate_and_send_email")
-    def test_forgot_password_redirects_to_done(self, m_email_sender, m_sms_sender):
+    @mock.patch("accounts.views.send_system_message_to_user")
+    def test_forgot_password_redirects_to_done(self, m_system_message_sender):
         """
         Test to check that completin the forgot password form redirects to the forgot password done page
         @return:
         """
 
         # Arrange
-        # Create a new user that doesn't have duplicate emails in the db
+        # Create a new user that doesn't have duplicate email in the db
         new_user = User.objects.create(id=3, email='qwerty@gmail.com', username='qwerty')
-        subject = "Password Reset Requested"
-        template = "accounts/authentication/reset_password_email.txt"
 
         # Simulate the user entering a non-existing email in the forgot password form
         mocked_pass_reset_form_data = {'email': 'qwerty@gmail.com'}
@@ -408,9 +410,9 @@ class AccountsTestCase(TransactionTestCase):
         self.assertEqual(self.mocked_form_data4['is_staff'], User.objects.get(id=4).is_staff)
         self.assertEqual(User.objects.get(id=3).groups.get().id, User.objects.get(id=4).groups.get().id)
 
-        # here, I am testing for the valid email address form error message by making sure that it works:
+        # here, I am testing for the valid email address form error body by making sure that it works:
         # If I use a non-valid email address inside mocked form data and try to call a POST request on it,
-        # I should expect the error message to be shown on the view, alerting me of my mistake,
+        # I should expect the error body to be shown on the view, alerting me of my mistake,
         # and prevent me from creating an account in the database, thus my database user count
         # should not increase (intended behaviour)
         self.response = self.client.post(reverse('accounts:create_user'), self.mocked_form_data5)

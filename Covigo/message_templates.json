@@ -1,0 +1,44 @@
+{
+    "register_user": {
+        "email": {
+            "subject": "Covigo - Account Registration",
+            "body": "accounts/messages/email/register_user_email.html"
+        },
+        "sms": "accounts/messages/sms/register_user_sms.html"
+    },
+    "reset_password": {
+        "email": {
+            "subject": "Covigo - Password Reset Requested",
+            "body": "accounts/messages/email/reset_password_email.html"
+        },
+        "sms": "accounts/messages/sms/reset_password_sms.html"
+    },
+    "user_changed_password": {
+        "email": {
+            "subject": "Covigo - Password Changed",
+            "body": "accounts/messages/email/user_changed_password_email.html"
+        },
+        "sms": "accounts/messages/sms/user_changed_password_sms.html"
+    },
+    "status_update": {
+        "email": {
+            "subject": "Covigo - Status Update Reminder",
+            "body": "accounts/messages/email/status_update_reminder_email.html"
+        },
+        "sms": "accounts/messages/sms/status_update_reminder_sms.html"
+    },
+    "appointment_booked": {
+        "email": {
+            "subject": "Covigo - Appointment Booked",
+            "body": "appointments/messages/email/appointment_booked_email.html"
+        },
+        "sms": "appointments/messages/sms/appointment_booked_sms.html"
+    },
+    "appointment_cancelled": {
+        "email": {
+            "subject": "Covigo - Appointment Cancelled",
+            "body": "appointments/messages/email/appointment_cancelled_email.html"
+        },
+        "sms": "appointments/messages/sms/appointment_cancelled_sms.html"
+    }
+}

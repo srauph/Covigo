@@ -7,11 +7,13 @@ from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils.datetime_safe import datetime
 from django.views.decorators.cache import never_cache
 import datetime
-from accounts.models import Flag
+from accounts.models import Flag, Staff
 from accounts.utils import get_assigned_staff_id_by_patient_id
+from messaging.utils import send_notification
 from status.utils import return_symptoms_for_today, get_reports_by_patient, get_patient_report_information, \
     get_reports_for_doctor, is_requested
 from symptoms.models import PatientSymptom
@@ -197,6 +199,15 @@ def create_patient_report(request):
             symptom.save()
             i = i + 1
 
+        # SEND NOTIFICATION TO DOCTOR
+        staff_id = get_assigned_staff_id_by_patient_id(current_user)
+        doctor_id = Staff.objects.filter(id=staff_id).first().user_id
+        # Create href for notification redirection
+        href = reverse('status:patient-reports')
+        send_notification(current_user, doctor_id,
+                          'New patient report from ' + request.user.first_name + " " + request.user.last_name,
+                          href=href)
+
         return redirect('status:index')
     return render(request, 'status/create_status_report.html', {
         'report': report
@@ -252,6 +263,15 @@ def edit_patient_report(request):
                     new_symptom.save()
             i = i + 1
 
+        # SEND NOTIFICATION TO DOCTOR
+        staff_id = get_assigned_staff_id_by_patient_id(current_user_id)
+        doctor_id = Staff.objects.filter(id=staff_id).first().user_id
+        # Create href for notification redirection
+        href = reverse('status:patient-reports')
+        send_notification(current_user_id, doctor_id,
+                          'New patient report update from ' + request.user.first_name + " " + request.user.last_name,
+                          href=href)
+
         return redirect('status:index')
 
     return render(request, 'status/edit_status_report.html', {
@@ -275,3 +295,14 @@ def resubmit_request(request, patient_symptom_id):
     new_symptom._state.adding = True
     new_symptom.save()
     return redirect('status:patient_reports')
+
+    # SEND NOTIFICATION TO PATIENT
+    doctor_id = request.user.id
+    patient_id = symptom.user.id
+    # Create href for notification redirection
+    href = reverse('status:patient-reports')
+    send_notification(doctor_id, patient_id,
+                      'Doctor ' + request.user.first_name + " " + request.user.last_name + " has requested a report resubmission",
+                      app_name='status')
+
+    return redirect('status:patient-reports')

@@ -1,11 +1,18 @@
+import json
+import re
+
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.core.serializers.json import DjangoJSONEncoder
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from django.db.models import Q
 from messaging.models import MessageGroup, MessageContent
 from messaging.forms import ReplyForm, CreateMessageContentForm, CreateMessageGroupForm
+from messaging.utils import send_notification
 
 
 @login_required
@@ -21,9 +28,9 @@ def list_messages(request, user_id=''):
     current_user = request.user
 
     if user_id == '':
-        filter1 = Q(author_id=current_user.id) | Q(recipient_id=current_user.id)
+        filter1 = (Q(author_id=current_user.id) | Q(recipient_id=current_user.id)) & Q(type=0)
     else:
-        filter1 = Q(author_id=user_id) | Q(recipient_id=user_id)
+        filter1 = (Q(author_id=user_id) | Q(recipient_id=user_id)) & Q(type=0)
 
     message_group = MessageGroup.objects.filter(filter1).all()
 
@@ -39,9 +46,10 @@ def view_message(request, message_group_id):
     # Filters for the queries to check if user is authorized to view the messages with a specific message_group_id
     filter1 = Q(id=message_group_id)
     filter2 = Q(author_id=current_user.id) | Q(recipient_id=current_user.id)
-    if MessageGroup.objects.filter(filter1 & filter2):
+    filter3 = Q(type=0)
+    if MessageGroup.objects.filter(filter1 & filter2 & filter3):
 
-        message_group = MessageGroup.objects.filter(filter1 & filter2).get()
+        message_group = MessageGroup.objects.filter(filter1 & filter2 & filter3).get()
 
         messages = MessageContent.objects.filter(message_id=message_group_id)
 
@@ -66,6 +74,19 @@ def view_message(request, message_group_id):
                 new_reply.author = current_user
                 # Save to db
                 new_reply.save()
+
+                # Send notification
+                if message_group.author.id == current_user.id:
+                    href = reverse('messaging:view_message', args=[message_group.id])
+                    send_notification(message_group.author.id, message_group.recipient.id,
+                                      "New message from " + message_group.author.first_name + " " + message_group.author.last_name,
+                                      href=href)
+
+                elif message_group.recipient.id == current_user.id:
+                    href = reverse('messaging:view_message', args=[message_group.id])
+                    send_notification(message_group.recipient.id, message_group.author.id,
+                                      "New message from " + message_group.recipient.first_name + " " + message_group.recipient.last_name,
+                                      href=href)
 
                 # Reset the form
                 reply_form = ReplyForm()
@@ -109,7 +130,6 @@ def view_message(request, message_group_id):
 @login_required
 @never_cache
 def compose_message(request, user_id):
-
     # To prevent users from being able to send messages to themselves
     if request.user.id != user_id:
 
@@ -128,6 +148,7 @@ def compose_message(request, user_id):
                 new_msg_group.author = request.user
                 new_msg_group.recipient = recipient_user
                 new_msg_group.author_seen = True
+                new_msg_group.type = 0
                 new_msg_group.save()
                 MessageContent.objects.create(
                     author=new_msg_group.author,
@@ -135,6 +156,14 @@ def compose_message(request, user_id):
                     content=msg_content_form.data.get('content'),
                 )
                 messages.success(request, "The new message was successfully sent to " + recipient_user.first_name + " " + recipient_user.last_name + "!")
+
+                # Create href for notification
+                href = reverse('messaging:view_message', args=[new_msg_group.id])
+                # Send notification
+                send_notification(new_msg_group.author.id, new_msg_group.recipient.id,
+                                  "New message from " + new_msg_group.author.first_name + " " + new_msg_group.author.last_name,
+                                  href=href)
+
                 return redirect("messaging:list_messages", request.user.id)
 
         else:
@@ -167,3 +196,90 @@ def toggle_read(request, message_group_id):
     message_group.save()
 
     return redirect('messaging:list_messages')
+
+
+@login_required
+@never_cache
+def read_notification(request, message_group_id):
+    """
+    This function is called when a user clicks on a notification to make it seen before opening it
+    """
+    if request.method == "POST":
+        message_group = MessageGroup.objects.get(id=message_group_id)
+
+        message_group.recipient_seen = True
+
+        message_group.save()
+
+        json_result = json.dumps({'success': 'Operation successful'}, cls=DjangoJSONEncoder, default=str)
+
+    return HttpResponse(json_result, content_type='application/json')
+
+
+@login_required
+@never_cache
+def list_notifications(request):
+    current_user = request.user
+
+    # Fetch received notifications
+    filter1 = Q(recipient_id=current_user.id) & Q(type=1)
+
+    message_group = list(MessageGroup.objects.filter(filter1).all().values())
+
+    # Only for the notifications list, reformat the message groups titles to not include the hrefs
+    for i in message_group:
+        a = re.sub("<span class='notification-link' data-href=", "", i['title'])
+        a = re.sub(">.*", "", a)
+
+        i['title'] = re.sub("<span class='notification-link' data-href=[^>]*>", "", i['title'])
+        i['title'] = re.sub("</span>", "", i['title'])
+
+        # Create new "attribute" to hold the href for the notification
+        i['link'] = a
+
+    if request.method == 'POST' and request.POST.get('mark_selected_notifications_read'):
+        selected_notification_ids = request.POST.getlist('selected_notification_ids[]')
+        for notif in selected_notification_ids:
+            notification = MessageGroup.objects.filter(id=notif).first()
+            notification.recipient_seen = True
+            notification.save()
+        return redirect('/notifications')
+
+    if request.method == 'POST' and request.POST.get('mark_selected_notifications_unread'):
+        selected_notification_ids = request.POST.getlist('selected_notification_ids[]')
+        for notif in selected_notification_ids:
+            notification = MessageGroup.objects.filter(id=notif).first()
+            notification.recipient_seen = False
+            notification.save()
+        return redirect('/notifications')
+
+    return render(request, 'notifications/list_notifications.html', {
+        'message_group': message_group,
+    })
+
+
+@login_required
+@never_cache
+def toggle_read_notification(request, message_group_id):
+    message_group = MessageGroup.objects.get(id=message_group_id)
+
+    message_group.recipient_seen = not message_group.recipient_seen
+
+    message_group.save()
+
+    return redirect('/notifications')
+
+
+def get_notifications(request):
+    current_user = request.user
+
+    # Fetch all unread notifications
+    filter1 = Q(recipient_id=current_user.id) & Q(recipient_seen=False) & Q(type=1)
+
+    all_notifications = list(MessageGroup.objects.filter(filter1).order_by('-date_created').all().values())
+
+    result = {'notifications': all_notifications}
+
+    json_result = json.dumps({'data': result}, cls=DjangoJSONEncoder, default=str)
+
+    return HttpResponse(json_result, content_type='application/json')

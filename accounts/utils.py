@@ -3,13 +3,16 @@ import smtplib
 import shortuuid
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
-from django.db import IntegrityError
+from django.db import IntegrityError, connection
 from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from geopy import distance
+
 from Covigo.settings import HOST_NAME
 from accounts.models import Flag, Staff, Patient
+from accounts.preferences import SystemMessagesPreference
 from pathlib import Path
 from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
@@ -60,55 +63,13 @@ def get_superuser_staff_model():
         return None
 
 
-def generate_and_send_email(user, subject, template):
-    """
-    Generate and send a "reset password" email for a user
-    @param user: The user whose password is to be reset
-    @param subject: The name to give the email's subject
-    @param template: The template to use for the email to send
-    @return: void
-    """
-
-    c = {
-        'email': user.email,
-        'host_name': HOST_NAME,
-        'site_name': 'Covigo',
-        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-        'user': user,
-        'token': default_token_generator.make_token(user),
-    }
-    email = render_to_string(template, c)
-    send_email_to_user(user, subject, email)
-
-
-def generate_and_send_sms(user, user_phone, template):
-    """
-    Generate and send a "reset password" sms for a user
-    @param user: The user whose password is to be reset
-    @param user_phone: The phone number that will receive the sms
-    @param template: The template to use for the sms to send
-    @return: void
-    """
-
-    c = {
-        'email': user.email,
-        'host_name': HOST_NAME,
-        'site_name': 'Covigo',
-        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-        'user': user,
-        'token': default_token_generator.make_token(user),
-    }
-    message = render_to_string(template, c)
-    send_sms_to_user(user, user_phone, message)
-
-
-# takes a user, subject, and message as params and sends the user an email
-def send_email_to_user(user, subject, message):
+#takes a user, subject, and body as params and sends the user an email
+def send_email_to_user(user, subject, body):
     """
     Sends an email to a user
     @param user: The user to send the email to
     @param subject: The subject of the email to send
-    @param message: The message of the email to send
+    @param body: The body of the email to send
     @return: void
     """
 
@@ -117,24 +78,70 @@ def send_email_to_user(user, subject, message):
     email = 'shahdextra@gmail.com'
     pwd = 'roses12345!%'
     s.login(email, pwd)
-    s.sendmail(email, user.email, f"Subject: {subject}\n{message}")
+    s.sendmail(email, user.email, f"Subject: {subject}\n{body}")
     s.quit()
     return None
 
 
-# takes a user, user's phone number, and message as params and sends a text message
-def send_sms_to_user(user, user_phone, message):
+# takes a user, user's phone number, and body as params and sends a text body
+def send_sms_to_user(user, body):
     account = "AC77b343442a4ec3ea3d0258ea5c597289"
     token = "f9a14a572c2ab1de3683c0d65f7c962b"
     client = Client(account, token)
 
     try:
-        message = client.messages.create(to=user_phone, from_="+16626727846",
-                                         body=message)
+        body = client.messages.create(to=user.profile.phone_number, from_="+16626727846",
+                                      body=body)
     except TwilioRestException as e:
         print(e)
 
     return None
+
+
+def _send_system_message_from_template(user, template, c=None, is_email=True):
+    """
+    Generate and send a system message a user
+    @param user: The user who the system message should be sent to
+    @param template: The template to use for the system message to send
+    @param c: Context variables to use to generate the system message
+    @param is_email: Whether the system message is an email or not
+    @return: void
+    """
+
+    if not c:
+        c = dict()
+
+    c['email'] = user.email
+    c['host_name'] = HOST_NAME
+    c['site_name'] = 'Covigo'
+    c['user'] = user
+    c['uid'] = urlsafe_base64_encode(force_bytes(user.pk))
+
+    if is_email:
+        body = template["body"]
+        subject = template["subject"]
+        email = render_to_string(body, c)
+        send_email_to_user(user, subject, email)
+    else:
+        body = template
+        message = render_to_string(body, c)
+        send_sms_to_user(user, message)
+
+
+def send_system_message_to_user(user, message=None, template=None, subject=None, c=None):
+    preferences = user.profile.preferences[SystemMessagesPreference.NAME.value]
+
+    if user.email and (not preferences or preferences[SystemMessagesPreference.EMAIL.value]):
+        if template:
+            _send_system_message_from_template(user, template.get("email"), c, is_email=True)
+        else:
+            send_email_to_user(user, message, subject)
+
+    if user.profile.phone_number and (not preferences or preferences[SystemMessagesPreference.SMS.value]):
+        if template:
+            _send_system_message_from_template(user, template.get("sms"), c, is_email=False)
+        else:
+            send_sms_to_user(user, message)
 
 
 def get_or_generate_patient_code(patient, prefix="A"):
@@ -334,3 +341,49 @@ def get_is_staff(user_id):
         return User.objects.get(id=user_id).is_staff
     except User.DoesNotExist:
         return -1
+
+
+def dictfetchall(cursor):
+    "Return all rows from a cursor as a dict"
+    columns = [col[0] for col in cursor.description]
+    return [
+        dict(zip(columns, row))
+        for row in cursor.fetchall()
+    ]
+
+
+def get_distance_of_all_doctors_to_postal_code(postal_code):
+    doc_dict = []
+    all_doctors = User.objects.raw(
+        "SELECT * FROM `auth_user` INNER JOIN `auth_user_groups` ON (`auth_user`.`id` = `auth_user_groups`.`user_id`) INNER JOIN `auth_group` ON (`auth_user_groups`.`group_id` = `auth_group`.`id`) LEFT OUTER JOIN `accounts_profile` ON (`auth_user`.`id` = `accounts_profile`.`user_id`) JOIN `postal_codes` ON (`accounts_profile`.`postal_code` = `postal_codes`.POSTAL_CODE) WHERE `auth_group`.`name` = %s",
+        ['doctor'])
+    c = connection.cursor()
+    c.execute('SELECT * from postal_codes where POSTAL_CODE = %s', [postal_code])
+    r = dictfetchall(c)
+    patient_postal_code_lat_long = (float(r[0]['LATITUDE']), float(r[0]['LONGITUDE']))
+
+    for docs in all_doctors:
+        doctor_postal_code_lat_long = (float(docs.LATITUDE), float(docs.LONGITUDE))
+        distance_patient_to_doctor = distance.distance(patient_postal_code_lat_long, doctor_postal_code_lat_long).m
+        doctor_number_of_patients = docs.staff.assigned_patients.count()
+        doc_dict.append((docs, int(distance_patient_to_doctor), doctor_number_of_patients))
+    sorted_doc_dict = sorted(doc_dict, key=lambda tup: tup[1])
+    return sorted_doc_dict
+
+
+def return_closest_with_least_patients_doctor(postal_code):
+    docs_list = get_distance_of_all_doctors_to_postal_code(postal_code)
+    sliced_list = docs_list[0:4]
+    sorted_sliced_doc_list = sorted(sliced_list, key=lambda tup: tup[2])
+    closest_with_least_patients = sorted_sliced_doc_list[0]
+    return closest_with_least_patients[0]
+
+
+def convert_dict_of_bools_to_list(dict_to_process):
+    output_list = []
+
+    for i in dict_to_process:
+        if dict_to_process[i]:
+            output_list.append(i)
+
+    return output_list

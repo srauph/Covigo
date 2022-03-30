@@ -1,5 +1,24 @@
 {% extends "Covigo/layout/guest.html" %}
 
+{% block script %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script>
+       $('#postalcode').find('input').keyup(function(e){
+           let val = $(this).val();
+           if(val.length == 3 && e.keyCode != 8){
+               $(this).val(val+" ")
+           }
+       })
+       $('#postalcode').find('input').keydown(function(e){
+           let val = $(this).val();
+           if(val.length > 6 && e.keyCode != 8){
+               e.preventDefault();
+               e.stopPropagation();
+               return false;
+           }
+       })
+    </script>
+{% endblock %}
 {% block content %}
     {% if validlink %}
     <form method="post">
@@ -94,7 +113,7 @@
                             {{ profile_form.address }}
                         </div>
 
-                        <div>
+                        <div id="postalcode">
                             <label class="sr-only">Postal Code:</label>
                             {{ profile_form.postal_code }}
                         </div>

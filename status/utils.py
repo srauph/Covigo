@@ -1,7 +1,15 @@
 from datetime import time
+
+from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
 from django.utils.datetime_safe import datetime
 from django.db.models import Q, Count
 from symptoms.models import PatientSymptom
+from django.db.models import Q, Count, QuerySet
+
+from Covigo.messages import Messages
+from accounts.utils import get_is_staff, send_system_message_to_user
+from symptoms.models import PatientSymptom, Symptom
 
 
 def get_reports_by_patient(patient_id):
@@ -103,3 +111,42 @@ def is_requested(user_id):
             break
 
     return requested_resubmit
+
+
+def send_status_reminder(date=None):
+    """
+    Sends an email/sms to each user that has a symptom status update due either today or on the date specified
+    @params: date -> allows the date being checked to be specified
+    """
+
+    if date is not None:
+        statuses = PatientSymptom.objects.filter(data=None, due_date=datetime.combine(date, time.max))
+        my_due_date = datetime.combine(date, time.max)
+    else:
+        statuses = PatientSymptom.objects.filter(data=None, due_date=datetime.combine(datetime.now(), time.max))
+        my_due_date = datetime.combine(datetime.now(), time.max)
+
+    # get user ids for the patients that have status reports due on the day
+    user_ids_with_duplicates = []
+    for status in statuses:
+        user_ids_with_duplicates.append(status.user_id)
+    user_ids_no_duplicates = list(set(user_ids_with_duplicates))
+
+    symptoms = []
+    template = Messages.STATUS_UPDATE.value
+    for user_id in user_ids_no_duplicates:
+        selected_user = User.objects.get(id=user_id)
+
+        # get the all symptoms due on that day per user
+        for status in statuses:
+            if status.user_id == user_id:
+                symptoms.append(Symptom.objects.get(id=status.symptom_id).name)
+        c = {
+            'date': my_due_date.date(),
+            'time': my_due_date.time().replace(second=0, microsecond=0),
+            'symptom': symptoms
+        }
+
+        # send email/sms to user concerning the symptoms they need to update
+        send_system_message_to_user(selected_user, template=template, c=c)
+        symptoms.clear()
