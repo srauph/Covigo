@@ -19,7 +19,7 @@ from django.views.decorators.debug import sensitive_post_parameters
 from Covigo.messages import Messages
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
-from accounts.preferences import SystemMessagesPreference
+from accounts.preferences import SystemMessagesPreference, StatusReminderPreference
 from accounts.utils import (
     convert_dict_of_bools_to_list,
     get_assigned_staff_id_by_patient_id,
@@ -467,12 +467,15 @@ def edit_preferences(request, user_id):
 
         if preferences_form.is_valid():
             system_msg_preferences = preferences_form.cleaned_data.get(SystemMessagesPreference.NAME.value)
+            status_reminder_interval = preferences_form.cleaned_data.get(StatusReminderPreference.NAME.value)
 
             preferences = {
                 SystemMessagesPreference.NAME.value: {
                     SystemMessagesPreference.EMAIL.value: "use_email" in system_msg_preferences,
                     SystemMessagesPreference.SMS.value: "use_sms" in system_msg_preferences
-                }
+                },
+
+                StatusReminderPreference.NAME.value: status_reminder_interval,
             }
 
             profile.preferences = preferences
@@ -482,12 +485,20 @@ def edit_preferences(request, user_id):
     # Create forms
     else:
         if profile.preferences:
+            # Load previous user-defined preferences
             old_preferences = dict()
-            for preference in profile.preferences:
-                old_preferences[preference] = convert_dict_of_bools_to_list(profile.preferences[preference])
+
+            old_preferences[SystemMessagesPreference.NAME.value] = convert_dict_of_bools_to_list(profile.preferences[SystemMessagesPreference.NAME.value])
+
+            if StatusReminderPreference.NAME.value in profile.preferences:
+                old_preferences[StatusReminderPreference.NAME.value] = profile.preferences[StatusReminderPreference.NAME.value]
+            else:
+                # TODO: Replace this with admin-defined default advance warning, if we implement it.
+                old_preferences[StatusReminderPreference.NAME.value] = 2
 
             preferences_form = EditPreferencesForm(old_preferences)
         else:
+            # Create a blank form if user has no preferences
             preferences_form = EditPreferencesForm()
 
     return render(request, "accounts/edit_preferences.html", {

@@ -287,21 +287,20 @@ def edit_patient_report(request):
 
 
 def resubmit_request(request, patient_symptom_id):
-    # TODO recode the entire logic
-    # TODO check if the doctor already requested
-
+    # Hide the old symptom
     symptom = PatientSymptom.objects.filter(id=int(patient_symptom_id)).get()
     symptom.status = -1
     symptom.is_hidden = True
     symptom.save()
     new_symptom = symptom
+
+    # Insert a new record for the symptom with no data
     new_symptom.pk = None
     new_symptom.is_hidden = False
     new_symptom.data = None
     new_symptom.status = -2
     new_symptom._state.adding = True
     new_symptom.save()
-    return redirect('status:patient_reports')
 
     # SEND NOTIFICATION TO PATIENT
     doctor_id = request.user.id

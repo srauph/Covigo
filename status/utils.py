@@ -1,10 +1,11 @@
 from datetime import time
 
-from django.contrib.auth.models import User
 from django.db.models import Q, Count
 from django.utils.datetime_safe import datetime
 
 from Covigo.messages import Messages
+from accounts.models import Profile
+from accounts.preferences import StatusReminderPreference
 from accounts.utils import send_system_message_to_user
 from symptoms.models import PatientSymptom, Symptom
 
@@ -110,18 +111,20 @@ def is_requested(user_id):
     return requested_resubmit
 
 
-def send_status_reminder(date=None):
+def send_status_reminders(date=datetime.now(), current_date=datetime.now()):
     """
     Sends an email/sms to each user that has a symptom status update due either today or on the date specified
     @params: date -> allows the date being checked to be specified
     """
 
-    if date is not None:
-        statuses = PatientSymptom.objects.filter(data=None, due_date=datetime.combine(date, time.max))
-        my_due_date = datetime.combine(date, time.max)
-    else:
-        statuses = PatientSymptom.objects.filter(data=None, due_date=datetime.combine(datetime.now(), time.max))
-        my_due_date = datetime.combine(datetime.now(), time.max)
+    current_hour = current_date.hour
+
+    # Earliest time to send reminders is 6pm, so don't do anything if it's not 6pm.
+    if current_hour < 18:
+        return
+
+    statuses = PatientSymptom.objects.filter(data=None, due_date=datetime.combine(date, time.max))
+    my_due_date = datetime.combine(date, time.max)
 
     # get user ids for the patients that have status reports due on the day
     user_ids_with_duplicates = []
@@ -129,14 +132,33 @@ def send_status_reminder(date=None):
         user_ids_with_duplicates.append(status.user_id)
     user_ids_no_duplicates = list(set(user_ids_with_duplicates))
 
+    # Filter to only the profiles who are to be reminded
+    profiles = Profile.objects.filter(user_id__in=user_ids_no_duplicates)
+    users_to_remind = []
+
+    # The value stored in preferences is the interval (number of advance hours warning) to give.
+    # Thus, we need to convert from the current hour to the corresponding interval.
+    # EG: if it is currently 21:00, we need to match users whose preference is set to 24-21 = 3 hours notice
+    interval_to_match = 24-current_hour
+
+    for profile in profiles:
+        if profile.preferences and StatusReminderPreference.NAME.value in profile.preferences:
+            if int(profile.preferences[StatusReminderPreference.NAME.value]) == interval_to_match:
+                users_to_remind.append(profile.user)
+        else:
+            # Default time in case the user did not set a preference.
+            # TODO: Replace this with admin-defined default advance warning, if we implement it.
+            if current_hour == 22:
+                users_to_remind.append(profile.user)
+
     symptoms = []
     template = Messages.STATUS_UPDATE.value
-    for user_id in user_ids_no_duplicates:
-        selected_user = User.objects.get(id=user_id)
 
-        # get the all symptoms due on that day per user
+    for selected_user in users_to_remind:
+
+        # get all the symptoms due on that day per user
         for status in statuses:
-            if status.user_id == user_id:
+            if status.user_id == selected_user.id:
                 symptoms.append(Symptom.objects.get(id=status.symptom_id).name)
         c = {
             'date': my_due_date.date(),

@@ -133,7 +133,10 @@ def send_sms_to_user(user, body):
 
 
 def send_system_message_to_user(user, message=None, template=None, subject=None, c=None):
-    preferences = user.profile.preferences[SystemMessagesPreference.NAME.value]
+    if user.profile.preferences and SystemMessagesPreference.NAME.value in user.profile.preferences:
+        preferences = user.profile.preferences[SystemMessagesPreference.NAME.value]
+    else:
+        preferences = None
 
     if user.email and (not preferences or preferences[SystemMessagesPreference.EMAIL.value]):
         if template:
@@ -391,3 +394,15 @@ def convert_dict_of_bools_to_list(dict_to_process):
             output_list.append(i)
 
     return output_list
+
+
+def hour_options_generator(number_of_hours, step=1):
+    hours_list = []
+
+    for i in range(step, number_of_hours+step, step):
+        if i == 1:
+            hours_list.append((i, "1 hour"))
+        else:
+            hours_list.append((i, f"{i} hours"))
+
+    return tuple(hours_list)

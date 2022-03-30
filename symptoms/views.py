@@ -151,12 +151,27 @@ def assign_symptom(request, user_id):
                     })
 
             else:  # Update
+                # Get the number of extended days the report was extended for
+                report_extended_days = int(request.POST.get('extended_days'))
+
+                if report_extended_days <= 0:
+                    report_extended_days = 0
+
+                # get earliest and latest due date for current assigned symptoms
                 earliest_due_date = get_earliest_reporting_due_date(user_id)
                 latest_due_date = get_latest_reporting_due_date(user_id)
 
-                starting_date = latest_due_date.replace(day=earliest_due_date.day)
-                interval = (latest_due_date.day - earliest_due_date.day) + 1
+                # starting date is the earliest due date
+                starting_date = earliest_due_date
 
+                # Calculate the original interval of how many days the symptom should be reported for
+                date_difference = latest_due_date - earliest_due_date
+                original_interval = date_difference.days + 1
+
+                # How many days the symptoms should be reported for including extended days
+                interval = original_interval + report_extended_days
+
+            # For everyday a symptom should be reported, loop and assign it to the user
             while interval != 0:
                 for symptom_id in symptom_list:
                     assign_symptom_to_user(symptom_id, user_id, starting_date)
