@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import json
 
 from django.contrib import messages
@@ -184,7 +184,7 @@ def create_patient_report(request):
     """
 
     current_user = request.user.id
-    report = PatientSymptom.objects.filter(user_id=current_user, due_date__date__lte=datetime.datetime.now())
+    report = PatientSymptom.objects.filter(user_id=current_user, due_date__date__lte=dt.datetime.now())
 
     # Ensure it was a post request
     if request.method == 'POST':
@@ -210,7 +210,7 @@ def create_patient_report(request):
         staff_id = get_assigned_staff_id_by_patient_id(current_user)
         doctor_id = Staff.objects.filter(id=staff_id).first().user_id
         # Create href for notification redirection
-        href = reverse('status:patient-reports')
+        href = reverse('status:patient_reports')
         send_notification(current_user, doctor_id,
                           'New patient report from ' + request.user.first_name + " " + request.user.last_name,
                           href=href)
@@ -235,11 +235,11 @@ def edit_patient_report(request):
     is_resubmit_requested = is_requested(current_user_id)
 
     if is_resubmit_requested:
-        report = PatientSymptom.objects.filter(user_id=current_user_id, due_date__date__lte=datetime.datetime.now(),
+        report = PatientSymptom.objects.filter(user_id=current_user_id, due_date__date__lte=dt.datetime.now(),
                                                is_hidden=False, status=-2)
     else:
         report = PatientSymptom.objects.filter(
-            Q(user_id=current_user_id) & Q(due_date__date__lte=datetime.datetime.now()) & Q(
+            Q(user_id=current_user_id) & Q(due_date__date__lte=dt.datetime.now()) & Q(
                 is_hidden=False) & (Q(status=0) | Q(status=3)))
 
     # Ensure it was a post request
@@ -274,7 +274,7 @@ def edit_patient_report(request):
         staff_id = get_assigned_staff_id_by_patient_id(current_user_id)
         doctor_id = Staff.objects.filter(id=staff_id).first().user_id
         # Create href for notification redirection
-        href = reverse('status:patient-reports')
+        href = reverse('status:patient_reports')
         send_notification(current_user_id, doctor_id,
                           'New patient report update from ' + request.user.first_name + " " + request.user.last_name,
                           href=href)
@@ -306,9 +306,9 @@ def resubmit_request(request, patient_symptom_id):
     doctor_id = request.user.id
     patient_id = symptom.user.id
     # Create href for notification redirection
-    href = reverse('status:patient-reports')
+    href = reverse('status:patient_reports')
     send_notification(doctor_id, patient_id,
                       'Doctor ' + request.user.first_name + " " + request.user.last_name + " has requested a report resubmission",
                       app_name='status')
 
-    return redirect('status:patient-reports')
+    return redirect('status:patient_reports')
