@@ -2,11 +2,14 @@ from django import forms
 from django.contrib.auth import password_validation
 from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm
 from django.core.exceptions import ValidationError
-from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, Select, CharField, Form, MultipleChoiceField
+from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, Select, CharField, Form, MultipleChoiceField, \
+    ChoiceField
 from django.db import connection
 from django.contrib.auth.models import User
 from accounts.models import Profile
 from re import match, sub
+
+from accounts.utils import hour_options_generator
 
 STAFF_PATIENT_CHOICES = (
     (True, 'Staff User'),
@@ -17,6 +20,8 @@ SYSTEM_MESSAGE_CHOICES = (
     ("use_email", "Receive system messages by email"),
     ("use_sms", "Receive system messages by sms"),
 )
+
+REMINDER_INTERVAL_CHOICES = hour_options_generator(6)
 
 GUEST_CHARFIELD_CLASS = \
     'appearance-none ' \
@@ -418,6 +423,16 @@ class EditPreferencesForm(Form):
         widget=CheckboxSelectMultiple(
             attrs={
                 "class": CHECKBOX_CLASS
+            }
+        ),
+        required=True
+    )
+
+    status_reminder_interval = ChoiceField(
+        choices=REMINDER_INTERVAL_CHOICES,
+        widget=Select(
+            attrs={
+                "class": SELECTION_CLASS
             }
         ),
         required=True
