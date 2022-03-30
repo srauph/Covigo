@@ -29,11 +29,17 @@ def assign_symptom_to_user(symptom_id, user_id, due_date):
     @param user_id: the user id being assigned a symptom
     @param due_date: due date of the symptom
     """
-    filter1 = Q(symptom_id=symptom_id) & Q(user_id=user_id) & Q(due_date=due_date)
-    # to not override the existing patient_symptom instance, will make it more robust in next sprints
-    if not PatientSymptom.objects.filter(filter1).exists():
+    query_list = []  # store the queries to be executed in bulk
+
+    # Check if a record exists for the same symptom for a user with a specific due date
+    query_filter = Q(symptom_id=symptom_id) & Q(user_id=user_id) & Q(due_date=due_date)
+    if not PatientSymptom.objects.filter(query_filter).exists():  # ensure no record exists already
         patient_symptom = PatientSymptom(symptom_id=symptom_id, user_id=user_id, due_date=due_date)
-        patient_symptom.save()
+        query_list.append(patient_symptom)
+
+    # Only create the records if the list is not empty
+    if query_list:
+        PatientSymptom.objects.bulk_create(query_list)
 
 
 def get_earliest_reporting_due_date(user_id):

@@ -203,10 +203,10 @@ def create_patient_report(request):
 @never_cache
 def edit_patient_report(request):
     """
-        The view of editing a patient report.
-        @param request: http request from the client
-        @return: edit-status-report page
-        """
+    The view of editing a patient report.
+    @param request: http request from the client
+    @return: edit-status-report page
+    """
     current_user_id = request.user.id
 
     is_resubmit_requested = is_requested(current_user_id)
@@ -264,14 +264,14 @@ def edit_patient_report(request):
 
 
 def resubmit_request(request, patient_symptom_id):
-    # TODO recode the entire logic
-    # TODO check if the doctor already requested
-
+    # Hide the old symptom
     symptom = PatientSymptom.objects.filter(id=int(patient_symptom_id)).get()
     symptom.status = -1
     symptom.is_hidden = True
     symptom.save()
     new_symptom = symptom
+
+    # Insert a new record for the symptom with no data
     new_symptom.pk = None
     new_symptom.is_hidden = False
     new_symptom.data = None
