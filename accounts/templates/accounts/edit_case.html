@@ -1,0 +1,35 @@
+{% extends "Covigo/base.html" %}
+
+{% block content %}
+    <div class="min-h-full bg-slate-100">
+        <div class="flex justify-between bg-slate-700">
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">
+                Symptoms
+            </h1>
+        </div>
+         <div class="m-4 justify-evenly gap-4">
+            <div class="m-4 p-4 bg-white shadow rounded-lg">
+                <div class="w-full max-w-2xl px-2">
+                    <label>Confirmed:</label>
+                    <div class="mt-1">
+                        {{ case_form.is_confirmed }}
+                    </div>
+                </div>
+                <div class="w-full max-w-2xl px-2">
+                    <label>Negative:</label>
+                    <div class="mt-1">
+                        {{ case_form.is_negative }}
+                    </div>
+                </div>
+                <div class="w-full max-w-2xl px-2">
+                    <label>Quarantine:</label>
+                    <div class="mt-1">
+                        {{ case_form.is_quarantining }}
+                    </div>
+                </div>
+            </div>
+         </div>
+    </div>
+
+
+{% endblock %}

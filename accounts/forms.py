@@ -18,6 +18,21 @@ STAFF_PATIENT_CHOICES = (
     (False, 'Patient User')
 )
 
+IS_CONFIRMED_CHOICES = (
+    (True, 'Patient is a confirmed case'),
+    (False, 'Patient is an unconfirmed case')
+)
+
+IS_NEGATIVE_CHOICES = (
+    (True, 'Patient is unconfirmed and tested negative'),
+    (False, 'Patient is unconfirmed and needs to test')
+)
+
+IS_QUARANTINING_CHOICES = (
+    (True, 'Patient is required to be in isolation'),
+    (False, 'Patient does not need to isolate')
+)
+
 SYSTEM_MESSAGE_CHOICES = (
     ("use_email", "Receive system messages by email"),
     ("use_sms", "Receive system messages by sms"),
@@ -511,6 +526,33 @@ class ChangePasswordForm(PasswordChangeForm):
                 "autocomplete": "new-password",
                 "placeholder": "Confirm Password",
                 "class": GUEST_CHARFIELD_CLASS_BOTTOM
+            }
+        ),
+    )
+
+
+class EditCaseForm(Form):
+    is_confirmed = ChoiceField(
+        choices=IS_CONFIRMED_CHOICES,
+        widget=Select(
+            attrs={
+                "class": SELECTION_CLASS
+            }
+        ),
+    )
+    is_negative = ChoiceField(
+        choices=IS_NEGATIVE_CHOICES,
+        widget=Select(
+            attrs={
+                "class": SELECTION_CLASS
+            }
+        ),
+    )
+    is_quarantining = ChoiceField(
+        choices=IS_QUARANTINING_CHOICES,
+        widget=Select(
+            attrs={
+                "class": SELECTION_CLASS
             }
         ),
     )

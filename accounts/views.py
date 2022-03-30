@@ -637,3 +637,17 @@ def unflag_user(request, user_id):
             return JsonResponse({'is_flagged': f'{flag.is_active}'})
 
     return redirect("accounts:list_users")
+
+
+# this function simply renders the Edit status page
+# the status can be changed here
+@login_required
+@never_cache
+def edit_case(request, user_id):
+    user = User.objects.get(id=user_id)
+    patient = user.patient
+    case_form = EditCaseForm(request.POST)
+    return render(request, 'accounts:edit_status', {
+        "patient": patient,
+        "case_form": case_form
+    })
