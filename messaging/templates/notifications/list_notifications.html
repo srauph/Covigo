@@ -13,16 +13,23 @@
 
 
         $(document).ready(function () {
-            var table = $('#message_list_table').DataTable({
+            let table = $('#message_list_table').DataTable({
                 "order": [1, "desc"],
                 "columnDefs": [
-                    {}
-                ]
+                    {
+                        "orderable": false,
+                        "visible": false,
+                        "searchable": true
+                    }
+                ],
+                language: {
+                    "zeroRecords": "No new notifications at this time"
+                }
             });
 
             $('#toggleRead').change(function () {
                 $.fn.dataTable.ext.search.pop();
-                var value = $(this).val();
+                let value = $(this).val();
                 if (value == "showAll") {
                     $.fn.dataTable.ext.search.pop();
                     table.draw();
@@ -41,8 +48,8 @@
         $(document).on('click', '.view-notification', function () {
 
             //Get the notification id (message group object id)
-            var notif_id = $(this).attr('data-notif-id');
-            var _this = $(this)
+            let notif_id = $(this).attr('data-notif-id');
+            let _this = $(this);
             let url = "{% url 'read_notification' 999999999 %}";
             url = url.replace(999999999, notif_id);
             $j.ajax({
@@ -111,15 +118,15 @@
             {% csrf_token %}
             <div class="m-4">
                 <div class="m-4 p-4 bg-white shadow rounded-lg">
-                    <table class="w-full table-auto" id="message_list_table">
+                    <table class="w-full table-auto text-center" id="message_list_table">
                         <thead>
                         <tr class="border-b">
-                            <th class="p-2">
+                            <th class="p-2" data-orderable="false">
                                 <input type="checkbox" id="checkbox" class="checkbox">
                             </th>
                             <th class="p-2">Description</th>
                             <th class="p-2">Received On</th>
-                            <th class="p-2"></th>
+                            <th class="p-2">Actions</th>
                         </tr>
                         </thead>
 
@@ -135,7 +142,7 @@
                         </td>
                         <td class="p-2">{{ msg.title }}</td>
                         <td class="p-2">{{ msg.date_created }}</td>
-                        <td class="flex justify-end gap-2">
+                        <td class="p-2 flex flex-wrap justify-center gap-2">
                             <a href="{% url 'toggle_read_notification' msg.id %}">
                                 <button type="button" class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                                         <span>
