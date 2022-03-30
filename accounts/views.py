@@ -1,4 +1,6 @@
 import datetime
+
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group, Permission, User
@@ -13,7 +15,6 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
-from geopy import distance
 
 from Covigo.messages import Messages
 from accounts.forms import *
@@ -21,19 +22,15 @@ from accounts.models import Flag, Staff, Patient
 from accounts.preferences import SystemMessagesPreference
 from accounts.utils import (
     convert_dict_of_bools_to_list,
-    get_or_generate_patient_profile_qr,
     get_assigned_staff_id_by_patient_id,
+    get_or_generate_patient_profile_qr,
     get_user_from_uidb64,
-    send_sms_to_user,
-    get_distance_of_all_doctors_to_postal_code,
     return_closest_with_least_patients_doctor,
     send_system_message_to_user,
 )
 from appointments.models import Appointment
 from appointments.utils import rebook_appointment_with_new_doctor
-from accounts.utils import dictfetchall
 from symptoms.utils import is_symptom_editing_allowed
-from django.contrib import messages
 
 
 class GroupErrors:

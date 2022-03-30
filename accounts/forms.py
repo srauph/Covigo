@@ -5,7 +5,9 @@ from django.core.exceptions import ValidationError
 from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, Select, CharField, Form, MultipleChoiceField
 from django.db import connection
 from django.contrib.auth.models import User
+
 from accounts.models import Profile
+
 from re import match, sub
 
 STAFF_PATIENT_CHOICES = (

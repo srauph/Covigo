@@ -1,21 +1,28 @@
+import datetime
 import json
+
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.datetime_safe import datetime
 from django.views.decorators.cache import never_cache
-import datetime
+
 from accounts.models import Flag, Staff
 from accounts.utils import get_assigned_staff_id_by_patient_id
 from messaging.utils import send_notification
-from status.utils import return_symptoms_for_today, get_reports_by_patient, get_patient_report_information, \
-    get_reports_for_doctor, is_requested
+from status.utils import (
+    get_patient_report_information,
+    get_reports_by_patient,
+    get_reports_for_doctor,
+    is_requested,
+    return_symptoms_for_today,
+)
 from symptoms.models import PatientSymptom
 
 

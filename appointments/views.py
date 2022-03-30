@@ -1,16 +1,19 @@
 import json
+
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
+
 from accounts.models import Staff
 from accounts.utils import get_assigned_staff_id_by_patient_id, get_users_names, get_is_staff
 from appointments.forms import AvailabilityForm
-from datetime import datetime, timedelta
 from appointments.models import Appointment
 from appointments.utils import cancel_appointments, delete_availabilities, book_appointments as book_appointments_util
+
+from datetime import datetime, timedelta
 
 
 @login_required

@@ -1,23 +1,54 @@
 import os.path
-import smtplib
 import shortuuid
+import smtplib
+
 from django.contrib.auth.models import User
-from django.contrib.auth.tokens import default_token_generator
 from django.db import IntegrityError, connection
 from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from geopy import distance
 
 from Covigo.settings import HOST_NAME
 from accounts.models import Flag, Staff, Patient
 from accounts.preferences import SystemMessagesPreference
+
+from geopy import distance
 from pathlib import Path
+from qrcode.image.pil import PilImage
+from qrcode.main import make
 from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
-from qrcode.main import make
-from qrcode.image.pil import PilImage
+
+
+def _send_system_message_from_template(user, template, c=None, is_email=True):
+    """
+    Generate and send a system message a user
+    @param user: The user who the system message should be sent to
+    @param template: The template to use for the system message to send
+    @param c: Context variables to use to generate the system message
+    @param is_email: Whether the system message is an email or not
+    @return: void
+    """
+
+    if not c:
+        c = dict()
+
+    c['email'] = user.email
+    c['host_name'] = HOST_NAME
+    c['site_name'] = 'Covigo'
+    c['user'] = user
+    c['uid'] = urlsafe_base64_encode(force_bytes(user.pk))
+
+    if is_email:
+        body = template["body"]
+        subject = template["subject"]
+        email = render_to_string(body, c)
+        send_email_to_user(user, subject, email)
+    else:
+        body = template
+        message = render_to_string(body, c)
+        send_sms_to_user(user, message)
 
 
 def get_flag(staff_user, patient_user):
@@ -90,42 +121,15 @@ def send_sms_to_user(user, body):
     client = Client(account, token)
 
     try:
-        body = client.messages.create(to=user.profile.phone_number, from_="+16626727846",
-                                      body=body)
+        body = client.messages.create(
+            to=user.profile.phone_number,
+            from_="+16626727846",
+            body=body
+        )
     except TwilioRestException as e:
         print(e)
 
     return None
-
-
-def _send_system_message_from_template(user, template, c=None, is_email=True):
-    """
-    Generate and send a system message a user
-    @param user: The user who the system message should be sent to
-    @param template: The template to use for the system message to send
-    @param c: Context variables to use to generate the system message
-    @param is_email: Whether the system message is an email or not
-    @return: void
-    """
-
-    if not c:
-        c = dict()
-
-    c['email'] = user.email
-    c['host_name'] = HOST_NAME
-    c['site_name'] = 'Covigo'
-    c['user'] = user
-    c['uid'] = urlsafe_base64_encode(force_bytes(user.pk))
-
-    if is_email:
-        body = template["body"]
-        subject = template["subject"]
-        email = render_to_string(body, c)
-        send_email_to_user(user, subject, email)
-    else:
-        body = template
-        message = render_to_string(body, c)
-        send_sms_to_user(user, message)
 
 
 def send_system_message_to_user(user, message=None, template=None, subject=None, c=None):

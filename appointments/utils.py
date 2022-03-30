@@ -1,5 +1,4 @@
 from Covigo.messages import Messages
-from accounts.models import Patient
 from appointments.models import Appointment
 from accounts.utils import send_system_message_to_user
 

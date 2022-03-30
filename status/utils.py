@@ -1,14 +1,11 @@
 from datetime import time
 
 from django.contrib.auth.models import User
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.datetime_safe import datetime
 from django.db.models import Q, Count
-from symptoms.models import PatientSymptom
-from django.db.models import Q, Count, QuerySet
+from django.utils.datetime_safe import datetime
 
 from Covigo.messages import Messages
-from accounts.utils import get_is_staff, send_system_message_to_user
+from accounts.utils import send_system_message_to_user
 from symptoms.models import PatientSymptom, Symptom
 
 

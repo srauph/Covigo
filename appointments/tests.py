@@ -1,11 +1,18 @@
 import datetime
+
 from django.urls import reverse
-from accounts.models import Patient, Staff
 from django.contrib.auth.models import User
 from django.test import TransactionTestCase
+
+from accounts.models import Patient, Staff
 from accounts.tests.test_views import create_test_client
 from appointments.models import Appointment
-from appointments.utils import book_appointments, cancel_appointments, delete_availabilities, rebook_appointment_with_new_doctor
+from appointments.utils import (
+    book_appointments,
+    cancel_appointments,
+    delete_availabilities,
+    rebook_appointment_with_new_doctor,
+)
 
 
 class AppointmentsTestCase(TransactionTestCase):
