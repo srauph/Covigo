@@ -10,6 +10,17 @@
             $("#reassign_doctor_form").toggleClass('hidden')
         })
     </script>
+    <script src="{% static 'accounts/js/dual-listbox.js' %}"></script>
+    <script>
+        demo = new DualListbox('.multiselect');
+    </script>
+    <script>
+        Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
+            x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
+        }
+        )
+        );
+    </script>
 {% endblock %}
 
 {% block content %}
@@ -19,6 +30,61 @@
                 <h1 class="text-2xl text-white font-semibold px-8 py-4">Profile</h1>
             </div>
         {% endif %}
+
+        {% if messages %}
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+            <script>
+                setTimeout(function() {
+                    $('.message').fadeOut('fast');
+                    }, 10000); // <-- time in milliseconds
+            </script>
+        {% endif %}
+
+        {% for message in messages %}
+            {% if message.tags == 'success'%}
+                <div role="alert" class="message p-5 m-8 rounded-lg border border-green-400 bg-green-300 text-green-900">
+                    <div class="divide-y-2 divide-solid divide-green-400">
+                        <h2 class="font-bold text-xl flex items-center pb-2">
+                            <span class="mr-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                                </svg>
+                            </span>
+                            Success!
+                            <div class="text-xl flex align-center w-full justify-end">
+                                <strong class="alert-del cursor-pointer">
+                                    &times;
+                                </strong>
+                            </div>
+                        </h2>
+                        <p class="pt-2">
+                            {{ message }}
+                        </p>
+                    </div>
+                </div>
+            {% else %}
+                <div role="alert" class="message p-5 m-8 rounded-lg border border-red-400 bg-red-300 text-red-900">
+                    <div class="divide-y-2 divide-solid divide-red-400">
+                        <h2 class="font-bold text-xl flex items-center pb-2">
+                            <span class="mr-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </span>
+                            Error!
+                            <div class="text-xl flex align-center w-full justify-end">
+                                <strong class="alert-del cursor-pointer">
+                                    &times;
+                                </strong>
+                            </div>
+                        </h2>
+                        <p class="pt-2">
+                            {{ message }}
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
 
         <div class="flex px-8 py-6 {{ full_view|yesno:"flex-wrap," }}">
             {# Left side #}
@@ -117,13 +183,19 @@
                                             <span>Profile</span>
                                         </button>
                                     </a>
-                                    {% endif %}
+                                {% endif %}
                             </div>
 
                             <div class="w-full flex flex-wrap gap-2 justify-between items-center pt-4">
                                 <div class="flex flex-col items-start">
                                     <span class="text-gray-900 font-bold text-xl">{{ assigned_staff.first_name }} {{ assigned_staff.last_name }}</span>
-                                    <span>Assigned to {{ assigned_staff_patient_count }} patients.</span>
+                                    {% if assigned_staff_patient_count == 1 %}
+                                        <span>Assigned to {{ assigned_staff_patient_count }} patient.</span>
+                                    {% elif assigned_staff_patient_count == 0 %}
+                                        <span>No assigned doctor.</span>
+                                    {% else %}
+                                        <span>Assigned to {{ assigned_staff_patient_count }} patients.</span>
+                                    {% endif %}
                                 </div>
                                 <button id="reassign_doctor" class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                                     <span>
@@ -141,26 +213,40 @@
                                 <div class=" my-2">
                                     <form class="bg-slate-200 text-gray-600 hover:text-gray-700 hover:shadow p-4 mt-4 divide-y rounded shadow-sm text-sm hidden" id="reassign_doctor_form" method="POST">
                                         {% csrf_token %}
-                                        <label for="" class="text-black">New Doctor:</label>
+                                        <label class="text-black">New Doctor:</label>
                                         <div class="flex justify-between gap-2">
-                                            <select name="doctor_id" id="" class="grow bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md">
+                                            <select name="doctor_id" id="" class="cursor-pointer grow bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md">
                                                 {% for doc in all_doctors %}
-                                                    <option value="{{ doc.staff.id }}">
-                                                        {{ doc.first_name }} {{ doc.last_name }}
-                                                    </option>
+                                                    {% if doc.id != assigned_staff.id %}
+                                                        <option value="{{ doc.staff.id }}">
+                                                            {{ doc.first_name }} {{ doc.last_name }}
+                                                        </option>
+                                                    {% endif %}
                                                 {% endfor %}
                                             </select>
-                                            <button type="submit"
-                                                    class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-                                                <span>
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                                         viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                                    </svg>
-                                                </span>
-                                                <span>Submit</span>
-                                            </button>
+                                            {% if assigned_staff_patient_count == 0 %}
+                                                <button type="submit" value="Assign" name="Assign" class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                                                    <span>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                             viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                        </svg>
+                                                    </span>
+                                                    <span>Submit</span>
+                                                </button>
+                                            {% else %}
+                                                <button type="submit" value="Reassign" name="Reassign" class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                                                    <span>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                             viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                        </svg>
+                                                    </span>
+                                                    <span>Submit</span>
+                                                </button>
+                                            {% endif %}
                                         </div>
                                     </form>
                                 </div>
@@ -186,7 +272,11 @@
                             </div>
 
                             <div class="w-full flex flex-wrap gap-2 justify-center items-center pt-4">
-                                <span class="text-center font-semibold">{{ assigned_patients|length }} patients are assigned to this user</span>
+                                {% if assigned_patients|length == 1 %}
+                                    <span class="text-center font-semibold">{{ assigned_patients|length }} patient is assigned to this user</span>
+                                {% else %}
+                                    <span class="text-center font-semibold">{{ assigned_patients|length }} patients are assigned to this user</span>
+                                {% endif %}
                             </div>
                             <ul class="list-inside  divide-y pt-4">
 
@@ -245,7 +335,7 @@
                                         </span>
                                             <span>
                                             {% if allow_editing %}
-                                                Edit Symptoms
+                                                Update Assigned Symptoms
                                             {% else %}
                                                 Assign Symptoms
                                             {% endif %}

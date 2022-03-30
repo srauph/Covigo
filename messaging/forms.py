@@ -11,7 +11,7 @@ class CreateMessageContentForm(forms.ModelForm):
         label='Content',
         widget=forms.Textarea(
             attrs={
-                'placeholder': "e.g. those drugs you gave me are hitting hard fam..",
+                'placeholder': "e.g. I'm having difficulty breathing, my body temperature is rising, etc.",
                 'max_length': 100,
                 'required': True,
                 'rows': 3,
@@ -34,7 +34,7 @@ class CreateMessageGroupForm(forms.ModelForm):
     title = forms.CharField(
         widget=forms.TextInput(
             attrs={
-                'placeholder': "e.g. I'm dying, help im pregnant, etc.",
+                'placeholder': "e.g. Concern with loss of smell and taste",
                 'required': True,
                 'size': 50,
                 'class': 'w-full h-8 px-2 bg-slate-100 rounded-md border border-slate-400'

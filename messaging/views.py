@@ -1,16 +1,18 @@
 import json
 import re
 
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
-from django.db.models import Q
-from messaging.models import MessageGroup, MessageContent
+
 from messaging.forms import ReplyForm, CreateMessageContentForm, CreateMessageGroupForm
+from messaging.models import MessageGroup, MessageContent
 from messaging.utils import send_notification
 
 
@@ -90,7 +92,7 @@ def view_message(request, message_group_id):
                 # Reset the form
                 reply_form = ReplyForm()
 
-                # Update the message group
+                # Update the message groups
                 message_group.date_updated = new_reply.date_updated
 
                 # Check if we are author or recipient
@@ -121,7 +123,7 @@ def view_message(request, message_group_id):
             'form': reply_form,
             'seen': seen
         })
-    # User is not authorized to view this message group
+    # User is not authorized to view this message groups
     else:
         return redirect('messaging:list_messages')
 
@@ -154,6 +156,7 @@ def compose_message(request, user_id):
                     message=new_msg_group,
                     content=msg_content_form.data.get('content'),
                 )
+                messages.success(request, "The new message was successfully sent to " + recipient_user.first_name + " " + recipient_user.last_name + "!")
 
                 # Create href for notification
                 href = reverse('messaging:view_message', args=[new_msg_group.id])

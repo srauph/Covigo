@@ -33,14 +33,13 @@
             src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-
     <script>
         jQuery(document).on('click', '.report-modal-link', function (e) {
             let row = jQuery(this).closest('tr');
             let date_updated = row.attr('data-date-updated');
             let user_id = row.attr('data-user-id');
 
-            let url = "{% url 'status:patient-report-modal' 999999999 'date_updated' %}";
+            let url = "{% url 'status:patient_report_modal' 999999999 'date_updated' %}";
             url = url.replace(999999999, user_id);
             url = url.replace('date_updated', date_updated);
 
@@ -78,7 +77,6 @@
         }, interval);
         countdown.innerText = duration.hours() + ":" + duration.minutes() + ":" + duration.seconds();
     </script>
-
 {% endblock %}
 
 {% block content %}
@@ -104,9 +102,9 @@
                 {% if is_reporting_today %}
                     <div>
                         {% if is_resubmit_requested %}
-                            <a href="{% url "status:edit-status-report" %}">
+                            <a href="{% url "status:edit_status_report" %}">
                         {% else %}
-                            <a href="{% url "status:create-status-report" %}">
+                            <a href="{% url "status:create_status_report" %}">
                         {% endif %}
                         <button class="bg-green-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                        <span>
@@ -128,14 +126,12 @@
                     {% if is_resubmit_requested %}
                         <div class="text-red-600 font-bold">
                             Your doctor has requested you resubmit some symptoms today by 11:59:59, remaining time:
-                            <span
-                                    id="countdown"></span>
+                            <span id="countdown"></span>
                         </div>
                     {% else %}
                         <div class="text-red-600 font-bold">
                             You should submit your report with all requested data today by 11:59:59, remaining time:
-                            <span
-                                    id="countdown"></span>
+                            <span id="countdown"></span>
                         </div>
                     {% endif %}
                 {% else %}
@@ -194,7 +190,7 @@
                         <tr class="border-b">
                             <th class="p-2">Date Submitted</th>
                             <th class="p-2">Viewed By Doctor</th>
-                            <th class="p-2">Action</th>
+                            <th class="p-2"></th>
                         </tr>
                         </thead>
 
@@ -205,7 +201,7 @@
                                 <td class="text-center p-2 render-correct-date">{{ r.date_updated__date|date:'Y-m-d' }}</td>
                                 <td class="text-center p-2">{% if r.is_viewed %}Yes{% else %}No{% endif %}</td>
                                 <td class="text-center p-2">
-                                    <a href="{% url "status:edit-status-report" %}">
+                                    <a href="{% url "status:edit_status_report" %}">
                                         <button class="report-modal-link bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md">
                                             View Report
                                         </button>
@@ -217,7 +213,6 @@
                     </table>
                 </div>
             </div>
-
         </div>
         <div id="modal-div" class="modal" style="max-width:1000px;padding: 0 0">
         </div>

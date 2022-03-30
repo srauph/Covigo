@@ -10,24 +10,24 @@
     <script type="text/javascript" charset="utf8"
             src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
     <script>
-
-
         $(document).ready(function () {
-            var table = $('#message_list_table').DataTable({
+            let table = $('#message_list_table').DataTable({
+                language: {
+                    "zeroRecords": "No messages/active conversations started at this time"
+                },
                 "order": [2, "desc"],
                 "columnDefs": [
                     {
                         "targets": [1],
                         "visible": false,
                         "searchable": true
-
                     }
                 ]
             });
 
             $('#toggleRead').change(function () {
                 $.fn.dataTable.ext.search.pop();
-                var value = $(this).val();
+                let value = $(this).val();
                 if (value == "showAll") {
                     $.fn.dataTable.ext.search.pop();
                     table.draw();
@@ -42,11 +42,16 @@
             })
         });
     </script>
+    <script>
+        Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
+            x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
+        }
+        )
+        );
+    </script>
 {% endblock %}
 
 {% block content %}
-
-
     <div class="min-h-full bg-slate-100">
         <div class="flex justify-between bg-slate-700">
             <h1 class="text-2xl text-white font-semibold px-8 py-4">Messages</h1>
@@ -56,7 +61,7 @@
             <div class="w-full flex justify-between items-center p-4">
                 <div>
                     <span class="font-semibold px-2">Filters:</span>
-                    <select name="" id="toggleRead" class="bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md">
+                    <select name="" id="toggleRead" class="cursor-pointer bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md">
                         <option value="showAll">Show All Messages</option>
                         <option value="unread">Show Unread Messages</option>
                         <option value="read">Show Read Messages</option>
@@ -65,9 +70,43 @@
             </div>
         </div>
 
+        {% if messages %}
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+            <script>
+                setTimeout(function() {
+                    $('.message').fadeOut('fast');
+                    }, 10000); // <-- time in milliseconds
+            </script>
+        {% endif %}
+
+        {% for message in messages %}
+            {% if message.tags == 'success'%}
+                <div role="alert" class="message p-5 m-8 rounded-lg border border-green-400 bg-green-300 text-green-900">
+                    <div class="divide-y-2 divide-solid divide-green-400">
+                        <h2 class="font-bold text-xl flex items-center pb-2">
+                            <span class="mr-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                                </svg>
+                            </span>
+                            Success!
+                            <div class="text-xl flex align-center w-full justify-end">
+                                <strong class="alert-del cursor-pointer">
+                                    &times;
+                                </strong>
+                            </div>
+                        </h2>
+                        <p class="pt-2">
+                            {{ message }}
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+
         <div class="m-4">
             <div class="m-4 p-4 bg-white shadow rounded-lg">
-                <table class="w-full table-auto" id="message_list_table">
+                <table class="w-full table-auto text-center" id="message_list_table">
                     <thead>
                         <tr class="border-b">
                             <th class="p-2">Priority</th>
@@ -76,7 +115,7 @@
                             <th class="p-2">Sent On</th>
                             <th class="p-2">Opened On</th>
                             <th class="p-2">Last Reply On</th>
-                            <th class="p-2"></th>
+                            <th class="p-2" data-orderable="false"></th>
                         </tr>
                     </thead>
 
@@ -96,7 +135,7 @@
                                     Urgent
                                 {% endif %}
                             </td>
-                            {# TODO: Fix bug where second column disappears.#}
+                            {# TODO: Fix bug where second column disappears #}
                             <td class="p-2">{{ msg.author.username }}</td>
                             <td class="p-2">{{ msg.title }}</td>
                             <td class="p-2">{{ msg.date_created }}</td>

@@ -1,5 +1,6 @@
 import datetime
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group, Permission, User
@@ -14,23 +15,21 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
-from geopy import distance
 
 from Covigo.messages import Messages
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
-from accounts.preferences import SystemMessagesPreference
+from accounts.preferences import SystemMessagesPreference, StatusReminderPreference
 from accounts.utils import (
     convert_dict_of_bools_to_list,
-    get_or_generate_patient_profile_qr,
     get_assigned_staff_id_by_patient_id,
+    get_or_generate_patient_profile_qr,
     get_user_from_uidb64,
-    send_sms_to_user, get_distance_of_all_doctors_to_postal_code, return_closest_with_least_patients_doctor,
+    return_closest_with_least_patients_doctor,
     send_system_message_to_user,
 )
 from appointments.models import Appointment
 from appointments.utils import rebook_appointment_with_new_doctor
-from accounts.utils import dictfetchall
 from symptoms.utils import is_symptom_editing_allowed
 
 
@@ -55,10 +54,13 @@ def process_register_or_edit_user_form(request, user_form, profile_form, mode=No
     has_phone = user_phone != ""
 
     if user_form.is_valid() and profile_form.is_valid() and (has_email or has_phone):
+        if mode == "Edit" and not user_form.has_changed() and not profile_form.has_changed():
+            messages.error(request, "The account was not edited successfully: No edits made on this account. If you wish to make no changes, please click the \"Cancel\" button to go back to the profile page.")
+            return False
 
         edited_user = user_form.save(commit=False)
 
-        # TODO: Discuss possibility of having no group and adjust `if` to enforce at least one when editing
+        # TODO: Discuss possibility of having no groups and adjust `if` to enforce at least one when editing
         if user_groups:
             edited_user.groups.set(user_groups)
 
@@ -69,7 +71,34 @@ def process_register_or_edit_user_form(request, user_form, profile_form, mode=No
 
     else:
         if mode == "Edit" and not (has_email or has_phone):
-            user_form.add_error(None, "Please enter an email address or a phone number.")
+            messages.error(request, 'Please enter an email address or a phone number.')
+
+        if not user_form.is_valid():
+            if "username" in user_form.errors:
+                messages.error(request, list(user_form['username'].errors)[0])
+
+            if "email" in user_form.errors:
+                messages.error(request, list(user_form['email'].errors)[0])
+
+            if "first_name" in user_form.errors:
+                messages.error(request, list(user_form['first_name'].errors)[0])
+
+            if "last_name" in user_form.errors:
+                messages.error(request, list(user_form['last_name'].errors)[0])
+
+            if "groups" in user_form.errors:
+                messages.error(request, list(user_form['groups'].errors)[0])
+
+        if not profile_form.is_valid():
+            if "phone_number" in profile_form.errors:
+                messages.error(request, list(profile_form['phone_number'].errors)[0])
+
+            if "address" in profile_form.errors:
+                messages.error(request, list(profile_form['address'].errors)[0])
+
+            if "postal_code" in profile_form.errors:
+                messages.error(request, list(profile_form['postal_code'].errors)[0])
+
         return False
 
 
@@ -79,6 +108,7 @@ def convert_permission_name_to_id(request):
         permission_id = Permission.objects.filter(codename=perm).get().id
         permission_array.append(permission_id)
     return permission_array
+
 
 @login_required
 @never_cache
@@ -103,12 +133,12 @@ def forgot_password(request):
             except MultipleObjectsReturned:
                 # Should not happen because we don't allow multiple users to share an email.
                 # This can only occur if the database is corrupted somehow
-                password_reset_form.add_error(None, "More than one user with the given email address could be found. Please contact the system administrators to fix this issue.")
+                messages.error(request, "More than one user with the given email address could be found. Please contact the system administrators to fix this issue.")
             except User.DoesNotExist:
                 # Don't let the user know if the email does not exist in our system
                 return redirect("accounts:forgot_password_done")
         else:
-            password_reset_form.add_error(None, "Please enter a valid email address or phone number.")
+            messages.error(request, "Please enter a valid email address or phone number.")
     else:
         password_reset_form = PasswordResetForm()
     return render(
@@ -222,12 +252,6 @@ def index(request):
     return redirect('accounts:list_users')
 
 
-@login_required
-@never_cache
-def two_factor_authentication(request):
-    return render(request, 'accounts/authentication/2FA.html')
-
-
 @never_cache
 def change_password_done(request):
     return render(request, 'accounts/authentication/change_password_done.html')
@@ -258,6 +282,13 @@ def profile(request, user_id):
 
         qr = get_or_generate_patient_profile_qr(user_id)
         assigned_staff = user.patient.get_assigned_staff_user()
+
+        if request.POST.get('Reassign'):
+            messages.success(request, "This patient was reassigned to the new doctor successfully.")
+
+        if request.POST.get('Assign'):
+            messages.success(request, "This patient was assigned a new doctor successfully.")
+
         appointments = Appointment.objects.filter(patient=user).filter(all_filter).order_by("start_date")
         appointments_truncated = appointments[:4]
         try:
@@ -266,7 +297,7 @@ def profile(request, user_id):
             assigned_staff_patient_count = 0
         assigned_flags = Flag.objects.filter(patient=user)
 
-        # TODO: Remove this group name and replace with permission instead
+        # TODO: Remove this groups name and replace with permission instead
         all_doctors = User.objects.filter(groups__name='doctor')
         # all_doctors = User.objects.filter(is_staff=True)
 
@@ -342,7 +373,7 @@ def create_user(request):
 
             new_user.save()
             new_user.profile.phone_number = user_phone
-            # TODO: Discuss the possibility of having no group and remove `if` if we enforce having at least one
+            # TODO: Discuss the possibility of having no groups and remove `if` if we enforce having at least one
             if user_groups:
                 new_user.groups.set(user_groups)
             new_user.save()
@@ -361,11 +392,31 @@ def create_user(request):
 
             send_system_message_to_user(new_user, template=template, c=c)
 
-            return redirect("accounts:list_users")
+            if request.POST.get('Create'):
+                messages.success(request, 'The account was created successfully.')
+                return render(request, "accounts/create_user.html", {
+                    "user_form": user_form,
+                    "profile_form": profile_form
+                })
+
+            else:
+                messages.success(request, 'The account was created successfully.')
+                return redirect('accounts:list_users')
 
         else:
             if not (has_email or has_phone):
-                user_form.add_error(None, "Please enter an email address or a phone number.")
+                messages.error(request, 'Please enter an email address or a phone number.')
+
+            if not user_form.is_valid():
+                if "email" in user_form.errors:
+                    messages.error(request, list(user_form['email'].errors)[0])
+
+                if "groups" in user_form.errors:
+                    messages.error(request, list(user_form['groups'].errors)[0])
+
+            if not profile_form.is_valid():
+                messages.error(request, list(profile_form.errors.values())[0][0])
+
     # Create forms
     else:
         user_form = CreateUserForm()
@@ -388,7 +439,8 @@ def edit_user(request, user_id):
         profile_form = EditProfileForm(request.POST, instance=user.profile, user_id=user_id)
 
         if process_register_or_edit_user_form(request, user_form, profile_form, mode="Edit"):
-            return redirect("accounts:profile", user_id)
+            messages.success(request, 'The account was edited successfully.')
+            return redirect('accounts:profile', user_id)
 
     # Create forms
     else:
@@ -413,13 +465,16 @@ def edit_preferences(request, user_id):
 
         if preferences_form.is_valid():
             system_msg_preferences = preferences_form.cleaned_data.get(SystemMessagesPreference.NAME.value)
+            status_reminder_interval = preferences_form.cleaned_data.get(StatusReminderPreference.NAME.value)
 
             # Convert to dict to store in profile
             preferences = {
                 SystemMessagesPreference.NAME.value: {
                     SystemMessagesPreference.EMAIL.value: "use_email" in system_msg_preferences,
                     SystemMessagesPreference.SMS.value: "use_sms" in system_msg_preferences
-                }
+                },
+
+                StatusReminderPreference.NAME.value: status_reminder_interval,
             }
 
             profile.preferences = preferences
@@ -431,12 +486,20 @@ def edit_preferences(request, user_id):
     else:
         # Try to load current preferences
         if profile.preferences:
+            # Load previous user-defined preferences
             old_preferences = dict()
-            for preference in profile.preferences:
-                old_preferences[preference] = convert_dict_of_bools_to_list(profile.preferences[preference])
+
+            old_preferences[SystemMessagesPreference.NAME.value] = convert_dict_of_bools_to_list(profile.preferences[SystemMessagesPreference.NAME.value])
+
+            if StatusReminderPreference.NAME.value in profile.preferences:
+                old_preferences[StatusReminderPreference.NAME.value] = profile.preferences[StatusReminderPreference.NAME.value]
+            else:
+                # TODO: Replace this with admin-defined default advance warning, if we implement it.
+                old_preferences[StatusReminderPreference.NAME.value] = 2
 
             preferences_form = EditPreferencesForm(old_preferences)
         else:
+            # Create a blank form if user has no preferences
             preferences_form = EditPreferencesForm()
 
     return render(request, "accounts/edit_preferences.html", {
@@ -446,8 +509,8 @@ def edit_preferences(request, user_id):
 
 @login_required
 @never_cache
-def list_group(request):
-    return render(request, 'accounts/access_control/group/list_group.html', {
+def list_groups(request):
+    return render(request, 'accounts/access_control/groups/list_groups.html', {
         'groups': Group.objects.all()
     })
 
@@ -456,16 +519,15 @@ def list_group(request):
 @never_cache
 def create_group(request):
     new_name = ''
-    errors = GroupErrors()
 
     if request.method == 'POST':
         new_name = request.POST['name']
 
         if not new_name:
-            errors.blank_name = True
+            messages.error(request, 'Please enter a group/role name.')
 
         elif Group.objects.filter(name=new_name).exists():
-            errors.duplicate_name = True
+            messages.error(request, 'Another group/role with the same name exists.')
 
         else:
             group = Group(name=new_name)
@@ -474,12 +536,20 @@ def create_group(request):
             permission_array = convert_permission_name_to_id(request)
             group.permissions.set(permission_array)
 
-            return redirect('accounts:list_group')
+            if request.POST.get('Create'):
+                messages.success(request, 'The group/role was created successfully.')
+                return render(request, 'accounts/access_control/groups/create_group.html', {
+                    'permissions': Permission.objects.all(),
+                    'new_name': new_name
+                })
 
-    return render(request, 'accounts/access_control/group/add_group.html', {
+            else:
+                messages.success(request, 'The group/role was created successfully.')
+                return redirect('accounts:list_groups')
+
+    return render(request, 'accounts/access_control/groups/create_group.html', {
         'permissions': Permission.objects.all(),
-        'new_name': new_name,
-        'errors': errors,
+        'new_name': new_name
     })
 
 
@@ -489,16 +559,23 @@ def edit_group(request, group_id):
     group = Group.objects.get(id=group_id)
     old_name = group.name
     new_name = old_name
-    errors = GroupErrors()
 
     if request.method == 'POST':
         new_name = request.POST['name']
 
         if not new_name:
-            errors.blank_name = True
+            messages.error(request, 'Please enter a group/role name.')
+
+        elif new_name == old_name:
+            messages.error(request, f"The group/role name was not edited successfully: No edits made on this group/role. If you wish to make no changes, please click the \"Cancel\" button to go back to the list of groups/roles.")
+            return render(request, 'accounts/access_control/groups/edit_group.html', {
+                'permissions': Permission.objects.all(),
+                'new_name': new_name,
+                'groups': group
+            })
 
         elif Group.objects.exclude(name=old_name).filter(name=new_name).exists():
-            errors.duplicate_name = True
+            messages.error(request, 'Another group/role with the same name exists.')
 
         else:
             group.name = new_name
@@ -508,13 +585,13 @@ def edit_group(request, group_id):
             group.permissions.clear()
             group.permissions.set(permission_array)
 
-            return redirect('accounts:list_group')
+            messages.success(request, 'The group/role was edited successfully.')
+            return redirect('accounts:list_groups')
 
-    return render(request, 'accounts/access_control/group/edit_group.html', {
+    return render(request, 'accounts/access_control/groups/edit_group.html', {
         'permissions': Permission.objects.all(),
         'new_name': new_name,
-        'errors': errors,
-        'group': group
+        'groups': group
     })
 
 

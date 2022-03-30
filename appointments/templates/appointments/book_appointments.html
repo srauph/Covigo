@@ -27,7 +27,15 @@
                 format: 'MMMM Do YYYY'
             });
 
-            let table = $('#availabilities_list_table').DataTable();
+            let table = $('#availabilities_list_table').DataTable({
+                language : {
+                    "zeroRecords": "No open availabilities/appointments to book at this time"
+                },
+                "columnDefs": [
+                    { "orderable": false, "targets": 0 }
+                ],
+                order: [2, 'asc']
+            });
 
             $('#min, #max').on('change', function () {
                 table.draw();
@@ -97,17 +105,6 @@
             }
         });
 
-        let alert_del = document.querySelectorAll('.alert-del');
-
-        alert_del.forEach(
-            (x) => x.addEventListener(
-                'click',
-                function(){
-                    x.parentElement.parentElement.parentElement.parentElement.classList.add('hidden')
-                }
-            )
-        );
-
         $(document).ready(function() {
             if ($("input:checkbox:checked").length >= 1) {
                 $(".book_selected_appointments").show();
@@ -128,12 +125,19 @@
             });
         });
     </script>
+    <script>
+        Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
+            x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
+        }
+        )
+        );
+    </script>
 {% endblock %}
 
 {% block content %}
     <div class="min-h-full bg-slate-100">
         <div class="flex justify-between bg-slate-700">
-            <h1 class="text-2xl text-white font-semibold px-8 py-4">Available Appointments with Dr. {{ staff_name }}</h1>
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">Available Appointments with Dr. {{ staff_last_name }}</h1>
         </div>
         <div class="bg-white shadow m-8 rounded-xl">
             <div class="w-full flex justify-between items-center p-4">
@@ -174,9 +178,19 @@
         <form method="post">
             {% csrf_token %}
             <div class="m-4 p-4 rounded-lg">
+
+                {% if messages %}
+                    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+                    <script>
+                        setTimeout(function() {
+                            $('.message').fadeOut('fast');
+                            }, 10000); // <-- time in milliseconds
+                    </script>
+                {% endif %}
+
                 {% for message in messages %}
                     {% if message.tags == 'success'%}
-                        <div role="alert" class="p-5 rounded-lg border border-green-400 bg-green-300 text-green-900">
+                        <div role="alert" class="message p-5 rounded-lg border border-green-400 bg-green-300 text-green-900">
                             <div class="divide-y-2 divide-solid divide-green-400">
                                 <h2 class="font-bold text-xl flex items-center pb-2">
                                         <span class="mr-2">
@@ -198,6 +212,7 @@
                         </div>
                     {% endif %}
                 {% endfor %}
+
             </div>
             <div class="m-4">
                 <div class="m-4 p-4 bg-white shadow rounded-lg">
@@ -219,14 +234,14 @@
                             <th class="p-2">
                                 Weekday
                             </th>
-                            <th class="p-2">
-                                Action
+                            <th class="p-2" data-orderable="false">
+
                             </th>
                         </tr>
                         </thead>
                         <tbody>
                         {% for appointment in appointments %}
-                            <tr class="text-center">
+                            <tr>
                                 <td>
                                     <input type="checkbox" class="checkbox" name="booking_ids[]" value="{{ appointment.id }}">
                                 </td>
@@ -242,7 +257,7 @@
                                 <td class="p-2 render-correct-date">
                                     {{ appointment.start_date|date:'l' }}
                                 </td>
-                                <td class="p-2 flex flex-wrap justify-center sm:justify-end gap-2">
+                                <td class="p-2 flex flex-wrap justify-center gap-2">
                                     <button type="submit" value="{{ appointment.id }}" class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1" name="Book Appointment">
                                         <span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
