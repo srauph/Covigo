@@ -19,18 +19,18 @@ STAFF_PATIENT_CHOICES = (
 )
 
 IS_CONFIRMED_CHOICES = (
-    (True, 'Patient is a confirmed case'),
-    (False, 'Patient is an unconfirmed case')
+    (True, 'Confirmed case'),
+    (False, 'Unconfirmed case')
 )
 
 IS_NEGATIVE_CHOICES = (
-    (True, 'Patient is unconfirmed and tested negative'),
-    (False, 'Patient is unconfirmed and needs to test')
+    (True, 'Tested Negative'),
+    (False, 'Untested or Tested Positive')
 )
 
 IS_QUARANTINING_CHOICES = (
-    (True, 'Patient is required to be in isolation'),
-    (False, 'Patient does not need to isolate')
+    (True, 'Required to Quarantine'),
+    (False, 'Not Required to Quarantine ')
 )
 
 SYSTEM_MESSAGE_CHOICES = (
