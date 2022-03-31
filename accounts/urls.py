@@ -19,7 +19,7 @@ urlpatterns = [
     path('two_factor_authentication/', views.two_factor_authentication, name='two_factor_authentication'),
     path('profile/<int:user_id>/', views.profile, name='profile'),
     path('profile/<code>/', views.profile_from_code, name='profile_from_code'),
-    path('edit_case/', views.edit_case, name='edit_case'),
+    path('edit_case/<int:user_id>', views.edit_case, name='edit_case'),
 
     path(
         'login/',
