@@ -637,3 +637,53 @@ def unflag_user(request, user_id):
             return JsonResponse({'is_flagged': f'{flag.is_active}'})
 
     return redirect("accounts:list_users")
+
+
+# this function simply renders the Edit status page
+# the status can be changed here
+@login_required
+@never_cache
+def edit_case(request, user_id):
+    user = User.objects.get(id=user_id)
+    patient = user.patient
+    if request.method == "POST":
+        case_form = EditCaseForm(request.POST)
+        if case_form.is_valid():
+            if not case_form.has_changed():
+                messages.error(
+                    request,
+                    "The patient's case data was not edited successfully: No edits made on this patient. If you wish to make no changes, please click the \"Cancel\" button to go back to the profile page."
+                )
+            else:
+                is_confirmed = case_form.cleaned_data.get("is_confirmed")
+                is_negative = case_form.cleaned_data.get("is_negative")
+                is_quarantining = case_form.cleaned_data.get("is_quarantining")
+
+                patient.is_confirmed = is_confirmed
+                patient.is_negative = is_negative
+                patient.is_quarantining = is_quarantining
+
+                patient.save()
+                messages.success(
+                    request,
+                    "The patient's case data was edited successfully."
+                )
+                return redirect("accounts:profile", user.id)
+        else:
+            # No Error expected here, but we have an error message in case something else goes wrong
+            messages.error(
+                request,
+                "The patient's case data was not edited successfully: The form is invalid. Please verify the form's data."
+            )
+    else:
+        old_case_info = dict()
+        old_case_info["is_confirmed"] = patient.is_confirmed
+        old_case_info["is_negative"] = patient.is_negative
+        old_case_info["is_quarantining"] = patient.is_quarantining
+        
+        case_form = EditCaseForm(old_case_info)
+
+    return render(request, 'accounts/edit_case.html', {
+        "usr": user,
+        "case_form": case_form
+    })
