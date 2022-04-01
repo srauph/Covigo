@@ -181,6 +181,7 @@ def create_patient_report(request):
         for s in report_data:
             symptom = PatientSymptom.objects.filter(id=int(s)).get()
             symptom.data = data[i]
+            symptom.browser_user_agent = request.user_agent.browser.family
             symptom.save()
             i = i + 1
 

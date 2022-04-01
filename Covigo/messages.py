@@ -11,3 +11,5 @@ class Messages(Enum):
     RESET_PASSWORD = MESSAGE_TEMPLATES["reset_password"]
     CHANGED_PASSWORD = MESSAGE_TEMPLATES["user_changed_password"]
     STATUS_UPDATE = MESSAGE_TEMPLATES["status_update"]
+    MESSAGE_SENT = MESSAGE_TEMPLATES["message_sent"]
+    MESSAGE_REPLY = MESSAGE_TEMPLATES["message_reply"]

@@ -26,5 +26,19 @@
             "body": "accounts/templates/accounts/messages/email/status_update_reminder_email.html"
         },
         "sms": "accounts/templates/accounts/messages/sms/status_update_reminder_sms.html"
+    },
+    "message_sent": {
+        "email": {
+            "subject": "Covigo - Message Sent",
+            "body": "messaging/messages/email/message_sent_email.html"
+        },
+        "sms": "messaging/messages/sms/message_sent_sms.html"
+    },
+    "message_reply": {
+        "email": {
+            "subject": "Covigo - Message Reply",
+            "body": "messaging/messages/email/message_reply_email.html"
+        },
+        "sms": "messaging/messages/sms/message_reply_sms.html"
     }
 }

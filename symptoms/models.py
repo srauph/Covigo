@@ -37,6 +37,7 @@ class PatientSymptom(models.Model):
     due_date = models.DateTimeField(blank=True, null=True)
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
+    browser_user_agent = models.CharField(blank=True, null=True, max_length=200)
 
     def __str__(self):
         return f"{self.user}_{self.symptom}"

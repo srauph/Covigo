@@ -20,7 +20,6 @@ urlpatterns = [
     path('unflag/<int:user_id>/', views.unflag_user, name='unflag_user'),
 
     path('two_factor_authentication/', views.two_factor_authentication, name='two_factor_authentication'),
-    path('verify_otp/', views.verify_otp, name='verify_otp'),
     path('profile/<int:user_id>/', views.profile, name='profile'),
     path('profile/<code>/', views.profile_from_code, name='profile_from_code'),
 
