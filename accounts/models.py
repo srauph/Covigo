@@ -64,6 +64,7 @@ class Patient(models.Model):
     is_negative = models.BooleanField(default=False)
     is_quarantining = models.BooleanField(default=False)
     code = models.CharField(max_length=255)
+    test_results = models.JSONField(blank=True, null=True)
 
     def get_assigned_staff_user(self):
         try:
