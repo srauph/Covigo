@@ -4,14 +4,19 @@ from . import views
 app_name = 'status'
 urlpatterns = [
     path('', views.index, name='index'),
-    path('patient-reports/', views.patient_reports, name='patient-reports'),
-    path('patient-reports-table/', views.patient_reports_table, name='patient-reports-table'),
-    path('patient-reports/patient-report-modal/<int:user_id>/<str:date_updated>/', views.patient_report_modal,
-         name='patient-report-modal'),
-    path('patient-reports/patient-report-modal-table/<int:user_id>/<str:date_updated>/',
-         views.patient_reports_modal_table,
-         name='patient-report-modal-table'),
-    path('create-status-report/', views.create_patient_report, name='create-status-report'),
-    path('edit-status-report/', views.edit_patient_report, name='edit-status-report'),
-    path('resubmit-request/<int:patient_symptom_id>', views.resubmit_request, name='resubmit-request')
+    path('patient_reports/', views.patient_reports, name='patient_reports'),
+    path('patient_reports_table/', views.patient_reports_table, name='patient_reports_table'),
+    path(
+        'patient_reports/patient_report_modal/<int:user_id>/<str:date_updated>/',
+        views.patient_report_modal,
+        name='patient_report_modal'
+    ),
+    path(
+        'patient_reports/patient_report_modal_table/<int:user_id>/<str:date_updated>/',
+        views.patient_reports_modal_table,
+        name='patient_report_modal_table'
+    ),
+    path('create_status_report/', views.create_patient_report, name='create_status_report'),
+    path('edit_status_report/', views.edit_patient_report, name='edit_status_report'),
+    path('resubmit_request/<int:patient_symptom_id>', views.resubmit_request, name='resubmit_request')
 ]

@@ -242,11 +242,6 @@ $(document).ready(function () {
     $('.availability-select2').select2({
         placeholder: 'Please select availabilities for patients to book appointments'
     });
-
-    $('.message_close_button').click(function(){
-        $('#message_box').addClass('hidden')
-    });
-
 });
 
 //jQuery for week day selection

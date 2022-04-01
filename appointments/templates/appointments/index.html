@@ -1,21 +1,12 @@
 {% extends "Covigo/base.html" %}
+
 {% block styles %}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.css">
-
 {% endblock %}
+
 {% block script %}
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.js"></script>
     <script>
-        let alert_del = document.querySelectorAll('.alert-del');
-        alert_del.forEach(
-            (x) => x.addEventListener(
-                'click',
-                function () {
-                    x.parentElement.parentElement.parentElement.parentElement.classList.add('hidden')
-                }
-            )
-        );
-
         document.addEventListener('DOMContentLoaded', function () {
             var calendarEl = document.getElementById('fullcalendar');
             var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -47,7 +38,13 @@
             });
             calendar.render();
         });
-
+    </script>
+    <script>
+        Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
+            x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
+        }
+        )
+        );
     </script>
 {% endblock %}
 
@@ -55,9 +52,19 @@
     <div class="min-h-full bg-slate-100">
         <div class="flex flex-wrap xl:flex-nowrap">
             <div class="grow flex-col xl:flex-row xl:w-1/3">
+
+            {% if messages %}
+                <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+                <script>
+                    setTimeout(function() {
+                        $('.message').fadeOut('fast');
+                        }, 10000); // <-- time in milliseconds
+                </script>
+            {% endif %}
+
             {% for message in messages %}
                 {% if message.tags == 'success'%}
-                    <div role="alert" class="m-4 p-5 rounded-lg border border-green-400 bg-green-300 text-green-900">
+                    <div role="alert" class="message m-4 p-5 rounded-lg border border-green-400 bg-green-300 text-green-900">
                         <div class="divide-y-2 divide-solid divide-green-400">
                             <h2 class="font-bold text-xl flex items-center pb-2">
                                 <span class="mr-2">
@@ -114,7 +121,7 @@
                     <div class="m-4">
                         <a href="{%  url 'appointments:cancel_appointments_or_delete_availabilities' %}">
                             <button class="w-full px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white text-2xl font-bold">
-                                <h2>Cancel an appointment or availability</h2>
+                                <h2>Cancel an appointment or delete an availability</h2>
                             </button>
                         </a>
                     </div>
