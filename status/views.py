@@ -319,8 +319,14 @@ def resubmit_request(request, patient_symptom_id):
 @login_required
 @never_cache
 def test_result(request):
+    return render(request, 'status/test_results.html')
+
+
+@login_required
+@never_cache
+def test_report(request):
     if request.method == 'POST':
         test_result_form = TestResultForm(request.POST)
         if test_result_form.is_valid():
             print("here")
-    return render(request, 'status/test_report.html')
+    return render(request, 'status/create_test_report.html')
