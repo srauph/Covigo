@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-
+import random
 
 class Profile(models.Model):
     user = models.OneToOneField(
@@ -108,7 +108,6 @@ class Flag(models.Model):
     def __str__(self):
         return f"{self.patient}_flaggedby_{self.staff}"
 
-
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
@@ -121,3 +120,23 @@ def save_user_profile(sender, instance, created, **kwargs):
         instance.profile.save()
     except Profile.DoesNotExist:
         Profile.objects.create(user=instance)
+
+
+class Code(models.Model):
+    number = models.CharField(max_length=5, blank=True)
+    user = models.OneToOneField(Profile, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.number)
+
+    def save(self, *args, **kwargs):
+        number_list = [x for x in range(10)]
+        code_items = []
+
+        for i in range(5):
+            num = random.choice(number_list)
+            code_items.append(num)
+
+        code_string = "".join(str(item) for item in code_items)
+        self.number = code_string
+        super().save(*args, **kwargs)
