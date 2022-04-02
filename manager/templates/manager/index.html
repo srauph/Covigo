@@ -8,126 +8,141 @@
     </div>
 
     <div class="grow flex flex-wrap justify-between gap-8 w-full p-8">
-        <div class="min-h-full grow xl:grow-0 flex flex-col justify-between p-4 bg-white shadow rounded-lg">
-            <div class="w-full flex flex-col gap-8 mb-8">
-                <div class="w-full">
-                    <h2 class="p-2 text-2xl font-bold">Quick Links</h2>
-                    <hr>
-                </div>
-                {% if perms.accounts.manage_symptoms %}
-                    <div class="flex">
-                        <a href="{% url 'symptoms:index' %}">
-                            <button type="button" class="bg-cyan-500 hover:bg-cyan-700 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
-                                <span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                                    </svg>
-                                </span>
-                                <span>Manage Symptoms</span>
-                            </button>
-                        </a>
+        {% if perms_view_quicklinks %}
+            <div class="min-h-full grow xl:grow-0 flex flex-col justify-between p-4 bg-white shadow rounded-lg">
+                <div class="w-full flex flex-col gap-8 mb-8">
+                    <div class="w-full">
+                        <h2 class="p-2 text-2xl font-bold">Quick Links</h2>
+                        <hr>
                     </div>
-                {% endif %}
-                <div class="flex">
-                    <a href="{% url 'symptoms:index' %}">
-                        <button type="button" class="bg-cyan-500 hover:bg-cyan-700 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
-                            <span>
-                                <span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                                    </svg>
-                                </span>
-                            </span>
-                            <span>Manage Assigned Doctors</span>
-                        </button>
-                    </a>
-                </div>
-                {% if perms.accounts.manage_groups %}
-                    <div class="flex">
-                        <a href="{% url 'accounts:list_groups' %}">
-                            <button type="button" class="bg-cyan-500 hover:bg-cyan-700 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
-                                <span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                    </svg>
-                                </span>
-                                <span>Manage Groups</span>
-                            </button>
-                        </a>
-                    </div>
-                {% endif %}
-                <div class="flex">
-                    <a href="{% url 'symptoms:index' %}">
-                        <button type="button" class="bg-green-600 hover:bg-green-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
-                            <span>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                                </svg>
-                            </span>
-                            <span>Manage Contact Tracing</span>
-                        </button>
-                    </a>
-                </div>
-                <div class="flex">
-                    <a href="{% url 'symptoms:index' %}">
-                        <button type="button" class="bg-green-600 hover:bg-green-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
-                            <span>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
-                                </svg>
-                            </span>
-                            <span>Manage Case Data</span>
-                        </button>
-                    </a>
+                    {% if perms.accounts.manage_symptoms %}
+                        <div class="flex">
+                            <a href="{% url 'symptoms:index' %}">
+                                <button type="button" class="bg-cyan-500 hover:bg-cyan-700 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                                    <span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                        </svg>
+                                    </span>
+                                    <span>Manage Symptoms</span>
+                                </button>
+                            </a>
+                        </div>
+                    {% endif %}
+
+                    {% if perms.accounts.edit_assigned_doctor %}
+                        <div class="flex">
+                            <a href="{% url 'symptoms:index' %}">
+                                <button type="button" class="bg-cyan-500 hover:bg-cyan-700 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                                    <span>
+                                        <span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                            </svg>
+                                        </span>
+                                    </span>
+                                    <span>Manage Assigned Doctors</span>
+                                </button>
+                            </a>
+                        </div>
+                    {% endif %}
+
+                    {% if perms.accounts.manage_groups %}
+                        <div class="flex">
+                            <a href="{% url 'accounts:list_groups' %}">
+                                <button type="button" class="bg-cyan-500 hover:bg-cyan-700 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                                    <span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                    </span>
+                                    <span>Manage Groups</span>
+                                </button>
+                            </a>
+                        </div>
+                    {% endif %}
+
+                    {% if perms.accounts.manage_contact_tracing %}
+                        <div class="flex">
+                            <a href="{% url 'manager:contact_tracing' %}">
+                                <button type="button" class="bg-green-600 hover:bg-green-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                                    <span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                        </svg>
+                                    </span>
+                                    <span>Manage Contact Tracing</span>
+                                </button>
+                            </a>
+                        </div>
+                    {% endif %}
+
+                    {% if perms.accounts.manage_case_data %}
+                        <div class="flex">
+                            <a href="{% url 'symptoms:index' %}">
+                                <button type="button" class="bg-green-600 hover:bg-green-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                                    <span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                                        </svg>
+                                    </span>
+                                    <span>Manage Case Data</span>
+                                </button>
+                            </a>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
-        </div>
-        <div class="min-h-full grow flex flex-col justify-between p-4 bg-white shadow rounded-lg">
-            <div class="w-full flex flex-col gap-8 mb-8">
-                <div class="w-full">
-                    <h2 class="p-2 text-2xl font-bold">System At A Glance</h2>
-                    <hr>
+        {% endif %}
+
+        {% if perms.accounts.view_manager_data %}
+            <div class="min-h-full grow flex flex-col justify-between p-4 bg-white shadow rounded-lg">
+                <div class="w-full flex flex-col gap-8 mb-8">
+                    <div class="w-full">
+                        <h2 class="p-2 text-2xl font-bold">System At A Glance</h2>
+                        <hr>
+                    </div>
+
+                    <div class="flex items-center text-2xl gap-4 text-gray-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="text-blue-400 shrink-0 h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <p>
+                            The system has {{ user_count }} registered users:
+                        </p>
+                    </div>
+
+                    <div class="flex items-center text-2xl gap-4 text-gray-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="text-pink-400 shrink-0 h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                        <p>
+                            {{ patient_count }} are patient users.
+                        </p>
+                    </div>
+
+                    <div class="flex items-center text-2xl gap-4 text-gray-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="text-emerald-400 h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        <p>
+                            {{ staff_count }} are staff users.
+                        </p>
+                    </div>
+
+                    <div class="flex items-center text-2xl gap-4 text-gray-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="text-amber-400 shrink-0 h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                        </svg>
+                        <p>
+                            {{ new_users_yesterday }} users were added yesterday.
+                        </p>
+                    </div>
+
                 </div>
-
-                <div class="flex items-center text-2xl gap-4 text-gray-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="text-blue-400 shrink-0 h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                    <p>
-                        The system has {{ user_count }} registered users:
-                    </p>
-                </div>
-
-                <div class="flex items-center text-2xl gap-4 text-gray-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="text-pink-400 shrink-0 h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                    <p>
-                        {{ patient_count }} are patient users.
-                    </p>
-                </div>
-
-                <div class="flex items-center text-2xl gap-4 text-gray-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="text-emerald-400 h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    <p>
-                        {{ staff_count }} are staff users.
-                    </p>
-                </div>
-
-                {#<div class="flex items-center text-2xl gap-4 text-gray-600">#}
-                {#    <svg xmlns="http://www.w3.org/2000/svg" class="text-amber-400 shrink-0 h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">#}
-                {#        <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />#}
-                {#    </svg>#}
-                {#    <p>#}
-                {#        96 users were added yesterday.#}
-                {#    </p>#}
-                {#</div>#}
-
             </div>
-        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
