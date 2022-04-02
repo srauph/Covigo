@@ -16,6 +16,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 
+from Covigo.default_permissions import DEFAULT_PERMISSIONS
 from Covigo.messages import Messages
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient
@@ -518,6 +519,7 @@ def list_groups(request):
 @login_required
 @never_cache
 def create_group(request):
+    non_default_permissions = Permission.objects.all().exclude(codename__in=DEFAULT_PERMISSIONS)
     new_name = ''
 
     if request.method == 'POST':
@@ -548,7 +550,7 @@ def create_group(request):
                 return redirect('accounts:list_groups')
 
     return render(request, 'accounts/access_control/groups/create_group.html', {
-        'permissions': Permission.objects.all(),
+        'permissions': non_default_permissions,
         'new_name': new_name
     })
 
