@@ -1,14 +1,16 @@
 import datetime
+import json
 
 from django.contrib import messages
+from django.contrib.auth import logout, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordResetForm
-from django.contrib.auth.models import Group, Permission, User
+from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth.views import PasswordResetConfirmView, PasswordChangeView
+from django.contrib.auth.views import PasswordResetConfirmView, PasswordChangeView, LoginView
 from django.core.exceptions import MultipleObjectsReturned
 from django.db.models import Q
-from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
@@ -17,8 +19,9 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 
 from Covigo.messages import Messages
+from Covigo.settings import PRODUCTION_MODE
 from accounts.forms import *
-from accounts.models import Flag, Staff, Patient
+from accounts.models import Flag, Staff, Patient, Code
 from accounts.preferences import SystemMessagesPreference, StatusReminderPreference
 from accounts.utils import (
     convert_dict_of_bools_to_list,
@@ -55,7 +58,8 @@ def process_register_or_edit_user_form(request, user_form, profile_form, mode=No
 
     if user_form.is_valid() and profile_form.is_valid() and (has_email or has_phone):
         if mode == "Edit" and not user_form.has_changed() and not profile_form.has_changed():
-            messages.error(request, "The account was not edited successfully: No edits made on this account. If you wish to make no changes, please click the \"Cancel\" button to go back to the profile page.")
+            messages.error(request,
+                           "The account was not edited successfully: No edits made on this account. If you wish to make no changes, please click the \"Cancel\" button to go back to the profile page.")
             return False
 
         edited_user = user_form.save(commit=False)
@@ -110,11 +114,69 @@ def convert_permission_name_to_id(request):
     return permission_array
 
 
-@login_required
+class LoginViewTo2FA(LoginView):
+    @method_decorator(sensitive_post_parameters())
+    @method_decorator(csrf_protect)
+    @method_decorator(never_cache)
+    def dispatch(self, *args, **kwargs):
+        self.request.session["start_2fa"] = True
+        return super(LoginViewTo2FA, self).dispatch(*args, **kwargs)
+
+    def get_success_url(self):
+        return reverse_lazy("accounts:two_factor_authentication")
+
+
 @never_cache
 def two_factor_authentication(request):
-    return render(request, 'accounts/authentication/2FA.html')
+    if "start_2fa" not in request.session:
+        raise Http404
 
+    del request.session["start_2fa"]
+
+    user = request.user
+    code, _ = Code.objects.get_or_create(user=request.user.profile)
+    code.save()
+
+    logout(request)
+
+    otp = code.number
+    message = "Your OTP is " + otp + ". "
+    subject = "Covigo OTP"
+    send_system_message_to_user(user, message=message, subject=subject)
+
+    request.session["verify_otp"] = True
+
+    return render(request, 'accounts/authentication/2FA.html', {
+        "usr": user
+    })
+
+
+@never_cache
+def verify_otp(request, user_id):
+    user = User.objects.get(id=user_id)
+    code = request.POST.get('code')
+    # import pdb; pdb.set_trace()
+    try:
+        bypass = not PRODUCTION_MODE and code == "420420"
+        if bypass or code == Code.objects.get(user_id=user.id).number:
+            login(request, user)
+            return redirect('index')
+        else:
+            raise Code.DoesNotExist
+    except Code.DoesNotExist:
+        messages.error(
+            request,
+            "Invalid 2FA code."
+        )
+        return render(request, 'accounts/authentication/2FA.html', {
+            "usr": user,
+        })
+
+
+    #store
+    #compare
+    #redirect
+    print("Inside verify")
 
 @never_cache
 def forgot_password(request):
@@ -133,7 +195,8 @@ def forgot_password(request):
             except MultipleObjectsReturned:
                 # Should not happen because we don't allow multiple users to share an email.
                 # This can only occur if the database is corrupted somehow
-                messages.error(request, "More than one user with the given email address could be found. Please contact the system administrators to fix this issue.")
+                messages.error(request,
+                               "More than one user with the given email address could be found. Please contact the system administrators to fix this issue.")
             except User.DoesNotExist:
                 # Don't let the user know if the email does not exist in our system
                 return redirect("accounts:forgot_password_done")
@@ -488,10 +551,12 @@ def edit_preferences(request, user_id):
             # Load previous user-defined preferences
             old_preferences = dict()
 
-            old_preferences[SystemMessagesPreference.NAME.value] = convert_dict_of_bools_to_list(profile.preferences[SystemMessagesPreference.NAME.value])
+            old_preferences[SystemMessagesPreference.NAME.value] = convert_dict_of_bools_to_list(
+                profile.preferences[SystemMessagesPreference.NAME.value])
 
             if StatusReminderPreference.NAME.value in profile.preferences:
-                old_preferences[StatusReminderPreference.NAME.value] = profile.preferences[StatusReminderPreference.NAME.value]
+                old_preferences[StatusReminderPreference.NAME.value] = profile.preferences[
+                    StatusReminderPreference.NAME.value]
             else:
                 # TODO: Replace this with admin-defined default advance warning, if we implement it.
                 old_preferences[StatusReminderPreference.NAME.value] = 2
@@ -566,7 +631,8 @@ def edit_group(request, group_id):
             messages.error(request, 'Please enter a group/role name.')
 
         elif new_name == old_name:
-            messages.error(request, f"The group/role name was not edited successfully: No edits made on this group/role. If you wish to make no changes, please click the \"Cancel\" button to go back to the list of groups/roles.")
+            messages.error(request,
+                           f"The group/role name was not edited successfully: No edits made on this group/role. If you wish to make no changes, please click the \"Cancel\" button to go back to the list of groups/roles.")
             return render(request, 'accounts/access_control/groups/edit_group.html', {
                 'permissions': Permission.objects.all(),
                 'new_name': new_name,
@@ -680,10 +746,38 @@ def edit_case(request, user_id):
         old_case_info["is_confirmed"] = patient.is_confirmed
         old_case_info["is_negative"] = patient.is_negative
         old_case_info["is_quarantining"] = patient.is_quarantining
-        
+
         case_form = EditCaseForm(old_case_info)
 
     return render(request, 'accounts/edit_case.html', {
         "usr": user,
         "case_form": case_form
     })
+
+
+def doctor_patient_list(request):
+    # I assume this is an admin only page
+    if request.user.is_superuser:
+        return render(request, 'accounts/doctors.html')
+    raise Http404("The requested resource was not found on this server.")
+
+
+def doctor_patient_list_table(request):
+    # TODO FILTER FOR DOCTORS ONLY (Currently anyone in accounts_staff is treated as a doctor for the query)
+    if request.user.is_superuser:
+        # Raw query to get each doctor and their patient count
+        query = Staff.objects.raw(
+            "SELECT `auth_user`.`id`, `auth_user`.`first_name`, `auth_user`.`last_name`, `accounts_staff`.`user_id`, COUNT(*) AS patient_count FROM `accounts_staff` JOIN `accounts_patient` ON (`accounts_staff`.`id` = `accounts_patient`.`assigned_staff_id`) LEFT OUTER JOIN `auth_user` ON (`accounts_staff`.`user_id` = `auth_user`.`id`) GROUP BY `accounts_patient`.`assigned_staff_id` ORDER BY `auth_user`.`first_name` , `auth_user`.`last_name`")
+
+        # Build the JSON from the raw query
+        table_info = []
+        for i in query:
+            record = {"user_id": i.user_id, "first_name": i.first_name, "last_name": i.last_name,
+                      "patient_count": i.patient_count}
+            table_info.append(record)
+
+        # Serialize it
+        serialized_reports = json.dumps({'data': table_info}, indent=4)
+
+        return HttpResponse(serialized_reports, content_type='application/json')
+    raise Http404("The requested resource was not found on this server.")

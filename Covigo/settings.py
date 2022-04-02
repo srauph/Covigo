@@ -67,7 +67,6 @@ INSTALLED_APPS = [
     'django_otp.plugins.otp_totp',
     'django_user_agents',
     'two_factor',
-    'codes',
     'users'
 ]
 

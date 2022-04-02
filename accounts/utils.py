@@ -1,4 +1,5 @@
 import os.path
+import random
 import shortuuid
 import smtplib
 
@@ -348,6 +349,19 @@ def get_is_staff(user_id):
         return User.objects.get(id=user_id).is_staff
     except User.DoesNotExist:
         return -1
+
+
+# generate 5 digit otp
+def generate_otp_code():
+    number_list = [x for x in range(10)]
+    code_items = []
+
+    for i in range(5):
+        num = random.choice(number_list)
+        code_items.append(num)
+
+    code_string = "".join(str(item) for item in code_items)
+    return code_string
 
 
 def dictfetchall(cursor):
