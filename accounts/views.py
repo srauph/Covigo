@@ -384,14 +384,14 @@ def profile(request, user_id):
 
         perms_negative = (
             user == request.user
-            or request.user.has_perm("accounts.view_patient_negative")
-            or request.user.has_perm("accounts.view_assigned_negative") and user in request.user.staff.get_assigned_patient_users()
+            or request.user.has_perm("accounts.view_patient_case")
+            or request.user.has_perm("accounts.view_assigned_case") and user in request.user.staff.get_assigned_patient_users()
         )
 
         perms_quarantine = (
             user == request.user
             or request.user.has_perm("accounts.view_patient_quarantine")
-            or request.user.has_perm("accounts.view_assigned_negative") and user in request.user.staff.get_assigned_patient_users()
+            or request.user.has_perm("accounts.view_assigned_quarantine") and user in request.user.staff.get_assigned_patient_users()
         )
 
         perms_test_report = (
@@ -424,6 +424,17 @@ def profile(request, user_id):
             )
         )
 
+        perms_edit_case = (
+            user.is_staff and (
+                request.user.has_perm("accounts.set_patient_case")
+                or request.user.has_perm("accounts.set_patient_quarantine")
+                or user in request.user.staff.get_assigned_patient_users() and (
+                    request.user.has_perm("accounts.set_assigned_case")
+                    or request.user.has_perm("accounts.set_assigned_quarantine")
+                )
+            )
+        )
+
         return render(request, 'accounts/profile.html', {
             "usr": user,
             "appointments": appointments,
@@ -437,6 +448,7 @@ def profile(request, user_id):
             "all_doctors": all_doctors,
             "can_edit_flag": can_edit_flag,
 
+            "perms_edit_user": perms_edit_user,
             "perms_code": perms_code,
             "perms_negative": perms_negative,
             "perms_quarantine": perms_quarantine,
@@ -445,7 +457,7 @@ def profile(request, user_id):
             "perms_assigned_patients": perms_assigned_patients,
             "perms_message_doctor": perms_message_doctor,
             "perms_assign_symptoms": perms_assign_symptoms,
-            "perms_edit_user": perms_edit_user,
+            "perms_edit_case": perms_edit_case,
         })
 
     # If profile belongs to a staff member
@@ -463,6 +475,8 @@ def profile(request, user_id):
             "assigned_patients": assigned_patients,
             "issued_flags": issued_flags,
             "full_view": True,
+
+
             "usr_is_doctor": usr_is_doctor,
             "perms_edit_user": perms_edit_user,
         })
