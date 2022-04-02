@@ -346,11 +346,17 @@ def profile_from_code(request, code):
 @login_required
 @never_cache
 def list_users(request):
-    if not request.user.has_perm("accounts.view_user_list"):
+    if request.user.has_perm("accounts.view_user_list"):
+        users = User.objects.all()
+    elif request.user.has_perm("accounts.view_patient_list"):
+        users = User.objects.all().filter(is_staff=False)
+    elif request.user.has_perm("accounts.view_assigned_list"):
+        users = request.user.staff.get_assigned_patient_users()
+    else:
         raise PermissionDenied
 
     return render(request, 'accounts/list_users.html', {
-        'users': User.objects.all()
+        'users': users
     })
 
 
