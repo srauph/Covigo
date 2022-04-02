@@ -1,63 +1,55 @@
-{% extends 'Covigo/base.html' %}
+{% extends "Covigo/base.html" %}
 
 {% block content %}
-    <form method="POST" class="min-h-full bg-slate-100 flex flex-col">
+    <form method="post" class="min-h-full bg-slate-100 flex flex-col">
         {% csrf_token %}
-        <div class="bg-slate-700 border-b">
-            <h1 class="text-2xl text-white font-semibold px-8 py-4">Compose Message</h1>
+        <div class="flex justify-between bg-slate-700">
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">
+                Edit {{ usr.first_name }} {{ usr.last_name }}'s Case Information
+            </h1>
         </div>
-
         <div class="flex flex-col justify-between grow m-8 p-4 min-h-full bg-white shadow rounded-lg">
             <div class="w-full flex flex-col gap-8 mb-8">
                 <div class="w-full">
-                    <h2 class="p-2 text-2xl font-bold">Send Message to {{ msg_group_form.recipient }}</h2>
+                    <h2 class="p-2 text-2xl font-bold">Case Information</h2>
                     <hr>
-                    <div class="px-2 absolute text-red-500 text-sm font-semibold">
-                        {{ msg_group_form.non_field_errors }}
-                        {{ msg_content_form.non_field_errors }}
-                    </div>
                 </div>
 
                 <div class="w-full max-w-2xl px-2">
-                    <label>Subject:</label>
+                    <label>Infection History:</label>
                     <div class="mt-1">
-                        {{ msg_group_form.title }}
+                        {{ case_form.is_confirmed }}
                     </div>
-                    <div class="text-red-500 text-sm font-semibold">
-                        <div class="absolute">
-                            {{ msg_group_form.title.errors }}
-                        </div>
-                    </div>
+                    <p class="text-sm text-slate-600">
+                        A patient is a confirmed case if they have tested positive before, otherwise they are
+                        unconfirmed
+                    </p>
                 </div>
-
                 <div class="w-full max-w-2xl px-2">
-                    <label>Priority:</label>
-                    <div class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400">
-                        {{ msg_group_form.priority }}
-                    </div>
-                    <div class="text-red-500 text-sm font-semibold">
-                        <div class="absolute">
-                            {{ msg_group_form.priority.errors }}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="w-full max-w-2xl px-2">
-                    <label>Content:</label>
+                    <label>Test Result:</label>
                     <div class="mt-1">
-                        {{ msg_content_form.content }}
+                        {{ case_form.is_negative }}
                     </div>
-                    <div class="text-red-500 text-sm font-semibold">
-                        <div class="absolute">
-                            {{ msg_content_form.content.errors }}
-                        </div>
-                    </div>
+                    <p class="text-sm text-slate-600">
+                        A patient is negative if they have a negative test result, otherwise they either must
+                        test/re-test
+                        or tested positive
+                    </p>
                 </div>
+                <div class="w-full max-w-2xl px-2">
+                    <label>Quarantine:</label>
+                    <div class="mt-1">
+                        {{ case_form.is_quarantining }}
+                    </div>
+                    <p class="text-sm text-slate-600">
+                        Depending on local guidelines, a patient may need to quarantine
+                    </p>
+                </div>
+
             </div>
-
             <div class="w-full mt-8 md:mt-0">
                 <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
-                    <a href="{% url "messaging:list_messages" %}">
+                    <a href="{% url "accounts:list_users" %}">
                         <button type="button"
                                 class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
                         <span>
@@ -73,13 +65,13 @@
                     <button type="submit"
                             class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
                         <span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                 viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                             </svg>
                         </span>
-                        <span>Create and Return</span>
+                        <span>Edit and Return</span>
                     </button>
                 </div>
             </div>

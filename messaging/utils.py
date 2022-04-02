@@ -1,4 +1,3 @@
-from django.template.loader import render_to_string
 from django.urls import reverse
 
 from messaging.models import MessageGroup

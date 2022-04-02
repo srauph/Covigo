@@ -10,8 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 import json
-from pathlib import Path
+
 from dotenv import load_dotenv
+from pathlib import Path
 from os import getenv
 
 # Load variables from .env
@@ -65,7 +66,6 @@ INSTALLED_APPS = [
     'django_otp.plugins.otp_static',
     'django_otp.plugins.otp_totp',
     'two_factor',
-    'codes',
     'users'
 ]
 

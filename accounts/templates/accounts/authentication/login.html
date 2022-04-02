@@ -1,4 +1,5 @@
 {% extends "Covigo/layout/guest.html" %}
+
 {% block content %}
         <div class="min-h-full flex flex-col items-center py-16 px-4 sm:px-6 lg:px-8">
             <div class="max-w-md w-full">
@@ -8,6 +9,49 @@
                     <p class="mt-2 text-center text-sm text-gray-600">
                     </p>
                 </div>
+
+                {% if form.non_field_errors %}
+                    {% block script %}
+                        <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+                        <script>
+                            Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
+                                x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
+                            }
+                            )
+                            );
+
+                            setTimeout(function() {
+                                $('.message').fadeOut('fast');
+                            }, 10000); // <-- time in milliseconds
+                        </script>
+                    {% endblock %}
+                {% endif %}
+
+                {% if form.non_field_errors %}
+                    {% for error in form.non_field_errors %}
+                        <div role="alert" class="message p-5 rounded-lg border border-red-400 bg-red-300 text-red-900">
+                            <div class="divide-y-2 divide-solid divide-red-400">
+                                <h2 class="font-bold text-xl flex items-center pb-2">
+                                    <span class="mr-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </span>
+                                    Error!
+                                    <div class="text-xl flex align-center w-full justify-end">
+                                        <strong class="alert-del cursor-pointer">
+                                            &times;
+                                        </strong>
+                                    </div>
+                                </h2>
+                                <p class="pt-2">
+                                    {{ error }}
+                                </p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
                 {% include './login_form.html' %}
             </div>
         </div>
