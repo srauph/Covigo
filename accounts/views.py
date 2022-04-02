@@ -164,9 +164,12 @@ def verify_otp(request, user_id):
         else:
             raise Code.DoesNotExist
     except Code.DoesNotExist:
+        messages.error(
+            request,
+            "Invalid 2FA code."
+        )
         return render(request, 'accounts/authentication/2FA.html', {
             "usr": user,
-            "error": "Invalid code"
         })
 
 
