@@ -70,12 +70,13 @@ def fetch_messaging_info(user):
 
 
 def fetch_appointments_info(user):
+    now = datetime.datetime.now()
     today = datetime.date.today()
     tomorrow = today + datetime.timedelta(days=1)
     in_two_days = tomorrow + datetime.timedelta(days=1)
 
-    all_filter = Q(patient__isnull=False) & Q(start_date__gte=today)
-    today_filter = Q(start_date__gte=today) & Q(start_date__lt=tomorrow)
+    all_filter = Q(patient__isnull=False) & Q(start_date__gte=now)
+    today_filter = Q(start_date__gte=now) & Q(start_date__lt=tomorrow)
     tomorrow_filter = Q(start_date__gte=tomorrow) & Q(start_date__lt=in_two_days)
 
     if user.is_staff:

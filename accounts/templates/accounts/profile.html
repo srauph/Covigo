@@ -511,7 +511,7 @@
                                         </button>
                                     </a>
                                 {% endif %}
-                                {% if not usr.is_staff %}
+
                                 {% if perms_assign_symptoms %}
                                     <a href="{% url 'symptoms:assign_symptom' usr.id %}">
                                         <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white pl-1 pr-2 py-1 rounded-md flex items-center gap-1">
