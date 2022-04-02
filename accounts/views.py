@@ -571,7 +571,7 @@ def edit_preferences(request, user_id):
 @login_required
 @never_cache
 def list_groups(request):
-    if not request.user.has_perm("accounts.manage_group"):
+    if not request.user.has_perm("accounts.manage_groups"):
         raise PermissionDenied
 
     return render(request, 'accounts/access_control/groups/list_groups.html', {
@@ -582,7 +582,7 @@ def list_groups(request):
 @login_required
 @never_cache
 def create_group(request):
-    if not request.user.has_perm("accounts.manage_group"):
+    if not request.user.has_perm("accounts.manage_groups"):
         raise PermissionDenied
 
     non_default_permissions = Permission.objects.all().exclude(codename__in=DEFAULT_PERMISSIONS)
@@ -624,7 +624,7 @@ def create_group(request):
 @login_required
 @never_cache
 def edit_group(request, group_id):
-    if not request.user.has_perm("accounts.manage_group"):
+    if not request.user.has_perm("accounts.manage_groups"):
         raise PermissionDenied
 
     non_default_permissions = Permission.objects.all().exclude(codename__in=DEFAULT_PERMISSIONS)

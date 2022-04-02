@@ -291,3 +291,6 @@ def cancel_appointments_or_delete_availabilities(request):
         'is_staff': is_staff,
         'staff_last_name': staff_last_name
     })
+
+def can_cancel(request):
+    return request.user.has_perm(accounts.cancel_appointment)

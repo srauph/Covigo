@@ -51,7 +51,7 @@ class Staff(models.Model):
             ("edit_patient", "Can edit any patient"),
             ("edit_user", "Can edit any user"),
             ("remove_availability", "Can delete an appointment availability"),
-            ("manage_group", "Can create a new group or edit existing groups"),
+            ("manage_groups", "Can create a new group or edit existing groups"),
             ("assign_group", "Can change a new or existing user's assigned groups"),
             ("message_assigned", "Can compose a new message with assigned patients"),
             ("message_patient", "Can compose a new message with any patient"),
@@ -133,7 +133,6 @@ class Patient(models.Model):
 
     class Meta:
         permissions = [
-            ("cancel_appointment_with_doctor", "Can cancel appointment with the assigned doctor"),
             ("message_doctor", "Can compose a new message with the assigned doctor"),
             ("dashboard_doctor", "Can view the assigned doctor's contact information (name, email, phone number) in dashboard"),
             ("view_own_code", "Can view their own QR and patient code"),
