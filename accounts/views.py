@@ -332,6 +332,14 @@ def profile(request, user_id):
     today = datetime.date.today()
     all_filter = Q(patient__isnull=False) & Q(start_date__gte=today)
 
+    perms_edit_user = (
+        False if user == request.user and not request.user.has_perm("accounts.edit_self") else
+        user == request.user and request.user.has_perm("accounts.edit_self")
+        or request.user.has_perm("accounts.edit_user")
+        or request.user.has_perm("accounts.edit_patient") and not user.is_staff
+        or request.user.has_perm("accounts.edit_assigned") and user in request.user.staff.get_assigned_patient_users()
+    )
+
     # If profile belongs to a patient
     if not user.is_staff:
         can_edit_flag = (
@@ -416,14 +424,6 @@ def profile(request, user_id):
             )
         )
 
-        perms_edit_user = (
-            False if user == request.user and not request.user.has_perm("accounts.edit_self") else
-            user == request.user and request.user.has_perm("accounts.edit_self")
-            or request.user.has_perm("accounts.edit_user")
-            or request.user.has_perm("accounts.edit_patient") and not user.is_staff
-            or request.user.has_perm("accounts.edit_assigned") and user in request.user.staff.get_assigned_patient_users()
-        )
-
         return render(request, 'accounts/profile.html', {
             "usr": user,
             "appointments": appointments,
@@ -445,7 +445,7 @@ def profile(request, user_id):
             "perms_assigned_patients": perms_assigned_patients,
             "perms_message_doctor": perms_message_doctor,
             "perms_assign_symptoms": perms_assign_symptoms,
-            "perms_edit_user": perms_edit_user
+            "perms_edit_user": perms_edit_user,
         })
 
     # If profile belongs to a staff member
@@ -463,7 +463,8 @@ def profile(request, user_id):
             "assigned_patients": assigned_patients,
             "issued_flags": issued_flags,
             "full_view": True,
-            "usr_is_doctor": usr_is_doctor
+            "usr_is_doctor": usr_is_doctor,
+            "perms_edit_user": perms_edit_user,
         })
 
 
