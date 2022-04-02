@@ -70,7 +70,7 @@ def patient_reports(request):
     doctor = request.user
 
     # Get doctors patient name(s) and user id(s)
-    if doctor.has_perm('symptoms.view_patientsymptom'):
+    if doctor.has_perm('accounts.is_doctor'):
 
         # list of patient ids for the doctor
         patient_ids = list(doctor.staff.get_assigned_patient_users().values_list("id", flat=True))

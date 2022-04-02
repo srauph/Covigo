@@ -272,7 +272,7 @@ def profile(request, user_id):
         can_edit_flag = (
             False if not request.user.is_staff else
             request.user.has_perm("accounts.flag_patients") and not user.is_staff
-            or request.user.has_perm("accounts.flag_assigned") and user in request.user.staff.assigned_patients
+            or request.user.has_perm("accounts.flag_assigned") and user in request.user.staff.get_assigned_patient_users()
         )
 
         if request.method == "POST":
@@ -454,7 +454,7 @@ def edit_user(request, user_id):
         user == request.user and request.user.has_perm("accounts.edit_self")
         or request.user.has_perm("accounts.edit_user")
         or request.user.has_perm("accounts.edit_patient") and not user.is_staff
-        or request.user.has_perm("accounts.edit_assigned") and user in request.user.staff.assigned_patients
+        or request.user.has_perm("accounts.edit_assigned") and user in request.user.staff.get_assigned_patient_users()
     )
 
     if not can_view_page:
@@ -678,7 +678,7 @@ def flag_user(request, user_id):
 
     can_edit_flag = (
         user_staff.has_perm("accounts.flag_patients") and not user_patient.is_staff
-        or user_staff.has_perm("accounts.flag_assigned") and user_patient in user_staff.staff.assigned_patients
+        or user_staff.has_perm("accounts.flag_assigned") and user_patient in user_staff.staff.get_assigned_patient_users()
     )
 
     if not can_edit_flag:
@@ -710,7 +710,7 @@ def unflag_user(request, user_id):
 
     can_edit_flag = (
         user_staff.has_perm("accounts.flag_patients") and not user_patient.is_staff
-        or user_staff.has_perm("accounts.flag_assigned") and user_patient in user_staff.staff.assigned_patients
+        or user_staff.has_perm("accounts.flag_assigned") and user_patient in user_staff.staff.get_assigned_patient_users()
     )
 
     if not can_edit_flag:

@@ -4,6 +4,7 @@ import re
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Q
 from django.http import HttpResponse
@@ -125,16 +126,24 @@ def view_message(request, message_group_id):
         })
     # User is not authorized to view this message groups
     else:
-        return redirect('messaging:list_messages')
+        raise PermissionDenied
 
 
 @login_required
 @never_cache
 def compose_message(request, user_id):
     # To prevent users from being able to send messages to themselves
-    if request.user.id != user_id:
+    recipient_user = User.objects.get(id=user_id)
 
-        recipient_user = User.objects.get(id=user_id)
+    can_compose_message = (
+        request.user.id != user_id and (
+            request.user.has_perm("accounts.message_user")
+            or request.user.has_perm("accounts.message_patient") and not recipient_user.is_staff
+            or request.user.has_perm("accounts.message_assigned") and recipient_user in request.user.staff.get_assigned_patient_users()
+            or request.user.has_perm("accounts.meddage_doctor") and recipient_user == request.user.patient.get_assigned_staff_user()
+        )
+    )
+    if can_compose_message:
         if recipient_user.first_name == "" and recipient_user.last_name == "":
             recipient_name = recipient_user
         else:
@@ -176,7 +185,7 @@ def compose_message(request, user_id):
             'msg_content_form': msg_content_form
         })
     else:
-        return redirect("messaging:list_messages")
+        raise PermissionDenied
 
 
 @login_required
