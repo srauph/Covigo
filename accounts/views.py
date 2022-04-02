@@ -263,12 +263,13 @@ def change_password_done(request):
 def profile(request, user_id):
     user = User.objects.get(id=user_id)
 
-    if not request.user.is_staff and request.user != user:
-        raise PermissionDenied
+    # if not request.user.is_staff and request.user != user:
+    #     raise PermissionDenied
 
     today = datetime.date.today()
     all_filter = Q(patient__isnull=False) & Q(start_date__gte=today)
 
+    # If profile belongs to a patient
     if not user.is_staff:
         can_edit_flag = (
             False if not request.user.is_staff else
@@ -304,6 +305,62 @@ def profile(request, user_id):
 
         all_doctors = User.objects.with_perm("accounts.is_doctor").exclude(is_superuser=True)
 
+        perms_code = (
+            user == request.user and request.user.has_perm("accounts.view_own_code")
+            or request.user.has_perm("accounts.view_patient_code")
+            or request.user.has_perm("accounts.view_assigned_code") and user in request.user.staff.get_assigned_patient_users()
+        )
+
+        perms_negative = (
+            user == request.user
+            or request.user.has_perm("accounts.view_patient_negative")
+            or request.user.has_perm("accounts.view_assigned_negative") and user in request.user.staff.get_assigned_patient_users()
+        )
+
+        perms_quarantine = (
+            user == request.user
+            or request.user.has_perm("accounts.view_patient_quarantine")
+            or request.user.has_perm("accounts.view_assigned_negative") and user in request.user.staff.get_assigned_patient_users()
+        )
+
+        perms_test_report = (
+            request.user.has_perm("accounts.view_patient_test_report")
+            or request.user.has_perm("accounts.view_assigned_test_report") and user in request.user.staff.get_assigned_patient_users()
+        )
+
+        perms_assigned_doctor = (
+            user == request.user
+            or request.user.has_perm("accounts.view_assigned_doctor")
+            or user in request.user.staff.get_assigned_patient_users()
+        )
+
+        perms_assigned_patients = (
+            user == request.user
+            or request.user.has_perm("accounts.view_assigned_patients")
+        )
+
+        perms_message_doctor = (
+            not user.is_staff and request.user != user.patient.get_assigned_staff_user() and (
+                request.user.has_perm("accounts.message_doctor")
+                or request.user.has_perm("accounts.message_user")
+            )
+        )
+
+        perms_assign_symptoms = (
+            not user.is_staff and (
+                request.user.has_perm("accounts.assign_symptom_patient")
+                or request.user.has_perm("accounts.assign_symptom_assigned") and user in request.user.staff.get_assigned_patient_users()
+            )
+        )
+
+        perms_edit_user = (
+            False if user == request.user and not request.user.has_perm("accounts.edit_self") else
+            user == request.user and request.user.has_perm("accounts.edit_self")
+            or request.user.has_perm("accounts.edit_user")
+            or request.user.has_perm("accounts.edit_patient") and not user.is_staff
+            or request.user.has_perm("accounts.edit_assigned") and user in request.user.staff.get_assigned_patient_users()
+        )
+
         return render(request, 'accounts/profile.html', {
             "usr": user,
             "appointments": appointments,
@@ -316,8 +373,19 @@ def profile(request, user_id):
             "allow_editing": is_symptom_editing_allowed(user_id),
             "all_doctors": all_doctors,
             "can_edit_flag": can_edit_flag,
+
+            "perms_code": perms_code,
+            "perms_negative": perms_negative,
+            "perms_quarantine": perms_quarantine,
+            "perms_test_report": perms_test_report,
+            "perms_assigned_doctor": perms_assigned_doctor,
+            "perms_assigned_patients": perms_assigned_patients,
+            "perms_message_doctor": perms_message_doctor,
+            "perms_assign_symptoms": perms_assign_symptoms,
+            "perms_edit_user": perms_edit_user
         })
 
+    # If profile belongs to a staff member
     else:
         appointments = Appointment.objects.filter(staff=user).filter(all_filter).order_by("start_date")
         appointments_truncated = appointments[:4]

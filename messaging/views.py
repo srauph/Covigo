@@ -140,7 +140,7 @@ def compose_message(request, user_id):
             request.user.has_perm("accounts.message_user")
             or request.user.has_perm("accounts.message_patient") and not recipient_user.is_staff
             or request.user.has_perm("accounts.message_assigned") and recipient_user in request.user.staff.get_assigned_patient_users()
-            or request.user.has_perm("accounts.meddage_doctor") and recipient_user == request.user.patient.get_assigned_staff_user()
+            or request.user.has_perm("accounts.message_doctor") and recipient_user == request.user.patient.get_assigned_staff_user()
         )
     )
     if can_compose_message:
