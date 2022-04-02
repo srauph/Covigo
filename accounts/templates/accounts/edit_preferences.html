@@ -17,33 +17,41 @@
                     </div>
                 </div>
 
-                <div class="w-full max-w-2xl px-2">
-                    <label>System Messages:</label>
-                    <div class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400">
-                        {{ preferences_form.system_msg_methods }}
-                    </div>
-                    <div class="text-red-500 text-sm font-semibold">
-                        <div class="absolute">
-                            {{ preferences_form.system_msg_methods.errors }}
+                {% if usr != user and perms.accounts.edit_preference_user or perms.accounts.system_message_preference %}
+                    <div class="w-full max-w-2xl px-2">
+                        <label>System Messages:</label>
+                        <div class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400">
+                            {{ preferences_form.system_msg_methods }}
+                        </div>
+                        <div class="text-red-500 text-sm font-semibold">
+                            <div class="absolute">
+                                {{ preferences_form.system_msg_methods.errors }}
+                            </div>
                         </div>
                     </div>
-                </div>
+                {% endif %}
 
-                <div class="w-full max-w-2xl px-2">
-                    <label>Status Update Deadline Reminder:</label>
-                    <div class="mt-1">
-                        {{ preferences_form.status_reminder_interval }}
-                    </div>
-                    <p class="text-sm text-slate-600">
-                        Specify the number of hours of advance warning to give for an upcoming status update deadline,
-                        if it is not submitted yet for the day.
-                    </p>
-                    <div class="text-red-500 text-sm font-semibold">
-                        <div class="absolute">
-                            {{ preferences_form.status_reminder_interval.errors }}
+                {% if usr != user and perms.accounts.edit_preference_user or perms.accounts.status_deadline_reminder_preference %}
+                    <div class="w-full max-w-2xl px-2">
+                        <label>Status Update Deadline Reminder:</label>
+                        <div class="mt-1">
+                            {{ preferences_form.status_reminder_interval }}
+                        </div>
+                        <p class="text-sm text-slate-600">
+                            Specify the number of hours of advance warning to give for an upcoming status update deadline,
+                            if it is not submitted yet for the day.
+                        </p>
+                        <div class="text-red-500 text-sm font-semibold">
+                            <div class="absolute">
+                                {{ preferences_form.status_reminder_interval.errors }}
+                            </div>
                         </div>
                     </div>
-                </div>
+                {% endif %}
+
+                {% if usr != user and perms.accounts.edit_preference_user or perms.accounts.appointment_reminder_preference %}
+                {% endif %}
+
             </div>
             <div class="w-full mt-8 md:mt-0">
                 <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">

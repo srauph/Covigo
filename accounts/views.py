@@ -263,10 +263,18 @@ def change_password_done(request):
 def profile(request, user_id):
     user = User.objects.get(id=user_id)
 
+
+
     today = datetime.date.today()
     all_filter = Q(patient__isnull=False) & Q(start_date__gte=today)
 
     if not user.is_staff:
+        can_edit_flag = (
+            False if not request.user.is_staff else
+            request.user.has_perm("accounts.flag_patients") and not user.is_staff
+            or request.user.has_perm("accounts.flag_assigned") and user in request.user.staff.assigned_patients
+        )
+
         if request.method == "POST":
             doctor_staff_id = request.POST.get('doctor_id')
 
@@ -306,14 +314,15 @@ def profile(request, user_id):
             "full_view": True,
             "allow_editing": is_symptom_editing_allowed(user_id),
             "all_doctors": all_doctors,
+            "can_edit_flag": can_edit_flag,
         })
 
     else:
         appointments = Appointment.objects.filter(staff=user).filter(all_filter).order_by("start_date")
         appointments_truncated = appointments[:4]
-        assigned_patients = user.staff.get_assigned_patient_users()
+        assigned_patients = [] if user.is_superuser else user.staff.get_assigned_patient_users()
         issued_flags = Flag.objects.filter(staff=user)
-        usr_is_doctor = user.has_perm("accounts.is_doctor")
+        usr_is_doctor = not user.is_superuser and user.has_perm("accounts.is_doctor")
 
         return render(request, 'accounts/profile.html', {
             "usr": user,
@@ -461,7 +470,12 @@ def edit_user(request, user_id):
         "edit_phone": False if user == request.user and not request.user.has_perm("accounts.edit_phone") else True,
         "edit_address": False if user == request.user and not request.user.has_perm("accounts.edit_address") else True,
         "edit_preferences": (
-            user != request.user and request.user.has_perm("accounts.edit_address")
+            user != request.user and request.user.has_perm("accounts.edit_preference_user")
+            or user == request.user and (
+                request.user.has_perm("accounts.system_message_preference")
+                or request.user.has_perm("accounts.status_deadline_reminder_preference")
+                or request.user.has_perm("accounts.appointment_reminder_preference")
+            )
         ),
     }
 
@@ -490,7 +504,20 @@ def edit_user(request, user_id):
 @login_required
 @never_cache
 def edit_preferences(request, user_id):
-    profile = User.objects.get(id=user_id).profile
+    user = User.objects.get(id=user_id)
+    can_view_page = (
+        user != request.user and request.user.has_perm("accounts.edit_preference_user")
+        or user == request.user and (
+            request.user.has_perm("accounts.system_message_preference")
+            or request.user.has_perm("accounts.status_deadline_reminder_preference")
+            or request.user.has_perm("accounts.appointment_reminder_preference")
+        )
+    )
+
+    if not can_view_page:
+        raise PermissionDenied
+
+    profile = user.profile
 
     # Process forms
     if request.method == "POST":
@@ -537,12 +564,16 @@ def edit_preferences(request, user_id):
 
     return render(request, "accounts/edit_preferences.html", {
         "preferences_form": preferences_form,
+        "usr": user
     })
 
 
 @login_required
 @never_cache
 def list_groups(request):
+    if not request.user.has_perm("accounts.manage_group"):
+        raise PermissionDenied
+
     return render(request, 'accounts/access_control/groups/list_groups.html', {
         'groups': Group.objects.all()
     })
@@ -551,6 +582,9 @@ def list_groups(request):
 @login_required
 @never_cache
 def create_group(request):
+    if not request.user.has_perm("accounts.manage_group"):
+        raise PermissionDenied
+
     non_default_permissions = Permission.objects.all().exclude(codename__in=DEFAULT_PERMISSIONS)
     new_name = ''
 
@@ -590,6 +624,9 @@ def create_group(request):
 @login_required
 @never_cache
 def edit_group(request, group_id):
+    if not request.user.has_perm("accounts.manage_group"):
+        raise PermissionDenied
+
     non_default_permissions = Permission.objects.all().exclude(codename__in=DEFAULT_PERMISSIONS)
     group = Group.objects.get(id=group_id)
     old_name = group.name
@@ -639,6 +676,14 @@ def flag_user(request, user_id):
     user_staff = request.user
     user_patient = User.objects.get(id=user_id)
 
+    can_edit_flag = (
+        user_staff.has_perm("accounts.flag_patients") and not user_patient.is_staff
+        or user_staff.has_perm("accounts.flag_assigned") and user_patient in user_staff.staff.assigned_patients
+    )
+
+    if not can_edit_flag:
+        raise PermissionDenied
+
     flag = user_staff.staffs_created_flags.filter(patient=user_patient)
 
     if flag:
@@ -655,13 +700,21 @@ def flag_user(request, user_id):
         if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
             return JsonResponse({'is_flagged': f'{flag.is_active}'})
 
-    return redirect("accounts:list_users")
+    return redirect("accounts:profile", user_id)
 
 
 @login_required
 def unflag_user(request, user_id):
     user_staff = request.user
     user_patient = User.objects.get(id=user_id)
+
+    can_edit_flag = (
+        user_staff.has_perm("accounts.flag_patients") and not user_patient.is_staff
+        or user_staff.has_perm("accounts.flag_assigned") and user_patient in user_staff.staff.assigned_patients
+    )
+
+    if not can_edit_flag:
+        raise PermissionDenied
 
     flag = user_staff.staffs_created_flags.filter(patient=user_patient)
 
@@ -676,4 +729,4 @@ def unflag_user(request, user_id):
         if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
             return JsonResponse({'is_flagged': f'{flag.is_active}'})
 
-    return redirect("accounts:list_users")
+    return redirect("accounts:profile", user_id)
