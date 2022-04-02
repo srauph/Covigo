@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.shortcuts import render
 from django.views.decorators.cache import never_cache
 
+from accounts.models import Staff
 from appointments.models import Appointment
 from dashboard.utils import fetch_data_from_file, extract_daily_data
 from messaging.models import MessageGroup
@@ -20,7 +21,10 @@ def index(request):
 
     if user.is_staff:
         recent_status_updates = []
-        assigned_patients = user.staff.get_assigned_patient_users()
+        if Staff.objects.filter(user=user).exists():
+            assigned_patients = user.staff.get_assigned_patient_users()
+        else:
+            assigned_patients = []
         covigo_case_data = fetch_data_from_all_files()
 
         return render(request, 'dashboard/index.html', {
