@@ -1,6 +1,10 @@
+from django.urls import reverse
+
 from Covigo.messages import Messages
+from accounts.models import Staff
 from appointments.models import Appointment
-from accounts.utils import send_system_message_to_user
+from accounts.utils import send_system_message_to_user, get_assigned_staff_id_by_patient_id
+from messaging.utils import send_notification
 
 
 def cancel_appointments(appointment_id):
@@ -32,6 +36,19 @@ def cancel_appointments(appointment_id):
     send_system_message_to_user(patient_user, template=template, c=c_patient)
     send_system_message_to_user(doctor, template=template, c=c_doctor)
 
+    # SEND NOTIFICATION TO DOCTOR AND PATIENT
+    staff_id = get_assigned_staff_id_by_patient_id(patient_user.id)
+    doctor_id = Staff.objects.filter(id=staff_id).first().user_id
+    # Create href for notification redirection
+    href = reverse('status:patient_reports')
+    app_name = 'appointments'
+    send_notification(patient_user.id, doctor_id,
+                      "The appointment on " + booked.start_date.strftime("%B %d, %Y, at %I:%M %p") + " has been cancelled",
+                      app_name=app_name)
+    send_notification(doctor_id, patient_user.id,
+                      "The appointment on " + booked.start_date.strftime("%B %d, %Y, at %I:%M %p") + " has been cancelled",
+                      app_name=app_name)
+
 
 def delete_availabilities(appointment_id):
     """
@@ -45,7 +62,7 @@ def delete_availabilities(appointment_id):
         cancel_appointments(appointment_id)
     unbooked.delete()
 
-    
+
 def book_appointments(appointment_id, user):
     """
     books an appointment in the corresponding appointment availability by setting the patient column to the user
@@ -73,6 +90,17 @@ def book_appointments(appointment_id, user):
     }
     send_system_message_to_user(user, template=template, c=c_patient)
     send_system_message_to_user(doctor, template=template, c=c_doctor)
+
+    # SEND NOTIFICATION TO DOCTOR
+    staff_id = get_assigned_staff_id_by_patient_id(user.id)
+    doctor_id = Staff.objects.filter(id=staff_id).first().user_id
+    # Create href for notification redirection
+    href = reverse('status:patient_reports')
+    app_name = 'appointments'
+    send_notification(user.id, doctor_id,
+                      user.first_name + " " + user.last_name + " has booked an appointment with you on " + appointment.start_date.strftime(
+                          "%B %d, %Y, at %I:%M %p"),
+                      app_name=app_name)
 
 
 def rebook_appointment_with_new_doctor(new_doctor_id, old_doctor_id, patient):
