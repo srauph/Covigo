@@ -21,10 +21,11 @@ def index(request):
 
     if user.is_staff:
         recent_status_updates = []
-        if Staff.objects.filter(user=user).exists():
+        if not user.is_superuser and user.has_perm("accounts.is_doctor"):
             assigned_patients = user.staff.get_assigned_patient_users()
         else:
             assigned_patients = []
+
         covigo_case_data = fetch_data_from_all_files()
 
         return render(request, 'dashboard/index.html', {
