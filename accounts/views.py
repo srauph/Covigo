@@ -263,7 +263,8 @@ def change_password_done(request):
 def profile(request, user_id):
     user = User.objects.get(id=user_id)
 
-
+    if not request.user.is_staff and request.user != user:
+        raise PermissionDenied
 
     today = datetime.date.today()
     all_filter = Q(patient__isnull=False) & Q(start_date__gte=today)
