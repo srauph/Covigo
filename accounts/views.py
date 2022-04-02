@@ -6,7 +6,7 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group, Permission, User
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView, PasswordChangeView
-from django.core.exceptions import MultipleObjectsReturned
+from django.core.exceptions import MultipleObjectsReturned, PermissionDenied
 from django.db.models import Q
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
@@ -293,9 +293,7 @@ def profile(request, user_id):
             assigned_staff_patient_count = 0
         assigned_flags = Flag.objects.filter(patient=user)
 
-        # TODO: Remove this groups name and replace with permission instead
-        all_doctors = User.objects.filter(groups__name='doctor')
-        # all_doctors = User.objects.filter(is_staff=True)
+        all_doctors = User.objects.with_perm("accounts.is_doctor").exclude(is_superuser=True)
 
         return render(request, 'accounts/profile.html', {
             "usr": user,
@@ -339,6 +337,9 @@ def profile_from_code(request, code):
 @login_required
 @never_cache
 def list_users(request):
+    if not request.user.has_perm("accounts.view_user_list"):
+        raise PermissionDenied
+
     return render(request, 'accounts/list_users.html', {
         'users': User.objects.all()
     })
@@ -347,6 +348,14 @@ def list_users(request):
 @login_required
 @never_cache
 def create_user(request):
+    can_view_page = (
+        request.user.has_perm("accounts.create_user")
+        or request.user.has_perm("accounts.create_patient")
+    )
+
+    if not can_view_page:
+        raise PermissionDenied
+
     # Process forms
     if request.method == "POST":
         user_form = CreateUserForm(request.POST)
@@ -431,6 +440,31 @@ def create_user(request):
 def edit_user(request, user_id):
     user = User.objects.get(id=user_id)
 
+    can_view_page = (
+        False if user == request.user and not request.user.has_perm("accounts.edit_self") else
+        user == request.user and request.user.has_perm("accounts.edit_self")
+        or request.user.has_perm("accounts.edit_user")
+        or request.user.has_perm("accounts.edit_patient") and not user.is_staff
+        or request.user.has_perm("accounts.edit_assigned") and user in request.user.staff.assigned_patients
+    )
+
+    if not can_view_page:
+        raise PermissionDenied
+
+    edit_perms = {
+        "edit_password": False if user == request.user and not request.user.has_perm(
+            "accounts.edit_password") else True,
+        "edit_username": False if user == request.user and not request.user.has_perm(
+            "accounts.edit_username") else True,
+        "edit_email": False if user == request.user and not request.user.has_perm("accounts.edit_email") else True,
+        "edit_name": False if user == request.user and not request.user.has_perm("accounts.edit_name") else True,
+        "edit_phone": False if user == request.user and not request.user.has_perm("accounts.edit_phone") else True,
+        "edit_address": False if user == request.user and not request.user.has_perm("accounts.edit_address") else True,
+        "edit_preferences": (
+            user != request.user and request.user.has_perm("accounts.edit_address")
+        ),
+    }
+
     # Process forms
     if request.method == "POST":
         user_form = EditUserForm(request.POST, instance=user, user_id=user_id)
@@ -448,7 +482,8 @@ def edit_user(request, user_id):
     return render(request, "accounts/edit_user.html", {
         "user_form": user_form,
         "profile_form": profile_form,
-        "edited_user": user
+        "edited_user": user,
+        "edit_perms": edit_perms,
     })
 
 

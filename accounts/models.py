@@ -81,6 +81,10 @@ class Staff(models.Model):
             ("view_assigned_test_report", "Can view an assigned patient's test report"),
             ("view_assigned_doctor", "Can view any patient's assigned doctor"),
             ("edit_assigned_doctor", "Can reassign a patient to any other doctor"),
+            ("view_assigned_patients", "Can view a doctor's assigned patients"),
+            ("view_manager", "Can access the Manager page"),
+            ("view_user_list", "Can access the Accounts page"),
+            ("edit_preference_user", "Can edit another user's preferences")
             # ("request_resubmission", "Can request that a patient resubmit their status report"),
             # ("view_status_assigned", "Can view assigned patients' status reports"),
             # ("view_status_any", "Can view any patient's status report"),

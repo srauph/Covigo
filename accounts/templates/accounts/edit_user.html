@@ -56,7 +56,7 @@
                     {% endif %}
                 {% endfor %}
 
-                {% if edited_user == user %}
+                {% if edited_user == user and edit_perms.edit_password %}
                     <div class="w-full max-w-2xl px-2">
                         <a href="{% url "accounts:change_password" %}">
                             <button type="button" class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
@@ -90,54 +90,64 @@
                     </a>
                 </div>
 
-                <div class="w-full max-w-2xl px-2">
-                    <label>Username:</label>
-                    <div class="mt-1">
-                        {{ user_form.username }}
+                {% if edit_perms.edit_username %}
+                    <div class="w-full max-w-2xl px-2">
+                        <label>Username:</label>
+                        <div class="mt-1">
+                            {{ user_form.username }}
+                        </div>
                     </div>
-                </div>
+                {% endif %}
 
-                <div class="w-full max-w-2xl px-2">
-                    <label>Email:</label>
-                    <div class="mt-1">
-                        {{ user_form.email }}
+                {% if edit_perms.edit_email %}
+                    <div class="w-full max-w-2xl px-2">
+                        <label>Email:</label>
+                        <div class="mt-1">
+                            {{ user_form.email }}
+                        </div>
                     </div>
-                </div>
+                {% endif %}
 
-                <div class="w-full max-w-2xl px-2">
-                    <label>First Name:</label>
-                    <div class="mt-1">
-                        {{ user_form.first_name }}
+                {% if edit_perms.edit_name %}
+                    <div class="w-full max-w-2xl px-2">
+                        <label>First Name:</label>
+                        <div class="mt-1">
+                            {{ user_form.first_name }}
+                        </div>
                     </div>
-                </div>
 
-                <div class="w-full max-w-2xl px-2">
-                    <label>Last Name:</label>
-                    <div class="mt-1">
-                        {{ user_form.last_name }}
+                    <div class="w-full max-w-2xl px-2">
+                        <label>Last Name:</label>
+                        <div class="mt-1">
+                            {{ user_form.last_name }}
+                        </div>
                     </div>
-                </div>
+                {% endif %}
 
-                <div class="w-full max-w-2xl px-2">
-                    <label>Phone Number:</label>
-                    <div class="mt-1">
-                        {{ profile_form.phone_number }}
+                {% if edit_perms.edit_phone %}
+                    <div class="w-full max-w-2xl px-2">
+                        <label>Phone Number:</label>
+                        <div class="mt-1">
+                            {{ profile_form.phone_number }}
+                        </div>
                     </div>
-                </div>
+                {% endif %}
 
-                <div class="w-full max-w-2xl px-2">
-                    <label>Address:</label>
-                    <div class="mt-1">
-                        {{ profile_form.address }}
+                {% if edit_perms.edit_address %}
+                    <div class="w-full max-w-2xl px-2">
+                        <label>Address:</label>
+                        <div class="mt-1">
+                            {{ profile_form.address }}
+                        </div>
                     </div>
-                </div>
 
-                <div class="w-full max-w-2xl px-2">
-                    <label>Postal Code:</label>
-                    <div class="mt-1">
-                        {{ profile_form.postal_code }}
+                    <div class="w-full max-w-2xl px-2">
+                        <label>Postal Code:</label>
+                        <div class="mt-1">
+                            {{ profile_form.postal_code }}
+                        </div>
                     </div>
-                </div>
+                {% endif %}
 
                 {% if perms.accounts.assign_group %}
                     <div class="w-full max-w-2xl px-2">

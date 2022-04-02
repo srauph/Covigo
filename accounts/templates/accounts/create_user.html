@@ -100,12 +100,14 @@
                         {{ profile_form.phone_number }}
                     </div>
                 </div>
-                <div class="w-full max-w-2xl px-2">
-                    <label>User Type:</label>
-                    <div class="mt-1">
-                        {{ user_form.is_staff }}
+                {% if perms.accounts.create_user %}
+                    <div class="w-full max-w-2xl px-2">
+                        <label>User Type:</label>
+                        <div class="mt-1">
+                            {{ user_form.is_staff }}
+                        </div>
                     </div>
-                </div>
+                {% endif %}
                 {% if perms.accounts.assign_group %}
                     <div class="w-full max-w-2xl px-2">
                         <label>Role:</label>
