@@ -24,7 +24,7 @@
                 </button>
             </div>
             <nav :class="{'block': open, 'hidden': !open}" class="flex-grow md:block px-4 pb-4 md:pb-0 md:overflow-y-auto">
-                 {% if perms.accounts.is_doctor %}
+                 {% if perms.accounts.is_doctor and not user.is_superuser %}
                     <a href="{% url 'status:patient_reports' %}"
                         class="block px-4 py-2 mt-2 text-sm font-semibold text-slate-100 bg-transparent rounded-lg hover:text-slate-800 focus:text-slate-800 hover:bg-white focus:bg-white focus:outline-none focus:shadow-outline" href="#">
                         Patient Reports
@@ -35,10 +35,12 @@
                         Update Health Status
                     </a>
                 {% endif %}
-                <a href="{% url 'appointments:index' %}"
-                    class="block px-4 py-2 mt-2 text-sm font-semibold text-slate-100 bg-transparent rounded-lg hover:text-slate-800 focus:text-slate-800 hover:bg-white focus:bg-white focus:outline-none focus:shadow-outline" href="#">
-                    Appointments
-                </a>
+                {% if not user.is_superuser %}
+                    <a href="{% url 'appointments:index' %}"
+                        class="block px-4 py-2 mt-2 text-sm font-semibold text-slate-100 bg-transparent rounded-lg hover:text-slate-800 focus:text-slate-800 hover:bg-white focus:bg-white focus:outline-none focus:shadow-outline" href="#">
+                        Appointments
+                    </a>
+                {% endif %}
                 <a href="{% url 'messaging:index' %}"
                    class="block px-4 py-2 mt-2 text-sm font-semibold text-slate-100 bg-transparent rounded-lg hover:text-slate-800 focus:text-slate-800 hover:bg-white focus:bg-white focus:outline-none focus:shadow-outline" href="#">
                     Messaging
@@ -49,10 +51,14 @@
                         Accounts
                     </a>
                 {% endif %}
-                <a href="{% url 'manager:index' %}"
-                   class="block px-4 py-2 mt-2 text-sm font-semibold text-slate-100 bg-transparent rounded-lg hover:text-slate-800 focus:text-slate-800 hover:bg-white focus:bg-white focus:outline-none focus:shadow-outline" href="#">
-                    Management
-                </a>
+                {% if user.is_staff %}
+                    {% if perms.accounts.manage_symptoms or perms.accounts.edit_assigned_doctor %}
+                        <a href="{% url 'manager:index' %}"
+                           class="block px-4 py-2 mt-2 text-sm font-semibold text-slate-100 bg-transparent rounded-lg hover:text-slate-800 focus:text-slate-800 hover:bg-white focus:bg-white focus:outline-none focus:shadow-outline" href="#">
+                            Management
+                        </a>
+                    {% endif %}
+                {% endif %}
             </nav>
         </div>
     </div>
