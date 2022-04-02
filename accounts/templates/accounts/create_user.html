@@ -106,12 +106,14 @@
                         {{ user_form.is_staff }}
                     </div>
                 </div>
-                <div class="w-full max-w-2xl px-2">
-                    <label>Role:</label>
-                    <div class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400">
-                        {{ user_form.groups }}
+                {% if perms.accounts.assign_group %}
+                    <div class="w-full max-w-2xl px-2">
+                        <label>Role:</label>
+                        <div class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400">
+                            {{ user_form.groups }}
+                        </div>
                     </div>
-                </div>
+                {% endif %}
             </div>
             <div class="w-full mt-8 md:mt-0">
                 <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">

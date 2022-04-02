@@ -266,11 +266,6 @@ def profile(request, user_id):
     today = datetime.date.today()
     all_filter = Q(patient__isnull=False) & Q(start_date__gte=today)
 
-    if user.is_staff:
-        all_appointments = Appointment.objects.filter(staff=user).filter(all_filter).order_by("start_date")[:4]
-    else:
-        appointments = Appointment.objects.filter(patient=user).filter(all_filter).order_by("start_date")[:4]
-
     if not user.is_staff:
         if request.method == "POST":
             doctor_staff_id = request.POST.get('doctor_id')
@@ -320,6 +315,7 @@ def profile(request, user_id):
         appointments_truncated = appointments[:4]
         assigned_patients = user.staff.get_assigned_patient_users()
         issued_flags = Flag.objects.filter(staff=user)
+        usr_is_doctor = user.has_perm("accounts.is_doctor")
 
         return render(request, 'accounts/profile.html', {
             "usr": user,
@@ -327,7 +323,8 @@ def profile(request, user_id):
             "appointments_truncated": appointments_truncated,
             "assigned_patients": assigned_patients,
             "issued_flags": issued_flags,
-            "full_view": True
+            "full_view": True,
+            "usr_is_doctor": usr_is_doctor
         })
 
 
@@ -541,7 +538,7 @@ def create_group(request):
             if request.POST.get('Create'):
                 messages.success(request, 'The group/role was created successfully.')
                 return render(request, 'accounts/access_control/groups/create_group.html', {
-                    'permissions': Permission.objects.all(),
+                    'permissions': non_default_permissions,
                     'new_name': new_name
                 })
 
@@ -558,6 +555,7 @@ def create_group(request):
 @login_required
 @never_cache
 def edit_group(request, group_id):
+    non_default_permissions = Permission.objects.all().exclude(codename__in=DEFAULT_PERMISSIONS)
     group = Group.objects.get(id=group_id)
     old_name = group.name
     new_name = old_name
@@ -568,22 +566,26 @@ def edit_group(request, group_id):
         if not new_name:
             messages.error(request, 'Please enter a group/role name.')
 
-        elif new_name == old_name:
-            messages.error(request, f"The group/role name was not edited successfully: No edits made on this group/role. If you wish to make no changes, please click the \"Cancel\" button to go back to the list of groups/roles.")
-            return render(request, 'accounts/access_control/groups/edit_group.html', {
-                'permissions': Permission.objects.all(),
-                'new_name': new_name,
-                'groups': group
-            })
-
         elif Group.objects.exclude(name=old_name).filter(name=new_name).exists():
             messages.error(request, 'Another group/role with the same name exists.')
 
         else:
+            permission_array = convert_permission_name_to_id(request)
+
+            if set(group.permissions.values_list("id", flat=True)) == set(permission_array) and new_name == old_name:
+                messages.error(
+                    request,
+                    f"The group/role name was not edited successfully: No edits made on this group/role. If you wish to make no changes, please click the \"Cancel\" button to go back to the list of groups/roles."
+                )
+                return render(request, 'accounts/access_control/groups/edit_group.html', {
+                    'permissions': non_default_permissions,
+                    'new_name': new_name,
+                    'group': group
+                })
+
             group.name = new_name
             group.save()
 
-            permission_array = convert_permission_name_to_id(request)
             group.permissions.clear()
             group.permissions.set(permission_array)
 
@@ -591,9 +593,9 @@ def edit_group(request, group_id):
             return redirect('accounts:list_groups')
 
     return render(request, 'accounts/access_control/groups/edit_group.html', {
-        'permissions': Permission.objects.all(),
+        'permissions': non_default_permissions,
         'new_name': new_name,
-        'groups': group
+        'group': group
     })
 
 

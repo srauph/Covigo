@@ -255,53 +255,55 @@
                     {% endif %}
 
                 {% else %}
-                    {# Assigned Patients (Doctor pane) #}
-                    <div class="w-full rounded-lg bg-white shadow flex flex-col">
-                        <div class="p-4">
-                            <div class="flex flex-wrap justify-between items-center">
-                                <div class="flex items-center gap-2 font-semibold text-gray-900 text-lg">
-                                    <span class="text-cyan-500">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                        </svg>
-                                    </span>
-                                    <span class="tracking-wide">Assigned Patients</span>
+                    {% if usr_is_doctor %}
+                        {# Assigned Patients (Doctor pane) #}
+                        <div class="w-full rounded-lg bg-white shadow flex flex-col">
+                            <div class="p-4">
+                                <div class="flex flex-wrap justify-between items-center">
+                                    <div class="flex items-center gap-2 font-semibold text-gray-900 text-lg">
+                                        <span class="text-cyan-500">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                            </svg>
+                                        </span>
+                                        <span class="tracking-wide">Assigned Patients</span>
+                                    </div>
                                 </div>
+
+                                <div class="w-full flex flex-wrap gap-2 justify-center items-center pt-4">
+                                    {% if assigned_patients|length == 1 %}
+                                        <span class="text-center font-semibold">{{ assigned_patients|length }} patient is assigned to this user</span>
+                                    {% else %}
+                                        <span class="text-center font-semibold">{{ assigned_patients|length }} patients are assigned to this user</span>
+                                    {% endif %}
+                                </div>
+                                <ul class="list-inside  divide-y pt-4">
+
+                                    {% for patient_user in assigned_patients %}
+
+                                        <li class="p-2 flex items-center justify-between hover:bg-slate-200">
+                                            {{ patient_user.first_name }} {{ patient_user.last_name }}
+                                            <a href="{% url 'accounts:profile' patient_user.id %}">
+                                                <button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                                                        <span>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                                 viewBox="0 0 24 24" stroke="currentColor">
+                                                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                                            </svg>
+                                                        </span>
+                                                    <span>Profile</span>
+                                                </button>
+                                            </a>
+                                        </li>
+
+                                    {% endfor %}
+                                </ul>
                             </div>
-
-                            <div class="w-full flex flex-wrap gap-2 justify-center items-center pt-4">
-                                {% if assigned_patients|length == 1 %}
-                                    <span class="text-center font-semibold">{{ assigned_patients|length }} patient is assigned to this user</span>
-                                {% else %}
-                                    <span class="text-center font-semibold">{{ assigned_patients|length }} patients are assigned to this user</span>
-                                {% endif %}
-                            </div>
-                            <ul class="list-inside  divide-y pt-4">
-
-                                {% for patient_user in assigned_patients %}
-
-                                    <li class="p-2 flex items-center justify-between hover:bg-slate-200">
-                                        {{ patient_user.first_name }} {{ patient_user.last_name }}
-                                        <a href="{% url 'accounts:profile' patient_user.id %}">
-                                            <button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-                                                    <span>
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                                             viewBox="0 0 24 24" stroke="currentColor">
-                                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                                        </svg>
-                                                    </span>
-                                                <span>Profile</span>
-                                            </button>
-                                        </a>
-                                    </li>
-
-                                {% endfor %}
-                            </ul>
                         </div>
-                    </div>
+                    {% endif %}
                 {% endif %}
             </div>
 

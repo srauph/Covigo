@@ -80,11 +80,9 @@
                             {% for permission in permissions %}
                                     {% if permission in group.permissions.all %}
                                         <option selected
-                                                value="{{ permission.codename }}">{{ permission.content_type }}
-                                            | {{ permission.name }}</option>
+                                                value="{{ permission.codename }}">{{ permission.content_type }}: {{ permission.name }}</option>
                                     {% else %}
-                                        <option value="{{ permission.codename }}">{{ permission.content_type }}
-                                            | {{ permission.name }}</option>
+                                        <option value="{{ permission.codename }}">{{ permission.content_type }}: {{ permission.name }}</option>
                                     {% endif %}
                                 {% endfor %}
                         </select>
