@@ -184,7 +184,7 @@ def create_patient_report(request):
     """
 
     current_user = request.user.id
-    report = PatientSymptom.objects.filter(user_id=current_user, due_date__date__lte=dt.datetime.now())
+    report = PatientSymptom.objects.filter(user_id=current_user, due_date__date__lte=dt.datetime.now(), is_hidden=False)
 
     # Ensure it was a post request
     if request.method == 'POST':
@@ -203,7 +203,15 @@ def create_patient_report(request):
         for s in report_data:
             symptom = PatientSymptom.objects.filter(id=int(s)).get()
             symptom.data = data[i]
-            symptom.browser_user_agent = request.user_agent.browser.family
+            # checking type of device
+            if request.user_agent.is_mobile:
+                # mobile is blank since it automatically adds it to browser family
+                user_agent_type = ''
+            if request.user_agent.is_tablet:
+                user_agent_type = 'tablet'
+            if request.user_agent.is_pc:
+                user_agent_type = 'pc'
+            symptom.user_agent = request.user_agent.browser.family + ', ' + user_agent_type
             symptom.save()
             i = i + 1
 
@@ -268,6 +276,15 @@ def edit_patient_report(request):
                     new_symptom.data = data[i]
                     new_symptom.status = 3
                     new_symptom._state.adding = True
+                    # checking type of device
+                    if request.user_agent.is_mobile:
+                        # mobile is blank since it automatically adds it to browser family
+                        user_agent_type = ''
+                    if request.user_agent.is_tablet:
+                        user_agent_type = 'Tablet'
+                    if request.user_agent.is_pc:
+                        user_agent_type = 'PC'
+                    new_symptom.user_agent = request.user_agent.browser.family + ', ' + user_agent_type
                     new_symptom.save()
             i = i + 1
 

@@ -1,7 +1,7 @@
 {% autoescape off %}
 Hello {{ is_doctor|yesno:"Dr.," }} {{ user.first_name }} {{ user.last_name }},
 
-{{ is_doctor|yesno:"your patient,Dr." }} {{ other_person.first_name }} {{ other_person.last_name }} has sent you a message.
+{{ is_doctor|yesno:"Your patient,Dr." }} {{ other_person.first_name }} {{ other_person.last_name }} has sent you a message.
 
 To view your message, proceed to the link below:
 

@@ -93,7 +93,6 @@ def view_message(request, message_group_id):
                         "is_doctor": False
                     }
                     send_system_message_to_user(patient, template=template, c=c_patient)
-                    send_system_message_to_user(doctor, template=template, c=c_doctor)
                 else:
                     doctor = new_reply.recipient
                     patient = new_reply.author
@@ -106,7 +105,6 @@ def view_message(request, message_group_id):
                         "other_person": doctor,
                         "is_doctor": False
                     }
-                    send_system_message_to_user(patient, template=template, c=c_patient)
                     send_system_message_to_user(doctor, template=template, c=c_doctor)
 
                 # Send notification
@@ -202,7 +200,6 @@ def compose_message(request, user_id):
                         "is_doctor": False
                     }
                     send_system_message_to_user(patient, template=template, c=c_patient)
-                    send_system_message_to_user(doctor, template=template, c=c_doctor)
                 else:
                     doctor = new_msg_group.recipient
                     patient = new_msg_group.author
@@ -220,13 +217,8 @@ def compose_message(request, user_id):
                         "other_person": doctor,
                         "is_doctor": False
                     }
-                    send_system_message_to_user(patient, template=template, c=c_patient)
                     send_system_message_to_user(doctor, template=template, c=c_doctor)
-                MessageContent.objects.create(
-                    author=new_msg_group.author,
-                    message=new_msg_group,
-                    content=msg_content_form.data.get('content'),
-                )
+
                 messages.success(request, "The new message was successfully sent to " + recipient_user.first_name + " " + recipient_user.last_name + "!")
 
                 # Create href for notification
