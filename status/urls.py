@@ -18,5 +18,6 @@ urlpatterns = [
     ),
     path('create_status_report/', views.create_patient_report, name='create_status_report'),
     path('edit_status_report/', views.edit_patient_report, name='edit_status_report'),
-    path('resubmit_request/<int:patient_symptom_id>', views.resubmit_request, name='resubmit_request')
+    path('resubmit_request/<int:patient_symptom_id>', views.resubmit_request, name='resubmit_request'),
+    path('test_report/', views.test_result, name='test_report')
 ]

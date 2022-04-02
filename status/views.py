@@ -16,6 +16,7 @@ from django.views.decorators.cache import never_cache
 from accounts.models import Flag, Staff
 from accounts.utils import get_assigned_staff_id_by_patient_id
 from messaging.utils import send_notification
+from status.forms import TestResultForm
 from status.utils import (
     get_patient_report_information,
     get_reports_by_patient,
@@ -193,7 +194,8 @@ def create_patient_report(request):
 
         for submitted_data in data:
             if submitted_data == "":
-                messages.error(request, 'Missing information in the status report: Please make sure you have filled all the fields in the status report.')
+                messages.error(request,
+                               'Missing information in the status report: Please make sure you have filled all the fields in the status report.')
                 return render(request, 'status/create_status_report.html', {
                     'report': report
                 })
@@ -312,3 +314,13 @@ def resubmit_request(request, patient_symptom_id):
                       app_name='status')
 
     return redirect('status:patient_reports')
+
+
+@login_required
+@never_cache
+def test_result(request):
+    if request.method == 'POST':
+        test_result_form = TestResultForm(request.POST)
+        if test_result_form.is_valid():
+            print("here")
+    return render(request, 'status/test_report.html')
