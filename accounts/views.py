@@ -5,17 +5,11 @@ from django.contrib import messages
 from django.contrib.auth import logout, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordResetForm
-from django.contrib.auth.models import Group, Permission, User
+from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView, PasswordChangeView, LoginView
-from django.contrib.auth.views import PasswordResetConfirmView, PasswordChangeView
-from django.core import serializers
 from django.core.exceptions import MultipleObjectsReturned
 from django.db.models import Q
-from django.http import JsonResponse, HttpResponse, HttpResponseRedirect, Http404
-from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models import Q, Count
-from django.forms import model_to_dict
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
@@ -34,8 +28,6 @@ from accounts.utils import (
     get_assigned_staff_id_by_patient_id,
     get_or_generate_patient_profile_qr,
     get_user_from_uidb64,
-    send_sms_to_user,
-    get_distance_of_all_doctors_to_postal_code,
     return_closest_with_least_patients_doctor,
     send_system_message_to_user,
 )
