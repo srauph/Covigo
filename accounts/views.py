@@ -332,6 +332,8 @@ def profile(request, user_id):
     today = datetime.date.today()
     all_filter = Q(patient__isnull=False) & Q(start_date__gte=today)
 
+    usr_is_doctor = not user.is_superuser and user.has_perm("accounts.is_doctor")
+
     perms_edit_user = (
         False if user == request.user and not request.user.has_perm("accounts.edit_self") else
         user == request.user and request.user.has_perm("accounts.edit_self")
@@ -339,6 +341,8 @@ def profile(request, user_id):
         or request.user.has_perm("accounts.edit_patient") and not user.is_staff
         or request.user.has_perm("accounts.edit_assigned") and user in request.user.staff.get_assigned_patient_users()
     )
+
+    show_left_side = usr_is_doctor or not user.is_staff
 
     # If profile belongs to a patient
     if not user.is_staff:
@@ -425,10 +429,10 @@ def profile(request, user_id):
         )
 
         perms_edit_case = (
-            user.is_staff and (
+            not user.is_staff and (
                 request.user.has_perm("accounts.set_patient_case")
                 or request.user.has_perm("accounts.set_patient_quarantine")
-                or user in request.user.staff.get_assigned_patient_users() and (
+                or request.user.has_perm("accounts.is_doctor") and user in request.user.staff.get_assigned_patient_users() and (
                     request.user.has_perm("accounts.set_assigned_case")
                     or request.user.has_perm("accounts.set_assigned_quarantine")
                 )
@@ -447,6 +451,7 @@ def profile(request, user_id):
             "allow_editing": is_symptom_editing_allowed(user_id),
             "all_doctors": all_doctors,
             "can_edit_flag": can_edit_flag,
+            "show_left_side": show_left_side,
 
             "perms_edit_user": perms_edit_user,
             "perms_code": perms_code,
@@ -466,7 +471,6 @@ def profile(request, user_id):
         appointments_truncated = appointments[:4]
         assigned_patients = [] if user.is_superuser else user.staff.get_assigned_patient_users()
         issued_flags = Flag.objects.filter(staff=user)
-        usr_is_doctor = not user.is_superuser and user.has_perm("accounts.is_doctor")
 
         return render(request, 'accounts/profile.html', {
             "usr": user,
@@ -475,6 +479,7 @@ def profile(request, user_id):
             "assigned_patients": assigned_patients,
             "issued_flags": issued_flags,
             "full_view": True,
+            "show_left_side": show_left_side,
 
 
             "usr_is_doctor": usr_is_doctor,
@@ -792,15 +797,6 @@ def edit_group(request, group_id):
 
         if not new_name:
             messages.error(request, 'Please enter a group/role name.')
-
-        elif new_name == old_name:
-            messages.error(request,
-                           f"The group/role name was not edited successfully: No edits made on this group/role. If you wish to make no changes, please click the \"Cancel\" button to go back to the list of groups/roles.")
-            return render(request, 'accounts/access_control/groups/edit_group.html', {
-                'permissions': Permission.objects.all(),
-                'new_name': new_name,
-                'groups': group
-            })
 
         elif Group.objects.exclude(name=old_name).filter(name=new_name).exists():
             messages.error(request, 'Another group/role with the same name exists.')
