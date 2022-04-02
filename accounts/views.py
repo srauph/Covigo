@@ -1,14 +1,15 @@
 import datetime
 
 from django.contrib import messages
+from django.contrib.auth import logout, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group, Permission, User
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth.views import PasswordResetConfirmView, PasswordChangeView
+from django.contrib.auth.views import PasswordResetConfirmView, PasswordChangeView, LoginView
 from django.core.exceptions import MultipleObjectsReturned
 from django.db.models import Q
-from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
@@ -113,32 +114,60 @@ def convert_permission_name_to_id(request):
     return permission_array
 
 
-@login_required
+class LoginViewTo2FA(LoginView):
+    @method_decorator(sensitive_post_parameters())
+    @method_decorator(csrf_protect)
+    @method_decorator(never_cache)
+    def dispatch(self, *args, **kwargs):
+        self.request.session["start_2fa"] = True
+        return super(LoginViewTo2FA, self).dispatch(*args, **kwargs)
+
+    def get_success_url(self):
+        return reverse_lazy("accounts:two_factor_authentication")
+
+
 @never_cache
 def two_factor_authentication(request):
+    if "start_2fa" not in request.session:
+        raise Http404
+
+    del request.session["start_2fa"]
+
     user = request.user
     code, _ = Code.objects.get_or_create(user=request.user.profile)
     code.save()
+
+    logout(request)
+
     otp = code.number
     message = "Your OTP is " + otp + ". "
     subject = "Covigo OTP"
     send_system_message_to_user(user, message=message, subject=subject)
 
-    return render(request, 'accounts/authentication/2FA.html')
+    request.session["verify_otp"] = True
 
-#@login_required()
+    return render(request, 'accounts/authentication/2FA.html', {
+        "usr": user
+    })
+
+
 @never_cache
-def verify_otp(request):
+def verify_otp(request, user_id):
+    user = User.objects.get(id=user_id)
     code = request.POST.get('code')
     # import pdb; pdb.set_trace()
     try:
         bypass = not PRODUCTION_MODE and code == "420420"
-        if bypass or code == Code.objects.get(number=code):
+        if bypass or code == Code.objects.get(user_id=user.id).number:
+            login(request, user)
             return redirect('index')
         else:
             raise Code.DoesNotExist
     except Code.DoesNotExist:
-        return render(request, 'accounts/authentication/2FA.html', {'error': 'Invalid code'})
+        return render(request, 'accounts/authentication/2FA.html', {
+            "usr": user,
+            "error": "Invalid code"
+        })
 
 
     #store

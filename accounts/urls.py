@@ -17,14 +17,14 @@ urlpatterns = [
     path('flag/<int:user_id>/', views.flag_user, name='flag_user'),
     path('unflag/<int:user_id>/', views.unflag_user, name='unflag_user'),
     path('two_factor_authentication/', views.two_factor_authentication, name='two_factor_authentication'),
-    path('verify_otp/', views.verify_otp, name='verify_otp'),
+    path('verify_otp/<int:user_id>/', views.verify_otp, name='verify_otp'),
     path('profile/<int:user_id>/', views.profile, name='profile'),
     path('profile/<code>/', views.profile_from_code, name='profile_from_code'),
     path('edit_case/<int:user_id>', views.edit_case, name='edit_case'),
 
     path(
         'login/',
-        auth_views.LoginView.as_view(template_name='accounts/authentication/login.html'),
+        views.LoginViewTo2FA.as_view(template_name='accounts/authentication/login.html'),
         name='login'
     ),
     path(
