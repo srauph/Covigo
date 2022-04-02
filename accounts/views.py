@@ -943,28 +943,29 @@ def edit_case(request, user_id):
 
 
 def doctor_patient_list(request):
-    # I assume this is an admin only page
-    if request.user.is_superuser:
-        return render(request, 'accounts/doctors.html')
-    raise Http404("The requested resource was not found on this server.")
+    if not request.user.has_perm("accounts.edit_assigned_doctor"):
+        raise PermissionDenied
+
+    return render(request, 'accounts/doctors.html')
 
 
 def doctor_patient_list_table(request):
     # TODO FILTER FOR DOCTORS ONLY (Currently anyone in accounts_staff is treated as a doctor for the query)
-    if request.user.is_superuser:
-        # Raw query to get each doctor and their patient count
-        query = Staff.objects.raw(
-            "SELECT `auth_user`.`id`, `auth_user`.`first_name`, `auth_user`.`last_name`, `accounts_staff`.`user_id`, COUNT(*) AS patient_count FROM `accounts_staff` JOIN `accounts_patient` ON (`accounts_staff`.`id` = `accounts_patient`.`assigned_staff_id`) LEFT OUTER JOIN `auth_user` ON (`accounts_staff`.`user_id` = `auth_user`.`id`) GROUP BY `accounts_patient`.`assigned_staff_id` ORDER BY `auth_user`.`first_name` , `auth_user`.`last_name`")
+    if not request.user.has_perm("accounts.edit_assigned_doctor"):
+        raise PermissionDenied
 
-        # Build the JSON from the raw query
-        table_info = []
-        for i in query:
-            record = {"user_id": i.user_id, "first_name": i.first_name, "last_name": i.last_name,
-                      "patient_count": i.patient_count}
-            table_info.append(record)
+    # Raw query to get each doctor and their patient count
+    query = Staff.objects.raw(
+        "SELECT `auth_user`.`id`, `auth_user`.`first_name`, `auth_user`.`last_name`, `accounts_staff`.`user_id`, COUNT(*) AS patient_count FROM `accounts_staff` JOIN `accounts_patient` ON (`accounts_staff`.`id` = `accounts_patient`.`assigned_staff_id`) LEFT OUTER JOIN `auth_user` ON (`accounts_staff`.`user_id` = `auth_user`.`id`) GROUP BY `accounts_patient`.`assigned_staff_id` ORDER BY `auth_user`.`first_name` , `auth_user`.`last_name`")
 
-        # Serialize it
-        serialized_reports = json.dumps({'data': table_info}, indent=4)
+    # Build the JSON from the raw query
+    table_info = []
+    for i in query:
+        record = {"user_id": i.user_id, "first_name": i.first_name, "last_name": i.last_name,
+                  "patient_count": i.patient_count}
+        table_info.append(record)
 
-        return HttpResponse(serialized_reports, content_type='application/json')
-    raise Http404("The requested resource was not found on this server.")
+    # Serialize it
+    serialized_reports = json.dumps({'data': table_info}, indent=4)
+
+    return HttpResponse(serialized_reports, content_type='application/json')
