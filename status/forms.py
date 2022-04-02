@@ -28,35 +28,41 @@ the patient's text input or not, maybe for now make it readonly and we'll put it
 """
 
 
-class TestResultForm(ModelForm):
-    class Meta:
-        model = Patient
-        fields = ["test_results"]
+class TestResultForm(Form):
+    date_today = datetime.datetime.now()
+    date_three_months = date_today - datetime.timedelta(days=90)
 
-        date_today = datetime.datetime.now()
-        date_three_months = date_today - datetime.timedelta(days=90)
+    test_type = forms.CharField(
+        required=True,
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "PCR, antigen, etc.",
+                "class": CHARFIELD_CLASS
+            }
+        )
+    )
 
-        widgets = {
-            "test_type": TextInput(
-                attrs={
-                    "placeholder": "PCR, antigen, etc.",
-                    "class": CHARFIELD_CLASS
-                }
-            ),
-            "test_date": DateInput(
-                attrs={
-                    'class': 'border border-black px-1 rounded-md',
-                    'type': 'date',
-                    'min': date_three_months.strftime("%Y-%m-%d"),
-                    'max': date_today.strftime("%Y-%m-%d")
-                }
-            ),
-            "test_result": TextInput(
-                attrs={
-                    "placeholder": "PCR, antigen, etc.",
-                    "class": CHARFIELD_CLASS
-                }
-            ),
-            "test_file": FileInput(
-            ),
-        }
+    test_date = forms.DateField(
+        initial=date_today.strftime("%Y-%m-%d"),
+        required=True,
+        widget=forms.widgets.DateInput(
+            attrs={
+                'class': 'border border-black px-1 rounded-md',
+                'type': 'date',
+                'min': date_three_months.strftime("%Y-%m-%d"),
+                'max': date_today.strftime("%Y-%m-%d")
+            }
+        )
+    )
+
+    test_result = forms.ChoiceField(
+        widget=forms.RadioSelect(
+            attrs={
+                'required': True,
+                'class': 'p-2'
+            }
+        ),
+        choices=[('0', 'Negative'), ('1', 'Positive')]
+    )
+
+    test_file = forms.FileField()

@@ -327,6 +327,11 @@ def test_result(request):
 def test_report(request):
     if request.method == 'POST':
         test_result_form = TestResultForm(request.POST)
+        print("here")
         if test_result_form.is_valid():
-            print("here")
-    return render(request, 'status/create_test_report.html')
+            print(test_result_form.test_type, test_result_form.test_date, test_result_form.test_result, test_result_form.test_file)
+    else:
+        test_result_form = TestResultForm()
+    return render(request, 'status/create_test_report.html', {
+        'test_result_form': test_result_form
+    })
