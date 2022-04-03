@@ -8,7 +8,7 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView, PasswordChangeView, LoginView
-from django.core.exceptions import MultipleObjectsReturned
+from django.core.exceptions import MultipleObjectsReturned, PermissionDenied
 from django.db.models import Q
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, redirect
@@ -18,6 +18,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 
+from Covigo.default_permissions import DEFAULT_PERMISSIONS
 from Covigo.messages import Messages
 from Covigo.settings import PRODUCTION_MODE
 from accounts.forms import *
@@ -325,17 +326,32 @@ def change_password_done(request):
 def profile(request, user_id):
     user = User.objects.get(id=user_id)
 
-    # messages_filter = Q(author_id=user_id) | Q(recipient_id=user_id)
-    # message_group = MessageGroup.objects.filter(messages_filter).order_by('-date_updated')[:3]
+    # if not request.user.is_staff and request.user != user:
+    #     raise PermissionDenied
+
     today = datetime.date.today()
     all_filter = Q(patient__isnull=False) & Q(start_date__gte=today)
 
-    if user.is_staff:
-        all_appointments = Appointment.objects.filter(staff=user).filter(all_filter).order_by("start_date")[:4]
-    else:
-        appointments = Appointment.objects.filter(patient=user).filter(all_filter).order_by("start_date")[:4]
+    usr_is_doctor = not user.is_superuser and user.has_perm("accounts.is_doctor")
 
+    perms_edit_user = (
+        False if user == request.user and not request.user.has_perm("accounts.edit_self") else
+        user == request.user and request.user.has_perm("accounts.edit_self")
+        or request.user.has_perm("accounts.edit_user")
+        or request.user.has_perm("accounts.edit_patient") and not user.is_staff
+        or request.user.has_perm("accounts.edit_assigned") and user in request.user.staff.get_assigned_patient_users()
+    )
+
+    show_left_side = usr_is_doctor or not user.is_staff
+
+    # If profile belongs to a patient
     if not user.is_staff:
+        can_edit_flag = (
+            False if not request.user.is_staff else
+            request.user.has_perm("accounts.flag_patients") and not user.is_staff
+            or request.user.has_perm("accounts.flag_assigned") and user in request.user.staff.get_assigned_patient_users()
+        )
+
         if request.method == "POST":
             doctor_staff_id = request.POST.get('doctor_id')
 
@@ -362,9 +378,66 @@ def profile(request, user_id):
             assigned_staff_patient_count = 0
         assigned_flags = Flag.objects.filter(patient=user)
 
-        # TODO: Remove this groups name and replace with permission instead
-        all_doctors = User.objects.filter(groups__name='doctor')
-        # all_doctors = User.objects.filter(is_staff=True)
+        all_doctors = User.objects.with_perm("accounts.is_doctor").exclude(is_superuser=True)
+
+        perms_code = (
+            user == request.user and request.user.has_perm("accounts.view_own_code")
+            or request.user.has_perm("accounts.view_patient_code")
+            or request.user.has_perm("accounts.view_assigned_code") and user in request.user.staff.get_assigned_patient_users()
+        )
+
+        perms_negative = (
+            user == request.user
+            or request.user.has_perm("accounts.view_patient_case")
+            or request.user.has_perm("accounts.view_assigned_case") and user in request.user.staff.get_assigned_patient_users()
+        )
+
+        perms_quarantine = (
+            user == request.user
+            or request.user.has_perm("accounts.view_patient_quarantine")
+            or request.user.has_perm("accounts.view_assigned_quarantine") and user in request.user.staff.get_assigned_patient_users()
+        )
+
+        perms_test_report = (
+            request.user.has_perm("accounts.view_patient_test_report")
+            or request.user.has_perm("accounts.view_assigned_test_report") and user in request.user.staff.get_assigned_patient_users()
+        )
+
+        perms_assigned_doctor = (
+            user == request.user
+            or request.user.has_perm("accounts.view_assigned_doctor")
+            or user in request.user.staff.get_assigned_patient_users()
+        )
+
+        perms_assigned_patients = (
+            user == request.user
+            or request.user.has_perm("accounts.view_assigned_patients")
+        )
+
+        perms_message_doctor = (
+            not user.is_staff and request.user != user.patient.get_assigned_staff_user() and (
+                request.user.has_perm("accounts.message_doctor")
+                or request.user.has_perm("accounts.message_user")
+            )
+        )
+
+        perms_assign_symptoms = (
+            not user.is_staff and (
+                request.user.has_perm("accounts.assign_symptom_patient")
+                or request.user.has_perm("accounts.assign_symptom_assigned") and user in request.user.staff.get_assigned_patient_users()
+            )
+        )
+
+        perms_edit_case = (
+            not user.is_staff and (
+                request.user.has_perm("accounts.set_patient_case")
+                or request.user.has_perm("accounts.set_patient_quarantine")
+                or request.user.has_perm("accounts.is_doctor") and user in request.user.staff.get_assigned_patient_users() and (
+                    request.user.has_perm("accounts.set_assigned_case")
+                    or request.user.has_perm("accounts.set_assigned_quarantine")
+                )
+            )
+        )
 
         return render(request, 'accounts/profile.html', {
             "usr": user,
@@ -377,12 +450,26 @@ def profile(request, user_id):
             "full_view": True,
             "allow_editing": is_symptom_editing_allowed(user_id),
             "all_doctors": all_doctors,
+            "can_edit_flag": can_edit_flag,
+            "show_left_side": show_left_side,
+
+            "perms_edit_user": perms_edit_user,
+            "perms_code": perms_code,
+            "perms_negative": perms_negative,
+            "perms_quarantine": perms_quarantine,
+            "perms_test_report": perms_test_report,
+            "perms_assigned_doctor": perms_assigned_doctor,
+            "perms_assigned_patients": perms_assigned_patients,
+            "perms_message_doctor": perms_message_doctor,
+            "perms_assign_symptoms": perms_assign_symptoms,
+            "perms_edit_case": perms_edit_case,
         })
 
+    # If profile belongs to a staff member
     else:
         appointments = Appointment.objects.filter(staff=user).filter(all_filter).order_by("start_date")
         appointments_truncated = appointments[:4]
-        assigned_patients = user.staff.get_assigned_patient_users()
+        assigned_patients = [] if user.is_superuser else user.staff.get_assigned_patient_users()
         issued_flags = Flag.objects.filter(staff=user)
 
         return render(request, 'accounts/profile.html', {
@@ -391,7 +478,12 @@ def profile(request, user_id):
             "appointments_truncated": appointments_truncated,
             "assigned_patients": assigned_patients,
             "issued_flags": issued_flags,
-            "full_view": True
+            "full_view": True,
+            "show_left_side": show_left_side,
+
+
+            "usr_is_doctor": usr_is_doctor,
+            "perms_edit_user": perms_edit_user,
         })
 
 
@@ -406,14 +498,31 @@ def profile_from_code(request, code):
 @login_required
 @never_cache
 def list_users(request):
+    if request.user.has_perm("accounts.view_user_list"):
+        users = User.objects.all()
+    elif request.user.has_perm("accounts.view_patient_list"):
+        users = User.objects.all().filter(is_staff=False)
+    elif request.user.has_perm("accounts.view_assigned_list"):
+        users = request.user.staff.get_assigned_patient_users()
+    else:
+        raise PermissionDenied
+
     return render(request, 'accounts/list_users.html', {
-        'users': User.objects.all()
+        'users': users
     })
 
 
 @login_required
 @never_cache
 def create_user(request):
+    can_view_page = (
+        request.user.has_perm("accounts.create_user")
+        or request.user.has_perm("accounts.create_patient")
+    )
+
+    if not can_view_page:
+        raise PermissionDenied
+
     # Process forms
     if request.method == "POST":
         user_form = CreateUserForm(request.POST)
@@ -446,7 +555,7 @@ def create_user(request):
             if new_user.is_staff:
                 Staff.objects.create(user=new_user)
             elif not new_user.is_staff:
-                # Since Patient *requires* an assigned staff, set it to the superuser for now.
+                # TODO: Figure out if the next todo has been addressed already or not.
                 # TODO: discuss if we should keep this behaviour for now or make Patient.staff nullable instead.
                 Patient.objects.create(user=new_user)
 
@@ -498,6 +607,36 @@ def create_user(request):
 def edit_user(request, user_id):
     user = User.objects.get(id=user_id)
 
+    can_view_page = (
+        False if user == request.user and not request.user.has_perm("accounts.edit_self") else
+        user == request.user and request.user.has_perm("accounts.edit_self")
+        or request.user.has_perm("accounts.edit_user")
+        or request.user.has_perm("accounts.edit_patient") and not user.is_staff
+        or request.user.has_perm("accounts.edit_assigned") and user in request.user.staff.get_assigned_patient_users()
+    )
+
+    if not can_view_page:
+        raise PermissionDenied
+
+    edit_perms = {
+        "edit_password": False if user == request.user and not request.user.has_perm(
+            "accounts.edit_password") else True,
+        "edit_username": False if user == request.user and not request.user.has_perm(
+            "accounts.edit_username") else True,
+        "edit_email": False if user == request.user and not request.user.has_perm("accounts.edit_email") else True,
+        "edit_name": False if user == request.user and not request.user.has_perm("accounts.edit_name") else True,
+        "edit_phone": False if user == request.user and not request.user.has_perm("accounts.edit_phone") else True,
+        "edit_address": False if user == request.user and not request.user.has_perm("accounts.edit_address") else True,
+        "edit_preferences": (
+            user != request.user and request.user.has_perm("accounts.edit_preference_user")
+            or user == request.user and (
+                request.user.has_perm("accounts.system_message_preference")
+                or request.user.has_perm("accounts.status_deadline_reminder_preference")
+                or request.user.has_perm("accounts.appointment_reminder_preference")
+            )
+        ),
+    }
+
     # Process forms
     if request.method == "POST":
         user_form = EditUserForm(request.POST, instance=user, user_id=user_id)
@@ -515,14 +654,28 @@ def edit_user(request, user_id):
     return render(request, "accounts/edit_user.html", {
         "user_form": user_form,
         "profile_form": profile_form,
-        "edited_user": user
+        "edited_user": user,
+        "edit_perms": edit_perms,
     })
 
 
 @login_required
 @never_cache
 def edit_preferences(request, user_id):
-    profile = User.objects.get(id=user_id).profile
+    user = User.objects.get(id=user_id)
+    can_view_page = (
+        user != request.user and request.user.has_perm("accounts.edit_preference_user")
+        or user == request.user and (
+            request.user.has_perm("accounts.system_message_preference")
+            or request.user.has_perm("accounts.status_deadline_reminder_preference")
+            or request.user.has_perm("accounts.appointment_reminder_preference")
+        )
+    )
+
+    if not can_view_page:
+        raise PermissionDenied
+
+    profile = user.profile
 
     # Process forms
     if request.method == "POST":
@@ -532,6 +685,7 @@ def edit_preferences(request, user_id):
             system_msg_preferences = preferences_form.cleaned_data.get(SystemMessagesPreference.NAME.value)
             status_reminder_interval = preferences_form.cleaned_data.get(StatusReminderPreference.NAME.value)
 
+            # Convert to dict to store in profile
             preferences = {
                 SystemMessagesPreference.NAME.value: {
                     SystemMessagesPreference.EMAIL.value: "use_email" in system_msg_preferences,
@@ -545,8 +699,10 @@ def edit_preferences(request, user_id):
             profile.save()
 
             return redirect("accounts:profile", user_id)
+
     # Create forms
     else:
+        # Try to load current preferences
         if profile.preferences:
             # Load previous user-defined preferences
             old_preferences = dict()
@@ -568,12 +724,16 @@ def edit_preferences(request, user_id):
 
     return render(request, "accounts/edit_preferences.html", {
         "preferences_form": preferences_form,
+        "usr": user
     })
 
 
 @login_required
 @never_cache
 def list_groups(request):
+    if not request.user.has_perm("accounts.manage_groups"):
+        raise PermissionDenied
+
     return render(request, 'accounts/access_control/groups/list_groups.html', {
         'groups': Group.objects.all()
     })
@@ -582,6 +742,10 @@ def list_groups(request):
 @login_required
 @never_cache
 def create_group(request):
+    if not request.user.has_perm("accounts.manage_groups"):
+        raise PermissionDenied
+
+    non_default_permissions = Permission.objects.all().exclude(codename__in=DEFAULT_PERMISSIONS)
     new_name = ''
 
     if request.method == 'POST':
@@ -603,7 +767,7 @@ def create_group(request):
             if request.POST.get('Create'):
                 messages.success(request, 'The group/role was created successfully.')
                 return render(request, 'accounts/access_control/groups/create_group.html', {
-                    'permissions': Permission.objects.all(),
+                    'permissions': non_default_permissions,
                     'new_name': new_name
                 })
 
@@ -612,7 +776,7 @@ def create_group(request):
                 return redirect('accounts:list_groups')
 
     return render(request, 'accounts/access_control/groups/create_group.html', {
-        'permissions': Permission.objects.all(),
+        'permissions': non_default_permissions,
         'new_name': new_name
     })
 
@@ -620,6 +784,10 @@ def create_group(request):
 @login_required
 @never_cache
 def edit_group(request, group_id):
+    if not request.user.has_perm("accounts.manage_groups"):
+        raise PermissionDenied
+
+    non_default_permissions = Permission.objects.all().exclude(codename__in=DEFAULT_PERMISSIONS)
     group = Group.objects.get(id=group_id)
     old_name = group.name
     new_name = old_name
@@ -630,23 +798,26 @@ def edit_group(request, group_id):
         if not new_name:
             messages.error(request, 'Please enter a group/role name.')
 
-        elif new_name == old_name:
-            messages.error(request,
-                           f"The group/role name was not edited successfully: No edits made on this group/role. If you wish to make no changes, please click the \"Cancel\" button to go back to the list of groups/roles.")
-            return render(request, 'accounts/access_control/groups/edit_group.html', {
-                'permissions': Permission.objects.all(),
-                'new_name': new_name,
-                'groups': group
-            })
-
         elif Group.objects.exclude(name=old_name).filter(name=new_name).exists():
             messages.error(request, 'Another group/role with the same name exists.')
 
         else:
+            permission_array = convert_permission_name_to_id(request)
+
+            if set(group.permissions.values_list("id", flat=True)) == set(permission_array) and new_name == old_name:
+                messages.error(
+                    request,
+                    f"The group/role name was not edited successfully: No edits made on this group/role. If you wish to make no changes, please click the \"Cancel\" button to go back to the list of groups/roles."
+                )
+                return render(request, 'accounts/access_control/groups/edit_group.html', {
+                    'permissions': non_default_permissions,
+                    'new_name': new_name,
+                    'group': group
+                })
+
             group.name = new_name
             group.save()
 
-            permission_array = convert_permission_name_to_id(request)
             group.permissions.clear()
             group.permissions.set(permission_array)
 
@@ -654,9 +825,9 @@ def edit_group(request, group_id):
             return redirect('accounts:list_groups')
 
     return render(request, 'accounts/access_control/groups/edit_group.html', {
-        'permissions': Permission.objects.all(),
+        'permissions': non_default_permissions,
         'new_name': new_name,
-        'groups': group
+        'group': group
     })
 
 
@@ -664,6 +835,14 @@ def edit_group(request, group_id):
 def flag_user(request, user_id):
     user_staff = request.user
     user_patient = User.objects.get(id=user_id)
+
+    can_edit_flag = (
+        user_staff.has_perm("accounts.flag_patients") and not user_patient.is_staff
+        or user_staff.has_perm("accounts.flag_assigned") and user_patient in user_staff.staff.get_assigned_patient_users()
+    )
+
+    if not can_edit_flag:
+        raise PermissionDenied
 
     flag = user_staff.staffs_created_flags.filter(patient=user_patient)
 
@@ -681,13 +860,21 @@ def flag_user(request, user_id):
         if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
             return JsonResponse({'is_flagged': f'{flag.is_active}'})
 
-    return redirect("accounts:list_users")
+    return redirect("accounts:profile", user_id)
 
 
 @login_required
 def unflag_user(request, user_id):
     user_staff = request.user
     user_patient = User.objects.get(id=user_id)
+
+    can_edit_flag = (
+        user_staff.has_perm("accounts.flag_patients") and not user_patient.is_staff
+        or user_staff.has_perm("accounts.flag_assigned") and user_patient in user_staff.staff.get_assigned_patient_users()
+    )
+
+    if not can_edit_flag:
+        raise PermissionDenied
 
     flag = user_staff.staffs_created_flags.filter(patient=user_patient)
 
@@ -702,7 +889,7 @@ def unflag_user(request, user_id):
         if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
             return JsonResponse({'is_flagged': f'{flag.is_active}'})
 
-    return redirect("accounts:list_users")
+    return redirect("accounts:profile", user_id)
 
 
 # this function simply renders the Edit status page
@@ -756,28 +943,29 @@ def edit_case(request, user_id):
 
 
 def doctor_patient_list(request):
-    # I assume this is an admin only page
-    if request.user.is_superuser:
-        return render(request, 'accounts/doctors.html')
-    raise Http404("The requested resource was not found on this server.")
+    if not request.user.has_perm("accounts.edit_assigned_doctor"):
+        raise PermissionDenied
+
+    return render(request, 'accounts/doctors.html')
 
 
 def doctor_patient_list_table(request):
     # TODO FILTER FOR DOCTORS ONLY (Currently anyone in accounts_staff is treated as a doctor for the query)
-    if request.user.is_superuser:
-        # Raw query to get each doctor and their patient count
-        query = Staff.objects.raw(
-            "SELECT `auth_user`.`id`, `auth_user`.`first_name`, `auth_user`.`last_name`, `accounts_staff`.`user_id`, COUNT(*) AS patient_count FROM `accounts_staff` JOIN `accounts_patient` ON (`accounts_staff`.`id` = `accounts_patient`.`assigned_staff_id`) LEFT OUTER JOIN `auth_user` ON (`accounts_staff`.`user_id` = `auth_user`.`id`) GROUP BY `accounts_patient`.`assigned_staff_id` ORDER BY `auth_user`.`first_name` , `auth_user`.`last_name`")
+    if not request.user.has_perm("accounts.edit_assigned_doctor"):
+        raise PermissionDenied
 
-        # Build the JSON from the raw query
-        table_info = []
-        for i in query:
-            record = {"user_id": i.user_id, "first_name": i.first_name, "last_name": i.last_name,
-                      "patient_count": i.patient_count}
-            table_info.append(record)
+    # Raw query to get each doctor and their patient count
+    query = Staff.objects.raw(
+        "SELECT `auth_user`.`id`, `auth_user`.`first_name`, `auth_user`.`last_name`, `accounts_staff`.`user_id`, COUNT(*) AS patient_count FROM `accounts_staff` JOIN `accounts_patient` ON (`accounts_staff`.`id` = `accounts_patient`.`assigned_staff_id`) LEFT OUTER JOIN `auth_user` ON (`accounts_staff`.`user_id` = `auth_user`.`id`) GROUP BY `accounts_patient`.`assigned_staff_id` ORDER BY `auth_user`.`first_name` , `auth_user`.`last_name`")
 
-        # Serialize it
-        serialized_reports = json.dumps({'data': table_info}, indent=4)
+    # Build the JSON from the raw query
+    table_info = []
+    for i in query:
+        record = {"user_id": i.user_id, "first_name": i.first_name, "last_name": i.last_name,
+                  "patient_count": i.patient_count}
+        table_info.append(record)
 
-        return HttpResponse(serialized_reports, content_type='application/json')
-    raise Http404("The requested resource was not found on this server.")
+    # Serialize it
+    serialized_reports = json.dumps({'data': table_info}, indent=4)
+
+    return HttpResponse(serialized_reports, content_type='application/json')

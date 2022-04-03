@@ -56,7 +56,7 @@
                     {% endif %}
                 {% endfor %}
 
-                {% if edited_user == user %}
+                {% if edited_user == user and edit_perms.edit_password %}
                     <div class="w-full max-w-2xl px-2">
                         <a href="{% url "accounts:change_password" %}">
                             <button type="button" class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
@@ -73,78 +73,92 @@
                     </div>
                 {% endif %}
 
-                <div class="w-full max-w-2xl px-2">
-                    <a href="{% url "accounts:edit_preferences" edited_user.id %}">
-                        <button type="button" class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-                        <span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                                 stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            </svg>
-                        </span>
-                            <span>Edit Preferences</span>
-                        </button>
-                    </a>
-                </div>
-
-                <div class="w-full max-w-2xl px-2">
-                    <label>Username:</label>
-                    <div class="mt-1">
-                        {{ user_form.username }}
+                {% if edit_perms.edit_preferences %}
+                    <div class="w-full max-w-2xl px-2">
+                        <a href="{% url "accounts:edit_preferences" edited_user.id %}">
+                            <button type="button" class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                            <span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                     stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                            </span>
+                                <span>Edit Preferences</span>
+                            </button>
+                        </a>
                     </div>
-                </div>
+                {% endif %}
 
-                <div class="w-full max-w-2xl px-2">
-                    <label>Email:</label>
-                    <div class="mt-1">
-                        {{ user_form.email }}
+                {% if edit_perms.edit_username %}
+                    <div class="w-full max-w-2xl px-2">
+                        <label>Username:</label>
+                        <div class="mt-1">
+                            {{ user_form.username }}
+                        </div>
                     </div>
-                </div>
+                {% endif %}
 
-                <div class="w-full max-w-2xl px-2">
-                    <label>First Name:</label>
-                    <div class="mt-1">
-                        {{ user_form.first_name }}
+                {% if edit_perms.edit_email %}
+                    <div class="w-full max-w-2xl px-2">
+                        <label>Email:</label>
+                        <div class="mt-1">
+                            {{ user_form.email }}
+                        </div>
                     </div>
-                </div>
+                {% endif %}
 
-                <div class="w-full max-w-2xl px-2">
-                    <label>Last Name:</label>
-                    <div class="mt-1">
-                        {{ user_form.last_name }}
+                {% if edit_perms.edit_name %}
+                    <div class="w-full max-w-2xl px-2">
+                        <label>First Name:</label>
+                        <div class="mt-1">
+                            {{ user_form.first_name }}
+                        </div>
                     </div>
-                </div>
 
-                <div class="w-full max-w-2xl px-2">
-                    <label>Phone Number:</label>
-                    <div class="mt-1">
-                        {{ profile_form.phone_number }}
+                    <div class="w-full max-w-2xl px-2">
+                        <label>Last Name:</label>
+                        <div class="mt-1">
+                            {{ user_form.last_name }}
+                        </div>
                     </div>
-                </div>
+                {% endif %}
 
-                <div class="w-full max-w-2xl px-2">
-                    <label>Address:</label>
-                    <div class="mt-1">
-                        {{ profile_form.address }}
+                {% if edit_perms.edit_phone %}
+                    <div class="w-full max-w-2xl px-2">
+                        <label>Phone Number:</label>
+                        <div class="mt-1">
+                            {{ profile_form.phone_number }}
+                        </div>
                     </div>
-                </div>
+                {% endif %}
 
-                <div class="w-full max-w-2xl px-2">
-                    <label>Postal Code:</label>
-                    <div class="mt-1">
-                        {{ profile_form.postal_code }}
+                {% if edit_perms.edit_address %}
+                    <div class="w-full max-w-2xl px-2">
+                        <label>Address:</label>
+                        <div class="mt-1">
+                            {{ profile_form.address }}
+                        </div>
                     </div>
-                </div>
 
-                <div class="w-full max-w-2xl px-2">
-                    <label>Role:</label>
-                    <div class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400">
-                        {{ user_form.groups }}
+                    <div class="w-full max-w-2xl px-2">
+                        <label>Postal Code:</label>
+                        <div class="mt-1">
+                            {{ profile_form.postal_code }}
+                        </div>
                     </div>
-                </div>
+                {% endif %}
+
+                {% if perms.accounts.assign_group %}
+                    <div class="w-full max-w-2xl px-2">
+                        <label>Group:</label>
+                        <div class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400">
+                            {{ user_form.groups }}
+                        </div>
+                    </div>
+                {% endif %}
             </div>
             <div class="w-full mt-8 md:mt-0">
                 <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
