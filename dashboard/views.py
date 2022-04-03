@@ -9,6 +9,7 @@ from accounts.models import Staff
 from appointments.models import Appointment
 from dashboard.utils import fetch_data_from_file, extract_daily_data
 from messaging.models import MessageGroup
+from status.utils import return_symptoms_for_today, is_requested
 
 
 @login_required
@@ -37,15 +38,15 @@ def index(request):
         })
 
     else:
-        status_reminder = []
-        quarantine = []
+        status_reminder = fetch_status_reminder_info(user)
+        case = fetch_own_case_info(user)
         assigned_doctor = user.patient.get_assigned_staff_user()
 
         return render(request, 'dashboard/index.html', {
             "messages": messages,
             "appointments": appointments,
             "status_reminder": status_reminder,
-            "quarantine": quarantine,
+            "case": case,
             "assigned_doctor": assigned_doctor,
         })
 
@@ -121,4 +122,22 @@ def fetch_data_from_all_files(data_path="dashboard/sample_data"):
         "daily_unconfirmed_negative": daily_unconfirmed_negative,
         "unconfirmed_untested": unconfirmed_untested,
         "daily_unconfirmed_untested": daily_unconfirmed_untested,
+    }
+
+
+def fetch_status_reminder_info(user):
+    patient_symptoms = return_symptoms_for_today(user.id)
+    is_resubmit_requested = is_requested(user.id)
+
+    return {
+        "is_reporting_today": patient_symptoms.exists(),
+        "is_resubmit_requested": is_resubmit_requested,
+    }
+
+
+def fetch_own_case_info(user):
+    return {
+        "is_quarantining": user.patient.is_quarantining,
+        "is_positive": user.patient.is_confirmed and not user.patient.is_negative,
+        "is_negative": user.patient.is_negative,
     }
