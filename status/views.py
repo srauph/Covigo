@@ -414,10 +414,15 @@ def test_results_table(request, user_id):
     @param request: http request from the client
     @param user_id: the user ID of the patient that uploaded the test report
     """
-    existing_results = Patient.objects.get(user_id=user_id).test_results['all_results']
-    serialized_reports = json.dumps({'data': list(existing_results)}, cls=DjangoJSONEncoder, default=str)
+    existing_results = Patient.objects.get(user_id=user_id).test_results
 
-    return HttpResponse(serialized_reports, content_type='application/json')
+    if existing_results is not None:
+        serialized_reports = json.dumps({'data': list(existing_results['all_results'])}, cls=DjangoJSONEncoder, default=str)
+
+        return HttpResponse(serialized_reports, content_type='application/json')
+    else:
+        serialized_reports = json.dumps({'data': list({})}, cls=DjangoJSONEncoder, default=str)
+        return HttpResponse(serialized_reports, content_type='application/json')
 
 
 @login_required
