@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.shortcuts import render, redirect
 from django.views.decorators.cache import never_cache
@@ -21,6 +22,9 @@ from datetime import datetime, timedelta, time
 @login_required
 @never_cache
 def index(request):
+    if not request.user.has_perm("accounts.manage_symptoms"):
+        raise PermissionDenied
+
     return redirect('symptoms:list_symptoms')
 
 
@@ -29,6 +33,9 @@ def index(request):
 @login_required
 @never_cache
 def list_symptoms(request):
+    if not request.user.has_perm("accounts.manage_symptoms"):
+        raise PermissionDenied
+
     return render(request, 'symptoms/list_symptoms.html', {
         'symptoms': Symptom.objects.all()
     })
@@ -39,6 +46,9 @@ def list_symptoms(request):
 @login_required
 @never_cache
 def create_symptom(request):
+    if not request.user.has_perm("accounts.manage_symptoms"):
+        raise PermissionDenied
+
     if request.method == 'POST':
         create_symptom_form = CreateSymptomForm(request.POST)
 
@@ -74,6 +84,9 @@ def create_symptom(request):
 @login_required
 @never_cache
 def edit_symptom(request, symptom_id):
+    if not request.user.has_perm("accounts.manage_symptoms"):
+        raise PermissionDenied
+
     symptom = Symptom.objects.get(id=symptom_id)
 
     if request.method == 'POST':
@@ -110,6 +123,17 @@ def edit_symptom(request, symptom_id):
 @never_cache
 def assign_symptom(request, user_id):
     patient = User.objects.get(pk=user_id)
+
+    can_assign_symptom = (
+        not patient.is_staff and (
+            request.user.has_perm("accounts.assign_symptom_patient")
+            or request.user.has_perm("accounts.assign_symptom_assigned") and patient in request.user.staff.get_assigned_patient_users()
+        )
+    )
+    if not can_assign_symptom:
+        raise PermissionDenied
+
+
     if patient.first_name == "" and patient.last_name == "":
         patient_name = patient
     else:
@@ -208,6 +232,9 @@ def assign_symptom(request, user_id):
 @login_required
 @never_cache
 def toggle_symptom(request, symptom_id):
+    if not request.user.has_perm("accounts.manage_symptoms"):
+        raise PermissionDenied
+
     symptom = Symptom.objects.get(id=symptom_id)
     symptom.is_active = not symptom.is_active
     symptom.save()

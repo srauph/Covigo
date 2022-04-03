@@ -109,22 +109,26 @@
                         </a>
                     </div>
                     <hr class="mx-4 border-slate-400">
-                    <div class="m-4">
-                        <a href="{%  url 'appointments:cancel_appointments_or_delete_availabilities' %}">
-                            <button class="w-full px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white text-2xl font-bold">
-                                <h2>Cancel an appointment</h2>
-                            </button>
-                        </a>
-                    </div>
+                    {% if perms.accounts.cancel_appointment %}
+                        <div class="m-4">
+                            <a href="{%  url 'appointments:cancel_appointments_or_delete_availabilities' %}">
+                                <button class="w-full px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white text-2xl font-bold">
+                                    <h2>Cancel an appointment</h2>
+                                </button>
+                            </a>
+                        </div>
+                    {% endif %}
                 {% else %}
                     <hr class="mx-4 border-slate-400">
-                    <div class="m-4">
-                        <a href="{%  url 'appointments:cancel_appointments_or_delete_availabilities' %}">
-                            <button class="w-full px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white text-2xl font-bold">
-                                <h2>Cancel an appointment or delete an availability</h2>
-                            </button>
-                        </a>
-                    </div>
+                    {% if perms.accounts.cancel_appointment or perms.accounts.remove_availability %}
+                        <div class="m-4">
+                            <a href="{%  url 'appointments:cancel_appointments_or_delete_availabilities' %}">
+                                <button class="w-full px-4 py-2 rounded border bg-blue-600 border-blue-900 hover:bg-blue-700 hover:border-blue-700 text-center text-white text-2xl font-bold">
+                                    <h2>Cancel an appointment or delete an availability</h2>
+                                </button>
+                            </a>
+                        </div>
+                    {% endif %}
                 {% endif %}
                 <hr class="mx-4 border-slate-400">
                 <div class="block m-4 p-4 rounded bg-slate-200 text-slate-800 text-center text-lg font-semibold">

@@ -22,7 +22,7 @@ from Covigo.settings import PRODUCTION_MODE
 
 urlpatterns = [
     path('', lambda request: redirect('dashboard:index'), name='index'),
-    path('manager/', include('manager.urls')),
+    path('management/', include('manager.urls')),
     path('accounts/', include('accounts.urls')),
     path('dashboard/', include('dashboard.urls')),
     path('status/', include('status.urls')),
