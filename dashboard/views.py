@@ -52,13 +52,13 @@ def index(request):
 
 
 def fetch_messaging_info(user):
-    msg_group_filter = Q(author=user) | Q(recipient=user)
+    msg_group_filter = Q(type=0) & (Q(author=user) | Q(recipient=user))
     all_messages = MessageGroup.objects.filter(msg_group_filter)
 
     urgent_msg_group_filter = msg_group_filter & Q(priority=2)
     urgent = all_messages.filter(urgent_msg_group_filter)
 
-    unread_msg_group_filter = (Q(author=user) & Q(author_seen=False)) | (Q(recipient=user) & Q(recipient_seen=False))
+    unread_msg_group_filter = Q(type=0) & ((Q(author=user) & Q(author_seen=False)) | (Q(recipient=user) & Q(recipient_seen=False)))
     unread = all_messages.filter(unread_msg_group_filter)
     unread_urgent = urgent.filter(unread_msg_group_filter)
 
