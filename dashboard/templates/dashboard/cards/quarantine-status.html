@@ -20,7 +20,7 @@
     <div class="flex flex-col justify-center items-center w-full h-full rounded-lg">
         <ul class="w-full list-inside text-center">
             {% if case.is_quarantining %}
-                <li class="py-2 hover:bg-slate-200 flex flex-col items-center">
+                <li class="rounded-md py-2 hover:bg-slate-200 flex flex-col items-center">
                     <span class="text-amber-400">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                              xmlns="http://www.w3.org/2000/svg">
@@ -31,11 +31,11 @@
                     </span>
                     <span class="font-semibold">You are required to quarantine!</span>
                 </li>
-                <li class="py-2 hover:bg-slate-200">For detailed quarantine instructions, please see the message your
+                <li class="rounded-md py-2 hover:bg-slate-200">For detailed quarantine instructions, please see the message your
                     doctor sent you. You may be required to self-isolate
                 </li>
             {% elif case.is_negative %}
-                <li class="py-2 hover:bg-slate-200 flex flex-col items-center gap-1">
+                <li class="rounded-md py-2 hover:bg-slate-200 flex flex-col items-center gap-1">
                     <span class="text-green-500">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                              xmlns="http://www.w3.org/2000/svg">
@@ -48,7 +48,7 @@
                     <span class="text-green-500">You are not currently required to quarantine</span>
                 </li>
             {% else %}
-                <li class="py-2 hover:bg-slate-200 flex flex-col items-center gap-1">
+                <li class="rounded-md py-2 hover:bg-slate-200 flex flex-col items-center gap-1">
                     <span class="text-amber-400">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                              xmlns="http://www.w3.org/2000/svg">
@@ -61,12 +61,14 @@
                 </li>
             {% endif %}
 
+            <hr class="border-slate-300 mx-12">
+
             {% if case.is_positive %}
-                <li class="py-2 hover:bg-slate-200 text-red-500">Your latest test was positive.</li>
+                <li class="rounded-md py-2 hover:bg-slate-200 text-red-500">Your latest test was positive.</li>
             {% elif case.is_negative %}
-                <li class="py-2 hover:bg-slate-200 text-green-500">Your latest test was negative</li>
+                <li class="rounded-md py-2 hover:bg-slate-200 text-green-500">Your latest test was negative</li>
             {% else %}
-                <li class="py-2 hover:bg-slate-200">You must test as soon as possible</li>
+                <li class="rounded-md py-2 hover:bg-slate-200">You must test as soon as possible</li>
             {% endif %}
         </ul>
     </div>

@@ -20,7 +20,7 @@
         <ul class="w-full list-inside text-center">
             {% if status_reminder.is_reporting_today %}
                 {% if status_reminder.is_resubmit_requested %}
-                    <li class="py-2 hover:bg-slate-200 flex flex-col items-center gap-1">
+                    <li class="rounded-md py-2 hover:bg-slate-200 flex flex-col items-center gap-1">
                         <span class="text-amber-400">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                                  xmlns="http://www.w3.org/2000/svg">
@@ -32,11 +32,11 @@
                         </span>
                         <span class="text-red-500 font-semibold">Your doctor has requested that you resubmit some symptoms today by 11:59:59</span>
                     </li>
-                    <li class="py-2 hover:bg-slate-200 flex flex-col items-center gap-1">
+                    <li class="rounded-md py-2 hover:bg-slate-200 flex flex-col items-center gap-1">
                         <span>Remaining time: <span id="countdown"></span></span>
                     </li>
                 {% else %}
-                    <li class="py-2 hover:bg-slate-200 flex flex-col items-center gap-1">
+                    <li class="rounded-md py-2 hover:bg-slate-200 flex flex-col items-center gap-1">
                         <span class="text-amber-400">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                                  xmlns="http://www.w3.org/2000/svg">
@@ -47,12 +47,12 @@
                         </span>
                         <span>You should submit your report with all requested data today by 11:59:59</span>
                     </li>
-                    <li class="py-2 hover:bg-slate-200 flex flex-col items-center gap-1">
+                    <li class="rounded-md py-2 hover:bg-slate-200 flex flex-col items-center gap-1">
                         <span>Remaining time: <span id="countdown"></span></span>
                     </li>
                 {% endif %}
             {% else %}
-                <li class="py-2 hover:bg-slate-200 flex flex-col items-center gap-1">
+                <li class="rounded-md py-2 hover:bg-slate-200 flex flex-col items-center gap-1">
                     <span class="text-green-500">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                              xmlns="http://www.w3.org/2000/svg">
