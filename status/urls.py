@@ -21,5 +21,6 @@ urlpatterns = [
     path('resubmit_request/<int:patient_symptom_id>', views.resubmit_request, name='resubmit_request'),
     path('test_results/<int:user_id>/', views.test_result, name='test_results'),
     path('test_results_table/<int:user_id>/', views.test_results_table, name='test_results_table'),
-    path('test_report/<int:user_id>/', views.test_report, name='test_report')
+    path('test_report/<int:user_id>/', views.test_report, name='test_report'),
+    path('test_results/download/<int:user_id>/<int:test_index>/', views.download_test_file, name='download_test_file')
 ]

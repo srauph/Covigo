@@ -1,5 +1,6 @@
 import datetime as dt
 import json
+import os
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -21,7 +22,7 @@ from status.utils import (
     get_reports_by_patient,
     get_reports_for_doctor,
     is_requested,
-    return_symptoms_for_today, write_test_result_file,
+    return_symptoms_for_today, write_test_result_file, get_test_result_file_path,
 )
 from symptoms.models import PatientSymptom
 
@@ -320,28 +321,33 @@ def resubmit_request(request, patient_symptom_id):
 def test_result(request, user_id):
     results = Patient.objects.get(user_id=user_id).test_results
     existing_results = []
+    test_index = 0
     if results is not None:
         existing_results = results["all_results"]
+        test_index = len(existing_results) - 1
 
     return render(request, 'status/test_results.html', {
         'user_id': user_id,
-        'existing_results': existing_results
+        'existing_results': existing_results,
+        'test_index': test_index
     })
 
 
 @login_required
 @never_cache
 def test_report(request, user_id):
-    patient = Patient.objects.get(user_id=user_id)
+    patient_object = Patient.objects.get(user_id=user_id)
+    test_index = 0
 
     if request.method == 'POST':
         test_result_form = TestResultForm(request.POST, request.FILES)
         if test_result_form.is_valid():
 
             # if the patient has never uploaded a test report before
-            if patient.test_results is None:
+            if patient_object.test_results is None:
                 # store the file uploaded and create the json that will hold the test reports
-                file_path = write_test_result_file(test_result_form.cleaned_data.get("test_file"), patient.user_id, 0)
+                file_path = write_test_result_file(test_result_form.cleaned_data.get("test_file"),
+                                                   patient_object.user_id, 0)
                 test_results = {
                     "all_results":
                         [{
@@ -353,16 +359,17 @@ def test_report(request, user_id):
                         }
                         ]
                 }
-                patient.test_results = test_results
-                patient.save()
+                patient_object.test_results = test_results
+                patient_object.save()
             else:
                 # if the patient has uploaded a test report before, append the new test data to the existing json
                 # that holds previous test report data
-                existing_results = patient.test_results["all_results"]
+                existing_results = patient_object.test_results["all_results"]
+                test_index = len(existing_results) - 1
 
                 file_path = write_test_result_file(
                     test_result_form.cleaned_data.get("test_file"),
-                    patient.user_id,
+                    patient_object.user_id,
                     len(existing_results)
                 )
 
@@ -375,10 +382,19 @@ def test_report(request, user_id):
                 }
 
                 existing_results.append(new_result)
-                patient.test_results = {
+                patient_object.test_results = {
                     "all_results": existing_results
                 }
-                patient.save()
+                patient_object.save()
+
+            # patient reports a negative test
+            if test_result_form.cleaned_data.get("test_result") == '0':
+                patient_object.is_negative = True
+            # patient reports a positive test
+            elif test_result_form.cleaned_data.get("test_result") == '1':
+                patient_object.is_negative = False
+                patient_object.is_confirmed = True
+            patient_object.save()
 
         messages.success(request, 'Your test report has been uploaded successfully.')
         return redirect('status:test_results', user_id=user_id)
@@ -402,3 +418,23 @@ def test_results_table(request, user_id):
     serialized_reports = json.dumps({'data': list(existing_results)}, cls=DjangoJSONEncoder, default=str)
 
     return HttpResponse(serialized_reports, content_type='application/json')
+
+
+@login_required
+@never_cache
+def download_test_file(request, user_id, test_index):
+    """
+    Downloads the users test file that they uploaded corresponding to their test report index
+    @param request: http request from the client
+    @param user_id: the user ID of the patient that uploaded the test report
+    @param test_index: the index of the test report
+    """
+    print(user_id, test_index)
+    file_path = get_test_result_file_path(user_id, test_index).iterdir()
+    for entry in file_path:
+        if os.path.exists(entry):
+            with open(entry, 'rb') as fh:
+                response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
+                response['Content-Disposition'] = 'inline; filename=' + os.path.basename(entry)
+                return response
+    raise Http404
