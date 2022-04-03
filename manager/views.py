@@ -51,3 +51,7 @@ def contact_tracing(request):
 
     user_count = User.objects.count()
     return render(request, 'manager/contact_tracing.html', {"user_count": user_count})
+
+
+def help_page(request):
+    return render(request, 'manager/help.html')
