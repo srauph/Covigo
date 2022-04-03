@@ -2,18 +2,17 @@ import datetime as dt
 import json
 
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
-from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.urls import reverse
-from django.utils.datetime_safe import datetime
 from django.views.decorators.cache import never_cache
 
-from accounts.models import Flag, Staff
+from accounts.models import Flag, Staff, Patient
 from accounts.utils import get_assigned_staff_id_by_patient_id
 from messaging.utils import send_notification
 from status.forms import TestResultForm
@@ -22,7 +21,7 @@ from status.utils import (
     get_reports_by_patient,
     get_reports_for_doctor,
     is_requested,
-    return_symptoms_for_today,
+    return_symptoms_for_today, write_test_result_file,
 )
 from symptoms.models import PatientSymptom
 
@@ -318,20 +317,88 @@ def resubmit_request(request, patient_symptom_id):
 
 @login_required
 @never_cache
-def test_result(request):
-    return render(request, 'status/test_results.html')
+def test_result(request, user_id):
+    results = Patient.objects.get(user_id=user_id).test_results
+    existing_results = []
+    if results is not None:
+        existing_results = results["all_results"]
+
+    return render(request, 'status/test_results.html', {
+        'user_id': user_id,
+        'existing_results': existing_results
+    })
 
 
 @login_required
 @never_cache
-def test_report(request):
+def test_report(request, user_id):
+    patient = Patient.objects.get(user_id=user_id)
+
     if request.method == 'POST':
-        test_result_form = TestResultForm(request.POST)
-        print("here")
+        test_result_form = TestResultForm(request.POST, request.FILES)
         if test_result_form.is_valid():
-            print(test_result_form.test_type, test_result_form.test_date, test_result_form.test_result, test_result_form.test_file)
+
+            # if the patient has never uploaded a test report before
+            if patient.test_results is None:
+                # store the file uploaded and create the json that will hold the test reports
+                file_path = write_test_result_file(test_result_form.cleaned_data.get("test_file"), patient.user_id, 0)
+                test_results = {
+                    "all_results":
+                        [{
+                            "test_type": test_result_form.cleaned_data.get("test_type"),
+                            "test_date": str(test_result_form.cleaned_data.get("test_date")),
+                            "test_result": "Negative" if (
+                                    test_result_form.cleaned_data.get("test_result") == '0') else "Positive",
+                            "test_file": file_path
+                        }
+                        ]
+                }
+                patient.test_results = test_results
+                patient.save()
+            else:
+                # if the patient has uploaded a test report before, append the new test data to the existing json
+                # that holds previous test report data
+                existing_results = patient.test_results["all_results"]
+
+                file_path = write_test_result_file(
+                    test_result_form.cleaned_data.get("test_file"),
+                    patient.user_id,
+                    len(existing_results)
+                )
+
+                new_result = {
+                    "test_type": test_result_form.cleaned_data.get("test_type"),
+                    "test_date": str(test_result_form.cleaned_data.get("test_date")),
+                    "test_result": "Negative" if (
+                            test_result_form.cleaned_data.get("test_result") == '0') else "Positive",
+                    "test_file": file_path
+                }
+
+                existing_results.append(new_result)
+                patient.test_results = {
+                    "all_results": existing_results
+                }
+                patient.save()
+
+        messages.success(request, 'Your test report has been uploaded successfully.')
+        return redirect('status:test_results', user_id=user_id)
     else:
         test_result_form = TestResultForm()
     return render(request, 'status/create_test_report.html', {
-        'test_result_form': test_result_form
+        'test_result_form': test_result_form,
+        'user_id': user_id
     })
+
+
+@login_required
+@never_cache
+def test_results_table(request, user_id):
+    """
+    Returns the data of all the patients previously uploaded tests
+    @param request: http request from the client
+    @param user_id: the user ID of the patient that uploaded the test report
+    """
+    existing_results = Patient.objects.get(user_id=user_id).test_results['all_results']
+    serialized_reports = json.dumps({'data': list(existing_results)}, cls=DjangoJSONEncoder, default=str)
+
+    return HttpResponse(serialized_reports, content_type='application/json')
