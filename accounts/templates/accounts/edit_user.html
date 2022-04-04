@@ -56,7 +56,7 @@
                     {% endif %}
                 {% endfor %}
 
-                {% if edited_user == user and edit_perms.edit_password %}
+                {% if edited_user == user %}
                     <div class="w-full max-w-2xl px-2">
                         <a href="{% url "accounts:change_password" %}">
                             <button type="button" class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">

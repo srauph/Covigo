@@ -119,7 +119,7 @@
 
         <div class="flex px-8 py-6 {{ full_view|yesno:"flex-wrap," }}">
             {# Left side #}
-            {% if show_left_side %}
+            {% if not full_view or show_left_side %}
                 <div class="w-full py-4 px-2 flex flex-col gap-4 {{ full_view|yesno:"xl:w-1/4,w-96" }}">
                     {# Patient-specific details #}
                     {% if not usr.is_staff %}

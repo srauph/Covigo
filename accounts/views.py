@@ -402,24 +402,6 @@ def profile(request, user_id):
             )
         )
 
-        perms_negative = (
-            user == request.user
-            or request.user.has_perm("accounts.view_patient_case")
-            or (
-                request.user.has_perm("accounts.view_assigned_case")
-                and user in request.user.staff.get_assigned_patient_users()
-            )
-        )
-
-        perms_quarantine = (
-            user == request.user
-            or request.user.has_perm("accounts.view_patient_quarantine")
-            or (
-                request.user.has_perm("accounts.view_assigned_quarantine")
-                and user in request.user.staff.get_assigned_patient_users()
-            )
-        )
-
         perms_test_report = (
             request.user.has_perm("accounts.view_patient_test_report")
             or (
@@ -482,8 +464,6 @@ def profile(request, user_id):
             "perms_view_appointments": perms_view_appointments,
             "perms_flag": perms_flag,
             "perms_code": perms_code,
-            "perms_negative": perms_negative,
-            "perms_quarantine": perms_quarantine,
             "perms_test_report": perms_test_report,
             "perms_assigned_doctor": perms_assigned_doctor,
             "perms_message_doctor": perms_message_doctor,
@@ -664,8 +644,6 @@ def edit_user(request, user_id):
         raise PermissionDenied
 
     edit_perms = {
-        "edit_password": False if user == request.user and not request.user.has_perm(
-            "accounts.edit_password") else True,
         "edit_username": False if user == request.user and not request.user.has_perm(
             "accounts.edit_username") else True,
         "edit_email": False if user == request.user and not request.user.has_perm("accounts.edit_email") else True,
