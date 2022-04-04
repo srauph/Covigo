@@ -40,7 +40,7 @@ def index(request):
     user = request.user
     if not user.is_staff:
         # Assigned staff user id for the viewing user
-        assigned_staff_id = get_assigned_staff_id_by_patient_id(user.id)
+        assigned_staff_id = user.patient.get_assigned_staff_user().id
 
         # Reports for the user
         reports = get_reports_by_patient(request.user.id)
@@ -58,7 +58,8 @@ def index(request):
             'symptoms': patient_symptoms,
             'is_reporting_today': patient_symptoms.exists(),
             'is_resubmit_requested': is_resubmit_requested,
-            'is_quarantining': request.user.patient.is_quarantining
+            'is_quarantining': request.user.patient.is_quarantining,
+            'assigned_staff_id': assigned_staff_id,
         })
     raise Http404("The requested resource was not found on this server.")
 
