@@ -84,6 +84,8 @@ class Staff(models.Model):
             ("view_flagged_user_list", "Can view flagged users in the Accounts page"),
             ("manage_contact_tracing", "Can access the contact tracing management page"),
             ("manage_case_data", "Can access the case data management page"),
+            ("view_patient_appointment", "Can view any patient's upcoming appointments"),
+            ("view_user_appointment", "Can view any user's upcoming appointments"),
             # ("request_resubmission", "Can request that a patient resubmit their status report"),
             # ("view_status_assigned", "Can view assigned patients' status reports"),
             # ("view_status_any", "Can view any patient's status report"),
