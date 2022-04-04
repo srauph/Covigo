@@ -1,44 +1,86 @@
 {% extends "Covigo/layout/guest.html" %}
 {% block content %}
-    <form method="post">
+    <form method="post" action="{% url "accounts:verify_otp" usr.id %}">
 
         {% csrf_token %}
-        <div class="min-h-full flex flex-col items-center py-16 px-4 sm:px-6 lg:px-8">
+        <div class="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
             <div class="max-w-md w-full space-y-8">
                 <div>
-                    <h2 class="text-center text-3xl font-extrabold text-gray-900">Two Factor Authentication</h2>
-                    <p class="mt-4 text-center text-sm text-gray-600"> Please confirm it's you by entering the
+                    <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Two Factor Authentication</h2>
+                    <p class="mt-2 text-center text-sm text-gray-600"> Please confirm it's you by entering the
                         authorization code sent to you.
                     </p>
                 </div>
-                <form class="mt-8 space-y-6" action="/dashboard" method="POST">
-                    <input type="hidden" name="remember" value="true">
-                    <div class="rounded-md shadow-sm -space-y-px">
-                        <div>
-                            <label for="verification-code" class="sr-only">Verification Code</label>
-                            <input id="verification-code" name="" type="text" required
-                                   class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                                   placeholder="Verification Code">
-                        </div>
-                    </div>
 
+                {% if messages %}
+                    {% block script %}
+                        <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+                        <script>
+                            Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
+                                x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
+                            }
+                            )
+                            );
+
+                            setTimeout(function() {
+                                $('.message').fadeOut('fast');
+                            }, 10000); // <-- time in milliseconds
+                        </script>
+                    {% endblock %}
+                {% endif %}
+
+                {% for message in messages %}
+                    {% if message.tags == 'error'%}
+                        <div role="alert" class="message p-5 rounded-lg border border-red-400 bg-red-300 text-red-900">
+                            <div class="divide-y-2 divide-solid divide-red-400">
+                                <h2 class="font-bold text-xl flex items-center pb-2">
+                                    <span class="mr-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </span>
+                                    Error!
+                                    <div class="text-xl flex align-center w-full justify-end">
+                                        <strong class="alert-del cursor-pointer">
+                                            &times;
+                                        </strong>
+                                    </div>
+                                </h2>
+                                <p class="pt-2">
+                                    {{ message }}
+                                </p>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+
+                <div class="rounded-md shadow-sm -space-y-px">
                     <div>
-                        <button type="submit" value="verify"
-                                class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-                                <!-- Heroicon name: solid/lock-closed -->
-                                <svg class="h-5 w-5 text-indigo-500 group-hover:text-indigo-400"
-                                     xmlns="http://www.w3.org/2000/svg"
-                                     viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                    <path fill-rule="evenodd"
-                                          d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-                                          clip-rule="evenodd"/>
-                                </svg>
-                            </span>
-                            Verify
-                        </button>
+                        {% if error %}
+                            <div class="alert alert-danger">{{ error }}</div>
+                        {% endif %}
+                        <label for="verification-code" class="sr-only">Verification Code</label>
+                        <input id="verification-code" name="code" type="text" required
+                               class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                               placeholder="Verification Code">
                     </div>
-                </form>
+                </div>
+
+                <div>
+                    <button type="submit"
+                            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                        <!-- Heroicon name: solid/lock-closed -->
+                            <svg class="h-5 w-5 text-indigo-500 group-hover:text-indigo-400" xmlns="http://www.w3.org/2000/svg"
+                                 viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd"
+                                      d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                                      clip-rule="evenodd"/>
+                            </svg>
+                        </span>
+                        Verify
+                    </button>
+                </div>
             </div>
         </div>
 
