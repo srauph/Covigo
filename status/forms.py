@@ -39,7 +39,7 @@ class TestResultForm(Form):
                 'class': 'p-2'
             }
         ),
-        choices=[('0', 'Negative'), ('1', 'Positive')]
+        choices=[('0', 'Negative'), ('1', 'Positive'), ('2', 'Inconclusive')]
     )
 
     test_file = forms.FileField()

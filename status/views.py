@@ -344,13 +344,20 @@ def test_report(request, user_id):
                 # store the file uploaded and create the json that will hold the test reports
                 file_path = write_test_result_file(test_result_form.cleaned_data.get("test_file"),
                                                    patient_object.user_id, 0)
+                result = test_result_form.cleaned_data.get("test_result")
+                if result == '0':
+                    result = "Negative"
+                elif result == '1':
+                    result = "Positive"
+                elif result == '2':
+                    result = "Inconclusive"
+
                 test_results = {
                     "all_results":
                         [{
                             "test_type": test_result_form.cleaned_data.get("test_type"),
                             "test_date": str(test_result_form.cleaned_data.get("test_date")),
-                            "test_result": "Negative" if (
-                                    test_result_form.cleaned_data.get("test_result") == '0') else "Positive",
+                            "test_result": result,
                             "test_file": file_path
                         }
                         ]
@@ -368,11 +375,18 @@ def test_report(request, user_id):
                     len(existing_results)
                 )
 
+                result = test_result_form.cleaned_data.get("test_result")
+                if result == '0':
+                    result = "Negative"
+                elif result == '1':
+                    result = "Positive"
+                elif result == '2':
+                    result = "Inconclusive"
+
                 new_result = {
                     "test_type": test_result_form.cleaned_data.get("test_type"),
                     "test_date": str(test_result_form.cleaned_data.get("test_date")),
-                    "test_result": "Negative" if (
-                            test_result_form.cleaned_data.get("test_result") == '0') else "Positive",
+                    "test_result": result,
                     "test_file": file_path
                 }
 
@@ -389,6 +403,8 @@ def test_report(request, user_id):
             elif test_result_form.cleaned_data.get("test_result") == '1':
                 patient_object.is_negative = False
                 patient_object.is_confirmed = True
+            elif test_result_form.cleaned_data.get("test_result") == '2':
+                patient_object.is_negative = False
             patient_object.save()
 
         messages.success(request, 'Your test report has been uploaded successfully.')
