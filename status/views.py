@@ -139,11 +139,12 @@ def patient_report_modal(request, user_id, date_updated):
             is_patient_flagged = flag and flag.is_active
 
             # Set the report to viewed when a doctor reads it
-            PatientSymptom.objects.filter(
-                Q(user_id=user_id)
-                & Q(date_updated__date=date_updated)
-                & ~Q(data=None)
-            ).update(is_viewed=True, is_reviewed=True)
+            if request.user.is_staff:
+                PatientSymptom.objects.filter(
+                    Q(user_id=user_id)
+                    & Q(date_updated__date=date_updated)
+                    & ~Q(data=None)
+                ).update(is_viewed=True, is_reviewed=True)
 
             patient_name = f"{report_symptom_list[0]['user__first_name']} {report_symptom_list[0]['user__last_name']}"
 
@@ -189,7 +190,10 @@ def create_patient_report(request):
     """
 
     current_user = request.user.id
-    report = PatientSymptom.objects.filter(user_id=current_user, due_date__date__lte=dt.datetime.now())
+    report = PatientSymptom.objects.filter(
+        user_id=current_user,
+        due_date__date=datetime.today().date(),
+    )
 
     # Ensure it was a post request
     if request.method == 'POST':
@@ -242,16 +246,14 @@ def edit_patient_report(request):
     if is_resubmit_requested:
         report = PatientSymptom.objects.filter(
             user_id=current_user_id,
-            due_date__date__lte=dt.datetime.now(),
-            due_date__date__gte=dt.date.today(),
+            due_date__date=datetime.today().date(),
             is_hidden=False,
             status=-2
         )
     else:
         report = PatientSymptom.objects.filter(
             Q(user_id=current_user_id)
-            & Q(due_date__date__lte=dt.datetime.now())
-            & Q(due_date__date__gte=dt.date.today())
+            & Q(due_date__date=datetime.today().date())
             & Q(is_hidden=False)
             & (Q(status=0) | Q(status=3))
         )

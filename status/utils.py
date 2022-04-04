@@ -90,7 +90,7 @@ def check_report_exist(user_id, date):
     @param date: date of the report
     @return: true if the report exists otherwise false
     """
-    patient_symptom = PatientSymptom.objects.all().filter(user_id=user_id, due_date__lte=date, data=None)
+    patient_symptom = PatientSymptom.objects.all().filter(user_id=user_id, due_date__date=date, data=None)
     return patient_symptom.exists()
 
 
@@ -100,7 +100,11 @@ def return_symptoms_for_today(user_id):
     @param user_id: user id
     @return: queryset of symptoms due today
     """
-    criteria = Q(user_id=user_id) & Q(due_date=datetime.combine(datetime.now(), time.max)) & Q(Q(data=None) | Q(status=-2))
+    criteria = (
+        Q(user_id=user_id)
+        & Q(due_date__date=datetime.today().date())
+        & (Q(data=None) | Q(status=-2))
+    )
     query = PatientSymptom.objects.select_related('symptom') \
         .filter(criteria) \
         .values('symptom_id', 'symptom__name', 'data', 'due_date')
@@ -113,8 +117,10 @@ def is_requested(user_id):
     @param user_id: the user id
     @return: true if yes or false otherwise
     """
-    criteria1 = Q(user_id=user_id) & Q(
-        due_date=datetime.combine(datetime.now(), time.max))
+    criteria1 = (
+        Q(user_id=user_id)
+        & Q(due_date__date=datetime.today().date())
+    )
     query = PatientSymptom.objects.filter(criteria1)
 
     requested_resubmit = False
@@ -142,7 +148,7 @@ def send_status_reminders(date=datetime.now(), current_date=datetime.now()):
     if current_hour < 18:
         return
 
-    statuses = PatientSymptom.objects.filter(data=None, due_date=datetime.combine(date, time.max))
+    statuses = PatientSymptom.objects.filter(data=None, due_date__date=datetime.today().date())
     my_due_date = datetime.combine(date, time.max)
 
     # get user ids for the patients that have status reports due on the day
