@@ -52,37 +52,67 @@
                 stripeClasses: [],
                 "orderClasses": false,
                 "columns": [
+                    {"data": "flagged"},
                     {"data": "user__first_name"},
+                    {"data": "user_id"},
+                    {"data": "unread"},
                     {"data": "date_updated__date"},
+                    {"data": "user__last_name"},
                     {
-                        defaultContent: '<span class="flex items-center justify-end">' +
-                            '<button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1 report-modal-link">' +
-                            '<span><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round"stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>' +
-                            '<span>View Report</span></button></span>'
+                        defaultContent: '<button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1 report-modal-link">' +
+                            '<span> <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round"stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' +
+                            '</span><span>View Report</span></button>'
                     },
                 ],
                 "columnDefs": [
-                    { // user__first_name user__last_name
+                    { // flagged
                         "targets": [0],
+                        "visible": false,
+                        "searchable": false,
+                         "render": function (data, type, row) {
+                             let is_active = row.flagged;
+                             if (typeof is_active != "boolean") {
+                                 return false;
+                             }
+                             return is_active;
+                        }
+                    },
+                    { // user__first_name
+                        "targets": [1],
                         "visible": true,
                         "searchable": true,
                         "render": function (data, type, row) {
                             return row.user__first_name + ' ' + row.user__last_name;
                         }
                     },
+                    { // user_id
+                        "targets": [2],
+                        "visible": false,
+                        "searchable": false
+                    },
+                    { // is_viewed
+                        "targets": [3],
+                        "visible": false,
+                        "searchable": false
+                    },
                     { // date_updated__date
-                        "targets": [1],
+                        "targets": [4],
                         "visible": true,
                         "searchable": true
                     },
-                    { // actions
-                        "targets": [2],
+                    { // user__last_name
+                        "targets": [5],
+                        "visible": false,
+                        "searchable": false
+                    },
+                    { // user__last_name
+                        "targets": [6],
                         "visible": true,
                         "searchable": false,
                         "bSortable": false,
                     },
                 ],
-                "order": [[1, "asc"], [0, "desc"]]
+                "order": [[3, "desc"], [0, "desc"], [4, "desc"]]
             });
             $('#toggleRead').change(function () {
                 $.fn.dataTable.ext.search.pop();
@@ -166,8 +196,12 @@
                        id="patient_reports_table">
                     <thead>
                     <tr class="border-b">
+                        <th class="p-2">flagged</th>
                         <th class="p-2">Patient Name</th>
+                        <th class="p-2">user_id</th>
+                        <th class="p-2">is_viewed</th>
                         <th class="p-2">Date</th>
+                        <th class="p-2">user__last_name</th>
                         <th class="p-2"></th>
                     </tr>
                     </thead>

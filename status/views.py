@@ -104,12 +104,12 @@ def patient_reports_table(request):
 
     reports = list(reports)
     for report in reports:
+        flag = get_flag(request.user, User.objects.get(id=report["user_id"]))
         report["unread"] = get_report_unread_status(report)
+        report["flagged"] = True if flag and flag.is_active else False
 
     # Serialize it in a JSON format for the datatable to parse
     serialized_reports = json.dumps({'data': reports}, cls=DjangoJSONEncoder, default=str)
-
-    print(serialized_reports)
 
     return HttpResponse(serialized_reports, content_type='application/json')
 

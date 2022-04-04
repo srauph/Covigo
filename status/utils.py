@@ -24,7 +24,6 @@ def get_reports_by_patient(patient_id):
         'is_viewed',
         'user__first_name',
         'user__last_name',
-        #'user__patients_assigned_flags__is_active'
     ).filter(criteria).annotate(total_entries=Count("*")).order_by('-date_updated__date')
 
     return reports
@@ -77,8 +76,8 @@ def get_reports_for_doctor(patient_ids):
         'is_viewed',
         'user__first_name',
         'user__last_name',
-        #'user__patients_assigned_flags__is_active',
     ).annotate(total_entries=Count("*"))
+
 
     return filtered_reports
 
@@ -206,5 +205,4 @@ def get_report_unread_status(criteria):
         is_viewed=criteria['is_viewed'],
         user__first_name=criteria['user__first_name'],
         user__last_name=criteria['user__last_name'],
-        #user__patients_assigned_flags__is_active=criteria['user__patients_assigned_flags__is_active']
     ).exists()
