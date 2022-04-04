@@ -1,6 +1,7 @@
 {% extends "Covigo/base.html" %}
 
 {% block styles %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
     <link rel="stylesheet" type="text/css"
           href="https://cdn.datatables.net/rowreorder/1.2.8/css/rowReorder.dataTables.min.css">
@@ -25,6 +26,7 @@
 {% endblock %}
 
 {% block script %}
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.js"></script>
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript"
@@ -50,10 +52,16 @@
                     {"data": "test_type"},
                     {"data": "test_date"},
                     {"data": "test_result"},
-                    {
-                        defaultContent: '<a href = {% url 'status:download_test_file' user_id test_index %}><button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1 report-modal-link">' +
-                            '<span> <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round"stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' +
-                            '</span><span>View File</span></button></a>'
+                    {"data":"test_file",
+                        "render": function (data,type,full,meta){
+                            let url = '{% url 'status:download_test_file' user_id 999 %}'
+                            let test_index = full.test_file.split("/")[2]
+                            url = url.replace(999, test_index);
+                            console.log("index : " + test_index + " url : " + url)
+                            return '<a href="' + url + '"><button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1 report-modal-link">' +
+                                '<span> <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round"stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' +
+                                '</span><span>View File</span></button></a>'
+                        }
                     },
                 ],
                 "columnDefs": [
@@ -86,6 +94,13 @@
                 "order": [2, "desc"]
             });
         });
+    </script>
+        <script>
+        Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
+            x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
+        }
+        )
+        );
     </script>
 {% endblock %}
 {% block content %}

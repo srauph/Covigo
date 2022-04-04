@@ -321,15 +321,12 @@ def resubmit_request(request, patient_symptom_id):
 def test_result(request, user_id):
     results = Patient.objects.get(user_id=user_id).test_results
     existing_results = []
-    test_index = 0
     if results is not None:
         existing_results = results["all_results"]
-        test_index = len(existing_results) - 1
 
     return render(request, 'status/test_results.html', {
         'user_id': user_id,
-        'existing_results': existing_results,
-        'test_index': test_index
+        'existing_results': existing_results
     })
 
 
@@ -337,7 +334,6 @@ def test_result(request, user_id):
 @never_cache
 def test_report(request, user_id):
     patient_object = Patient.objects.get(user_id=user_id)
-    test_index = 0
 
     if request.method == 'POST':
         test_result_form = TestResultForm(request.POST, request.FILES)
@@ -365,7 +361,6 @@ def test_report(request, user_id):
                 # if the patient has uploaded a test report before, append the new test data to the existing json
                 # that holds previous test report data
                 existing_results = patient_object.test_results["all_results"]
-                test_index = len(existing_results) - 1
 
                 file_path = write_test_result_file(
                     test_result_form.cleaned_data.get("test_file"),
@@ -434,7 +429,6 @@ def download_test_file(request, user_id, test_index):
     @param user_id: the user ID of the patient that uploaded the test report
     @param test_index: the index of the test report
     """
-    print(user_id, test_index)
     file_path = get_test_result_file_path(user_id, test_index).iterdir()
     for entry in file_path:
         if os.path.exists(entry):
