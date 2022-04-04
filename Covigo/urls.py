@@ -36,7 +36,7 @@ urlpatterns = [
          name='read_notification'),
     path('toggle_read_notification/<int:message_group_id>/', toggle_read_notification,
          name='toggle_read_notification'),
-    path('help', manager.views.help_page, name='help'),
+    path('help/', manager.views.help_page, name='help'),
 
 ]
 
