@@ -59,22 +59,29 @@
                     {"data": "date_updated__date"},
                     {"data": "user__last_name"},
                     {
-                        defaultContent: '<button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1 report-modal-link">' +
+                        defaultContent: '<span class="flex items-center justify-end">' +
+                            '<button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1 report-modal-link">' +
                             '<span> <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round"stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' +
-                            '</span><span>View Report</span></button>'
+                            '</span><span>View Report</span></button></span>'
                     },
                 ],
                 "columnDefs": [
                     { // flagged
                         "targets": [0],
-                        "visible": false,
+                        "visible": true,
                         "searchable": false,
-                         "render": function (data, type, row) {
-                             let is_active = row.flagged;
-                             if (typeof is_active != "boolean") {
-                                 return false;
-                             }
-                             return is_active;
+                        "render": function (data, type, row) {
+                            let is_active = row.flagged;
+                            if (typeof is_active != "boolean") {
+                                return false;
+                            }
+                            if (is_active) {
+                                return '<span class="flex items-center justify-center text-orange-400">' +
+                                '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">' +
+                                '<path stroke-linecap="round" stroke-linejoin="round" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9">' +
+                                '</path></svg></span>'
+                            }
+                            return null;
                         }
                     },
                     { // user__first_name
@@ -196,7 +203,7 @@
                        id="patient_reports_table">
                     <thead>
                     <tr class="border-b">
-                        <th class="p-2">flagged</th>
+                        <th class="p-2 w-2">Flag</th>
                         <th class="p-2">Patient Name</th>
                         <th class="p-2">user_id</th>
                         <th class="p-2">is_viewed</th>

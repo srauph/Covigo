@@ -201,11 +201,18 @@
                                 <td class="text-center p-2 render-correct-date">{{ r.date_updated__date|date:'Y-m-d' }}</td>
                                 <td class="text-center p-2">{% if r.unread %}No{% else %}Yes{% endif %}</td>
                                 <td class="text-center p-2">
-                                    <a href="{% url "status:edit_status_report" %}">
-                                        <button class="report-modal-link bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md">
-                                            View Report
-                                        </button>
-                                    </a>
+                                    <span class="flex items-center justify-end">
+                                        <a href="{% url "status:edit_status_report" %}">
+                                            <button class="report-modal-link bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                                                <span>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                    </svg>
+                                                </span>
+                                                View Report
+                                            </button>
+                                        </a>
+                                    </span>
                                 </td>
                             </tr>
                         {% endfor %}
