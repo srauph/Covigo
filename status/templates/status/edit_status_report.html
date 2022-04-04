@@ -16,7 +16,7 @@
                         <label> {{ r.symptom.name }}:</label>
                         <input type="hidden" name="data[id][]" value="{{ r.id }}">
                         <br>
-                        <input type=text id='foo' name=data[data][]
+                        <input type=text id='foo' name=data[data][] value="{{ r.data }}"
                                class="h-8 px-2 bg-slate-100 rounded-md border border-slate-400 border p-1">
                         <br>
                         <label>Symptom Description: {{ r.symptom.description }}</label>

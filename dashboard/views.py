@@ -9,7 +9,7 @@ from accounts.models import Staff
 from appointments.models import Appointment
 from dashboard.utils import fetch_data_from_file, extract_daily_data
 from messaging.models import MessageGroup
-from status.utils import return_symptoms_for_today, is_requested
+from status.utils import return_symptoms_for_today, is_requested, get_reports_by_patient, get_report_unread_status
 
 
 @login_required
@@ -21,18 +21,19 @@ def index(request):
     appointments = fetch_appointments_info(user)
 
     if user.is_staff:
-        recent_status_updates = []
         if not user.is_superuser and user.has_perm("accounts.is_doctor"):
             assigned_patients = user.staff.get_assigned_patient_users()
+            status_updates = fetch_status_updates_info(user)
         else:
             assigned_patients = []
+            status_updates = []
 
         covigo_case_data = fetch_data_from_all_files()
 
         return render(request, 'dashboard/index.html', {
             "messages": messages,
             "appointments": appointments,
-            "recent_status_updates": recent_status_updates,
+            "status_updates": status_updates,
             "assigned_patients": assigned_patients,
             "covigo_case_data": covigo_case_data,
         })
@@ -132,6 +133,24 @@ def fetch_status_reminder_info(user):
     return {
         "is_reporting_today": patient_symptoms.exists(),
         "is_resubmit_requested": is_resubmit_requested,
+    }
+
+
+def fetch_status_updates_info(user):
+    reports_list = []
+    unread_count = 0
+
+    for patient in user.staff.get_assigned_patient_users():
+        report_set = get_reports_by_patient(patient.id)
+
+        for report in report_set:
+            if get_report_unread_status(report):
+                unread_count += 1
+        reports_list.append(report_set)
+
+    return {
+        "reports_list": reports_list,
+        "unread_count": unread_count,
     }
 
 

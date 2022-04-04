@@ -73,7 +73,9 @@
                 {% endif %}
 
             {% else %}
-                {# {% include './cards/recent-status.html' %} #}
+                {% if perms.accounts.is_doctor and not user.is_superuser %}
+                    {% include './cards/status-updates.html' %}
+                {% endif %}
                 {% if perms.accounts.is_doctor and not user.is_superuser %}
                     {% include './cards/my-patients.html' %}
                 {% endif %}

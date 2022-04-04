@@ -37,8 +37,8 @@
             let table = $('#patient_reports_table').DataTable({
                 "ajax": "{% url 'status:patient_reports_table' %}",
                 createdRow: function (row, data, index) {
-                    $(row).attr('data-read', data.is_viewed)
-                    if (data.is_viewed === false) {
+                    $(row).attr('data-read', !data.unread)
+                    if (data.unread) {
                         $(row).addClass('font-semibold border-b')
                     } else {
                         $(row).addClass('border-b')

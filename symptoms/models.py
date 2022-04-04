@@ -34,6 +34,7 @@ class PatientSymptom(models.Model):
     status = models.IntegerField(default=0, null=True)
     is_hidden = models.BooleanField(default=False)
     is_viewed = models.BooleanField(default=False)
+    is_reviewed = models.BooleanField(default=False)
     due_date = models.DateTimeField(blank=True, null=True)
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)

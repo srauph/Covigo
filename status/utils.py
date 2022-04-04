@@ -1,6 +1,6 @@
 from datetime import time
 
-from django.db.models import Q, Count
+from django.db.models import Q, Count, When, Value
 from django.utils.datetime_safe import datetime
 
 from Covigo.messages import Messages
@@ -18,10 +18,15 @@ def get_reports_by_patient(patient_id):
     """
     criteria = Q(user_id=patient_id) & ~Q(data=None) & (Q(status=0) | Q(status=3))
 
-    reports = PatientSymptom.objects.values('date_updated__date', 'user_id', 'is_viewed',
-                                            'user__first_name', 'user__last_name',
-                                            'user__patients_assigned_flags__is_active').filter(criteria).annotate(
-        total_entries=Count("*")).order_by('-date_updated__date')
+    reports = PatientSymptom.objects.values(
+        'date_updated__date',
+        'user_id',
+        'is_viewed',
+        'user__first_name',
+        'user__last_name',
+        'user__patients_assigned_flags__is_active'
+    ).filter(criteria).annotate(total_entries=Count("*")).order_by('-date_updated__date')
+
     return reports
 
 
@@ -38,12 +43,22 @@ def get_patient_report_information(patient_id, user, date_updated):
     criteria = Q(user_id=patient_id) & ~Q(data=None) & Q(date_updated__date=date_updated) & Q(is_hidden=False)
     # Ensure staff can view all submitted updates
     if user.is_staff:
-        criteria = Q(user_id=patient_id) & ~Q(data=None) & Q(date_updated__date=date_updated)
+        criteria = Q(user_id=patient_id) & ~Q(data=None) & ~Q(status=-2) & Q(date_updated__date=date_updated)
 
-    reports = PatientSymptom.objects.values('user__first_name', 'user__last_name', 'symptom_id',
-                                            'data', 'is_viewed',
-                                            'symptom__name', 'id', 'date_updated', 'status', 'due_date').filter(
-        criteria)
+    reports = PatientSymptom.objects.values(
+        'user__first_name',
+        'user__last_name',
+        'symptom_id',
+        'data',
+        'is_viewed',
+        'is_reviewed',
+        'symptom__name',
+        'id',
+        'date_updated',
+        'status',
+        'due_date'
+    ).filter(criteria)
+
     return reports
 
 
@@ -54,14 +69,18 @@ def get_reports_for_doctor(patient_ids):
     @param patient_ids: list of doctor patient ids
     @return: queryset of reports
     """
-    criteria = Q(user_id__in=patient_ids) & ~Q(data=None)
+    criteria = Q(user_id__in=patient_ids) & ~Q(data=None) & ~Q(status=-2)
 
-    reports = PatientSymptom.objects.values('date_updated__date', 'user_id', 'is_viewed',
-                                            'user__first_name', 'user__last_name',
-                                            'user__patients_assigned_flags__is_active').filter(criteria).annotate(
-        total_entries=Count("*"))
+    filtered_reports = PatientSymptom.objects.filter(criteria).values(
+        'date_updated__date',
+        'user_id',
+        'is_viewed',
+        'user__first_name',
+        'user__last_name',
+        'user__patients_assigned_flags__is_active',
+    ).annotate(total_entries=Count("*"))
 
-    return reports
+    return filtered_reports
 
 
 def check_report_exist(user_id, date):
@@ -81,7 +100,7 @@ def return_symptoms_for_today(user_id):
     @param user_id: user id
     @return: queryset of symptoms due today
     """
-    criteria = Q(user_id=user_id) & Q(due_date=datetime.combine(datetime.now(), time.max)) & Q(data=None)
+    criteria = Q(user_id=user_id) & Q(due_date=datetime.combine(datetime.now(), time.max)) & Q(Q(data=None) | Q(status=-2))
     query = PatientSymptom.objects.select_related('symptom') \
         .filter(criteria) \
         .values('symptom_id', 'symptom__name', 'data', 'due_date')
@@ -169,3 +188,17 @@ def send_status_reminders(date=datetime.now(), current_date=datetime.now()):
         # send email/sms to user concerning the symptoms they need to update
         send_system_message_to_user(selected_user, template=template, c=c)
         symptoms.clear()
+
+
+def get_report_unread_status(criteria):
+    unread_criteria = Q(is_reviewed=False) | Q(is_viewed=False)
+
+    return PatientSymptom.objects.filter(
+        unread_criteria,
+        date_updated__date=criteria['date_updated__date'],
+        user_id=criteria['user_id'],
+        is_viewed=criteria['is_viewed'],
+        user__first_name=criteria['user__first_name'],
+        user__last_name=criteria['user__last_name'],
+        user__patients_assigned_flags__is_active=criteria['user__patients_assigned_flags__is_active']
+    ).exists()

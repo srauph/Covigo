@@ -241,9 +241,8 @@
                                         {% endif %}
                                     </div>
 
-
                                     <div class="flex flex-col gap-1">
-                                        {% if perms_message_doctor %}
+                                        {% if perms_message_doctor and assigned_staff %}
                                             <a href="{% url 'messaging:compose_message' assigned_staff.id %}">
                                                 <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                                                     <span>

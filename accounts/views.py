@@ -377,35 +377,44 @@ def profile(request, user_id):
             assigned_staff_patient_count = user.patient.assigned_staff.get_assigned_patient_users().count()
         except AttributeError:
             assigned_staff_patient_count = 0
-        assigned_flags = Flag.objects.filter(patient=user)
+
+        assigned_flags = Flag.objects.filter(patient=user, is_active=True)
 
         all_doctors = User.objects.with_perm("accounts.is_doctor").exclude(is_superuser=True)
 
         perms_code = (
-                user == request.user and request.user.has_perm("accounts.view_own_code")
-                or request.user.has_perm("accounts.view_patient_code")
-                or request.user.has_perm(
-            "accounts.view_assigned_code") and user in request.user.staff.get_assigned_patient_users()
+            user == request.user and request.user.has_perm("accounts.view_own_code")
+            or request.user.has_perm("accounts.view_patient_code")
+            or (
+                request.user.has_perm("accounts.view_assigned_code")
+                and user in request.user.staff.get_assigned_patient_users()
+            )
         )
 
         perms_negative = (
-                user == request.user
-                or request.user.has_perm("accounts.view_patient_case")
-                or request.user.has_perm(
-            "accounts.view_assigned_case") and user in request.user.staff.get_assigned_patient_users()
+            user == request.user
+            or request.user.has_perm("accounts.view_patient_case")
+            or (
+                request.user.has_perm("accounts.view_assigned_case")
+                and user in request.user.staff.get_assigned_patient_users()
+            )
         )
 
         perms_quarantine = (
-                user == request.user
-                or request.user.has_perm("accounts.view_patient_quarantine")
-                or request.user.has_perm(
-            "accounts.view_assigned_quarantine") and user in request.user.staff.get_assigned_patient_users()
+            user == request.user
+            or request.user.has_perm("accounts.view_patient_quarantine")
+            or (
+                request.user.has_perm("accounts.view_assigned_quarantine")
+                and user in request.user.staff.get_assigned_patient_users()
+            )
         )
 
         perms_test_report = (
-                request.user.has_perm("accounts.view_patient_test_report")
-                or request.user.has_perm(
-            "accounts.view_assigned_test_report") and user in request.user.staff.get_assigned_patient_users()
+            request.user.has_perm("accounts.view_patient_test_report")
+            or (
+                request.user.has_perm("accounts.view_assigned_test_report")
+                and user in request.user.staff.get_assigned_patient_users()
+            )
         )
 
         perms_assigned_doctor = (
@@ -420,30 +429,33 @@ def profile(request, user_id):
         )
 
         perms_message_doctor = (
-                not user.is_staff and request.user != user.patient.get_assigned_staff_user() and (
+            not user.is_staff and request.user != user.patient.get_assigned_staff_user() and (
                 request.user.has_perm("accounts.message_doctor")
                 or request.user.has_perm("accounts.message_user")
-        )
+            )
         )
 
         perms_assign_symptoms = (
-                not user.is_staff and (
+            not user.is_staff and (
                 request.user.has_perm("accounts.assign_symptom_patient")
                 or request.user.has_perm(
-            "accounts.assign_symptom_assigned") and user in request.user.staff.get_assigned_patient_users()
-        )
+                "accounts.assign_symptom_assigned") and user in request.user.staff.get_assigned_patient_users()
+            )
         )
 
         perms_edit_case = (
-                not user.is_staff and (
+            not user.is_staff and (
                 request.user.has_perm("accounts.set_patient_case")
                 or request.user.has_perm("accounts.set_patient_quarantine")
-                or request.user.has_perm(
-            "accounts.is_doctor") and user in request.user.staff.get_assigned_patient_users() and (
+                or (
+                    request.user.has_perm("accounts.is_doctor")
+                    and user in request.user.staff.get_assigned_patient_users()
+                    and (
                         request.user.has_perm("accounts.set_assigned_case")
                         or request.user.has_perm("accounts.set_assigned_quarantine")
+                    )
                 )
-        )
+            )
         )
 
         return render(request, 'accounts/profile.html', {
@@ -477,7 +489,7 @@ def profile(request, user_id):
         appointments = Appointment.objects.filter(staff=user).filter(all_filter).order_by("start_date")
         appointments_truncated = appointments[:4]
         assigned_patients = [] if user.is_superuser else user.staff.get_assigned_patient_users()
-        issued_flags = Flag.objects.filter(staff=user)
+        issued_flags = Flag.objects.filter(staff=user, is_active=True)
 
         return render(request, 'accounts/profile.html', {
             "usr": user,
@@ -504,12 +516,20 @@ def profile_from_code(request, code):
 @login_required
 @never_cache
 def list_users(request):
+    if request.user.has_perm("accounts.view_flagged_user_list"):
+        flagged_filter = Q(request.user.staffs_created_flags.values("patient_id"))
+    else:
+        flagged_filter = Q()
+
     if request.user.has_perm("accounts.view_user_list"):
         users = User.objects.all()
     elif request.user.has_perm("accounts.view_patient_list"):
-        users = User.objects.all().filter(is_staff=False)
+        users = User.objects.filter(is_staff=False)
     elif request.user.has_perm("accounts.view_assigned_list"):
-        users = request.user.staff.get_assigned_patient_users()
+        assigned_filter = Q(patient__in=request.user.staff.assigned_patients.all())
+        users = User.objects.filter(flagged_filter | assigned_filter)
+    elif request.user.has_perm("accounts.view_flagged_user_list"):
+        users = User.objects.filter(flagged_filter)
     else:
         raise PermissionDenied
 

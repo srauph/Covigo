@@ -81,6 +81,7 @@ class Staff(models.Model):
             ("view_assigned_list", "Can view their assigned patients in Accounts page"),
             ("view_patient_list", "Can view all patients in Accounts page"),
             ("view_user_list", "Can view all users in the Accounts page"),
+            ("view_flagged_user_list", "Can view flagged users in the Accounts page"),
             ("manage_contact_tracing", "Can access the contact tracing management page"),
             ("manage_case_data", "Can access the case data management page"),
             # ("request_resubmission", "Can request that a patient resubmit their status report"),
@@ -178,6 +179,7 @@ class Flag(models.Model):
 
     def __str__(self):
         return f"{self.patient}_flaggedby_{self.staff}"
+
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
