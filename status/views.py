@@ -260,11 +260,20 @@ def edit_patient_report(request):
 
     # Ensure it was a post request
     if request.method == 'POST':
+        print(is_resubmit_requested)
         report_data = request.POST.getlist('data[id][]')
+        print(report_data)
         data = request.POST.getlist('data[data][]')
         i = 0
         for s in report_data:
             symptom = PatientSymptom.objects.filter(Q(id=int(s)))
+            if symptom.get().status == -1:
+                messages.error(request, 'Edited an invalidated symptom: Please refresh your page to ensure you are seeing the latest symptom information.')
+                return redirect('status:index')
+
+        for s in report_data:
+            symptom = PatientSymptom.objects.filter(Q(id=int(s)))
+
 
             # check if user updated the symptom
             if data[i] != '':
@@ -309,8 +318,14 @@ def edit_patient_report(request):
 
 
 def resubmit_request(request, patient_symptom_id):
-    # Hide the old symptom
     symptom = PatientSymptom.objects.filter(id=int(patient_symptom_id)).get()
+
+    # Show an error to the doctor if he tries to request a resubmission on old data
+    if symptom.status in (-1, -2, -3):
+        messages.error(request, 'Requested resubmission on an invalidated symptom: Please refresh your page to ensure you are seeing the latest symptom information.')
+        return redirect('status:patient_reports')
+
+    # Hide the old symptom
     symptom.status = -1
     symptom.is_hidden = True
     symptom.save()

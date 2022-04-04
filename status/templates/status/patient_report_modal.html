@@ -12,7 +12,17 @@
                 "orderClasses": false,
                 "columns": [
                     {"data": "symptom__name"},
-                    {"data": "data"},
+                    {
+                        "data": "data",
+                        "render": function (data, type, full, meta) {
+                            let status = full.status
+                            if (status == -2) {
+                                return "";
+                            } else {
+                                return data;
+                            }
+                        }
+                    },
                     {
                         "data": "date_updated",
                         "render": function (data, type, full, meta) {
@@ -75,7 +85,23 @@
                                             '</a></span>'
                                 }
                             } else {
-                                return '<span class="bg-gray-600 text-white px-2 py-1 rounded-md  items-left gap-1">Old data</span>'
+                                if (status == -1) {
+                                    return '<span class="flex justify-center">' +
+                                        '<span class="bg-gray-600 text-white px-2 py-1 rounded-md flex items-center justify-center gap-1">' +
+                                        'Invalidated by doctor</span></span>'
+                                } else if (status == -2) {
+                                    return '<span class="flex justify-center">' +
+                                        '<span class="bg-gray-600 text-white px-2 py-1 rounded-md flex items-center justify-center gap-1">' +
+                                        'Awaiting Resubmission</span></span>'
+                                } else if (status == -3) {
+                                    return '<span class="flex justify-center">' +
+                                        '<span class="bg-gray-600 text-white px-2 py-1 rounded-md flex items-center justify-center gap-1">' +
+                                        'Invalidated by patient</span></span>'
+                                } else {
+                                    return '<span class="flex justify-center">' +
+                                        '<span class="bg-gray-600 text-white px-2 py-1 rounded-md flex items-center justify-center gap-1">' +
+                                        'Old data</span></span>'
+                                }
                             }
                         },
                     }

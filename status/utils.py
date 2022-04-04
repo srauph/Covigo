@@ -42,7 +42,7 @@ def get_patient_report_information(patient_id, user, date_updated):
     criteria = Q(user_id=patient_id) & ~Q(data=None) & Q(date_updated__date=date_updated) & Q(is_hidden=False)
     # Ensure staff can view all submitted updates
     if user.is_staff:
-        criteria = Q(user_id=patient_id) & ~Q(data=None) & ~Q(status=-2) & Q(date_updated__date=date_updated)
+        criteria = Q(user_id=patient_id) & ~Q(data=None) & Q(date_updated__date=date_updated)
 
     reports = PatientSymptom.objects.values(
         'user__first_name',
