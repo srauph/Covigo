@@ -362,7 +362,6 @@ def resubmit_request(request, patient_symptom_id):
     symptom = PatientSymptom.objects.filter(id=int(patient_symptom_id)).get()
 
     # Show an error to the doctor if he tries to request a resubmission on old data
-    print(symptom.due_date.date)
     if symptom.status in (-1, -2, -3):
         messages.error(request, 'Requested resubmission on an invalidated symptom: Please refresh your page to ensure you are seeing the latest symptom information.')
         return redirect('status:patient_reports')

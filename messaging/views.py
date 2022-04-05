@@ -78,7 +78,6 @@ def view_message(request, message_group_id):
         encryption.load_keys()
 
         for message in filtered_messages:
-            print(message.content)
             message.content = encryption.decrypt(message.content)
 
         # Check if we are author or recipient
@@ -101,20 +100,18 @@ def view_message(request, message_group_id):
                 new_reply.message = message_group
                 new_reply.author = current_user
                 new_reply.recipient = User.objects.get(id=message_group.recipient.id)
+
                 content = reply_form.data.get('content')
                 encrypted_message = encryption.encrypt(content)
-                print(encrypted_message)
                 new_reply.content = encrypted_message
+
                 # Save to db
                 new_reply.save()
+
                 if User.objects.get(id=new_reply.author.id).is_staff:
                     patient = new_reply.recipient
                     doctor = new_reply.author
                     template = Messages.MESSAGE_REPLY.value
-                    c_doctor = {
-                        "other_person": patient,
-                        "is_doctor": True
-                    }
                     c_patient = {
                         "other_person": doctor,
                         "is_doctor": False
@@ -127,10 +124,6 @@ def view_message(request, message_group_id):
                     c_doctor = {
                         "other_person": patient,
                         "is_doctor": True
-                    }
-                    c_patient = {
-                        "other_person": doctor,
-                        "is_doctor": False
                     }
                     send_system_message_to_user(doctor, template=template, c=c_doctor)
 
@@ -234,10 +227,6 @@ def compose_message(request, user_id):
                         message=new_msg_group,
                         content=encrypted_message,
                     )
-                    c_doctor = {
-                        "other_person": patient,
-                        "is_doctor": True
-                    }
                     c_patient = {
                         "other_person": doctor,
                         "is_doctor": False
@@ -257,10 +246,6 @@ def compose_message(request, user_id):
                     c_doctor = {
                         "other_person": patient,
                         "is_doctor": True
-                    }
-                    c_patient = {
-                        "other_person": doctor,
-                        "is_doctor": False
                     }
                     send_system_message_to_user(doctor, template=template, c=c_doctor)
 

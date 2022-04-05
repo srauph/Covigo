@@ -39,7 +39,6 @@ class RSAEncryption:
         self.key_location = key_location
         self.public_key_location = self.key_location/"publicKey.pem"
         self.private_key_location = self.key_location/"privateKey.pem"
-        print("init")
 
     def generate_keys(self):
         (self.public_key, self.private_key) = rsa.newkeys(1024)

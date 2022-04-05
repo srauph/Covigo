@@ -1,12 +1,17 @@
 from django.contrib.auth.models import User
 from django.test import TestCase, Client, RequestFactory
+
+from Covigo.settings import ENCRYPTION_KEY_DIRECTORY
 from messaging.models import MessageGroup, MessageContent
+from messaging.utils import RSAEncryption
 from messaging.views import toggle_read
 
 
 class MessagingViewReplyTests(TestCase):
-
     def setUp(self):
+        self.encryption = RSAEncryption(ENCRYPTION_KEY_DIRECTORY)
+        self.encryption.load_keys()
+
         user_1 = User.objects.create(id=1, username="bob", is_staff=True)
         user_1.set_password('secret')
         user_1.save()
@@ -22,10 +27,15 @@ class MessagingViewReplyTests(TestCase):
 
         msg_group_1 = MessageGroup.objects.create(id=1, author=user_1, recipient=doctor_1,
                                                   title="Question about my fever", type=0)
+
+        self.encrypted_message_1 = self.encryption.encrypt("Hello doctor, I have a question about my fever")
+        self.encrypted_message_2 = self.encryption.encrypt("Hi Bob, what seems to be the problem?")
+
         MessageContent.objects.create(message=msg_group_1, author=user_1,
-                                      content="Hello doctor, I have a question about my fever", id=1)
+                                      content=self.encrypted_message_1, id=1)
         MessageContent.objects.create(message=msg_group_1, author=doctor_1,
-                                      content="Hi Bob, what seems to be the problem?", id=2)
+                                      content=self.encrypted_message_2, id=2)
+
 
     def test_view_message_page_success(self):
         """
@@ -51,6 +61,7 @@ class MessagingViewReplyTests(TestCase):
         # Assert
         self.assertTemplateNotUsed(response, 'messaging/view_message.html')
 
+
     def test_reply_message(self):
         """
         Checks if user can reply to a message
@@ -62,10 +73,11 @@ class MessagingViewReplyTests(TestCase):
             'content': 'Another message reply!!!'
         })
 
-        msg_content = MessageContent.objects.filter(author=self.user).order_by('-date_created').first()
+        msg_content = MessageContent.objects.filter(author=self.user).last()
 
         # Assert
-        self.assertEqual(msg_content.content, 'Another message reply!!!')
+        self.assertEqual(self.encryption.decrypt(msg_content.content), 'Another message reply!!!')
+
 
     def test_seen_recipient(self):
         """
@@ -82,8 +94,9 @@ class MessagingViewReplyTests(TestCase):
 
         # Act
         # Send a message to doctor_1
+        new_content = self.encryption.encrypt("I have a fever of 100 degrees")
         MessageContent.objects.create(message=msg_group_1, author=user_1,
-                                      content="I have a fever of 100 degrees")
+                                      content=new_content)
 
         # Assert
         # Check if doctor has seen the new message
@@ -130,7 +143,7 @@ class MessagingListTests(TestCase):
         """
 
         # Arrange & Act
-        response = self.client.get('/messaging/list/1')
+        response = self.client.get('/messaging/list/1/')
 
         # Assert
         self.assertTemplateUsed(response, 'messaging/list_messages.html')
@@ -183,7 +196,7 @@ class MessagingComposeTest(TestCase):
 
         # Arrange & Act
         # User tries to message self by entering their id in the url
-        response = self.client.get('/messaging/compose/1')
+        response = self.client.get('/messaging/compose/1/')
 
         # Assert
         # Based on the current permissions put in place, the user should not be able to
@@ -203,7 +216,7 @@ class MessagingComposeTest(TestCase):
 
         # Act
         # Submit the form
-        response = self.client.post('/messaging/compose/2', message_group_data)
+        response = self.client.post('/messaging/compose/2/', message_group_data)
 
         # Fetch the newly created MessageGroup object after submitting form
         msg_group = MessageGroup.objects.filter(title='Question about fever').first()
@@ -212,4 +225,4 @@ class MessagingComposeTest(TestCase):
         self.assertEqual(msg_group.title, 'Question about fever')
 
         # Check redirect
-        self.assertRedirects(response, '/messaging/list/1')
+        self.assertRedirects(response, '/messaging/list/1/')

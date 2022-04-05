@@ -900,7 +900,7 @@ class EditGroupTests(TestCase):
         self.assertEqual(new_group_name, Group.objects.last().name)
         self.assertSetEqual(expected_permissions_set, set(Group.objects.last().permissions.all()))
 
-    @skip
+
     def test_edit_group_to_existing_perms_successfully(self):
         """
         Test that editing a group to have permissions identical to another group works
