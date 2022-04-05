@@ -67,7 +67,7 @@
             $j("time.timeago").timeago();
         });
         $j(document).ready(function () {
-            //initialize();
+            initialize();
 
             //Open and close the notification dropdown
             $j('#notification-icon').click(function () {
@@ -82,7 +82,7 @@
         });
 
         function refreshNotifications() {
-            //initialize();
+            initialize();
             //refresh notifications every 15 seconds
             setTimeout(refreshNotifications, 15000);
         }

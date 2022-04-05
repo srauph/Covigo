@@ -60,8 +60,8 @@ def view_message(request, message_group_id):
         filter2 |= Q(author_id__in=my_patients) | Q(recipient_id__in=my_patients)
     except:
         pass
-    #filter3 = Q(type=0)
-    if MessageGroup.objects.filter(filter1 & filter2):
+    filter3 = Q(type=0)
+    if MessageGroup.objects.filter(filter1 & filter2 & filter3):
 
         message_group = MessageGroup.objects.get(filter1)
 
