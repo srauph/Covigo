@@ -1,0 +1,16 @@
+<div class="w-full flex flex-wrap h-96">
+    <div class="w-1/2 h-full flex flex-col p-4 group rounded-lg bg-white shadow">
+        {% block card2p1 %}
+            {{ content }}
+        {% endblock %}
+    </div>
+
+
+    <div class="w-1/2 pl-4">
+        <div class="w-full h-full flex flex-col p-4 group rounded-lg bg-white shadow">
+            {% block card2p2 %}
+                {{ content }}
+            {% endblock %}
+        </div>
+    </div>
+</div>
