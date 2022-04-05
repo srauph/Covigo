@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db import connection
 from django.db.models import Q
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
@@ -15,6 +16,9 @@ from django.views.decorators.cache import never_cache
 
 from accounts.models import Flag, Staff, Patient
 from accounts.utils import get_assigned_staff_id_by_patient_id
+import datetime
+from accounts.models import Flag, Staff
+from accounts.utils import get_assigned_staff_id_by_patient_id, dictfetchall
 from messaging.utils import send_notification
 from status.forms import TestResultForm
 from status.utils import (
@@ -185,51 +189,54 @@ def create_patient_report(request):
     """
 
     current_user = request.user.id
-    report = PatientSymptom.objects.filter(user_id=current_user, due_date__date__lte=dt.datetime.now(), is_hidden=False)
+    if request.user.has_perm('accounts.is_doctor'):
+        report = PatientSymptom.objects.filter(user_id=current_user, due_date__date__lte=dt.datetime.now(),
+                                               is_hidden=False)
+        # Ensure it was a post request
+        if request.method == 'POST':
+            report_data = request.POST.getlist('data[id][]')
+            data = request.POST.getlist('data[data][]')
 
-    # Ensure it was a post request
-    if request.method == 'POST':
-        report_data = request.POST.getlist('data[id][]')
-        data = request.POST.getlist('data[data][]')
+            for submitted_data in data:
+                if submitted_data == "":
+                    messages.error(request,
+                                   'Missing information in the status report: Please make sure you have filled all the fields in the status report.')
+                    return render(request, 'status/create_status_report.html', {
+                        'report': report
+                    })
+                    break
 
-        for submitted_data in data:
-            if submitted_data == "":
-                messages.error(request,
-                               'Missing information in the status report: Please make sure you have filled all the fields in the status report.')
-                return render(request, 'status/create_status_report.html', {
-                    'report': report
-                })
-                break
+            i = 0
+            for s in report_data:
+                symptom = PatientSymptom.objects.filter(id=int(s)).get()
+                symptom.data = data[i]
+                # checking type of device
+                if request.user_agent.is_mobile:
+                    # mobile is blank since it automatically adds it to browser family
+                    user_agent_type = ''
+                if request.user_agent.is_tablet:
+                    user_agent_type = 'tablet'
+                if request.user_agent.is_pc:
+                    user_agent_type = 'pc'
+                symptom.user_agent = request.user_agent.browser.family + ', ' + user_agent_type
+                symptom.save()
+                i = i + 1
 
-        i = 0
-        for s in report_data:
-            symptom = PatientSymptom.objects.filter(id=int(s)).get()
-            symptom.data = data[i]
-            # checking type of device
-            if request.user_agent.is_mobile:
-                # mobile is blank since it automatically adds it to browser family
-                user_agent_type = ''
-            if request.user_agent.is_tablet:
-                user_agent_type = 'tablet'
-            if request.user_agent.is_pc:
-                user_agent_type = 'pc'
-            symptom.user_agent = request.user_agent.browser.family + ', ' + user_agent_type
-            symptom.save()
-            i = i + 1
+            # SEND NOTIFICATION TO DOCTOR
+            staff_id = get_assigned_staff_id_by_patient_id(current_user)
+            doctor_id = Staff.objects.filter(id=staff_id).first().user_id
+            # Create href for notification redirection
+            href = reverse('status:patient_reports')
+            send_notification(current_user, doctor_id,
+                              'New patient report from ' + request.user.first_name + " " + request.user.last_name,
+                              href=href)
 
-        # SEND NOTIFICATION TO DOCTOR
-        staff_id = get_assigned_staff_id_by_patient_id(current_user)
-        doctor_id = Staff.objects.filter(id=staff_id).first().user_id
-        # Create href for notification redirection
-        href = reverse('status:patient_reports')
-        send_notification(current_user, doctor_id,
-                          'New patient report from ' + request.user.first_name + " " + request.user.last_name,
-                          href=href)
-
-        return redirect('status:index')
-    return render(request, 'status/create_status_report.html', {
-        'report': report
-    })
+            return redirect('status:index')
+        return render(request, 'status/create_status_report.html', {
+            'report': report
+        })
+    else:
+        raise PermissionDenied
 
 
 @login_required
@@ -243,67 +250,70 @@ def edit_patient_report(request):
 
     current_user_id = request.user.id
 
-    is_resubmit_requested = is_requested(current_user_id)
+    if request.user.has_perm('accounts.is_doctor'):
+        is_resubmit_requested = is_requested(current_user_id)
 
-    if is_resubmit_requested:
-        report = PatientSymptom.objects.filter(user_id=current_user_id, due_date__date__lte=dt.datetime.now(),
-                                               is_hidden=False, status=-2)
+        if is_resubmit_requested:
+            report = PatientSymptom.objects.filter(user_id=current_user_id, due_date__date__lte=dt.datetime.now(),
+                                                   is_hidden=False, status=-2)
+        else:
+            report = PatientSymptom.objects.filter(
+                Q(user_id=current_user_id) & Q(due_date__date__lte=dt.datetime.now()) & Q(
+                    is_hidden=False) & (Q(status=0) | Q(status=3)))
+
+        # Ensure it was a post request
+        if request.method == 'POST':
+            report_data = request.POST.getlist('data[id][]')
+            data = request.POST.getlist('data[data][]')
+            i = 0
+            for s in report_data:
+                symptom = PatientSymptom.objects.filter(Q(id=int(s)))
+
+                # check if user updated the symptom
+                if data[i] != '':
+                    # Update the old entry is_hidden to true and keep all old values the same
+                    if is_resubmit_requested:
+                        symptom.update(is_hidden=False, data=data[i], status=0)
+                    else:
+                        symptom.update(is_hidden=True, status=-3)
+
+                    # Check if the patient themselves is modifying the report
+                    if not is_resubmit_requested:
+                        # Insert the new empty row
+                        new_symptom = symptom.get()
+                        new_symptom.pk = None
+                        new_symptom.is_hidden = False
+                        new_symptom.data = data[i]
+                        new_symptom.status = 3
+                        new_symptom._state.adding = True
+                        # checking type of device
+                        if request.user_agent.is_mobile:
+                            # mobile is blank since it automatically adds it to browser family
+                            user_agent_type = ''
+                        if request.user_agent.is_tablet:
+                            user_agent_type = 'Tablet'
+                        if request.user_agent.is_pc:
+                            user_agent_type = 'PC'
+                        new_symptom.user_agent = request.user_agent.browser.family + ', ' + user_agent_type
+                        new_symptom.save()
+                i = i + 1
+
+            # SEND NOTIFICATION TO DOCTOR
+            staff_id = get_assigned_staff_id_by_patient_id(current_user_id)
+            doctor_id = Staff.objects.filter(id=staff_id).first().user_id
+            # Create href for notification redirection
+            href = reverse('status:patient_reports')
+            send_notification(current_user_id, doctor_id,
+                              'New patient report update from ' + request.user.first_name + " " + request.user.last_name,
+                              href=href)
+
+            return redirect('status:index')
+
+        return render(request, 'status/edit_status_report.html', {
+            'report': report
+        })
     else:
-        report = PatientSymptom.objects.filter(
-            Q(user_id=current_user_id) & Q(due_date__date__lte=dt.datetime.now()) & Q(
-                is_hidden=False) & (Q(status=0) | Q(status=3)))
-
-    # Ensure it was a post request
-    if request.method == 'POST':
-        report_data = request.POST.getlist('data[id][]')
-        data = request.POST.getlist('data[data][]')
-        i = 0
-        for s in report_data:
-            symptom = PatientSymptom.objects.filter(Q(id=int(s)))
-
-            # check if user updated the symptom
-            if data[i] != '':
-                # Update the old entry is_hidden to true and keep all old values the same
-                if is_resubmit_requested:
-                    symptom.update(is_hidden=False, data=data[i], status=0)
-                else:
-                    symptom.update(is_hidden=True, status=-3)
-
-                # Check if the patient themselves is modifying the report
-                if not is_resubmit_requested:
-                    # Insert the new empty row
-                    new_symptom = symptom.get()
-                    new_symptom.pk = None
-                    new_symptom.is_hidden = False
-                    new_symptom.data = data[i]
-                    new_symptom.status = 3
-                    new_symptom._state.adding = True
-                    # checking type of device
-                    if request.user_agent.is_mobile:
-                        # mobile is blank since it automatically adds it to browser family
-                        user_agent_type = ''
-                    if request.user_agent.is_tablet:
-                        user_agent_type = 'Tablet'
-                    if request.user_agent.is_pc:
-                        user_agent_type = 'PC'
-                    new_symptom.user_agent = request.user_agent.browser.family + ', ' + user_agent_type
-                    new_symptom.save()
-            i = i + 1
-
-        # SEND NOTIFICATION TO DOCTOR
-        staff_id = get_assigned_staff_id_by_patient_id(current_user_id)
-        doctor_id = Staff.objects.filter(id=staff_id).first().user_id
-        # Create href for notification redirection
-        href = reverse('status:patient_reports')
-        send_notification(current_user_id, doctor_id,
-                          'New patient report update from ' + request.user.first_name + " " + request.user.last_name,
-                          href=href)
-
-        return redirect('status:index')
-
-    return render(request, 'status/edit_status_report.html', {
-        'report': report
-    })
+        raise PermissionDenied
 
 
 def resubmit_request(request, patient_symptom_id):

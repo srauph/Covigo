@@ -18,6 +18,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 
+
 from Covigo.default_permissions import DEFAULT_PERMISSIONS
 from Covigo.messages import Messages
 from Covigo.settings import PRODUCTION_MODE
@@ -26,6 +27,7 @@ from accounts.models import Flag, Staff, Patient, Code
 from accounts.preferences import SystemMessagesPreference, StatusReminderPreference
 from accounts.utils import (
     convert_dict_of_bools_to_list,
+    dictfetchall,
     get_assigned_staff_id_by_patient_id,
     get_or_generate_patient_profile_qr,
     get_user_from_uidb64,
@@ -34,6 +36,7 @@ from accounts.utils import (
 )
 from appointments.models import Appointment
 from appointments.utils import rebook_appointment_with_new_doctor
+from geopy import distance
 from symptoms.utils import is_symptom_editing_allowed
 
 
@@ -975,3 +978,33 @@ def doctor_patient_list_table(request):
     serialized_reports = json.dumps({'data': table_info}, indent=4)
 
     return HttpResponse(serialized_reports, content_type='application/json')
+
+
+def get_distance_from_postal_code_to_current_location(request, postal_code, current_lat, current_long):
+    """
+    Computes and returns the distance between a specified postal code and a user's specified location.
+    The postal code must be a valid Canadian postal code, and the specified location is in latitude and longitude.
+    @param request: Request object of the user
+    @param postal_code: The "destination" postal code to search against
+    @param current_lat: The current latitude of the user
+    @param current_long: The current longitude of the user
+    @return: HttpResponse containing the computed distance
+    """
+
+    c = connection.cursor()
+    c.execute('SELECT * from postal_codes where POSTAL_CODE = %s', [postal_code])
+    r = dictfetchall(c)
+    patient_postal_code_lat_long = (float(r[0]['LATITUDE']), float(r[0]['LONGITUDE']))
+    distance_patient_to_doctor = distance.distance(patient_postal_code_lat_long, (current_lat, current_long)).m
+    if distance_patient_to_doctor > 1000:
+        array = []
+        if request.user.profile.violation is not None:
+            array = list(json.loads(request.user.profile.violation))
+        array.append({
+            'type': 'quarantine non-compliance',
+            'date-time': datetime.datetime.now()
+        })
+        request.user.profile.violation = json.dumps(array, indent=4, sort_keys=True, default=str)
+        request.user.profile.save()
+
+    return HttpResponse(distance_patient_to_doctor)
