@@ -156,7 +156,7 @@ def two_factor_authentication(request):
 def verify_otp(request, user_id):
     user = User.objects.get(id=user_id)
     code = request.POST.get('code')
-    # import pdb; pdb.set_trace()
+
     try:
         bypass = not PRODUCTION_MODE and code == "420420"
         if bypass or code == Code.objects.get(user_id=user.id).number:
@@ -173,11 +173,6 @@ def verify_otp(request, user_id):
             "usr": user,
         })
 
-
-    #store
-    #compare
-    #redirect
-    print("Inside verify")
 
 @never_cache
 def forgot_password(request):
@@ -682,6 +677,13 @@ def edit_preferences(request, user_id):
         preferences_form = EditPreferencesForm(request.POST)
 
         if preferences_form.is_valid():
+            if convert_dict_of_bools_to_list(profile.preferences[SystemMessagesPreference.NAME.value]) == preferences_form.cleaned_data.get(SystemMessagesPreference.NAME.value) and profile.preferences[StatusReminderPreference.NAME.value] == preferences_form.cleaned_data.get(StatusReminderPreference.NAME.value):
+                messages.error(request, f"The account preferences settings were not edited successfully: No edits made on the current account preferences settings. If you wish to make no changes, please click the \"Cancel\" button to go back to your account information in the previous page.")
+                return render(request, "accounts/edit_preferences.html", {
+                    "preferences_form": preferences_form,
+                    "usr": user
+                })
+
             system_msg_preferences = preferences_form.cleaned_data.get(SystemMessagesPreference.NAME.value)
             status_reminder_interval = preferences_form.cleaned_data.get(StatusReminderPreference.NAME.value)
 
@@ -698,7 +700,11 @@ def edit_preferences(request, user_id):
             profile.preferences = preferences
             profile.save()
 
+            messages.success(request, f"The account preferences settings were edited successfully.")
             return redirect("accounts:edit_user", user_id)
+
+        else:
+            messages.error(request, "Please select at least one system messages preferences method.")
 
     # Create forms
     else:
