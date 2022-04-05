@@ -1,17 +1,20 @@
 import json
+
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.core import serializers
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
+
 from accounts.models import Staff
 from accounts.utils import get_assigned_staff_id_by_patient_id, get_users_names, get_is_staff
 from appointments.forms import AvailabilityForm
-from datetime import datetime, timedelta
 from appointments.models import Appointment
-from appointments.utils import cancel_appointments, delete_availabilities,  book_appointment
+from appointments.utils import cancel_appointments, delete_availabilities, book_appointments as book_appointments_util
+
+from datetime import datetime, timedelta
 
 
 @login_required
@@ -47,6 +50,7 @@ def add_availabilities(request):
         :return: returns the specific template that is either rendered or redirected to based on the user input logic
         (either redirected to the "index.html" template page or rendered back to the default "add_availabilities.html" template page)
     """
+
     # Only staff can create availabilities for patients to book
     if request.user.is_staff:
 
@@ -172,13 +176,13 @@ def book_appointments(request):
     """
 
     staff_id = get_assigned_staff_id_by_patient_id(request.user.id)
-    staff_name = get_users_names(Staff.objects.get(id=staff_id).user_id)
+    staff_last_name = User.objects.get(id=Staff.objects.get(id=staff_id).user_id).last_name
 
     if request.method == 'POST' and request.POST.get('Book Appointment'):
         appointment_id = request.POST.get('Book Appointment')
 
         # books a single appointment by adding the patient's id to the appointment's patient_id column
-        book_appointment(appointment_id, request.user)
+        book_appointments_util(appointment_id, request.user)
 
         # success message to show to the user if the existing appointment was booked successfully
         messages.success(request, 'The appointment was booked successfully.')
@@ -189,7 +193,7 @@ def book_appointments(request):
 
         # books all selected appointments by adding the patient's id to the appointment's patient_id column
         for appointment_id in appointment_ids:
-            book_appointment(appointment_id, request.user)
+            book_appointments_util(appointment_id, request.user)
 
         # success message to show user if multiple selected appointments were booked
         if len(appointment_ids) > 1:
@@ -203,7 +207,7 @@ def book_appointments(request):
 
     return render(request, 'appointments/book_appointments.html', {
         'appointments': Appointment.objects.filter(patient=None, staff=staff_id).all(),
-        'staff_name': staff_name
+        'staff_last_name': staff_last_name
     })
 
 
@@ -217,19 +221,24 @@ def cancel_appointments_or_delete_availabilities(request):
     :return: returns the specific template that is either rendered or redirected to based on the user input logic
     (either redirected to the "index.html" template page or rendered back to the default "cancel_appointments.html" template page)
     """
+    if not request.user.has_perm("accounts.cancel_appointment") and not request.user.has_perm("accounts.remove_availability"):
+        raise PermissionDenied
 
     is_staff = get_is_staff(request.user.id)
 
     if request.user.is_staff:
-        staff_name = ''
+        staff_last_name = ''
         logged_in_filter = Q(staff_id=request.user.staff.id)
 
     else:
         staff_id = get_assigned_staff_id_by_patient_id(request.user.id)
-        staff_name = get_users_names(Staff.objects.get(id=staff_id).user_id)
+        staff_last_name = User.objects.get(id=Staff.objects.get(id=staff_id).user_id).last_name
         logged_in_filter = Q(patient_id=request.user.id)
 
     if request.method == 'POST' and request.POST.get('Cancel Appointment'):
+        if not request.user.has_perm("accounts.cancel_appointment"):
+            raise PermissionDenied
+
         booked_id = request.POST.get('Cancel Appointment')
 
         # cancels a single appointment by setting the patient's id in the appointment's patient_id column to "None"
@@ -240,6 +249,9 @@ def cancel_appointments_or_delete_availabilities(request):
         return redirect('appointments:cancel_appointments_or_delete_availabilities')
 
     if request.method == 'POST' and request.POST.get('Delete Availability'):
+        if not request.user.has_perm("accounts.remove_availability"):
+            raise PermissionDenied
+
         unbooked_id = request.POST.get('Delete Availability')
 
         # deletes a single existing doctor availability by deleting the entire appointment object row from the database
@@ -250,6 +262,9 @@ def cancel_appointments_or_delete_availabilities(request):
         return redirect('appointments:cancel_appointments_or_delete_availabilities')
 
     if request.method == 'POST' and request.POST.get('Cancel Selected Appointments'):
+        if not request.user.has_perm("accounts.cancel_appointment"):
+            raise PermissionDenied
+
         booked_ids = request.POST.getlist('booked_ids[]')
 
         # cancels all selected existing appointments by setting the patient's id in the appointment's patient_id column to "None"
@@ -267,6 +282,9 @@ def cancel_appointments_or_delete_availabilities(request):
             return redirect('appointments:index')
 
     if request.method == 'POST' and request.POST.get('Delete Selected Availabilities'):
+        if not request.user.has_perm("accounts.remove_availability"):
+            raise PermissionDenied
+
         unbooked_ids = request.POST.getlist('booked_ids[]')
 
         # deletes all selected existing doctor availabilities by deleting the entire respective appointment object rows from the database
@@ -286,6 +304,5 @@ def cancel_appointments_or_delete_availabilities(request):
     return render(request, 'appointments/cancel_appointments.html', {
         'appointments': Appointment.objects.filter(logged_in_filter).all(),
         'is_staff': is_staff,
-        'staff_name': staff_name
+        'staff_last_name': staff_last_name
     })
-

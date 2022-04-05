@@ -77,7 +77,7 @@ class MessagingViewReplyTests(TestCase):
         # Get the current logged-in user (self)
         user_1 = User.objects.get(id=1)
 
-        # Get message group
+        # Get message groups
         msg_group_1 = MessageGroup.objects.get(id=1)
 
         # Act

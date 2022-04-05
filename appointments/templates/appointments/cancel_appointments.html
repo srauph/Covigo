@@ -27,7 +27,19 @@
                 format: 'MMMM Do YYYY'
             });
 
-            let table = $('#availabilities_list_table').DataTable({});
+            let table = $('#availabilities_list_table').DataTable({
+                language : {
+                    {% if is_staff %}
+                        "zeroRecords": "No booked appointments/availabilities to cancel/delete at this time"
+                    {% else %}
+                        "zeroRecords": "No booked appointments to cancel at this time"
+                    {% endif %}
+                },
+                "columnDefs": [
+                    { "orderable": false, "targets": 0 }
+                ],
+                order: [2, 'asc']
+            });
 
             $('#min, #max').on('change', function () {
                 table.draw();
@@ -90,17 +102,6 @@
             }
         });
 
-        let alert_del = document.querySelectorAll('.alert-del');
-
-        alert_del.forEach(
-            (x) => x.addEventListener(
-                'click',
-                function () {
-                    x.parentElement.parentElement.parentElement.parentElement.classList.add('hidden')
-                }
-            )
-        );
-
         $(document).ready(function () {
             $('.checkbox').change(function () {
                 if (this.checked) {
@@ -131,6 +132,13 @@
             })
         })
     </script>
+    <script>
+        Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
+            x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
+        }
+        )
+        );
+    </script>
 {% endblock %}
 
 {% block content %}
@@ -139,7 +147,7 @@
             {% if is_staff %}
                 <h1 class="text-2xl text-white font-semibold px-8 py-4">All Booked Appointments and Availabilities</h1>
             {% else %}
-                <h1 class="text-2xl text-white font-semibold px-8 py-4">Booked Appointments with Dr. {{ staff_name }}</h1>
+                <h1 class="text-2xl text-white font-semibold px-8 py-4">Booked Appointments with Dr. {{ staff_last_name }}</h1>
             {% endif %}
         </div>
         <div class="bg-white shadow m-8 rounded-xl">
@@ -178,9 +186,19 @@
                 </div>
             </div>
         </div>
+
+        {% if messages %}
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+            <script>
+                setTimeout(function() {
+                    $('.message').fadeOut('fast');
+                    }, 10000); // <-- time in milliseconds
+            </script>
+        {% endif %}
+
         {% for message in messages %}
             {% if message.tags == 'success' %}
-                <div role="alert" class="p-5 rounded-lg border m-8 border-green-400 bg-green-300 text-green-900">
+                <div role="alert" class="message p-5 rounded-lg border m-8 border-green-400 bg-green-300 text-green-900">
                     <div class="divide-y-2 divide-solid divide-green-400">
                         <h2 class="font-bold text-xl flex items-center pb-2">
                             <span class="mr-2">
@@ -204,6 +222,7 @@
                 </div>
             {% endif %}
         {% endfor %}
+
         <form method="post">
             {% csrf_token %}
             <div class="m-4">
@@ -233,7 +252,7 @@
                         </thead>
                         <tbody>
                         {% for appointment in appointments %}
-                            <tr class="text-center">
+                            <tr>
                                 <td>
                                     <input type="checkbox" class="checkbox" name="booked_ids[]" value="{{ appointment.id }}">
                                 </td>
@@ -249,8 +268,8 @@
                                 <td class="p-2 render-correct-date">
                                     {{ appointment.start_date|date:'l' }}
                                 </td>
-                                <td class="p-2 flex flex-wrap justify-center sm:justify-end gap-2">
-                                    {% if appointment.patient != None %}
+                                <td class="p-2 flex flex-wrap justify-center gap-2">
+                                    {% if appointment.patient != None and perms.accounts.cancel_appointment %}
                                         <button type="submit" value="{{ appointment.id }}" class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1" name="Cancel Appointment">
                                             <span>
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
@@ -265,7 +284,21 @@
                                     {% endif %}
 
                                     {# only display the "Delete Availability" button to staff as patients can't delete availabilities #}
-                                    {% if is_staff %}
+                                    {% if is_staff and appointment.patient != None and perms.accounts.cancel_appointment and perms.accounts.remove_availability %}
+                                        <button type="submit" value="{{ appointment.id }}" class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1" name="Delete Availability">
+                                            <span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 20 20" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7.083,8.25H5.917v7h1.167V8.25z M18.75,3h-5.834V1.25c0-0.323-0.262-0.583-0.582-0.583H7.667
+                                                    c-0.322,0-0.583,0.261-0.583,0.583V3H1.25C0.928,3,0.667,3.261,0.667,3.583c0,0.323,0.261,0.583,0.583,0.583h1.167v14
+                                                    c0,0.644,0.522,1.166,1.167,1.166h12.833c0.645,0,1.168-0.522,1.168-1.166v-14h1.166c0.322,0,0.584-0.261,0.584-0.583
+                                                    C19.334,3.261,19.072,3,18.75,3z M8.25,1.833h3.5V3h-3.5V1.833z M16.416,17.584c0,0.322-0.262,0.583-0.582,0.583H4.167
+                                                    c-0.322,0-0.583-0.261-0.583-0.583V4.167h12.833V17.584z M14.084,8.25h-1.168v7h1.168V8.25z M10.583,7.083H9.417v8.167h1.167V7.083 z"/>
+                                                </svg>
+                                            </span>
+                                            Cancel Appointment & Delete Availability
+                                        </button>
+
+                                    {% elif is_staff and appointment.patient == None and perms.accounts.remove_availability %}
                                         <button type="submit" value="{{ appointment.id }}" class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1" name="Delete Availability">
                                             <span>
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 20 20" stroke="currentColor">

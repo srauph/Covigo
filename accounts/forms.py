@@ -2,21 +2,43 @@ from django import forms
 from django.contrib.auth import password_validation
 from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm
 from django.core.exceptions import ValidationError
-from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, Select, CharField, Form, MultipleChoiceField
+from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, Select, CharField, Form, MultipleChoiceField, \
+    ChoiceField
 from django.db import connection
 from django.contrib.auth.models import User
+
 from accounts.models import Profile
+
 from re import match, sub
+
+from accounts.utils import hour_options_generator
 
 STAFF_PATIENT_CHOICES = (
     (True, 'Staff User'),
     (False, 'Patient User')
 )
 
+IS_CONFIRMED_CHOICES = (
+    (True, 'Confirmed case'),
+    (False, 'Unconfirmed case')
+)
+
+IS_NEGATIVE_CHOICES = (
+    (True, 'Tested Negative'),
+    (False, 'Untested or Tested Positive')
+)
+
+IS_QUARANTINING_CHOICES = (
+    (True, 'Required to Quarantine'),
+    (False, 'Not Required to Quarantine ')
+)
+
 SYSTEM_MESSAGE_CHOICES = (
     ("use_email", "Receive system messages by email"),
     ("use_sms", "Receive system messages by sms"),
 )
+
+REMINDER_INTERVAL_CHOICES = hour_options_generator(6)
 
 GUEST_CHARFIELD_CLASS = \
     'appearance-none ' \
@@ -83,7 +105,7 @@ class CreateUserForm(ModelForm):
 
     def clean_groups(self):
         cleaned_groups = self.cleaned_data.get("groups")
-        # TODO: Discuss the possibility of having no group and fix error and if: != 1 if we enforce having at least one
+        # TODO: Discuss the possibility of having no groups and fix error and if: != 1 if we enforce having at least one
         if len(cleaned_groups) > 1:
             raise ValidationError(
                 "Cannot select more than one group."
@@ -352,7 +374,7 @@ class EditUserForm(ModelForm):
 
     def clean_groups(self):
         cleaned_groups = self.cleaned_data.get("groups")
-        # TODO: Discuss the possibility of having no group and fix error and if: != 1 if we enforce having at least one
+        # TODO: Discuss the possibility of having no groups and fix error and if: != 1 if we enforce having at least one
         if len(cleaned_groups) > 1:
             raise ValidationError(
                 "Cannot select more than one group."
@@ -418,6 +440,16 @@ class EditPreferencesForm(Form):
         widget=CheckboxSelectMultiple(
             attrs={
                 "class": CHECKBOX_CLASS
+            }
+        ),
+        required=True
+    )
+
+    status_reminder_interval = ChoiceField(
+        choices=REMINDER_INTERVAL_CHOICES,
+        widget=Select(
+            attrs={
+                "class": SELECTION_CLASS
             }
         ),
         required=True
@@ -494,6 +526,33 @@ class ChangePasswordForm(PasswordChangeForm):
                 "autocomplete": "new-password",
                 "placeholder": "Confirm Password",
                 "class": GUEST_CHARFIELD_CLASS_BOTTOM
+            }
+        ),
+    )
+
+
+class EditCaseForm(Form):
+    is_confirmed = ChoiceField(
+        choices=IS_CONFIRMED_CHOICES,
+        widget=Select(
+            attrs={
+                "class": SELECTION_CLASS
+            }
+        ),
+    )
+    is_negative = ChoiceField(
+        choices=IS_NEGATIVE_CHOICES,
+        widget=Select(
+            attrs={
+                "class": SELECTION_CLASS
+            }
+        ),
+    )
+    is_quarantining = ChoiceField(
+        choices=IS_QUARANTINING_CHOICES,
+        widget=Select(
+            attrs={
+                "class": SELECTION_CLASS
             }
         ),
     )

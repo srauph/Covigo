@@ -1,0 +1,116 @@
+{% extends "Covigo/base.html" %}
+
+{% block styles %}
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/rowreorder/1.2.8/css/rowReorder.dataTables.min.css">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css"/>
+    <style>
+        table.display tbody tr:nth-child(odd):hover td,
+        table.display tbody tr:nth-child(even):hover td {
+            background-color: rgb(226 232 240) !important;
+        }
+
+        table.dataTable.dtr-inline.collapsed > tbody > tr > td.dtr-control:before,
+        table.dataTable.dtr-inline.collapsed > tbody > tr > th.dtr-control:before {
+            background-color: rgb(6 182 212) !important;
+        }
+
+        #patient_reports_modal_table.dataTable.nowrap th, table.dataTable.nowrap td {
+            white-space: normal !important;
+        }
+    </style>
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/rowreorder/1.2.8/js/dataTables.rowReorder.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script>
+        let table = $('#doctor_patient_list').DataTable({
+            "ajax": "{% url 'accounts:doctors_table' %}",
+            "type": "POST",
+            responsive: true,
+            "draggable ": false,
+            stripeClasses: [],
+            "orderClasses": false,
+            "columns": [
+                {"data": "user_id"},
+                {"data": "first_name"},
+                {"data": "last_name"},
+                {"data": "patient_count"},
+                {
+                    defaultContent: '<button class="bg-cyan-500 justify-center hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">' +
+                        '<span> <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round"stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' +
+                        '</span><span>View Patient List</span></button>'
+                },
+            ],
+            "columnDefs": [
+                { // user_id
+                    "targets": [0],
+                    "visible": false,
+                    "searchable": false
+                },
+                { // first_name
+                    "targets": [1],
+                    "visible": true,
+                    "searchable": true,
+                    "render": function (data, type, row) {
+                        return row.first_name + ' ' + row.last_name;
+                    }
+                },
+                { // last_name
+                    "targets": [2],
+                    "visible": false,
+                    "searchable": true
+                },
+                { // patient_count
+                    "targets": [3],
+                    "visible": true,
+                    "searchable": false,
+                    "className": 'dt-body-center'
+                },
+                { // Action
+                    "targets": [4],
+                    "visible": true,
+                    "searchable": false,
+                    "className": 'dt-body-center'
+                }
+            ],
+            "order": [[2, "asc"], [1, "asc"]]
+        });
+
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="min-h-full bg-slate-100">
+        <div class="flex justify-between bg-slate-700">
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">Doctor List</h1>
+        </div>
+        <div class="m-4">
+            <div class="m-4 p-4 bg-white shadow rounded-lg text-center">
+                <table class="w-full table-auto display responsive nowrap" style="width:100%"
+                       id="doctor_patient_list">
+                    <thead>
+                    <tr class="border-b">
+                        <th class="p-2"></th>
+                        <th class="p-2">Doctor Name</th>
+                        <th class="p-2"></th>
+                        <th class="p-2">Number of Patients</th>
+                        <th class="p-2"></th>
+                    </tr>
+                    </thead>
+                    <!-- Table entries is handled by the DataTable -->
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

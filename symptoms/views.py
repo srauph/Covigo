@@ -1,19 +1,30 @@
-from datetime import datetime, timedelta, time
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
-from symptoms.models import Symptom, PatientSymptom
+
 from symptoms.forms import CreateSymptomForm
-from django.contrib import messages
-from symptoms.utils import assign_symptom_to_user, get_latest_reporting_due_date, get_earliest_reporting_due_date,\
-    is_symptom_editing_allowed, get_assigned_symptoms_from_patient
+from symptoms.models import Symptom, PatientSymptom
+from symptoms.utils import (
+    assign_symptom_to_user,
+    get_assigned_symptoms_from_patient,
+    get_earliest_reporting_due_date,
+    get_latest_reporting_due_date,
+    is_symptom_editing_allowed,
+)
+
+from datetime import datetime, timedelta, time
 
 
 @login_required
 @never_cache
 def index(request):
+    if not request.user.has_perm("accounts.manage_symptoms"):
+        raise PermissionDenied
+
     return redirect('symptoms:list_symptoms')
 
 
@@ -22,6 +33,9 @@ def index(request):
 @login_required
 @never_cache
 def list_symptoms(request):
+    if not request.user.has_perm("accounts.manage_symptoms"):
+        raise PermissionDenied
+
     return render(request, 'symptoms/list_symptoms.html', {
         'symptoms': Symptom.objects.all()
     })
@@ -32,6 +46,9 @@ def list_symptoms(request):
 @login_required
 @never_cache
 def create_symptom(request):
+    if not request.user.has_perm("accounts.manage_symptoms"):
+        raise PermissionDenied
+
     if request.method == 'POST':
         create_symptom_form = CreateSymptomForm(request.POST)
 
@@ -67,6 +84,9 @@ def create_symptom(request):
 @login_required
 @never_cache
 def edit_symptom(request, symptom_id):
+    if not request.user.has_perm("accounts.manage_symptoms"):
+        raise PermissionDenied
+
     symptom = Symptom.objects.get(id=symptom_id)
 
     if request.method == 'POST':
@@ -103,6 +123,17 @@ def edit_symptom(request, symptom_id):
 @never_cache
 def assign_symptom(request, user_id):
     patient = User.objects.get(pk=user_id)
+
+    can_assign_symptom = (
+        not patient.is_staff and (
+            request.user.has_perm("accounts.assign_symptom_patient")
+            or request.user.has_perm("accounts.assign_symptom_assigned") and patient in request.user.staff.get_assigned_patient_users()
+        )
+    )
+    if not can_assign_symptom:
+        raise PermissionDenied
+
+
     if patient.first_name == "" and patient.last_name == "":
         patient_name = patient
     else:
@@ -128,13 +159,43 @@ def assign_symptom(request, user_id):
             if action == 'assign':
                 starting_date = datetime.combine(datetime.strptime(request.POST['starting_date'], '%Y-%m-%d'), time.max)
                 interval = int(request.POST.get('interval'))
+
+                if len(symptom_list) > 1:
+                    messages.success(request, 'The symptoms were assigned to this patient successfully.')
+
+                elif len(symptom_list) == 1:
+                    messages.success(request, 'The symptom was assigned to this patient successfully.')
+
+                else:
+                    messages.error(request, 'No symptoms were selected to be assigned to this patient. If you wish to not assign any symptoms to this patient at this point in time, please click the \"Cancel\" button to go back to this patient\'s profile. Otherwise, please select at least one symptom to assign.')
+                    return render(request, 'symptoms/assign_symptom.html', {
+                        'symptoms': Symptom.objects.all(),
+                        'patient': patient,
+                        'patient_name': patient_name
+                    })
+
             else:  # Update
+                # Get the number of extended days the report was extended for
+                report_extended_days = int(request.POST.get('extended_days'))
+
+                if report_extended_days <= 0:
+                    report_extended_days = 0
+
+                # get earliest and latest due date for current assigned symptoms
                 earliest_due_date = get_earliest_reporting_due_date(user_id)
                 latest_due_date = get_latest_reporting_due_date(user_id)
 
-                starting_date = latest_due_date.replace(day=earliest_due_date.day)
-                interval = (latest_due_date.day - earliest_due_date.day) + 1
+                # starting date is the earliest due date
+                starting_date = earliest_due_date
 
+                # Calculate the original interval of how many days the symptom should be reported for
+                date_difference = latest_due_date - earliest_due_date
+                original_interval = date_difference.days + 1
+
+                # How many days the symptoms should be reported for including extended days
+                interval = original_interval + report_extended_days
+
+            # For everyday a symptom should be reported, loop and assign it to the user
             while interval != 0:
                 for symptom_id in symptom_list:
                     assign_symptom_to_user(symptom_id, user_id, starting_date)
@@ -147,6 +208,8 @@ def assign_symptom(request, user_id):
                     Q(user_id=user_id) & Q(data=None) & ~Q(symptom_id__in=symptom_list))
                 query.delete()
 
+                messages.success(request, 'The assigned symptoms to this patient were updated successfully.')
+
             if action == 'assign':
                 # Assigns quarantine status for patient
                 quarantine_status_changed = request.POST.get('should_quarantine') is not None
@@ -154,7 +217,7 @@ def assign_symptom(request, user_id):
                     patient_information.is_quarantining = quarantine_status_changed
                     patient_information.save()
 
-        return redirect('accounts:list_users')
+        return redirect('accounts:profile', user_id=user_id)
 
     return render(request, 'symptoms/assign_symptom.html', {
         'symptoms': Symptom.objects.all(),
@@ -169,6 +232,9 @@ def assign_symptom(request, user_id):
 @login_required
 @never_cache
 def toggle_symptom(request, symptom_id):
+    if not request.user.has_perm("accounts.manage_symptoms"):
+        raise PermissionDenied
+
     symptom = Symptom.objects.get(id=symptom_id)
     symptom.is_active = not symptom.is_active
     symptom.save()

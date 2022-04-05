@@ -55,4 +55,3 @@ class PatientStaffTests(TestCase):
     def test_staff_patient_set_relationship(self):
         #
         self.assertEqual(set(self.staff.assigned_patients.all()), set(self.patients))
-
