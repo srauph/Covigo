@@ -981,6 +981,16 @@ def doctor_patient_list_table(request):
 
 
 def get_distance_from_postal_code_to_current_location(request, postal_code, current_lat, current_long):
+    """
+    Computes and returns the distance between a specified postal code and a user's specified location.
+    The postal code must be a valid Canadian postal code, and the specified location is in latitude and longitude.
+    @param request: Request object of the user
+    @param postal_code: The "destination" postal code to search against
+    @param current_lat: The current latitude of the user
+    @param current_long: The current longitude of the user
+    @return: HttpResponse containing the computed distance
+    """
+
     c = connection.cursor()
     c.execute('SELECT * from postal_codes where POSTAL_CODE = %s', [postal_code])
     r = dictfetchall(c)
