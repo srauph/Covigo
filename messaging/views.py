@@ -1,18 +1,26 @@
 import json
 import re
 
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
-from django.db.models import Q
-from messaging.models import MessageGroup, MessageContent
-from messaging.forms import ReplyForm, CreateMessageContentForm, CreateMessageGroupForm
-from messaging.utils import send_notification
 
+from messaging.forms import ReplyForm, CreateMessageContentForm, CreateMessageGroupForm
+from django.db.models import Q
+
+from Covigo.messages import Messages
+from accounts.utils import send_system_message_to_user
+from messaging.models import MessageGroup, MessageContent
+from messaging.utils import send_notification
+from messaging.utils import RSAEncryption
+from django.conf import settings
 
 @login_required
 @never_cache
@@ -26,8 +34,17 @@ def list_messages(request, user_id=''):
     # TODO: access control for messages
     current_user = request.user
 
+    try:
+        is_staff = request.user.staff
+    except:
+        is_staff = False
+
     if user_id == '':
         filter1 = (Q(author_id=current_user.id) | Q(recipient_id=current_user.id)) & Q(type=0)
+
+        if is_staff:
+            my_patients = request.user.staff.assigned_patients.all().values('user')
+            filter1 |= Q(author_id__in=my_patients) | Q(recipient_id__in=my_patients)
     else:
         filter1 = (Q(author_id=user_id) | Q(recipient_id=user_id)) & Q(type=0)
 
@@ -45,12 +62,24 @@ def view_message(request, message_group_id):
     # Filters for the queries to check if user is authorized to view the messages with a specific message_group_id
     filter1 = Q(id=message_group_id)
     filter2 = Q(author_id=current_user.id) | Q(recipient_id=current_user.id)
+    try:
+
+        my_patients = request.user.staff.assigned_patients.values('user')
+        filter2 |= Q(author_id__in=my_patients) | Q(recipient_id__in=my_patients)
+    except:
+        pass
     filter3 = Q(type=0)
     if MessageGroup.objects.filter(filter1 & filter2 & filter3):
 
-        message_group = MessageGroup.objects.filter(filter1 & filter2 & filter3).get()
+        message_group = MessageGroup.objects.get(filter1)
 
         messages = MessageContent.objects.filter(message_id=message_group_id)
+        encryption = RSAEncryption(settings.ENCRYPTION_KEY_DIRECTORY)
+        encryption.load_keys()
+
+        for message in messages:
+            print(message.content)
+            message.content = encryption.decrypt(message.content)
 
         # Check if we are author or recipient
         if message_group.author.id == current_user.id:
@@ -71,8 +100,39 @@ def view_message(request, message_group_id):
                 new_reply = reply_form.save(commit=False)
                 new_reply.message = message_group
                 new_reply.author = current_user
+                new_reply.recipient = User.objects.get(id=message_group.recipient.id)
+                content = reply_form.data.get('content')
+                encrypted_message = encryption.encrypt(content)
+                print(encrypted_message)
+                new_reply.content = encrypted_message
                 # Save to db
                 new_reply.save()
+                if User.objects.get(id=new_reply.author.id).is_staff:
+                    patient = new_reply.recipient
+                    doctor = new_reply.author
+                    template = Messages.MESSAGE_REPLY.value
+                    c_doctor = {
+                        "other_person": patient,
+                        "is_doctor": True
+                    }
+                    c_patient = {
+                        "other_person": doctor,
+                        "is_doctor": False
+                    }
+                    send_system_message_to_user(patient, template=template, c=c_patient)
+                else:
+                    doctor = new_reply.recipient
+                    patient = new_reply.author
+                    template = Messages.MESSAGE_REPLY.value
+                    c_doctor = {
+                        "other_person": patient,
+                        "is_doctor": True
+                    }
+                    c_patient = {
+                        "other_person": doctor,
+                        "is_doctor": False
+                    }
+                    send_system_message_to_user(doctor, template=template, c=c_doctor)
 
                 # Send notification
                 if message_group.author.id == current_user.id:
@@ -90,7 +150,7 @@ def view_message(request, message_group_id):
                 # Reset the form
                 reply_form = ReplyForm()
 
-                # Update the message group
+                # Update the message groups
                 message_group.date_updated = new_reply.date_updated
 
                 # Check if we are author or recipient
@@ -102,6 +162,8 @@ def view_message(request, message_group_id):
                     # TODO: Proper exception handling
                     raise Exception("Logged in user is neither author nor recipient")
                 message_group.save()
+
+                return redirect("messaging:view_message", message_group_id)
 
         # Initialize the reply form
         else:
@@ -121,18 +183,26 @@ def view_message(request, message_group_id):
             'form': reply_form,
             'seen': seen
         })
-    # User is not authorized to view this message group
+    # User is not authorized to view this message groups
     else:
-        return redirect('messaging:list_messages')
+        raise PermissionDenied
 
 
 @login_required
 @never_cache
 def compose_message(request, user_id):
     # To prevent users from being able to send messages to themselves
-    if request.user.id != user_id:
+    recipient_user = User.objects.get(id=user_id)
 
-        recipient_user = User.objects.get(id=user_id)
+    can_compose_message = (
+        request.user.id != user_id and (
+            request.user.has_perm("accounts.message_user")
+            or request.user.has_perm("accounts.message_patient") and not recipient_user.is_staff
+            or request.user.has_perm("accounts.message_assigned") and recipient_user in request.user.staff.get_assigned_patient_users()
+            or request.user.has_perm("accounts.message_doctor") and recipient_user == request.user.patient.get_assigned_staff_user()
+        )
+    )
+    if can_compose_message:
         if recipient_user.first_name == "" and recipient_user.last_name == "":
             recipient_name = recipient_user
         else:
@@ -149,11 +219,52 @@ def compose_message(request, user_id):
                 new_msg_group.author_seen = True
                 new_msg_group.type = 0
                 new_msg_group.save()
-                MessageContent.objects.create(
-                    author=new_msg_group.author,
-                    message=new_msg_group,
-                    content=msg_content_form.data.get('content'),
-                )
+                
+                encryption = RSAEncryption(settings.ENCRYPTION_KEY_DIRECTORY)
+                encryption.load_keys()
+                
+                if User.objects.get(id=new_msg_group.author.id).is_staff:
+                    patient = new_msg_group.recipient
+                    doctor = new_msg_group.author
+                    template = Messages.MESSAGE_SENT.value
+                    content = msg_content_form.data.get('content')
+                    encrypted_message = encryption.encrypt(content)
+                    MessageContent.objects.create(
+                        author=new_msg_group.author,
+                        message=new_msg_group,
+                        content=encrypted_message,
+                    )
+                    c_doctor = {
+                        "other_person": patient,
+                        "is_doctor": True
+                    }
+                    c_patient = {
+                        "other_person": doctor,
+                        "is_doctor": False
+                    }
+                    send_system_message_to_user(patient, template=template, c=c_patient)
+                else:
+                    doctor = new_msg_group.recipient
+                    patient = new_msg_group.author
+                    template = Messages.MESSAGE_SENT.value
+                    content = msg_content_form.data.get('content')
+                    encrypted_message = encryption.encrypt(content)
+                    MessageContent.objects.create(
+                        author=new_msg_group.author,
+                        message=new_msg_group,
+                        content=encrypted_message,
+                    )
+                    c_doctor = {
+                        "other_person": patient,
+                        "is_doctor": True
+                    }
+                    c_patient = {
+                        "other_person": doctor,
+                        "is_doctor": False
+                    }
+                    send_system_message_to_user(doctor, template=template, c=c_doctor)
+
+                messages.success(request, "The new message was successfully sent to " + recipient_user.first_name + " " + recipient_user.last_name + "!")
 
                 # Create href for notification
                 href = reverse('messaging:view_message', args=[new_msg_group.id])
@@ -173,7 +284,7 @@ def compose_message(request, user_id):
             'msg_content_form': msg_content_form
         })
     else:
-        return redirect("messaging:list_messages")
+        raise PermissionDenied
 
 
 @login_required
@@ -226,7 +337,7 @@ def list_notifications(request):
 
     # Only for the notifications list, reformat the message groups titles to not include the hrefs
     for i in message_group:
-        a = re.sub("<span class='notification-link' data-href=", "", i['title'])
+        a = re.sub("<span class='notification-link cursor-pointer' data-href=", "", i['title'])
         a = re.sub(">.*", "", a)
 
         i['title'] = re.sub("<span class='notification-link' data-href=[^>]*>", "", i['title'])

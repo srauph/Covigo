@@ -12,26 +12,89 @@
                 <div class="w-full">
                     <h2 class="p-2 text-2xl font-bold">Account Preference Settings</h2>
                     <hr>
+
+                    {% if messages %}
+                        {% block script %}
+                            <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+                            <script>
+                                Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
+                                    x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
+                                }
+                                )
+                                );
+
+                                setTimeout(function() {
+                                    $('.message').fadeOut('fast');
+                                    }, 10000); // <-- time in milliseconds
+                            </script>
+                        {% endblock %}
+                    {% endif %}
+
+                    {% for message in messages %}
+                        {% if message.tags == 'error' %}
+                            <div role="alert" class="message p-5 rounded-lg border border-red-400 bg-red-300 text-red-900">
+                                <div class="divide-y-2 divide-solid divide-red-400">
+                                    <h2 class="font-bold text-xl flex items-center pb-2">
+                                        <span class="mr-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                 viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                        </span>
+                                        Error!
+                                        <div class="text-xl flex align-center w-full justify-end">
+                                            <strong class="alert-del cursor-pointer">
+                                                &times;
+                                            </strong>
+                                        </div>
+                                    </h2>
+                                    <p class="pt-2">
+                                        {{ message }}
+                                    </p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
                     <div class="px-2 absolute text-red-500 text-sm font-semibold">
                         {{ preferences_form.non_field_errors }}
                     </div>
                 </div>
 
-                <div class="w-full max-w-2xl px-2">
-                    <label>System Messages:</label>
-                    <div class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400">
-                        {{ preferences_form.system_msg_methods }}
-                    </div>
-                    <div class="text-red-500 text-sm font-semibold">
-                        <div class="absolute">
-                            {{ preferences_form.system_msg_methods.errors }}
+                {% if usr != user and perms.accounts.edit_preference_user or perms.accounts.system_message_preference %}
+                    <div class="w-full max-w-2xl px-2">
+                        <label>System Messages:</label>
+                        <div class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400">
+                            {{ preferences_form.system_msg_methods }}
                         </div>
                     </div>
-                </div>
+                {% endif %}
+
+                {% if usr != user and perms.accounts.edit_preference_user or perms.accounts.status_deadline_reminder_preference %}
+                    <div class="w-full max-w-2xl px-2">
+                        <label>Status Update Deadline Reminder:</label>
+                        <div class="mt-1">
+                            {{ preferences_form.status_reminder_interval }}
+                        </div>
+                        <p class="text-sm text-slate-600">
+                            Specify the number of hours of advance warning to give for an upcoming status update deadline,
+                            if it is not submitted yet for the day.
+                        </p>
+                        <div class="text-red-500 text-sm font-semibold">
+                            <div class="absolute">
+                                {{ preferences_form.status_reminder_interval.errors }}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if usr != user and perms.accounts.edit_preference_user or perms.accounts.appointment_reminder_preference %}
+                {% endif %}
+
             </div>
             <div class="w-full mt-8 md:mt-0">
                 <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
-                    <a href="{% url "accounts:list_users" %}">
+                    <a href="{% url "accounts:edit_user" usr.id %}">
                         <button type="button"
                                 class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
                             <span>
@@ -53,7 +116,7 @@
                                       d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                             </svg>
                         </span>
-                        <span>Edit</span>
+                        <span>Edit and Return</span>
                     </button>
                 </div>
             </div>

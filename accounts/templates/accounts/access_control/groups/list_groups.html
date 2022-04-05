@@ -1,0 +1,112 @@
+{% extends "Covigo/base.html" %}
+
+{% block content %}
+    <div class="min-h-full bg-slate-100">
+        <div class="flex justify-between bg-slate-700">
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">Groups</h1>
+        </div>
+
+        <div class="bg-white shadow m-8 rounded-xl">
+            <div class="w-full flex justify-between items-center p-4">
+                <div>
+                    {# TODO: Filters hould go HERE #}
+                    <span class="font-semibold px-2">Filters:</span>
+                    <select name="" id="toggleRead"
+                            class="cursor-pointer bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md">
+                        <option value="showAll">Show All Groups</option>
+                    </select>
+                </div>
+                <div class="flex gap-2">
+                    <a href="{% url 'accounts:create_group' %}">
+                        <button class="bg-green-600 hover:bg-green-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                            <span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                     stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </span>
+                            <span>New Group</span>
+                        </button>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {% if messages %}
+            {% block script %}
+                <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+                <script>
+                    Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
+                        x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
+                    }
+                    )
+                    );
+
+                    setTimeout(function() {
+                        $('.message').fadeOut('fast');
+                        }, 10000); // <-- time in milliseconds
+                </script>
+            {% endblock %}
+        {% endif %}
+
+        {% for message in messages %}
+            {% if message.tags == 'success'%}
+                <div role="alert" class="message p-5 rounded-lg border m-8 border-green-400 bg-green-300 text-green-900">
+                    <div class="divide-y-2 divide-solid divide-green-400">
+                        <h2 class="font-bold text-xl flex items-center pb-2">
+                            <span class="mr-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                                </svg>
+                            </span>
+                            Success!
+                            <div class="text-xl flex align-center w-full justify-end">
+                                <strong class="alert-del cursor-pointer">
+                                    &times;
+                                </strong>
+                            </div>
+                        </h2>
+                        <p class="pt-2">
+                            {{ message }}
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+
+        <div class="m-4 justify-evenly gap-4">
+            <div class="m-4 p-4 bg-white shadow rounded-lg">
+                <table class="w-full table-auto" id="user_list_table">
+                    <thead>
+                    <tr class="border-b">
+                        <th class="p-2 text-left">Group Name</th>
+                        <th class="p-2 text-left"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for group in groups  %}
+                        <tr class="hover:bg-slate-200">
+                            <td class="p-2">{{ group.name }}</td>
+                            <td class="p-2 flex justify-end items-center gap-2">
+                                <a href="{% url 'accounts:edit_group' group.id %}">
+                                    <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                                        <span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                 viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                            </svg>
+                                        </span>
+                                        <span>Edit</span>
+                                    </button>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

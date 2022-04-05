@@ -22,7 +22,7 @@ class SymptomsTestCase(TransactionTestCase):
         """
 
         self.client = Client()
-        self.user = User.objects.create(username='admin')
+        self.user = User.objects.create(is_superuser=True, username='admin')
         self.user.set_password('admin')
         self.user.save()
         self.client.login(username='admin', password='admin')
@@ -212,7 +212,7 @@ class ToggleSymptomTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.request = RequestFactory().get('/')
-        cls.request.user = User()
+        cls.request.user = User(is_superuser=True)
         cls.symptom = Symptom.objects.create(name="test_symptom")
 
     def test_set_active(self):

@@ -10,8 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 import json
-from pathlib import Path
+
 from dotenv import load_dotenv
+from pathlib import Path
 from os import getenv
 
 # Load variables from .env
@@ -35,7 +36,7 @@ if PRODUCTION_MODE:
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
     HOST_NAME = 'https://covigo.ddns.net'
-    STATICFILES_DIRS = [BASE_DIR / 'static',]
+    STATICFILES_DIRS = [BASE_DIR / 'static', ]
 else:
     try:
         ALLOWED_HOSTS = json.loads(getenv("ALLOWED_HOSTS"))
@@ -61,6 +62,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_otp',
+    'django_otp.plugins.otp_static',
+    'django_otp.plugins.otp_totp',
+    'django_user_agents',
+    'two_factor',
+    'users'
 ]
 
 MIDDLEWARE = [
@@ -69,8 +76,10 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django_otp.middleware.OTPMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_user_agents.middleware.UserAgentMiddleware',
 ]
 
 ROOT_URLCONF = 'Covigo.urls'
@@ -141,7 +150,7 @@ LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'US/Eastern'
 DATETIME_FORMAT = '%d-%m-%Y %H:%M:%S'
-L10N=False
+L10N = False
 
 USE_I18N = False
 
@@ -157,5 +166,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_REDIRECT_URL = '/dashboard'
+LOGIN_REDIRECT_URL = '/accounts/two_factor_authentication'
 LOGOUT_REDIRECT_URL = '/accounts/login'
+
+ENCRYPTION_KEY_DIRECTORY = BASE_DIR / 'keys'

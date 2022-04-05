@@ -1,8 +1,8 @@
-from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-
+import random
 
 class Profile(models.Model):
     user = models.OneToOneField(
@@ -15,6 +15,21 @@ class Profile(models.Model):
     preferences = models.JSONField(blank=True, null=True)
     violation = models.JSONField(blank=True, null=True)
 
+    class Meta:
+        permissions = [
+            ("edit_self", "Can edit their own user"),
+            ("cancel_appointment", "Can cancel an appointment"),
+            ("edit_password", "Can change their own password while logged in"),
+            ("edit_username", "Can edit their username"),
+            ("edit_name", "Can edit their first and last name"),
+            ("edit_email", "Can edit their email address"),
+            ("edit_phone", "Can edit their phone number"),
+            ("edit_address", "Can edit their address and postal code"),
+            ("system_message_preference", "Can edit their system message preference"),
+            ("status_deadline_reminder_preference", "Can edit their status update deadline reminder preference"),
+            ("appointment_reminder_preference", "Can edit their appointment reminder preference"),
+        ]
+
     def __str__(self):
         return f"{self.user}_profile"
 
@@ -24,6 +39,55 @@ class Staff(models.Model):
         User,
         on_delete=models.CASCADE,
     )
+
+    class Meta:
+        permissions = [
+            ("is_doctor", "Staff member is a doctor user"),
+            ("flag_assigned", "Can flag assigned patients"),
+            ("flag_patients", "Can flag any patient"),
+            ("flag_view_all", "Can view all assigned flags"),
+            ("create_patient", "Can add a patient user"),
+            ("create_user", "Can add any user"),
+            ("edit_assigned", "Can edit assigned patients"),
+            ("edit_patient", "Can edit any patient"),
+            ("edit_user", "Can edit any user"),
+            ("remove_availability", "Can delete an appointment availability"),
+            ("manage_groups", "Can create a new group or edit existing groups"),
+            ("assign_group", "Can edit a new or existing user's assigned groups"),
+            ("message_assigned", "Can compose a new message with assigned patients"),
+            ("message_patient", "Can compose a new message with any patient"),
+            ("message_user", "Can compose a new message with any user"),
+            ("manage_symptoms", "Can create, edit, enable, or disable symptoms"),
+            ("assign_symptom_assigned", "Can assign or update symptoms for assigned patients"),
+            ("assign_symptom_patient", "Can assign or update symptoms for any patient"),
+            ("dashboard_covigo_data", "Can view Covigo case data in dashboard"),
+            ("dashboard_external_data", "Can view external case data in dashboard"),
+            ("view_patient_code", "Can view any patient's QR and patient code"),
+            ("view_patient_case", "Can view any patient's case status (confirmation status and latest test)"),
+            ("view_patient_quarantine", "Can view any patient's quarantine status"),
+            ("set_patient_case", "Can edit any patient's case status (confirmed and latest test)"),
+            ("set_patient_quarantine", "Can edit any patient's quarantine status"),
+            ("view_patient_test_report", "Can view any patient's test report"),
+            ("view_assigned_code", "Can view an assigned patient's QR and patient code"),
+            ("view_assigned_case", "Can view an assigned patient's case status (confirmation status and latest test)"),
+            ("view_assigned_quarantine", "Can view an assigned patient's quarantine status"),
+            ("set_assigned_case", "Can edit an assigned patient's case status (confirmed and latest test)"),
+            ("set_assigned_quarantine", "Can edit an assigned patient's quarantine status"),
+            ("view_assigned_test_report", "Can view an assigned patient's test report"),
+            ("view_assigned_doctor", "Can view any patient's assigned doctor"),
+            ("edit_assigned_doctor", "Can manage doctor patient assignments and reassign a patient to any other doctor"),
+            ("view_assigned_patients", "Can view a doctor's assigned patients"),
+            ("view_manager_data", "Can view the data in the Management page"),
+            ("edit_preference_user", "Can edit another user's preferences"),
+            ("view_assigned_list", "Can view their assigned patients in Accounts page"),
+            ("view_patient_list", "Can view all patients in Accounts page"),
+            ("view_user_list", "Can view all users in the Accounts page"),
+            ("manage_contact_tracing", "Can access the contact tracing management page"),
+            ("manage_case_data", "Can access the case data management page"),
+            # ("request_resubmission", "Can request that a patient resubmit their status report"),
+            # ("view_status_assigned", "Can view assigned patients' status reports"),
+            # ("view_status_any", "Can view any patient's status report"),
+        ]
 
     def get_assigned_patient_users(self):
         return User.objects.filter(patient__in=self.assigned_patients.all())
@@ -40,6 +104,7 @@ class Staff(models.Model):
             return Flag.objects.filter(staff=self.user, is_active=True).count()
         except:
             return 0
+
 
 class Patient(models.Model):
     """
@@ -64,6 +129,14 @@ class Patient(models.Model):
     is_negative = models.BooleanField(default=False)
     is_quarantining = models.BooleanField(default=False)
     code = models.CharField(max_length=255)
+    test_results = models.JSONField(blank=True, null=True)
+
+    class Meta:
+        permissions = [
+            ("message_doctor", "Can compose a new message with the assigned doctor"),
+            ("dashboard_doctor", "Can view the assigned doctor's contact information (name, email, phone number) in dashboard"),
+            ("view_own_code", "Can view their own QR and patient code"),
+        ]
 
     def get_assigned_staff_user(self):
         try:
@@ -108,7 +181,6 @@ class Flag(models.Model):
     def __str__(self):
         return f"{self.patient}_flaggedby_{self.staff}"
 
-
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
@@ -121,3 +193,23 @@ def save_user_profile(sender, instance, created, **kwargs):
         instance.profile.save()
     except Profile.DoesNotExist:
         Profile.objects.create(user=instance)
+
+
+class Code(models.Model):
+    number = models.CharField(max_length=5, blank=True)
+    user = models.OneToOneField(Profile, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.number)
+
+    def save(self, *args, **kwargs):
+        number_list = [x for x in range(10)]
+        code_items = []
+
+        for i in range(5):
+            num = random.choice(number_list)
+            code_items.append(num)
+
+        code_string = "".join(str(item) for item in code_items)
+        self.number = code_string
+        super().save(*args, **kwargs)

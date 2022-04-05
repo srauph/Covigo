@@ -1,10 +1,11 @@
 import datetime
 
-from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
+from django.shortcuts import render
 from django.views.decorators.cache import never_cache
 
+from accounts.models import Staff
 from appointments.models import Appointment
 from dashboard.utils import fetch_data_from_file, extract_daily_data
 from messaging.models import MessageGroup
@@ -20,7 +21,11 @@ def index(request):
 
     if user.is_staff:
         recent_status_updates = []
-        assigned_patients = user.staff.get_assigned_patient_users()
+        if not user.is_superuser and user.has_perm("accounts.is_doctor"):
+            assigned_patients = user.staff.get_assigned_patient_users()
+        else:
+            assigned_patients = []
+
         covigo_case_data = fetch_data_from_all_files()
 
         return render(request, 'dashboard/index.html', {
@@ -65,12 +70,13 @@ def fetch_messaging_info(user):
 
 
 def fetch_appointments_info(user):
+    now = datetime.datetime.now()
     today = datetime.date.today()
     tomorrow = today + datetime.timedelta(days=1)
     in_two_days = tomorrow + datetime.timedelta(days=1)
 
-    all_filter = Q(patient__isnull=False) & Q(start_date__gte=today)
-    today_filter = Q(start_date__gte=today) & Q(start_date__lt=tomorrow)
+    all_filter = Q(patient__isnull=False) & Q(start_date__gte=now)
+    today_filter = Q(start_date__gte=now) & Q(start_date__lt=tomorrow)
     tomorrow_filter = Q(start_date__gte=tomorrow) & Q(start_date__lt=in_two_days)
 
     if user.is_staff:
