@@ -698,7 +698,7 @@ def edit_preferences(request, user_id):
             profile.preferences = preferences
             profile.save()
 
-            return redirect("accounts:profile", user_id)
+            return redirect("accounts:edit_user", user_id)
 
     # Create forms
     else:

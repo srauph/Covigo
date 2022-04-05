@@ -9,6 +9,78 @@ from accounts.views import flag_user, unflag_user, profile_from_code, convert_pe
 from accounts.models import Flag, Patient, Staff
 
 
+class ChangePasswordTests(TestCase):
+    def setUp(self):
+        user = User.objects.create(email='bob@gmail.com', username='bob1')
+        user.set_password('boogieman69420')
+        user.save()
+
+        self.request = RequestFactory().get('/')
+
+        self.client = Client()
+        self.client.login(username='bob1', password='boogieman69420')
+        self.response = self.client.get('accounts:change_password')
+
+    def test_empty_change_password_forms(self):
+        """
+        this test allows us to test directly for form fields when dealing with empty forms
+        @return: void
+        """
+
+        # Simulate the user entering nothing in the change password form
+        mocked_changed_password_form_data = {'old_password': '', 'new_password1': '', 'new_password2': ''}
+
+        # Act
+        response = self.client.post(reverse('accounts:change_password'), mocked_changed_password_form_data)
+
+        # Assert
+        self.assertEqual('This field is required.', list(response.context['form'].errors.values())[0][0])
+        self.assertEqual('This field is required.', list(response.context['form'].errors.values())[1][0])
+        self.assertEqual('This field is required.', list(response.context['form'].errors.values())[2][0])
+
+    def test_user_can_change_password_successfully_and_is_redirected_to_done(self):
+        """
+        test to check if a user can change their account password successfully
+        @return: void
+        """
+
+        # Simulate the user entering a new valid/successful password in the change password form
+        mocked_changed_password_form_data = {'old_password': 'boogieman69420', 'new_password1': 'boogieman42069', 'new_password2': 'boogieman42069'}
+
+        # Act
+        response = self.client.post(reverse('accounts:change_password'), mocked_changed_password_form_data)
+
+        # Assert
+        self.assertRedirects(response, '/accounts/change_password/done/')
+
+    def test_change_password_errors(self):
+        """
+        test to check for the various form errors that can occur when a user is changing their password
+        @return: void
+        """
+
+        # Simulate the user entering an invalid/unsuccessful password in the change password form
+        mocked_changed_password_form_data = {'old_password': '1', 'new_password1': '1', 'new_password2': '1'}
+
+        # Act
+        response = self.client.post(reverse('accounts:change_password'), mocked_changed_password_form_data)
+
+        # Assert
+        self.assertEqual('Your old password was entered incorrectly. Please enter it again.', list(response.context['form'].errors.values())[0][0])
+        self.assertEqual('This password is too short. It must contain at least 8 characters.', list(response.context['form'].errors.values())[1][0])
+        self.assertEqual('This password is too common.', list(response.context['form'].errors.values())[1][1])
+        self.assertEqual('This password is entirely numeric.', list(response.context['form'].errors.values())[1][2])
+
+        # Simulate the user entering two unmatched new password fields in the change password form
+        mocked_changed_password_form_data = {'old_password': 'boogieman69420', 'new_password1': '1', 'new_password2': '2'}
+
+        # Act
+        response = self.client.post(reverse('accounts:change_password'), mocked_changed_password_form_data)
+
+        # Assert
+        self.assertEqual('The two password fields didn\'t match.', list(response.context['form'].errors.values())[0][0])
+
+
 class ForgotPasswordTests(TestCase):
     def setUp(self):
         user_1 = User.objects.create(id=1, email='bob@gmail.com', username='bob1')
@@ -56,7 +128,7 @@ class ForgotPasswordTests(TestCase):
         subject = "Covigo - Password Reset Requested"
         template = "reset_password"
 
-        # Simulate the user entering a valid in the forgot password form
+        # Simulate the user entering a valid email in the forgot password form
         mocked_pass_reset_form_data = {'email': 'bruh@lol.com'}
 
         # Act
