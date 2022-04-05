@@ -30,8 +30,17 @@ def list_messages(request, user_id=''):
     # TODO: access control for messages
     current_user = request.user
 
+    try:
+        is_staff = request.user.staff
+    except:
+        is_staff = False
+
     if user_id == '':
         filter1 = (Q(author_id=current_user.id) | Q(recipient_id=current_user.id)) & Q(type=0)
+
+        if is_staff:
+            my_patients = request.user.staff.assigned_patients.all().values('user')
+            filter1 |= Q(author_id__in=my_patients) | Q(recipient_id__in=my_patients)
     else:
         filter1 = (Q(author_id=user_id) | Q(recipient_id=user_id)) & Q(type=0)
 
@@ -49,10 +58,16 @@ def view_message(request, message_group_id):
     # Filters for the queries to check if user is authorized to view the messages with a specific message_group_id
     filter1 = Q(id=message_group_id)
     filter2 = Q(author_id=current_user.id) | Q(recipient_id=current_user.id)
+    try:
+
+        my_patients = request.user.staff.assigned_patients.values('user')
+        filter2 |= Q(author_id__in=my_patients) | Q(recipient_id__in=my_patients)
+    except:
+        pass
     filter3 = Q(type=0)
     if MessageGroup.objects.filter(filter1 & filter2 & filter3):
 
-        message_group = MessageGroup.objects.filter(filter1 & filter2 & filter3).get()
+        message_group = MessageGroup.objects.get(filter1)
 
         messages = MessageContent.objects.filter(message_id=message_group_id)
         encryption = RSAEncryption(settings.ENCRYPTION_KEY_DIRECTORY)
