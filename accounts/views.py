@@ -401,7 +401,8 @@ def profile(request, user_id):
         )
 
         perms_test_report = (
-            request.user.has_perm("accounts.view_patient_test_report")
+            user == request.user
+            or request.user.has_perm("accounts.view_patient_test_report")
             or (
                 request.user.has_perm("accounts.view_assigned_test_report")
                 and user in request.user.staff.get_assigned_patient_users()
