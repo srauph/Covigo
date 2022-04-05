@@ -1,0 +1,12 @@
+{% autoescape off %}
+Hello {{ is_doctor|yesno:"Dr.," }} {{ user.first_name }} {{ user.last_name }},
+
+{{ is_doctor|yesno:"Your patient,Dr." }} {{ other_person.first_name }} {{ other_person.last_name }} has replied to your message.
+
+To view your message, proceed to the link below:
+
+{{ host_name }}{% url 'messaging:list_messages'%}
+
+Covigo
+2022 Soen Squad
+{% endautoescape %}

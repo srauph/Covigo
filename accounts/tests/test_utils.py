@@ -14,7 +14,6 @@ from accounts.utils import (
     get_or_generate_patient_profile_qr
 )
 
-
 class GetFlagTests(TestCase):
     def setUp(self):
         self.patient_user = User.objects.create(username="patient_user")
@@ -294,3 +293,4 @@ class GenerateProfileQrTests(TestCase):
                     m_generated_image.save.assert_not_called()
 
                 self.assertEqual('accounts/qrs/boxxy.png', returned_path)
+

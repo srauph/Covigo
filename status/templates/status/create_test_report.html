@@ -1,0 +1,117 @@
+{% extends "Covigo/base.html" %}
+
+{% load static %}
+
+{% block script %}
+{% endblock %}
+
+{% block content %}
+    <form method="post" enctype="multipart/form-data" class="min-h-full bg-slate-100 flex flex-col">
+        {% csrf_token %}
+
+        <div class="bg-slate-700 border-b">
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">
+                Submit Test Results
+            </h1>
+        </div>
+
+        <div class="flex flex-col justify-between grow m-8 p-4 min-h-full bg-white shadow rounded-lg">
+            <div class="w-full flex flex-col gap-8 mb-8">
+                <div class="w-full">
+                    <h2 class="p-2 text-2xl font-bold">
+                        Test Result Report
+                    </h2>
+                    <hr>
+                    {% if messages %}
+                        <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+                        <script>
+                            setTimeout(function() {
+                                $('.message').fadeOut('fast');
+                            }, 10000); // <-- time in milliseconds
+                        </script>
+                    {% endif %}
+
+                    {% for message in messages %}
+                        {% if message.tags == 'error'%}
+                            <div role="alert" class="message p-5 rounded-lg border border-red-400 bg-red-300 text-red-900">
+                                <div class="divide-y-2 divide-solid divide-red-400">
+                                    <h2 class="font-bold text-xl flex items-center pb-2">
+                                    <span class="mr-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </span>
+                                        Error!
+                                        <div class="text-xl flex align-center w-full justify-end">
+                                            <strong class="alert-del cursor-pointer">
+                                                &times;
+                                            </strong>
+                                        </div>
+                                    </h2>
+                                    <p class="pt-2">
+                                        {{ message }}
+                                    </p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="w-full max-w-2xl px-2">
+                    <label>Test Type:</label>
+                    <div class="mt-1">
+                        {{ test_result_form.test_type }}
+                    </div>
+                </div>
+                <div class="w-full max-w-2xl px-2">
+                    <label>Test Result:</label>
+                    <div class="mt-1">
+                        {{ test_result_form.test_result }}
+                    </div>
+                </div>
+                <div name="test_result" class="w-full max-w-2xl px-2">
+                    <label>Result Date:</label>
+                    <div class="mt-1">
+                        {{ test_result_form.test_date }}
+                    </div>
+                </div>
+                <div class="w-full max-w-2xl px-2">
+                    <label>Proof of test result file:</label>
+                    <div class="mt-1">
+                        {{ test_result_form.test_file }}
+                    </div>
+                </div>
+            </div>
+            <div class="w-full mt-8 md:mt-0">
+                <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">                <a href="{% url "status:test_results" user_id %}">
+                    <button type="button"
+                            class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                                    <span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                             stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </span>
+                        <span>Cancel</span>
+                    </button>
+                </a>
+
+                    <a href ="{% url "status:test_results" user_id %}">
+                        <button type="submit" value="Create" name="Create"
+                                class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                                <span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                         viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </span>
+                            <span>Submit</span>
+                        </button>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
+
+{% endblock %}

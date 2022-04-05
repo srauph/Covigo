@@ -10,3 +10,4 @@ tailwind/*.json
 typescript
 qrs/
 dashboard/data/
+/test_result/
