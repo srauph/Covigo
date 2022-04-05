@@ -1,59 +1,40 @@
 {% extends "Covigo/base.html" %}
 
-{% block script %}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <script>
-        const recoveries_data = {
-            labels: {{ recoveries.dates|safe }},
-            datasets: [{
-                label: 'Recovered Patients',
-                backgroundColor: 'rgb(74, 222, 128)',
-                borderColor: 'rgb(74, 222, 128)',
-                data: {{ recoveries.numbers|safe }},
-            }]
-        };
-
-        const recoveries_config = {
-            type: 'line',
-            data: recoveries_data,
-            options: {
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                }
-            }
-        };
-    </script>
-
-    <div class="hidden flex items-center justify-center w-full h-full rounded-md shadow bg-green-100 border-green-200 group-hover:bg-green-200">
-        <div class="px-4 py-2">
-            <h2 class="font-bold text-2xl text-center">Recoveries (Total)</h2>
-            <h3 class="font-light text-sm text-center text-gray-600">(since {{ recoveries.dates.0 }}</h3>
-            <hr class="border-slate-400 my-2">
-            <dix class="flex items-center justify-center">
-                {#<img src="{% static 'dashboard/qcrecoveriesog.png' %}" alt="Hospitalizations"/>#}
-                <div>
-                    <canvas id="recoveries" class="rounded shadow bg-white group-hover:bg-slate-50" width="480" height="270"></canvas>
-                </div>
-            </dix>
-        </div>
-    </div>
-
-    <script>
-        const recoveries = new Chart(
-            document.getElementById('recoveries'),
-            recoveries_config
-        );
-    </script>
-{% endblock %}
-
 {% block content %}
     <div class="min-h-full bg-slate-100 flex flex-col">
         <div class="bg-slate-700 border-b">
             <h1 class="text-2xl text-white font-semibold px-8 py-4">Covigo Case Data</h1>
         </div>
+
+        {% block script %}
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+            <script>
+                const chart_data = {
+                    labels: {{ covigo_case_data.recoveries.dates|safe }},
+                    datasets: [{
+                        label: 'Recovered Patients',
+                        backgroundColor: 'rgb(74, 222, 128)',
+                        borderColor: 'rgb(74, 222, 128)',
+                        data: {{ covigo_case_data.recoveries.numbers|safe }},
+                    }]
+                };
+
+                const chart_config = {
+                    type: 'line',
+                    data: chart_data,
+                    options: {
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        responsive: true,
+                        maintainAspectRatio: false,
+                    }
+                };
+            </script>
+        {% endblock %}
 
         <div class="flex flex-col justify-between grow gap-8 m-8">
             <div class="bg-white shadow rounded-xl">
@@ -95,54 +76,45 @@
                 </div>
             </div>
 
-            <div class="flex flex-col justify-between grow p-4 min-h-full bg-white shadow rounded-lg">
-                <div class="w-full flex flex-col gap-8 mb-8">
-                    <div class="w-full">
-                        <h2 class="p-2 text-2xl font-bold">Account Information</h2>
-                        <hr>
-                    </div>
-                </div>
-                <div class="w-full mt-8 md:mt-0">
-                    <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
-                        <a href="{% url "accounts:list_users" %}">
-                            <button type="button"
-                                    class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
-                            <span>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                                     stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                            </span>
-                                <span>Cancel</span>
-                            </button>
-                        </a>
-                        <button type="submit" value="Create" name="Create"
-                                class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
-                            <span>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                     viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                            </span>
-                            <span>Create</span>
-                        </button>
-                        {# TODO: Implement Create and Return #}
-                        <button type="submit"
-                                class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
-                            <span>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                     viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                            </span>
-                            <span>Create and Return</span>
-                        </button>
-                    </div>
+            <div id="chartContainer" class="flex grow p-8 bg-white shadow rounded-lg">
+                <div class="grow relative">
+                    <canvas id="chart"></canvas>
                 </div>
             </div>
+
+            <script>
+                let chart = new Chart(
+                    document.getElementById('chart'),
+                    chart_config
+                );
+
+                $(function(){
+                    resizeCanvas();
+                });
+
+                let doit;
+                let lastWidth = $(window).width();
+                let lastHeight = $(window).height();
+                $(window).on('resize', function(){
+                    let currentWidth = $(window).width();
+                    let currentHeight = $(window).height();
+
+                    if (lastWidth > currentWidth || lastHeight > currentHeight) {
+                        clearTimeout(doit);
+                        doit = setTimeout(resizeCanvas, 100);
+                    }
+
+                    lastWidth = currentWidth;
+                    lastHeight = currentHeight;
+                });
+
+                function resizeCanvas()
+                {
+                    let canvas = $('#chart');
+                    canvas.css("width", $(window).width()/9999);
+                    canvas.css("height", $(window).height()/9999);
+                }
+            </script>
         </div>
     </div>
 {% endblock %}
