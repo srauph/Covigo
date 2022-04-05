@@ -168,3 +168,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = '/accounts/two_factor_authentication'
 LOGOUT_REDIRECT_URL = '/accounts/login'
+
+ENCRYPTION_KEY_DIRECTORY = BASE_DIR / 'keys'
