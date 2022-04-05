@@ -63,21 +63,21 @@ def view_message(request, message_group_id):
     filter1 = Q(id=message_group_id)
     filter2 = Q(author_id=current_user.id) | Q(recipient_id=current_user.id)
     try:
-
         my_patients = request.user.staff.assigned_patients.values('user')
         filter2 |= Q(author_id__in=my_patients) | Q(recipient_id__in=my_patients)
     except:
         pass
+    
     filter3 = Q(type=0)
     if MessageGroup.objects.filter(filter1 & filter2 & filter3):
 
         message_group = MessageGroup.objects.get(filter1)
 
-        messages = MessageContent.objects.filter(message_id=message_group_id)
+        filtered_messages = MessageContent.objects.filter(message_id=message_group_id)
         encryption = RSAEncryption(settings.ENCRYPTION_KEY_DIRECTORY)
         encryption.load_keys()
 
-        for message in messages:
+        for message in filtered_messages:
             print(message.content)
             message.content = encryption.decrypt(message.content)
 
@@ -179,7 +179,7 @@ def view_message(request, message_group_id):
 
         return render(request, 'messaging/view_message.html', {
             'message_group': message_group,
-            'messages': messages,
+            'messages': filtered_messages,
             'form': reply_form,
             'seen': seen
         })
