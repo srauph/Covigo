@@ -189,7 +189,7 @@ def create_patient_report(request):
     """
 
     current_user = request.user.id
-    if request.user.has_perm('change_patientsymptom'):
+    if request.user.has_perm('accounts.is_doctor'):
         report = PatientSymptom.objects.filter(user_id=current_user, due_date__date__lte=dt.datetime.now(),
                                                is_hidden=False)
         # Ensure it was a post request
@@ -250,7 +250,7 @@ def edit_patient_report(request):
 
     current_user_id = request.user.id
 
-    if request.user.has_perm('change_patientsymptom'):
+    if request.user.has_perm('accounts.is_doctor'):
         is_resubmit_requested = is_requested(current_user_id)
 
         if is_resubmit_requested:
@@ -314,6 +314,7 @@ def edit_patient_report(request):
         })
     else:
         raise PermissionDenied
+
 
 def resubmit_request(request, patient_symptom_id):
     # Hide the old symptom
