@@ -13,6 +13,10 @@ from django.urls import reverse
 from django.views.decorators.cache import never_cache
 
 from messaging.forms import ReplyForm, CreateMessageContentForm, CreateMessageGroupForm
+from django.db.models import Q
+
+from Covigo.messages import Messages
+from accounts.utils import send_system_message_to_user
 from messaging.models import MessageGroup, MessageContent
 from messaging.utils import send_notification
 from messaging.utils import RSAEncryption
@@ -96,14 +100,39 @@ def view_message(request, message_group_id):
                 new_reply = reply_form.save(commit=False)
                 new_reply.message = message_group
                 new_reply.author = current_user
+                new_reply.recipient = User.objects.get(id=message_group.recipient.id)
                 content = reply_form.data.get('content')
-                encryption = RSAEncryption(settings.ENCRYPTION_KEY_DIRECTORY)
-                encryption.load_keys()
                 encrypted_message = encryption.encrypt(content)
                 print(encrypted_message)
                 new_reply.content = encrypted_message
                 # Save to db
                 new_reply.save()
+                if User.objects.get(id=new_reply.author.id).is_staff:
+                    patient = new_reply.recipient
+                    doctor = new_reply.author
+                    template = Messages.MESSAGE_REPLY.value
+                    c_doctor = {
+                        "other_person": patient,
+                        "is_doctor": True
+                    }
+                    c_patient = {
+                        "other_person": doctor,
+                        "is_doctor": False
+                    }
+                    send_system_message_to_user(patient, template=template, c=c_patient)
+                else:
+                    doctor = new_reply.recipient
+                    patient = new_reply.author
+                    template = Messages.MESSAGE_REPLY.value
+                    c_doctor = {
+                        "other_person": patient,
+                        "is_doctor": True
+                    }
+                    c_patient = {
+                        "other_person": doctor,
+                        "is_doctor": False
+                    }
+                    send_system_message_to_user(doctor, template=template, c=c_doctor)
 
                 # Send notification
                 if message_group.author.id == current_user.id:
@@ -190,16 +219,51 @@ def compose_message(request, user_id):
                 new_msg_group.author_seen = True
                 new_msg_group.type = 0
                 new_msg_group.save()
-                content = msg_content_form.data.get('content')
+                
                 encryption = RSAEncryption(settings.ENCRYPTION_KEY_DIRECTORY)
                 encryption.load_keys()
-                encrypted_message = encryption.encrypt(content)
-                print(encrypted_message)
-                MessageContent.objects.create(
-                    author=new_msg_group.author,
-                    message=new_msg_group,
-                    content=encrypted_message,
-                )
+                
+                if User.objects.get(id=new_msg_group.author.id).is_staff:
+                    patient = new_msg_group.recipient
+                    doctor = new_msg_group.author
+                    template = Messages.MESSAGE_SENT.value
+                    content = msg_content_form.data.get('content')
+                    encrypted_message = encryption.encrypt(content)
+                    MessageContent.objects.create(
+                        author=new_msg_group.author,
+                        message=new_msg_group,
+                        content=encrypted_message,
+                    )
+                    c_doctor = {
+                        "other_person": patient,
+                        "is_doctor": True
+                    }
+                    c_patient = {
+                        "other_person": doctor,
+                        "is_doctor": False
+                    }
+                    send_system_message_to_user(patient, template=template, c=c_patient)
+                else:
+                    doctor = new_msg_group.recipient
+                    patient = new_msg_group.author
+                    template = Messages.MESSAGE_SENT.value
+                    content = msg_content_form.data.get('content')
+                    encrypted_message = encryption.encrypt(content)
+                    MessageContent.objects.create(
+                        author=new_msg_group.author,
+                        message=new_msg_group,
+                        content=encrypted_message,
+                    )
+                    c_doctor = {
+                        "other_person": patient,
+                        "is_doctor": True
+                    }
+                    c_patient = {
+                        "other_person": doctor,
+                        "is_doctor": False
+                    }
+                    send_system_message_to_user(doctor, template=template, c=c_doctor)
+
                 messages.success(request, "The new message was successfully sent to " + recipient_user.first_name + " " + recipient_user.last_name + "!")
 
                 # Create href for notification
