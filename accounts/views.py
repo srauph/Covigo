@@ -1,36 +1,39 @@
 import datetime
+import json
 
+from django.contrib import messages
+from django.contrib.auth import logout, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordResetForm
-from django.contrib.auth.models import Group, Permission, User
+from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth.views import PasswordResetConfirmView, PasswordChangeView
-from django.core.exceptions import MultipleObjectsReturned
+from django.contrib.auth.views import PasswordResetConfirmView, PasswordChangeView, LoginView
+from django.core.exceptions import MultipleObjectsReturned, PermissionDenied
 from django.db.models import Q
-from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
-from geopy import distance
 
+from Covigo.default_permissions import DEFAULT_PERMISSIONS
 from Covigo.messages import Messages
+from Covigo.settings import PRODUCTION_MODE
 from accounts.forms import *
-from accounts.models import Flag, Staff, Patient
-from accounts.preferences import SystemMessagesPreference
+from accounts.models import Flag, Staff, Patient, Code
+from accounts.preferences import SystemMessagesPreference, StatusReminderPreference
 from accounts.utils import (
     convert_dict_of_bools_to_list,
-    get_or_generate_patient_profile_qr,
     get_assigned_staff_id_by_patient_id,
+    get_or_generate_patient_profile_qr,
     get_user_from_uidb64,
-    send_sms_to_user, get_distance_of_all_doctors_to_postal_code, return_closest_with_least_patients_doctor,
+    return_closest_with_least_patients_doctor,
     send_system_message_to_user,
 )
 from appointments.models import Appointment
 from appointments.utils import rebook_appointment_with_new_doctor
-from accounts.utils import dictfetchall
 from symptoms.utils import is_symptom_editing_allowed
 
 
@@ -55,10 +58,14 @@ def process_register_or_edit_user_form(request, user_form, profile_form, mode=No
     has_phone = user_phone != ""
 
     if user_form.is_valid() and profile_form.is_valid() and (has_email or has_phone):
+        if mode == "Edit" and not user_form.has_changed() and not profile_form.has_changed():
+            messages.error(request,
+                           "The account was not edited successfully: No edits made on this account. If you wish to make no changes, please click the \"Cancel\" button to go back to the profile page.")
+            return False
 
         edited_user = user_form.save(commit=False)
 
-        # TODO: Discuss possibility of having no group and adjust `if` to enforce at least one when editing
+        # TODO: Discuss possibility of having no groups and adjust `if` to enforce at least one when editing
         if user_groups:
             edited_user.groups.set(user_groups)
 
@@ -69,7 +76,34 @@ def process_register_or_edit_user_form(request, user_form, profile_form, mode=No
 
     else:
         if mode == "Edit" and not (has_email or has_phone):
-            user_form.add_error(None, "Please enter an email address or a phone number.")
+            messages.error(request, 'Please enter an email address or a phone number.')
+
+        if not user_form.is_valid():
+            if "username" in user_form.errors:
+                messages.error(request, list(user_form['username'].errors)[0])
+
+            if "email" in user_form.errors:
+                messages.error(request, list(user_form['email'].errors)[0])
+
+            if "first_name" in user_form.errors:
+                messages.error(request, list(user_form['first_name'].errors)[0])
+
+            if "last_name" in user_form.errors:
+                messages.error(request, list(user_form['last_name'].errors)[0])
+
+            if "groups" in user_form.errors:
+                messages.error(request, list(user_form['groups'].errors)[0])
+
+        if not profile_form.is_valid():
+            if "phone_number" in profile_form.errors:
+                messages.error(request, list(profile_form['phone_number'].errors)[0])
+
+            if "address" in profile_form.errors:
+                messages.error(request, list(profile_form['address'].errors)[0])
+
+            if "postal_code" in profile_form.errors:
+                messages.error(request, list(profile_form['postal_code'].errors)[0])
+
         return False
 
 
@@ -80,11 +114,70 @@ def convert_permission_name_to_id(request):
         permission_array.append(permission_id)
     return permission_array
 
-@login_required
+
+class LoginViewTo2FA(LoginView):
+    @method_decorator(sensitive_post_parameters())
+    @method_decorator(csrf_protect)
+    @method_decorator(never_cache)
+    def dispatch(self, *args, **kwargs):
+        self.request.session["start_2fa"] = True
+        return super(LoginViewTo2FA, self).dispatch(*args, **kwargs)
+
+    def get_success_url(self):
+        return reverse_lazy("accounts:two_factor_authentication")
+
+
 @never_cache
 def two_factor_authentication(request):
-    return render(request, 'accounts/authentication/2FA.html')
+    if "start_2fa" not in request.session:
+        raise Http404
 
+    del request.session["start_2fa"]
+
+    user = request.user
+    code, _ = Code.objects.get_or_create(user=request.user.profile)
+    code.save()
+
+    logout(request)
+
+    otp = code.number
+    message = "Your OTP is " + otp + ". "
+    subject = "Covigo OTP"
+    send_system_message_to_user(user, message=message, subject=subject)
+
+    request.session["verify_otp"] = True
+
+    return render(request, 'accounts/authentication/2FA.html', {
+        "usr": user
+    })
+
+
+@never_cache
+def verify_otp(request, user_id):
+    user = User.objects.get(id=user_id)
+    code = request.POST.get('code')
+    # import pdb; pdb.set_trace()
+    try:
+        bypass = not PRODUCTION_MODE and code == "420420"
+        if bypass or code == Code.objects.get(user_id=user.id).number:
+            login(request, user)
+            return redirect('index')
+        else:
+            raise Code.DoesNotExist
+    except Code.DoesNotExist:
+        messages.error(
+            request,
+            "Invalid 2FA code."
+        )
+        return render(request, 'accounts/authentication/2FA.html', {
+            "usr": user,
+        })
+
+
+    #store
+    #compare
+    #redirect
+    print("Inside verify")
 
 @never_cache
 def forgot_password(request):
@@ -103,12 +196,13 @@ def forgot_password(request):
             except MultipleObjectsReturned:
                 # Should not happen because we don't allow multiple users to share an email.
                 # This can only occur if the database is corrupted somehow
-                password_reset_form.add_error(None, "More than one user with the given email address could be found. Please contact the system administrators to fix this issue.")
+                messages.error(request,
+                               "More than one user with the given email address could be found. Please contact the system administrators to fix this issue.")
             except User.DoesNotExist:
                 # Don't let the user know if the email does not exist in our system
                 return redirect("accounts:forgot_password_done")
         else:
-            password_reset_form.add_error(None, "Please enter a valid email address or phone number.")
+            messages.error(request, "Please enter a valid email address or phone number.")
     else:
         password_reset_form = PasswordResetForm()
     return render(
@@ -222,12 +316,6 @@ def index(request):
     return redirect('accounts:list_users')
 
 
-@login_required
-@never_cache
-def two_factor_authentication(request):
-    return render(request, 'accounts/authentication/2FA.html')
-
-
 @never_cache
 def change_password_done(request):
     return render(request, 'accounts/authentication/change_password_done.html')
@@ -238,17 +326,32 @@ def change_password_done(request):
 def profile(request, user_id):
     user = User.objects.get(id=user_id)
 
-    # messages_filter = Q(author_id=user_id) | Q(recipient_id=user_id)
-    # message_group = MessageGroup.objects.filter(messages_filter).order_by('-date_updated')[:3]
+    # if not request.user.is_staff and request.user != user:
+    #     raise PermissionDenied
+
     today = datetime.date.today()
     all_filter = Q(patient__isnull=False) & Q(start_date__gte=today)
 
-    if user.is_staff:
-        all_appointments = Appointment.objects.filter(staff=user).filter(all_filter).order_by("start_date")[:4]
-    else:
-        appointments = Appointment.objects.filter(patient=user).filter(all_filter).order_by("start_date")[:4]
+    usr_is_doctor = not user.is_superuser and user.has_perm("accounts.is_doctor")
 
+    perms_edit_user = (
+        False if user == request.user and not request.user.has_perm("accounts.edit_self") else
+        user == request.user and request.user.has_perm("accounts.edit_self")
+        or request.user.has_perm("accounts.edit_user")
+        or request.user.has_perm("accounts.edit_patient") and not user.is_staff
+        or request.user.has_perm("accounts.edit_assigned") and user in request.user.staff.get_assigned_patient_users()
+    )
+
+    show_left_side = usr_is_doctor or not user.is_staff
+
+    # If profile belongs to a patient
     if not user.is_staff:
+        can_edit_flag = (
+            False if not request.user.is_staff else
+            request.user.has_perm("accounts.flag_patients") and not user.is_staff
+            or request.user.has_perm("accounts.flag_assigned") and user in request.user.staff.get_assigned_patient_users()
+        )
+
         if request.method == "POST":
             doctor_staff_id = request.POST.get('doctor_id')
 
@@ -260,6 +363,13 @@ def profile(request, user_id):
 
         qr = get_or_generate_patient_profile_qr(user_id)
         assigned_staff = user.patient.get_assigned_staff_user()
+
+        if request.POST.get('Reassign'):
+            messages.success(request, "This patient was reassigned to the new doctor successfully.")
+
+        if request.POST.get('Assign'):
+            messages.success(request, "This patient was assigned a new doctor successfully.")
+
         appointments = Appointment.objects.filter(patient=user).filter(all_filter).order_by("start_date")
         appointments_truncated = appointments[:4]
         try:
@@ -268,9 +378,66 @@ def profile(request, user_id):
             assigned_staff_patient_count = 0
         assigned_flags = Flag.objects.filter(patient=user)
 
-        # TODO: Remove this group name and replace with permission instead
-        all_doctors = User.objects.filter(groups__name='doctor')
-        # all_doctors = User.objects.filter(is_staff=True)
+        all_doctors = User.objects.with_perm("accounts.is_doctor").exclude(is_superuser=True)
+
+        perms_code = (
+            user == request.user and request.user.has_perm("accounts.view_own_code")
+            or request.user.has_perm("accounts.view_patient_code")
+            or request.user.has_perm("accounts.view_assigned_code") and user in request.user.staff.get_assigned_patient_users()
+        )
+
+        perms_negative = (
+            user == request.user
+            or request.user.has_perm("accounts.view_patient_case")
+            or request.user.has_perm("accounts.view_assigned_case") and user in request.user.staff.get_assigned_patient_users()
+        )
+
+        perms_quarantine = (
+            user == request.user
+            or request.user.has_perm("accounts.view_patient_quarantine")
+            or request.user.has_perm("accounts.view_assigned_quarantine") and user in request.user.staff.get_assigned_patient_users()
+        )
+
+        perms_test_report = (
+            request.user.has_perm("accounts.view_patient_test_report")
+            or request.user.has_perm("accounts.view_assigned_test_report") and user in request.user.staff.get_assigned_patient_users()
+        )
+
+        perms_assigned_doctor = (
+            user == request.user
+            or request.user.has_perm("accounts.view_assigned_doctor")
+            or user in request.user.staff.get_assigned_patient_users()
+        )
+
+        perms_assigned_patients = (
+            user == request.user
+            or request.user.has_perm("accounts.view_assigned_patients")
+        )
+
+        perms_message_doctor = (
+            not user.is_staff and request.user != user.patient.get_assigned_staff_user() and (
+                request.user.has_perm("accounts.message_doctor")
+                or request.user.has_perm("accounts.message_user")
+            )
+        )
+
+        perms_assign_symptoms = (
+            not user.is_staff and (
+                request.user.has_perm("accounts.assign_symptom_patient")
+                or request.user.has_perm("accounts.assign_symptom_assigned") and user in request.user.staff.get_assigned_patient_users()
+            )
+        )
+
+        perms_edit_case = (
+            not user.is_staff and (
+                request.user.has_perm("accounts.set_patient_case")
+                or request.user.has_perm("accounts.set_patient_quarantine")
+                or request.user.has_perm("accounts.is_doctor") and user in request.user.staff.get_assigned_patient_users() and (
+                    request.user.has_perm("accounts.set_assigned_case")
+                    or request.user.has_perm("accounts.set_assigned_quarantine")
+                )
+            )
+        )
 
         return render(request, 'accounts/profile.html', {
             "usr": user,
@@ -283,12 +450,26 @@ def profile(request, user_id):
             "full_view": True,
             "allow_editing": is_symptom_editing_allowed(user_id),
             "all_doctors": all_doctors,
+            "can_edit_flag": can_edit_flag,
+            "show_left_side": show_left_side,
+
+            "perms_edit_user": perms_edit_user,
+            "perms_code": perms_code,
+            "perms_negative": perms_negative,
+            "perms_quarantine": perms_quarantine,
+            "perms_test_report": perms_test_report,
+            "perms_assigned_doctor": perms_assigned_doctor,
+            "perms_assigned_patients": perms_assigned_patients,
+            "perms_message_doctor": perms_message_doctor,
+            "perms_assign_symptoms": perms_assign_symptoms,
+            "perms_edit_case": perms_edit_case,
         })
 
+    # If profile belongs to a staff member
     else:
         appointments = Appointment.objects.filter(staff=user).filter(all_filter).order_by("start_date")
         appointments_truncated = appointments[:4]
-        assigned_patients = user.staff.get_assigned_patient_users()
+        assigned_patients = [] if user.is_superuser else user.staff.get_assigned_patient_users()
         issued_flags = Flag.objects.filter(staff=user)
 
         return render(request, 'accounts/profile.html', {
@@ -297,7 +478,12 @@ def profile(request, user_id):
             "appointments_truncated": appointments_truncated,
             "assigned_patients": assigned_patients,
             "issued_flags": issued_flags,
-            "full_view": True
+            "full_view": True,
+            "show_left_side": show_left_side,
+
+
+            "usr_is_doctor": usr_is_doctor,
+            "perms_edit_user": perms_edit_user,
         })
 
 
@@ -312,14 +498,31 @@ def profile_from_code(request, code):
 @login_required
 @never_cache
 def list_users(request):
+    if request.user.has_perm("accounts.view_user_list"):
+        users = User.objects.all()
+    elif request.user.has_perm("accounts.view_patient_list"):
+        users = User.objects.all().filter(is_staff=False)
+    elif request.user.has_perm("accounts.view_assigned_list"):
+        users = request.user.staff.get_assigned_patient_users()
+    else:
+        raise PermissionDenied
+
     return render(request, 'accounts/list_users.html', {
-        'users': User.objects.all()
+        'users': users
     })
 
 
 @login_required
 @never_cache
 def create_user(request):
+    can_view_page = (
+        request.user.has_perm("accounts.create_user")
+        or request.user.has_perm("accounts.create_patient")
+    )
+
+    if not can_view_page:
+        raise PermissionDenied
+
     # Process forms
     if request.method == "POST":
         user_form = CreateUserForm(request.POST)
@@ -344,7 +547,7 @@ def create_user(request):
 
             new_user.save()
             new_user.profile.phone_number = user_phone
-            # TODO: Discuss the possibility of having no group and remove `if` if we enforce having at least one
+            # TODO: Discuss the possibility of having no groups and remove `if` if we enforce having at least one
             if user_groups:
                 new_user.groups.set(user_groups)
             new_user.save()
@@ -352,7 +555,7 @@ def create_user(request):
             if new_user.is_staff:
                 Staff.objects.create(user=new_user)
             elif not new_user.is_staff:
-                # Since Patient *requires* an assigned staff, set it to the superuser for now.
+                # TODO: Figure out if the next todo has been addressed already or not.
                 # TODO: discuss if we should keep this behaviour for now or make Patient.staff nullable instead.
                 Patient.objects.create(user=new_user)
 
@@ -363,11 +566,31 @@ def create_user(request):
 
             send_system_message_to_user(new_user, template=template, c=c)
 
-            return redirect("accounts:list_users")
+            if request.POST.get('Create'):
+                messages.success(request, 'The account was created successfully.')
+                return render(request, "accounts/create_user.html", {
+                    "user_form": user_form,
+                    "profile_form": profile_form
+                })
+
+            else:
+                messages.success(request, 'The account was created successfully.')
+                return redirect('accounts:list_users')
 
         else:
             if not (has_email or has_phone):
-                user_form.add_error(None, "Please enter an email address or a phone number.")
+                messages.error(request, 'Please enter an email address or a phone number.')
+
+            if not user_form.is_valid():
+                if "email" in user_form.errors:
+                    messages.error(request, list(user_form['email'].errors)[0])
+
+                if "groups" in user_form.errors:
+                    messages.error(request, list(user_form['groups'].errors)[0])
+
+            if not profile_form.is_valid():
+                messages.error(request, list(profile_form.errors.values())[0][0])
+
     # Create forms
     else:
         user_form = CreateUserForm()
@@ -384,13 +607,44 @@ def create_user(request):
 def edit_user(request, user_id):
     user = User.objects.get(id=user_id)
 
+    can_view_page = (
+        False if user == request.user and not request.user.has_perm("accounts.edit_self") else
+        user == request.user and request.user.has_perm("accounts.edit_self")
+        or request.user.has_perm("accounts.edit_user")
+        or request.user.has_perm("accounts.edit_patient") and not user.is_staff
+        or request.user.has_perm("accounts.edit_assigned") and user in request.user.staff.get_assigned_patient_users()
+    )
+
+    if not can_view_page:
+        raise PermissionDenied
+
+    edit_perms = {
+        "edit_password": False if user == request.user and not request.user.has_perm(
+            "accounts.edit_password") else True,
+        "edit_username": False if user == request.user and not request.user.has_perm(
+            "accounts.edit_username") else True,
+        "edit_email": False if user == request.user and not request.user.has_perm("accounts.edit_email") else True,
+        "edit_name": False if user == request.user and not request.user.has_perm("accounts.edit_name") else True,
+        "edit_phone": False if user == request.user and not request.user.has_perm("accounts.edit_phone") else True,
+        "edit_address": False if user == request.user and not request.user.has_perm("accounts.edit_address") else True,
+        "edit_preferences": (
+            user != request.user and request.user.has_perm("accounts.edit_preference_user")
+            or user == request.user and (
+                request.user.has_perm("accounts.system_message_preference")
+                or request.user.has_perm("accounts.status_deadline_reminder_preference")
+                or request.user.has_perm("accounts.appointment_reminder_preference")
+            )
+        ),
+    }
+
     # Process forms
     if request.method == "POST":
         user_form = EditUserForm(request.POST, instance=user, user_id=user_id)
         profile_form = EditProfileForm(request.POST, instance=user.profile, user_id=user_id)
 
         if process_register_or_edit_user_form(request, user_form, profile_form, mode="Edit"):
-            return redirect("accounts:profile", user_id)
+            messages.success(request, 'The account was edited successfully.')
+            return redirect('accounts:profile', user_id)
 
     # Create forms
     else:
@@ -400,14 +654,28 @@ def edit_user(request, user_id):
     return render(request, "accounts/edit_user.html", {
         "user_form": user_form,
         "profile_form": profile_form,
-        "edited_user": user
+        "edited_user": user,
+        "edit_perms": edit_perms,
     })
 
 
 @login_required
 @never_cache
 def edit_preferences(request, user_id):
-    profile = User.objects.get(id=user_id).profile
+    user = User.objects.get(id=user_id)
+    can_view_page = (
+        user != request.user and request.user.has_perm("accounts.edit_preference_user")
+        or user == request.user and (
+            request.user.has_perm("accounts.system_message_preference")
+            or request.user.has_perm("accounts.status_deadline_reminder_preference")
+            or request.user.has_perm("accounts.appointment_reminder_preference")
+        )
+    )
+
+    if not can_view_page:
+        raise PermissionDenied
+
+    profile = user.profile
 
     # Process forms
     if request.method == "POST":
@@ -415,38 +683,58 @@ def edit_preferences(request, user_id):
 
         if preferences_form.is_valid():
             system_msg_preferences = preferences_form.cleaned_data.get(SystemMessagesPreference.NAME.value)
+            status_reminder_interval = preferences_form.cleaned_data.get(StatusReminderPreference.NAME.value)
 
+            # Convert to dict to store in profile
             preferences = {
                 SystemMessagesPreference.NAME.value: {
                     SystemMessagesPreference.EMAIL.value: "use_email" in system_msg_preferences,
                     SystemMessagesPreference.SMS.value: "use_sms" in system_msg_preferences
-                }
+                },
+
+                StatusReminderPreference.NAME.value: status_reminder_interval,
             }
 
             profile.preferences = preferences
             profile.save()
 
             return redirect("accounts:profile", user_id)
+
     # Create forms
     else:
+        # Try to load current preferences
         if profile.preferences:
+            # Load previous user-defined preferences
             old_preferences = dict()
-            for preference in profile.preferences:
-                old_preferences[preference] = convert_dict_of_bools_to_list(profile.preferences[preference])
+
+            old_preferences[SystemMessagesPreference.NAME.value] = convert_dict_of_bools_to_list(
+                profile.preferences[SystemMessagesPreference.NAME.value])
+
+            if StatusReminderPreference.NAME.value in profile.preferences:
+                old_preferences[StatusReminderPreference.NAME.value] = profile.preferences[
+                    StatusReminderPreference.NAME.value]
+            else:
+                # TODO: Replace this with admin-defined default advance warning, if we implement it.
+                old_preferences[StatusReminderPreference.NAME.value] = 2
 
             preferences_form = EditPreferencesForm(old_preferences)
         else:
+            # Create a blank form if user has no preferences
             preferences_form = EditPreferencesForm()
 
     return render(request, "accounts/edit_preferences.html", {
         "preferences_form": preferences_form,
+        "usr": user
     })
 
 
 @login_required
 @never_cache
-def list_group(request):
-    return render(request, 'accounts/access_control/group/list_group.html', {
+def list_groups(request):
+    if not request.user.has_perm("accounts.manage_groups"):
+        raise PermissionDenied
+
+    return render(request, 'accounts/access_control/groups/list_groups.html', {
         'groups': Group.objects.all()
     })
 
@@ -454,17 +742,20 @@ def list_group(request):
 @login_required
 @never_cache
 def create_group(request):
+    if not request.user.has_perm("accounts.manage_groups"):
+        raise PermissionDenied
+
+    non_default_permissions = Permission.objects.all().exclude(codename__in=DEFAULT_PERMISSIONS)
     new_name = ''
-    errors = GroupErrors()
 
     if request.method == 'POST':
         new_name = request.POST['name']
 
         if not new_name:
-            errors.blank_name = True
+            messages.error(request, 'Please enter a group/role name.')
 
         elif Group.objects.filter(name=new_name).exists():
-            errors.duplicate_name = True
+            messages.error(request, 'Another group/role with the same name exists.')
 
         else:
             group = Group(name=new_name)
@@ -473,46 +764,69 @@ def create_group(request):
             permission_array = convert_permission_name_to_id(request)
             group.permissions.set(permission_array)
 
-            return redirect('accounts:list_group')
+            if request.POST.get('Create'):
+                messages.success(request, 'The group/role was created successfully.')
+                return render(request, 'accounts/access_control/groups/create_group.html', {
+                    'permissions': non_default_permissions,
+                    'new_name': new_name
+                })
 
-    return render(request, 'accounts/access_control/group/add_group.html', {
-        'permissions': Permission.objects.all(),
-        'new_name': new_name,
-        'errors': errors,
+            else:
+                messages.success(request, 'The group/role was created successfully.')
+                return redirect('accounts:list_groups')
+
+    return render(request, 'accounts/access_control/groups/create_group.html', {
+        'permissions': non_default_permissions,
+        'new_name': new_name
     })
 
 
 @login_required
 @never_cache
 def edit_group(request, group_id):
+    if not request.user.has_perm("accounts.manage_groups"):
+        raise PermissionDenied
+
+    non_default_permissions = Permission.objects.all().exclude(codename__in=DEFAULT_PERMISSIONS)
     group = Group.objects.get(id=group_id)
     old_name = group.name
     new_name = old_name
-    errors = GroupErrors()
 
     if request.method == 'POST':
         new_name = request.POST['name']
 
         if not new_name:
-            errors.blank_name = True
+            messages.error(request, 'Please enter a group/role name.')
 
         elif Group.objects.exclude(name=old_name).filter(name=new_name).exists():
-            errors.duplicate_name = True
+            messages.error(request, 'Another group/role with the same name exists.')
 
         else:
+            permission_array = convert_permission_name_to_id(request)
+
+            if set(group.permissions.values_list("id", flat=True)) == set(permission_array) and new_name == old_name:
+                messages.error(
+                    request,
+                    f"The group/role name was not edited successfully: No edits made on this group/role. If you wish to make no changes, please click the \"Cancel\" button to go back to the list of groups/roles."
+                )
+                return render(request, 'accounts/access_control/groups/edit_group.html', {
+                    'permissions': non_default_permissions,
+                    'new_name': new_name,
+                    'group': group
+                })
+
             group.name = new_name
             group.save()
 
-            permission_array = convert_permission_name_to_id(request)
             group.permissions.clear()
             group.permissions.set(permission_array)
 
-            return redirect('accounts:list_group')
+            messages.success(request, 'The group/role was edited successfully.')
+            return redirect('accounts:list_groups')
 
-    return render(request, 'accounts/access_control/group/edit_group.html', {
-        'permissions': Permission.objects.all(),
+    return render(request, 'accounts/access_control/groups/edit_group.html', {
+        'permissions': non_default_permissions,
         'new_name': new_name,
-        'errors': errors,
         'group': group
     })
 
@@ -521,6 +835,14 @@ def edit_group(request, group_id):
 def flag_user(request, user_id):
     user_staff = request.user
     user_patient = User.objects.get(id=user_id)
+
+    can_edit_flag = (
+        user_staff.has_perm("accounts.flag_patients") and not user_patient.is_staff
+        or user_staff.has_perm("accounts.flag_assigned") and user_patient in user_staff.staff.get_assigned_patient_users()
+    )
+
+    if not can_edit_flag:
+        raise PermissionDenied
 
     flag = user_staff.staffs_created_flags.filter(patient=user_patient)
 
@@ -538,13 +860,21 @@ def flag_user(request, user_id):
         if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
             return JsonResponse({'is_flagged': f'{flag.is_active}'})
 
-    return redirect("accounts:list_users")
+    return redirect("accounts:profile", user_id)
 
 
 @login_required
 def unflag_user(request, user_id):
     user_staff = request.user
     user_patient = User.objects.get(id=user_id)
+
+    can_edit_flag = (
+        user_staff.has_perm("accounts.flag_patients") and not user_patient.is_staff
+        or user_staff.has_perm("accounts.flag_assigned") and user_patient in user_staff.staff.get_assigned_patient_users()
+    )
+
+    if not can_edit_flag:
+        raise PermissionDenied
 
     flag = user_staff.staffs_created_flags.filter(patient=user_patient)
 
@@ -559,4 +889,83 @@ def unflag_user(request, user_id):
         if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
             return JsonResponse({'is_flagged': f'{flag.is_active}'})
 
-    return redirect("accounts:list_users")
+    return redirect("accounts:profile", user_id)
+
+
+# this function simply renders the Edit status page
+# the status can be changed here
+@login_required
+@never_cache
+def edit_case(request, user_id):
+    user = User.objects.get(id=user_id)
+    patient = user.patient
+    if request.method == "POST":
+        case_form = EditCaseForm(request.POST)
+        if case_form.is_valid():
+            if not case_form.has_changed():
+                messages.error(
+                    request,
+                    "The patient's case data was not edited successfully: No edits made on this patient. If you wish to make no changes, please click the \"Cancel\" button to go back to the profile page."
+                )
+            else:
+                is_confirmed = case_form.cleaned_data.get("is_confirmed")
+                is_negative = case_form.cleaned_data.get("is_negative")
+                is_quarantining = case_form.cleaned_data.get("is_quarantining")
+
+                patient.is_confirmed = is_confirmed
+                patient.is_negative = is_negative
+                patient.is_quarantining = is_quarantining
+
+                patient.save()
+                messages.success(
+                    request,
+                    "The patient's case data was edited successfully."
+                )
+                return redirect("accounts:profile", user.id)
+        else:
+            # No Error expected here, but we have an error message in case something else goes wrong
+            messages.error(
+                request,
+                "The patient's case data was not edited successfully: The form is invalid. Please verify the form's data."
+            )
+    else:
+        old_case_info = dict()
+        old_case_info["is_confirmed"] = patient.is_confirmed
+        old_case_info["is_negative"] = patient.is_negative
+        old_case_info["is_quarantining"] = patient.is_quarantining
+
+        case_form = EditCaseForm(old_case_info)
+
+    return render(request, 'accounts/edit_case.html', {
+        "usr": user,
+        "case_form": case_form
+    })
+
+
+def doctor_patient_list(request):
+    if not request.user.has_perm("accounts.edit_assigned_doctor"):
+        raise PermissionDenied
+
+    return render(request, 'accounts/doctors.html')
+
+
+def doctor_patient_list_table(request):
+    # TODO FILTER FOR DOCTORS ONLY (Currently anyone in accounts_staff is treated as a doctor for the query)
+    if not request.user.has_perm("accounts.edit_assigned_doctor"):
+        raise PermissionDenied
+
+    # Raw query to get each doctor and their patient count
+    query = Staff.objects.raw(
+        "SELECT `auth_user`.`id`, `auth_user`.`first_name`, `auth_user`.`last_name`, `accounts_staff`.`user_id`, COUNT(*) AS patient_count FROM `accounts_staff` JOIN `accounts_patient` ON (`accounts_staff`.`id` = `accounts_patient`.`assigned_staff_id`) LEFT OUTER JOIN `auth_user` ON (`accounts_staff`.`user_id` = `auth_user`.`id`) GROUP BY `accounts_patient`.`assigned_staff_id` ORDER BY `auth_user`.`first_name` , `auth_user`.`last_name`")
+
+    # Build the JSON from the raw query
+    table_info = []
+    for i in query:
+        record = {"user_id": i.user_id, "first_name": i.first_name, "last_name": i.last_name,
+                  "patient_count": i.patient_count}
+        table_info.append(record)
+
+    # Serialize it
+    serialized_reports = json.dumps({'data': table_info}, indent=4)
+
+    return HttpResponse(serialized_reports, content_type='application/json')

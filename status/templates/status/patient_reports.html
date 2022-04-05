@@ -32,11 +32,10 @@
     <script type="text/javascript"
             src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
-
     <script>
         $(document).ready(function () {
             let table = $('#patient_reports_table').DataTable({
-                "ajax": "{% url 'status:patient-reports-table' %}",
+                "ajax": "{% url 'status:patient_reports_table' %}",
                 createdRow: function (row, data, index) {
                     $(row).attr('data-read', data.is_viewed)
                     if (data.is_viewed === false) {
@@ -44,6 +43,9 @@
                     } else {
                         $(row).addClass('border-b')
                     }
+                },
+                language : {
+                    "zeroRecords": "No submitted patient reports at this time"
                 },
                 responsive: true,
                 "draggable ": false,
@@ -141,7 +143,7 @@
                     user_id = data.user_id;
                     table_date = data.date_updated__date;
                 }
-                let url = "{% url 'status:patient-report-modal' 999999999 'date_updated' %}";
+                let url = "{% url 'status:patient_report_modal' 999999999 'date_updated' %}";
                 url = url.replace(999999999, user_id);
                 url = url.replace('date_updated', table_date);
 
@@ -159,7 +161,7 @@
 
                         $('#modal-div').html(html).modal('show');
 
-                        //Re-laod table to update that it has been read
+                        //Reload table to update that it has been read
                         table.ajax.reload();
                     }
                 });
@@ -179,10 +181,10 @@
                 <div>
                     <span class="font-semibold px-2">Filters:</span>
                     <select name="" id="toggleRead"
-                            class="bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md">
-                        <option value="showAll">Show All Messages</option>
-                        <option value="false">Show Unread Messages</option>
-                        <option value="true">Show Read Messages</option>
+                            class="bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md cursor-pointer">
+                        <option value="showAll">Show All Patient Reports</option>
+                        <option value="false">Show Unread Patient Reports</option>
+                        <option value="true">Show Read Patient Reports</option>
                     </select>
                 </div>
             </div>

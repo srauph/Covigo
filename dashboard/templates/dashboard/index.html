@@ -10,13 +10,28 @@
             {% include './cards/messages.html' %}
             {% include './cards/upcoming-appointments.html' %}
             {% if not user.is_staff %}
-{#                {% include './cards/status-reminder.html' %}#}
+                {# {% include './cards/status-reminder.html' %} #}
+
                 {% include './cards/quarantine-status.html' %}
-                {% include './cards/my-doctor.html' %}
+                
+                {% if perms.accounts.dashboard_doctor %}
+                    {% include './cards/my-doctor.html' %}
+                {% endif %}
+
             {% else %}
-{#                {% include './cards/recent-status.html' %}#}
-                {% include './cards/my-patients.html' %}
-                {% include './cards/covigo-data.html' %}
+                {# {% include './cards/recent-status.html' %} #}
+
+                {% if perms.accounts.is_doctor and not user.is_superuser %}
+                    {% include './cards/my-patients.html' %}
+                {% endif %}
+
+                {% if perms.accounts.dashboard_covigo_data %}
+                    {% include './cards/covigo-data.html' %}
+                {% endif %}
+
+                {% if perms.accounts.dashboard_external_data %}
+                    {# Card for external data goes here #}
+                {% endif %}
             {% endif %}
         </div>
     </div>

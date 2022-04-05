@@ -1,7 +1,7 @@
+from django.urls import reverse
 import base64
 
 from django.template.loader import render_to_string
-from django.urls import reverse
 
 from messaging.models import MessageGroup
 
@@ -61,8 +61,3 @@ class RSAEncryption:
     def decrypt(self, cipher_text):
         cipher_text = base64.b64decode(cipher_text.encode('ascii'))
         return rsa.decrypt(cipher_text, self.private_key).decode('ascii')
-        try:
-            return rsa.decrypt(cipher_text, self.private_key).decode('ascii')
-        except Exception as e:
-            print(e)
-            #return False
