@@ -15,7 +15,8 @@ from django.views.decorators.cache import never_cache
 from messaging.forms import ReplyForm, CreateMessageContentForm, CreateMessageGroupForm
 from messaging.models import MessageGroup, MessageContent
 from messaging.utils import send_notification
-
+from messaging.utils import RSAEncryption
+from django.conf import settings
 
 @login_required
 @never_cache
@@ -54,6 +55,12 @@ def view_message(request, message_group_id):
         message_group = MessageGroup.objects.filter(filter1 & filter2 & filter3).get()
 
         messages = MessageContent.objects.filter(message_id=message_group_id)
+        encryption = RSAEncryption(settings.ENCRYPTION_KEY_DIRECTORY)
+        encryption.load_keys()
+
+        for message in messages:
+            print(message.content)
+            message.content = encryption.decrypt(message.content)
 
         # Check if we are author or recipient
         if message_group.author.id == current_user.id:
@@ -74,6 +81,12 @@ def view_message(request, message_group_id):
                 new_reply = reply_form.save(commit=False)
                 new_reply.message = message_group
                 new_reply.author = current_user
+                content = reply_form.data.get('content')
+                encryption = RSAEncryption(settings.ENCRYPTION_KEY_DIRECTORY)
+                encryption.load_keys()
+                encrypted_message = encryption.encrypt(content)
+                print(encrypted_message)
+                new_reply.content = encrypted_message
                 # Save to db
                 new_reply.save()
 
@@ -105,6 +118,8 @@ def view_message(request, message_group_id):
                     # TODO: Proper exception handling
                     raise Exception("Logged in user is neither author nor recipient")
                 message_group.save()
+
+                return redirect("messaging:view_message", message_group_id)
 
         # Initialize the reply form
         else:
@@ -160,10 +175,15 @@ def compose_message(request, user_id):
                 new_msg_group.author_seen = True
                 new_msg_group.type = 0
                 new_msg_group.save()
+                content = msg_content_form.data.get('content')
+                encryption = RSAEncryption(settings.ENCRYPTION_KEY_DIRECTORY)
+                encryption.load_keys()
+                encrypted_message = encryption.encrypt(content)
+                print(encrypted_message)
                 MessageContent.objects.create(
                     author=new_msg_group.author,
                     message=new_msg_group,
-                    content=msg_content_form.data.get('content'),
+                    content=encrypted_message,
                 )
                 messages.success(request, "The new message was successfully sent to " + recipient_user.first_name + " " + recipient_user.last_name + "!")
 
