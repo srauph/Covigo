@@ -1,6 +1,6 @@
 from datetime import time
 
-from django.db.models import Q, Count, When, Value
+from django.db.models import Q, Count
 from django.utils.datetime_safe import datetime
 
 from Covigo.messages import Messages
@@ -8,6 +8,8 @@ from accounts.models import Profile
 from accounts.preferences import StatusReminderPreference
 from accounts.utils import send_system_message_to_user
 from symptoms.models import PatientSymptom, Symptom
+
+from pathlib import Path
 
 
 def get_reports_by_patient(patient_id):
@@ -163,7 +165,7 @@ def send_status_reminders(date=datetime.now(), current_date=datetime.now()):
     # The value stored in preferences is the interval (number of advance hours warning) to give.
     # Thus, we need to convert from the current hour to the corresponding interval.
     # EG: if it is currently 21:00, we need to match users whose preference is set to 24-21 = 3 hours notice
-    interval_to_match = 24-current_hour
+    interval_to_match = 24 - current_hour
 
     for profile in profiles:
         if profile.preferences and StatusReminderPreference.NAME.value in profile.preferences:
@@ -206,3 +208,28 @@ def get_report_unread_status(criteria):
         user__first_name=criteria['user__first_name'],
         user__last_name=criteria['user__last_name'],
     ).exists()
+
+
+def write_test_result_file(file, user_id, test_index):
+    """
+    Creates a file and returns the relative path to the file test result file uploaded by a patient
+    @param file: the uploaded file
+    @param user_id: the user ID of the patient that uploaded the file
+    @param test_index: the current test index of all the tests the patient has uploaded
+    @return: the relative path to the file test result file uploaded by a patient
+    """
+    Path(f"test_result/{user_id}/{test_index}").mkdir(parents=True, exist_ok=True)
+
+    with open(f"test_result/{user_id}/{test_index}/{file.name}", "wb+") as destination:
+        for chunk in file.chunks():
+            destination.write(chunk)
+    return f"test_result/{user_id}/{test_index}/{file.name}"
+
+
+def get_test_result_file_path(user_id, test_index):
+    """
+    Returns the relative path to the directory storing the test file of the specified test report index
+    @param user_id: the user ID of the patient that uploaded the file
+    @param test_index: the current test index of all the tests the patient has uploaded
+    """
+    return Path(f"test_result/{user_id}/{test_index}/")

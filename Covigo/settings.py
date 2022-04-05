@@ -36,7 +36,7 @@ if PRODUCTION_MODE:
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
     HOST_NAME = 'https://covigo.ddns.net'
-    STATICFILES_DIRS = [BASE_DIR / 'static',]
+    STATICFILES_DIRS = [BASE_DIR / 'static', ]
 else:
     try:
         ALLOWED_HOSTS = json.loads(getenv("ALLOWED_HOSTS"))
@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'django_otp',
     'django_otp.plugins.otp_static',
     'django_otp.plugins.otp_totp',
+    'django_user_agents',
     'two_factor',
     'users'
 ]
@@ -78,6 +79,7 @@ MIDDLEWARE = [
     'django_otp.middleware.OTPMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_user_agents.middleware.UserAgentMiddleware',
 ]
 
 ROOT_URLCONF = 'Covigo.urls'
@@ -148,7 +150,7 @@ LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'US/Eastern'
 DATETIME_FORMAT = '%d-%m-%Y %H:%M:%S'
-L10N=False
+L10N = False
 
 USE_I18N = False
 
@@ -166,3 +168,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = '/accounts/two_factor_authentication'
 LOGOUT_REDIRECT_URL = '/accounts/login'
+
+ENCRYPTION_KEY_DIRECTORY = BASE_DIR / 'keys'

@@ -30,12 +30,12 @@ class AppointmentsTestCase(TransactionTestCase):
         :return: void
         """
 
-        self.staff1_user = User.objects.create(username='PhillyB1', is_staff=True, first_name="Phil", last_name="Baldhead")
+        self.staff1_user = User.objects.create(is_superuser=True, username='PhillyB1', is_staff=True, first_name="Phil", last_name="Baldhead")
         self.doctor1 = Staff.objects.create(user=self.staff1_user)
         self.staff1_user.set_password('BaldMan123')
         self.staff1_user.save()
 
-        self.patient_user = User.objects.create(username='JohnnyD2', is_staff=False, first_name="John", last_name="Doe")
+        self.patient_user = User.objects.create(is_superuser=True, username='JohnnyD2', is_staff=False, first_name="John", last_name="Doe")
         self.patient = Patient.objects.create(user=self.patient_user, assigned_staff=self.doctor1)
         self.patient_user.set_password('JohnGuy123')
         self.patient_user.save()
