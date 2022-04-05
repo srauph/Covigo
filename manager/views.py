@@ -53,5 +53,10 @@ def contact_tracing(request):
     return render(request, 'manager/contact_tracing.html', {"user_count": user_count})
 
 
+def help_page(request):
+    usr = request.user
+    return render(request, 'manager/help.html', {"usr": usr})
+
+
 def about(request):
     return render(request, 'manager/about.html')

@@ -13,11 +13,13 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+import manager.views
+
 from django.contrib import admin
 from django.shortcuts import redirect
 from django.urls import path, include
 from messaging.views import list_notifications, toggle_read_notification, read_notification
-import manager.views
+
 
 from Covigo.settings import PRODUCTION_MODE
 
@@ -35,7 +37,8 @@ urlpatterns = [
          name='read_notification'),
     path('toggle_read_notification/<int:message_group_id>/', toggle_read_notification,
          name='toggle_read_notification'),
-    path('about', manager.views.about, name='about'),
+    path('help/', manager.views.help_page, name='help'),
+    path('about/', manager.views.about, name='about'),
 
 ]
 

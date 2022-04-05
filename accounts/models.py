@@ -13,6 +13,7 @@ class Profile(models.Model):
     address = models.TextField(blank=True)
     postal_code = models.CharField(max_length=255, blank=True)
     preferences = models.JSONField(blank=True, null=True)
+    violation = models.JSONField(blank=True, null=True)
 
     class Meta:
         permissions = [
@@ -128,6 +129,7 @@ class Patient(models.Model):
     is_negative = models.BooleanField(default=False)
     is_quarantining = models.BooleanField(default=False)
     code = models.CharField(max_length=255)
+    test_results = models.JSONField(blank=True, null=True)
 
     class Meta:
         permissions = [

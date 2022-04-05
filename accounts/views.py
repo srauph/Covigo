@@ -18,6 +18,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 
+
 from Covigo.default_permissions import DEFAULT_PERMISSIONS
 from Covigo.messages import Messages
 from Covigo.settings import PRODUCTION_MODE
@@ -26,6 +27,7 @@ from accounts.models import Flag, Staff, Patient, Code
 from accounts.preferences import SystemMessagesPreference, StatusReminderPreference
 from accounts.utils import (
     convert_dict_of_bools_to_list,
+    dictfetchall,
     get_assigned_staff_id_by_patient_id,
     get_or_generate_patient_profile_qr,
     get_user_from_uidb64,
@@ -34,6 +36,7 @@ from accounts.utils import (
 )
 from appointments.models import Appointment
 from appointments.utils import rebook_appointment_with_new_doctor
+from geopy import distance
 from symptoms.utils import is_symptom_editing_allowed
 
 
@@ -156,7 +159,7 @@ def two_factor_authentication(request):
 def verify_otp(request, user_id):
     user = User.objects.get(id=user_id)
     code = request.POST.get('code')
-    # import pdb; pdb.set_trace()
+
     try:
         bypass = not PRODUCTION_MODE and code == "420420"
         if bypass or code == Code.objects.get(user_id=user.id).number:
@@ -173,11 +176,6 @@ def verify_otp(request, user_id):
             "usr": user,
         })
 
-
-    #store
-    #compare
-    #redirect
-    print("Inside verify")
 
 @never_cache
 def forgot_password(request):
@@ -682,6 +680,13 @@ def edit_preferences(request, user_id):
         preferences_form = EditPreferencesForm(request.POST)
 
         if preferences_form.is_valid():
+            if convert_dict_of_bools_to_list(profile.preferences[SystemMessagesPreference.NAME.value]) == preferences_form.cleaned_data.get(SystemMessagesPreference.NAME.value) and profile.preferences[StatusReminderPreference.NAME.value] == preferences_form.cleaned_data.get(StatusReminderPreference.NAME.value):
+                messages.error(request, f"The account preferences settings were not edited successfully: No edits made on the current account preferences settings. If you wish to make no changes, please click the \"Cancel\" button to go back to your account information in the previous page.")
+                return render(request, "accounts/edit_preferences.html", {
+                    "preferences_form": preferences_form,
+                    "usr": user
+                })
+
             system_msg_preferences = preferences_form.cleaned_data.get(SystemMessagesPreference.NAME.value)
             status_reminder_interval = preferences_form.cleaned_data.get(StatusReminderPreference.NAME.value)
 
@@ -698,7 +703,11 @@ def edit_preferences(request, user_id):
             profile.preferences = preferences
             profile.save()
 
-            return redirect("accounts:profile", user_id)
+            messages.success(request, f"The account preferences settings were edited successfully.")
+            return redirect("accounts:edit_user", user_id)
+
+        else:
+            messages.error(request, "Please select at least one system messages preferences method.")
 
     # Create forms
     else:
@@ -969,3 +978,33 @@ def doctor_patient_list_table(request):
     serialized_reports = json.dumps({'data': table_info}, indent=4)
 
     return HttpResponse(serialized_reports, content_type='application/json')
+
+
+def get_distance_from_postal_code_to_current_location(request, postal_code, current_lat, current_long):
+    """
+    Computes and returns the distance between a specified postal code and a user's specified location.
+    The postal code must be a valid Canadian postal code, and the specified location is in latitude and longitude.
+    @param request: Request object of the user
+    @param postal_code: The "destination" postal code to search against
+    @param current_lat: The current latitude of the user
+    @param current_long: The current longitude of the user
+    @return: HttpResponse containing the computed distance
+    """
+
+    c = connection.cursor()
+    c.execute('SELECT * from postal_codes where POSTAL_CODE = %s', [postal_code])
+    r = dictfetchall(c)
+    patient_postal_code_lat_long = (float(r[0]['LATITUDE']), float(r[0]['LONGITUDE']))
+    distance_patient_to_doctor = distance.distance(patient_postal_code_lat_long, (current_lat, current_long)).m
+    if distance_patient_to_doctor > 1000:
+        array = []
+        if request.user.profile.violation is not None:
+            array = list(json.loads(request.user.profile.violation))
+        array.append({
+            'type': 'quarantine non-compliance',
+            'date-time': datetime.datetime.now()
+        })
+        request.user.profile.violation = json.dumps(array, indent=4, sort_keys=True, default=str)
+        request.user.profile.save()
+
+    return HttpResponse(distance_patient_to_doctor)

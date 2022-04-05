@@ -164,7 +164,7 @@ class MessagingListTests(TestCase):
 class MessagingComposeTest(TestCase):
 
     def setUp(self):
-        user_1 = User.objects.create(id=1, username="bob", is_staff=True)
+        user_1 = User.objects.create(id=1, is_superuser=True, username="bob", is_staff=True)
         user_1.set_password('secret')
         user_1.save()
 
@@ -186,8 +186,9 @@ class MessagingComposeTest(TestCase):
         response = self.client.get('/messaging/compose/1')
 
         # Assert
-        # User is redirected to the messages list
-        self.assertRedirects(response, '/messaging/list/')
+        # Based on the current permissions put in place, the user should not be able to
+        # self-message so the response status code should raise a 403 Permission Denied error
+        self.assertEqual(response.status_code, 403)
 
     def test_create_message_group(self):
         """
