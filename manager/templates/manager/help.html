@@ -174,165 +174,199 @@
                                 After following these steps you will be re-directed to your user profile.
                             </div>
                         </div>
-                        <div class="mt-2 mb-2">
-                            <button type="button" class="inner_collapsible">How can I send a message to my patient?
-                            </button>
-                            <div class="inner_content">
-                                To contact your patient, you will have to:
-                                <ol class="list-decimal list-inside mt-2 mb-2">
-                                    <li>Open your user profile of your patient. You can access it through the dashboard.
-                                    </li>
-                                    <li>In your patient's profile, click on the "Message" button. You will be redirected
-                                        to the
-                                        "Compose Message" page.
-                                    </li>
-                                    <li>You will have to provide a brief subject to describing your reason for
-                                        contacting your patient.
-                                    </li>
-                                    <li>Choose a priority (Low, Medium, High) depending on the urgency of your message.
-                                    </li>
-                                    <li>In the content section, describe the reason for message in detail, providing all
-                                        necessary information for your patient.
-                                    </li>
-                                    <li>Once you are done click on "Create and Return" to send the message.</li>
-                                </ol>
-                                After sending the message, you will be re-directed to the "Messaging" Page
+                        {% if usr.is_staff %}
+                            <div class="mt-2 mb-2">
+                                <button type="button" class="inner_collapsible">How can I send a message to my patient?
+                                </button>
+                                <div class="inner_content">
+                                    To contact your patient, you will have to:
+                                    <ol class="list-decimal list-inside mt-2 mb-2">
+                                        <li>Open your user profile of your patient. You can access it through the
+                                            dashboard.
+                                        </li>
+                                        <li>In your patient's profile, click on the "Message" button. You will be
+                                            redirected
+                                            to the
+                                            "Compose Message" page.
+                                        </li>
+                                        <li>You will have to provide a brief subject to describing your reason for
+                                            contacting your patient.
+                                        </li>
+                                        <li>Choose a priority (Low, Medium, High) depending on the urgency of your
+                                            message.
+                                        </li>
+                                        <li>In the content section, describe the reason for message in detail, providing
+                                            all
+                                            necessary information for your patient.
+                                        </li>
+                                        <li>Once you are done click on "Create and Return" to send the message.</li>
+                                    </ol>
+                                    After sending the message, you will be re-directed to the "Messaging" Page
+                                </div>
                             </div>
-                        </div>
-                        <div class="mt-2 mb-2">
-                            <button type="button" class="inner_collapsible">How can I send a message to my doctor?
-                            </button>
-                            <div class="inner_content">
-                                To contact your patient, you will have to:
-                                <ol class="list-decimal list-inside mt-2 mb-2">
-                                    <li>Open your user profile. You can access it by clicking on your username in the
-                                        top right corner of the screen.
-                                    </li>
-                                    <li>In your profile, click on the "Message" button. You will be redirected
-                                        to the
-                                        "Compose Message" page.
-                                    </li>
-                                    <li>You will have to provide a brief subject to describing your reason for
-                                        contacting your doctor.
-                                    </li>
-                                    <li>Choose a priority (Low, Medium, High) depending on the urgency of your message.
-                                    </li>
-                                    <li>In the content section, describe the reason for message in detail, providing all
-                                        necessary information for your doctor.
-                                    </li>
-                                    <li>Once you are done click on "Create and Return" to send the message.</li>
-                                </ol>
-                                After sending the message, you will be re-directed to the "Messaging" Page
+                        {% else %}
+                            <div class="mt-2 mb-2">
+                                <button type="button" class="inner_collapsible">How can I send a message to my doctor?
+                                </button>
+                                <div class="inner_content">
+                                    To contact your patient, you will have to:
+                                    <ol class="list-decimal list-inside mt-2 mb-2">
+                                        <li>Open your user profile. You can access it by clicking on your username in
+                                            the
+                                            top right corner of the screen.
+                                        </li>
+                                        <li>In your profile, click on the "Message" button. You will be redirected
+                                            to the
+                                            "Compose Message" page.
+                                        </li>
+                                        <li>You will have to provide a brief subject to describing your reason for
+                                            contacting your doctor.
+                                        </li>
+                                        <li>Choose a priority (Low, Medium, High) depending on the urgency of your
+                                            message.
+                                        </li>
+                                        <li>In the content section, describe the reason for message in detail, providing
+                                            all
+                                            necessary information for your doctor.
+                                        </li>
+                                        <li>Once you are done click on "Create and Return" to send the message.</li>
+                                    </ol>
+                                    After sending the message, you will be re-directed to the "Messaging" Page
+                                </div>
                             </div>
-                        </div>
-                        <div class="mt-2 mb-2">
-                            <button type="button" class="inner_collapsible">How do I book an appointment with my doctor?
-                            </button>
-                            <div class="inner_content">
-                                To book an appointment with your doctor, you will have to:
-                                <ol class="list-decimal list-inside mt-2 mb-2">
-                                    <li>You will have to open "Appointments" which is found in the sidebar.</li>
-                                    <li>Once in the "Appointments" page, click on "Book Appointments" button.</li>
-                                    <li>You will be able to see all the available time slots for your doctor. Select the
-                                        time slot you prefer.
-                                        <ul class="ml-4 list-inside list-disc mt-2 mb-2">
-                                            <li>You can select multiple appointments if you needed. Click on the
-                                                checklist button to select multiple appointment slots.
-                                            </li>
-                                            <li>You can also filter by the days of the week, and filter to obtain slots
-                                                between specific dates.
-                                            </li>
-                                        </ul>
-                                    </li>
-                                    <li>If you chose one appointment, click on "Book Appointment" button next to the
-                                        appointment you want to book it. If you chose multiple appointments,
-                                        click on the "Book Selected Appointments" button at the bottom of the table to
-                                        book the selected appointments.
-                                    </li>
-                                </ol>
+                        {% endif %}
+                        {% if not usr.is_staff %}
+                            <div class="mt-2 mb-2">
+                                <button type="button" class="inner_collapsible">How do I book an appointment with my
+                                    doctor?
+                                </button>
+                                <div class="inner_content">
+                                    To book an appointment with your doctor, you will have to:
+                                    <ol class="list-decimal list-inside mt-2 mb-2">
+                                        <li>You will have to open "Appointments" which is found in the sidebar.</li>
+                                        <li>Once in the "Appointments" page, click on "Book Appointments" button.</li>
+                                        <li>You will be able to see all the available time slots for your doctor. Select
+                                            the
+                                            time slot you prefer.
+                                            <ul class="ml-4 list-inside list-disc mt-2 mb-2">
+                                                <li>You can select multiple appointments if you needed. Click on the
+                                                    checklist button to select multiple appointment slots.
+                                                </li>
+                                                <li>You can also filter by the days of the week, and filter to obtain
+                                                    slots
+                                                    between specific dates.
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>If you chose one appointment, click on "Book Appointment" button next to the
+                                            appointment you want to book it. If you chose multiple appointments,
+                                            click on the "Book Selected Appointments" button at the bottom of the table
+                                            to
+                                            book the selected appointments.
+                                        </li>
+                                    </ol>
+                                </div>
                             </div>
-                        </div>
-                        <div class="mt-2 mb-2">
-                            <button type="button" class="inner_collapsible">How do I cancel an appointment with my
-                                doctor?
-                            </button>
-                            <div class="inner_content">
-                                To cancel an appointment with your doctor, you will have to:
-                                <ol class="list-decimal list-inside mt-2 mb-2">
-                                    <li>You will have to open "Appointments" which is found in the sidebar.</li>
-                                    <li>Once in the "Appointments" page, click on "Cancel Appointments" button.</li>
-                                    <li>You will be able to see all the booked appointments with your doctor. Select the
-                                        appointment you want to cancel.
-                                        <ul class="ml-4 list-inside list-disc mt-2 mb-2">
-                                            <li>You can select multiple appointments to cancel if you needed. Click on
-                                                the
-                                                checklist button to select multiple appointment slots.
-                                            </li>
-                                            <li>You can also filter by the days of the week, and filter to find booked
-                                                slots
-                                                between specific dates.
-                                            </li>
-                                        </ul>
-                                    </li>
-                                    <li>If you chose one appointment, click on "Cancel Appointment" button next to the
-                                        appointment you want to cancel it. If you chose multiple appointments,
-                                        click on the "Cancel Selected Appointments" button at the bottom of the table to
-                                        cancel the selected appointments.
-                                    </li>
-                                </ol>
+                            <div class="mt-2 mb-2">
+                                <button type="button" class="inner_collapsible">How do I cancel an appointment with my
+                                    doctor?
+                                </button>
+                                <div class="inner_content">
+                                    To cancel an appointment with your doctor, you will have to:
+                                    <ol class="list-decimal list-inside mt-2 mb-2">
+                                        <li>You will have to open "Appointments" which is found in the sidebar.</li>
+                                        <li>Once in the "Appointments" page, click on "Cancel Appointments" button.</li>
+                                        <li>You will be able to see all the booked appointments with your doctor. Select
+                                            the
+                                            appointment you want to cancel.
+                                            <ul class="ml-4 list-inside list-disc mt-2 mb-2">
+                                                <li>You can select multiple appointments to cancel if you needed. Click
+                                                    on
+                                                    the
+                                                    checklist button to select multiple appointment slots.
+                                                </li>
+                                                <li>You can also filter by the days of the week, and filter to find
+                                                    booked
+                                                    slots
+                                                    between specific dates.
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>If you chose one appointment, click on "Cancel Appointment" button next to
+                                            the
+                                            appointment you want to cancel it. If you chose multiple appointments,
+                                            click on the "Cancel Selected Appointments" button at the bottom of the
+                                            table to
+                                            cancel the selected appointments.
+                                        </li>
+                                    </ol>
+                                </div>
                             </div>
-                        </div>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="mt-2 mb-2">
                     <button type="button" class="outer_collapsible">Accounts</button>
                     <div class="outer_content">
-                        <div class="mt-2 mb-2">
-                            <button type="button" class="inner_collapsible">How do I create a new account?</button>
-                            <div class="inner_content">
-                                To create a new account, you will have to:
-                                <ol class="list-decimal list-inside mt-2 mb-2">
-                                    <li>Go to the "Accounts" page, by clicking on "Accounts" on the sidebar.</li>
-                                    <li>On the top right, you will find the "New Account" button. Click on it to open
-                                        the "Create Account" page.
-                                    </li>
-                                    <li>You will have to provide the email and/or phone number of the person you would
-                                        like to create the account for.
-                                    </li>
-                                    <li>You will then have to specify the type of user i.e. Staff/Patient/Doctor User.
-                                        <ul class="ml-4 list-inside list-disc mt-2 mb-2">
-                                            <li>Staff Users are users who will be working with or will be using Covigo
-                                                in order to monitor patients affected by a disease.
-                                            </li>
-                                            <li>Patient Users are the people who will use Covigo in order to provide
-                                                tracking information related to the medical health updates surrounding
-                                                their symptoms as they follow the recovery process over time.
-                                            </li>
-                                            <li>Doctor Users are a subset of staff users who will have additional access
-                                                to the detailed health status reports issued by Patient users.
-                                            </li>
-                                        </ul>
-                                    </li>
-                                    <li>You can also choose the user groups they belong to by selecting them appropriate
-                                        groups in the "Groups" checklist.
-                                    </li>
-                                    <li>Once you are done you can choose either "Create and Return" or "Create" buttons
-                                        to create the account.
-                                        <ul class="ml-4 list-inside list-disc mt-2 mb-2">
-                                            <li>"Create and Return" button creates the account and opens the "Accounts"
-                                                page.
-                                            </li>
-                                            <li>"Create" button creates the account but keeps you in the account
-                                                creation page to allow you to create more accounts.
-                                            </li>
-                                        </ul>
-                                    </li>
-                                </ol>
-                                A link to register the user will be sent to the email and/or phone number used to create
-                                the account. The person can then open the link to register themselves and finalise the
-                                creation of the account.
+                        {% if usr.is_staff %}
+                            <div class="mt-2 mb-2">
+                                <button type="button" class="inner_collapsible">How do I create a new account?</button>
+                                <div class="inner_content">
+                                    To create a new account, you will have to:
+                                    <ol class="list-decimal list-inside mt-2 mb-2">
+                                        <li>Go to the "Accounts" page, by clicking on "Accounts" on the sidebar.</li>
+                                        <li>On the top right, you will find the "New Account" button. Click on it to
+                                            open
+                                            the "Create Account" page.
+                                        </li>
+                                        <li>You will have to provide the email and/or phone number of the person you
+                                            would
+                                            like to create the account for.
+                                        </li>
+                                        <li>You will then have to specify the type of user i.e. Staff/Patient/Doctor
+                                            User.
+                                            <ul class="ml-4 list-inside list-disc mt-2 mb-2">
+                                                <li>Staff Users are users who will be working with or will be using
+                                                    Covigo
+                                                    in order to monitor patients affected by a disease.
+                                                </li>
+                                                <li>Patient Users are the people who will use Covigo in order to provide
+                                                    tracking information related to the medical health updates
+                                                    surrounding
+                                                    their symptoms as they follow the recovery process over time.
+                                                </li>
+                                                <li>Doctor Users are a subset of staff users who will have additional
+                                                    access
+                                                    to the detailed health status reports issued by Patient users.
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>You can also choose the user groups they belong to by selecting them
+                                            appropriate
+                                            groups in the "Groups" checklist.
+                                        </li>
+                                        <li>Once you are done you can choose either "Create and Return" or "Create"
+                                            buttons
+                                            to create the account.
+                                            <ul class="ml-4 list-inside list-disc mt-2 mb-2">
+                                                <li>"Create and Return" button creates the account and opens the
+                                                    "Accounts"
+                                                    page.
+                                                </li>
+                                                <li>"Create" button creates the account but keeps you in the account
+                                                    creation page to allow you to create more accounts.
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ol>
+                                    A link to register the user will be sent to the email and/or phone number used to
+                                    create
+                                    the account. The person can then open the link to register themselves and finalise
+                                    the
+                                    creation of the account.
+                                </div>
                             </div>
-                        </div>
+                        {% endif %}
                         <div class="mt-2 mb-2">
                             <button type="button" class="inner_collapsible">How can I change my username/address/contact
                                 information?
@@ -380,191 +414,217 @@
                                 in with your new password.
                             </div>
                         </div>
-                        <div class="mt-2 mb-2">
-                            <button type="button" class="inner_collapsible">How do I share my QR Code?</button>
-                            <div class="inner_content">
-                                To download your QR Code:
-                                <ol class="list-decimal list-inside mt-2 mb-2">
-                                    <li>Open your user profile, by clicking on your Username on the top right of the
-                                        screen.
-                                    </li>
-                                    <li>In your profile, click on "Copy QR Code link" to download your QR code.</li>
-                                </ol>
-                                The downloaded QR Code, when opened, can be scanned by officials to view a page
-                                displaying your
-                                latest test result and isolation status. This page does not reveal your personal
-                                information.
+                        {% if not usr.is_staff %}
+                            <div class="mt-2 mb-2">
+                                <button type="button" class="inner_collapsible">How do I share my QR Code?</button>
+                                <div class="inner_content">
+                                    To download your QR Code:
+                                    <ol class="list-decimal list-inside mt-2 mb-2">
+                                        <li>Open your user profile, by clicking on your Username on the top right of the
+                                            screen.
+                                        </li>
+                                        <li>In your profile, click on "Copy QR Code link" to download your QR code.</li>
+                                    </ol>
+                                    The downloaded QR Code, when opened, can be scanned by officials to view a page
+                                    displaying your
+                                    latest test result and isolation status. This page does not reveal your personal
+                                    information.
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if not usr.is_staff %}
+                    <div class="mt-2 mb-2">
+                        <button type="button" class="outer_collapsible">Test Results and Health Status Reports</button>
+                        <div class="outer_content">
+                            <div class="mt-2 mb-2">
+                                <button type="button" class="inner_collapsible">How do I submit a test results?</button>
+                                <div class="inner_content">
+                                    To submit your test results, you will have to:
+                                    <ol class="list-decimal list-inside mt-2 mb-2">
+                                        <li>Open your user profile, by clicking on your username in the top right of the
+                                            screen.
+                                        </li>
+                                        <li>Click on "Test Results" button in the top right near "Edit" button.</li>
+                                        <li>You will be redirected to the "Test Results" page. Click on the "Submit a
+                                            Test
+                                            Result" button to open the "Submit Test Results" page.
+                                        </li>
+                                        <li>You should enter the type of the test in the "Test Type" field.</li>
+                                        <li>Input the test result i.e. Positive or Negative by choosing the appropriate
+                                            radio button.
+                                        </li>
+                                        <li>Enter the date the test result was obtained in the "Result Date" field.</li>
+                                        <li>Lastly upload the test result document in the last field.</li>
+                                        <li>Click on the "Submit button" to submit your test results.</li>
+                                    </ol>
+                                </div>
+                            </div>
+                            <div class="mt-2 mb-2">
+                                <button type="button" class="inner_collapsible">How can I view my test results?</button>
+                                <div class="inner_content">
+                                    To view your test results, you will have to:
+                                    <ol class="list-decimal list-inside mt-2 mb-2">
+                                        <li>Open your user profile, by clicking on your username in the top right of the
+                                            screen.
+                                        </li>
+                                        <li>Click on "Test Results" button in the top right near "Edit" button.</li>
+                                        <li>You will be redirected to the "Test Results" page. All the test results that
+                                            were submitted should be visible in the table.
+                                        </li>
+                                    </ol>
+                                </div>
+                            </div>
+                            <div class="mt-2 mb-2">
+                                <button type="button" class="inner_collapsible">How do I submit a health status report?
+                                </button>
+                                <div class="inner_content">
+                                    To submit your health status update, you will have to:
+                                    <ol class="list-decimal list-inside mt-2 mb-2">
+                                        <li>Open the "Update Health Status" Page which can be found in the sidebar.</li>
+                                        <li>In the page, you will see a "Submit a new report" button, which will take
+                                            you to
+                                            the status report page. Click on it.
+                                        </li>
+                                        <li>You will see all the symptoms that you are required to provide updates on.
+                                            Read
+                                            the descriptions and input relevant information. For example:
+                                            <ul class="ml-4 list-inside list-disc mt-2 mb-2">
+                                                <li>For a Fever symptom, provide a thermometer reading for your fever.
+                                                    You
+                                                    can describe your fever briefly too
+                                                </li>
+                                                <li>For a Cough symptom, provide information such "Persistent", "Dry",
+                                                    "Throat Pain" etc.
+                                                </li>
+                                                <li>If you don't experience a symptom, you can state that you are not
+                                                    experiencing it.
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>Once you have filled all symptoms, you can click on "Create and Return" to
+                                            submit the report.
+                                        </li>
+                                    </ol>
+                                    Note that you will see "You are all set, your doctor will contact you if necessary"
+                                    message if you have no symptoms assigned by the doctor to report, or you have
+                                    already
+                                    submitted your report.
+                                </div>
+                            </div>
+                            <div class="mt-2 mb-2">
+                                <button type="button" class="inner_collapsible">Can I make changes to my health status
+                                    report after submission?
+                                </button>
+                                <div class="inner_content">
+                                    To make changes your health status update, you will have to:
+                                    <ol class="list-decimal list-inside mt-2 mb-2">
+                                        <li>Open the "Update Health Status" Page which can be found in the sidebar.</li>
+                                        <li>In the page, you will see a table with your health status reports. Click on
+                                            "View Report" button of the report you want to view.
+                                        </li>
+                                        <li>Find the symptom you wish to change and click on the "Resubmit" button.</li>
+                                        <li>Make the changes and click on "Submit and Return" to save the report.</li>
+                                    </ol>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="mt-2 mb-2">
-                    <button type="button" class="outer_collapsible">Test Results and Health Status Reports</button>
-                    <div class="outer_content">
-                        <div class="mt-2 mb-2">
-                            <button type="button" class="inner_collapsible">How do I submit a test results?</button>
-                            <div class="inner_content">
-                                To submit your test results, you will have to:
-                                <ol class="list-decimal list-inside mt-2 mb-2">
-                                    <li>Open your user profile, by clicking on your username in the top right of the
-                                        screen.
-                                    </li>
-                                    <li>Click on "Test Results" button in the top right near "Edit" button.</li>
-                                    <li>You will be redirected to the "Test Results" page. Click on the "Submit a Test
-                                        Result" button to open the "Submit Test Results" page.
-                                    </li>
-                                    <li>You should enter the type of the test in the "Test Type" field.</li>
-                                    <li>Input the test result i.e. Positive or Negative by choosing the appropriate
-                                        radio button.
-                                    </li>
-                                    <li>Enter the date the test result was obtained in the "Result Date" field.</li>
-                                    <li>Lastly upload the test result document in the last field.</li>
-                                    <li>Click on the "Submit button" to submit your test results.</li>
-                                </ol>
+                {% endif %}
+                {% if usr.is_staff %}
+                    <div class="mt-2 mb-2">
+                        <button type="button" class="outer_collapsible">Symptoms</button>
+                        <div class="outer_content">
+                            <div class="mt-2 mb-2">
+                                <button type="button" class="inner_collapsible">How do I add symptoms?</button>
+                                <div class="inner_content">
+                                    You can add new symptoms by following these steps:
+                                    <ol class="list-decimal list-inside mt-2 mb-2">
+                                        <li>Click on "Management", which is found on the sidebar.
+                                        </li>
+                                        <li>In the Management page, click on the "Manage Symptoms" button to open the
+                                            symptoms pages.
+                                        </li>
+                                        <li>Once you are in the Symptoms page, you will find the "New Symptom" button on
+                                            the
+                                            top right.
+                                        </li>
+                                        <li>In the Symptom creation page, you can enter the name of the symptom and give
+                                            it
+                                            a brief description.
+                                        </li>
+                                        <li>Once you are done you can choose either "Create and Return" or "Create"
+                                            buttons
+                                            to create the symptom.
+                                            <ul class="ml-4 list-inside list-disc mt-2 mb-2">
+                                                <li>"Create and Return" button creates the symptom and opens the
+                                                    symptoms
+                                                    page.
+                                                </li>
+                                                <li>"Create" button creates the symptom but keeps you in the symptom
+                                                    creation page to allow you to create more symptoms.
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ol>
+                                </div>
                             </div>
-                        </div>
-                        <div class="mt-2 mb-2">
-                            <button type="button" class="inner_collapsible">How can I view my test results?</button>
-                            <div class="inner_content">
-                                To view your test results, you will have to:
-                                <ol class="list-decimal list-inside mt-2 mb-2">
-                                    <li>Open your user profile, by clicking on your username in the top right of the
-                                        screen.
-                                    </li>
-                                    <li>Click on "Test Results" button in the top right near "Edit" button.</li>
-                                    <li>You will be redirected to the "Test Results" page. All the test results that
-                                        were submitted should be visible in the table.
-                                    </li>
-                                </ol>
+                            <div class="mt-2 mb-2">
+                                <button type="button" class="inner_collapsible">How do I delete a symptom?</button>
+                                <div class="inner_content">
+                                    You will not be able to delete a symptom once created. However, you can do the
+                                    following
+                                    to the symptom you wish to delete:
+                                    <ul class="list-inside list-disc mt-2 mb-2">
+                                        <li>You can edit the symptom to change it into another symptom.</li>
+                                        <li>You can disable the symptom. Disabling the symptom, makes the symptom
+                                            unusable
+                                            and can not be assigned to patients. They can be enabled if required later.
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
-                        <div class="mt-2 mb-2">
-                            <button type="button" class="inner_collapsible">How do I submit a health status report?
-                            </button>
-                            <div class="inner_content">
-                                To submit your health status update, you will have to:
-                                <ol class="list-decimal list-inside mt-2 mb-2">
-                                    <li>Open the "Update Health Status" Page which can be found in the sidebar.</li>
-                                    <li>In the page, you will see a "Submit a new report" button, which will take you to
-                                        the status report page. Click on it.
-                                    </li>
-                                    <li>You will see all the symptoms that you are required to provide updates on. Read
-                                        the descriptions and input relevant information. For example:
-                                        <ul class="ml-4 list-inside list-disc mt-2 mb-2">
-                                            <li>For a Fever symptom, provide a thermometer reading for your fever. You
-                                                can describe your fever briefly too
-                                            </li>
-                                            <li>For a Cough symptom, provide information such "Persistent", "Dry",
-                                                "Throat Pain" etc.
-                                            </li>
-                                            <li>If you don't experience a symptom, you can state that you are not
-                                                experiencing it.
-                                            </li>
-                                        </ul>
-                                    </li>
-                                    <li>Once you have filled all symptoms, you can click on "Create and Return" to
-                                        submit the report.
-                                    </li>
-                                </ol>
-                                Note that you will see "You are all set, your doctor will contact you if necessary"
-                                message if you have no symptoms assigned by the doctor to report, or you have already
-                                submitted your report.
-                            </div>
-                        </div>
-                        <div class="mt-2 mb-2">
-                            <button type="button" class="inner_collapsible">Can I make changes to my health status
-                                report after submission?
-                            </button>
-                            <div class="inner_content">
-                                To make changes your health status update, you will have to:
-                                <ol class="list-decimal list-inside mt-2 mb-2">
-                                    <li>Open the "Update Health Status" Page which can be found in the sidebar.</li>
-                                    <li>In the page, you will see a table with your health status reports. Click on "View Report" button of the report you want to view.</li>
-                                    <li>Find the symptom you wish to change and click on the "Resubmit" button.</li>
-                                    <li>Make the changes and click on "Submit and Return" to save the report.</li>
-                                </ol>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="mt-2 mb-2">
-                    <button type="button" class="outer_collapsible">Symptoms</button>
-                    <div class="outer_content">
-                        <div class="mt-2 mb-2">
-                            <button type="button" class="inner_collapsible">How do I add symptoms?</button>
-                            <div class="inner_content">
-                                You can add new symptoms by following these steps:
-                                <ol class="list-decimal list-inside mt-2 mb-2">
-                                    <li>Click on "Management", which is found on the sidebar.
-                                    </li>
-                                    <li>In the Management page, click on the "Manage Symptoms" button to open the
-                                        symptoms pages.
-                                    </li>
-                                    <li>Once you are in the Symptoms page, you will find the "New Symptom" button on the
-                                        top right.
-                                    </li>
-                                    <li>In the Symptom creation page, you can enter the name of the symptom and give it
-                                        a brief description.
-                                    </li>
-                                    <li>Once you are done you can choose either "Create and Return" or "Create" buttons
-                                        to create the symptom.
-                                        <ul class="ml-4 list-inside list-disc mt-2 mb-2">
-                                            <li>"Create and Return" button creates the symptom and opens the symptoms
-                                                page.
-                                            </li>
-                                            <li>"Create" button creates the symptom but keeps you in the symptom
-                                                creation page to allow you to create more symptoms.
-                                            </li>
-                                        </ul>
-                                    </li>
-                                </ol>
-                            </div>
-                        </div>
-                        <div class="mt-2 mb-2">
-                            <button type="button" class="inner_collapsible">How do I delete a symptom?</button>
-                            <div class="inner_content">
-                                You will not be able to delete a symptom once created. However, you can do the following
-                                to the symptom you wish to delete:
-                                <ul class="list-inside list-disc mt-2 mb-2">
-                                    <li>You can edit the symptom to change it into another symptom.</li>
-                                    <li>You can disable the symptom. Disabling the symptom, makes the symptom unusable
-                                        and can not be assigned to patients. They can be enabled if required later.
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="mt-2 mb-2">
-                            <button type="button" class="inner_collapsible">How do I assign symptoms to a patient for
-                                Status Updates?
-                            </button>
-                            <div class="inner_content">
-                                To assign symptoms to a patient, follow these steps:
-                                <ol class="list-decimal list-inside mt-2 mb-2">
-                                    <li>Open the profile of the patient you want to assign symptoms to.
-                                    </li>
-                                    <li>Click on the "Assign Symptoms" button, to open the Assign symptoms page.</li>
-                                    <li>You will have to choose the date from when you expect the patient to start
-                                        reporting their symptoms.
-                                    </li>
-                                    <li>You will also have to choose the duration for which the patient has to provide
-                                        updates.
-                                    </li>
-                                    <li>You can then choose the symptoms that you expect to make updates on from the
-                                        checklist of enabled symptoms.
-                                    </li>
-                                    <li>You will also have to choose whether the patient must quarantine.</li>
-                                    <li>After you have assigned made the changes click on "Assign and Return" to assign
-                                        the symptoms
-                                    </li>
-                                </ol>
-                                The patient will be providing the Health Status Updates on a daily basis. In case the
-                                symptoms assigned need to be modified, the duration of updates needs to be extended or
-                                the quarantine status needs to be changed, you can follow the same steps. In step 2, it
-                                will be "Update Assigned Symptoms" button instead.
+                            <div class="mt-2 mb-2">
+                                <button type="button" class="inner_collapsible">How do I assign symptoms to a patient
+                                    for
+                                    Status Updates?
+                                </button>
+                                <div class="inner_content">
+                                    To assign symptoms to a patient, follow these steps:
+                                    <ol class="list-decimal list-inside mt-2 mb-2">
+                                        <li>Open the profile of the patient you want to assign symptoms to.
+                                        </li>
+                                        <li>Click on the "Assign Symptoms" button, to open the Assign symptoms page.
+                                        </li>
+                                        <li>You will have to choose the date from when you expect the patient to start
+                                            reporting their symptoms.
+                                        </li>
+                                        <li>You will also have to choose the duration for which the patient has to
+                                            provide
+                                            updates.
+                                        </li>
+                                        <li>You can then choose the symptoms that you expect to make updates on from the
+                                            checklist of enabled symptoms.
+                                        </li>
+                                        <li>You will also have to choose whether the patient must quarantine.</li>
+                                        <li>After you have assigned made the changes click on "Assign and Return" to
+                                            assign
+                                            the symptoms
+                                        </li>
+                                    </ol>
+                                    The patient will be providing the Health Status Updates on a daily basis. In case
+                                    the
+                                    symptoms assigned need to be modified, the duration of updates needs to be extended
+                                    or
+                                    the quarantine status needs to be changed, you can follow the same steps. In step 2,
+                                    it
+                                    will be "Update Assigned Symptoms" button instead.
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                {% endif %}
             </div>
         </div>
     </div>
