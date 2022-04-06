@@ -1,4 +1,6 @@
 import datetime
+import json
+import urllib.request
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -8,6 +10,7 @@ from django.views.decorators.cache import never_cache
 from accounts.models import Staff
 from appointments.models import Appointment
 from dashboard.utils import fetch_data_from_file, extract_daily_data
+from manager.views import CASE_DATA_PATH
 from messaging.models import MessageGroup
 from status.utils import return_symptoms_for_today, is_requested, get_reports_by_patient, get_report_unread_status
 
@@ -29,6 +32,7 @@ def index(request):
             status_updates = []
 
         covigo_case_data = fetch_data_from_all_files()
+        external_case_data = fetch_data_from_opencovid()
 
         return render(request, 'dashboard/index.html', {
             "messages": messages,
@@ -36,6 +40,7 @@ def index(request):
             "status_updates": status_updates,
             "assigned_patients": assigned_patients,
             "covigo_case_data": covigo_case_data,
+            "external_case_data": external_case_data
         })
 
     else:
@@ -58,6 +63,10 @@ def covigo_case_data_graphs(request):
     return render(request, 'dashboard/covigo_case_data.html', {
         "covigo_case_data": covigo_case_data,
     })
+
+
+def external_case_data_graphs(request):
+    return render(request, 'dashboard/external_case_data.html')
 
 
 def fetch_messaging_info(user):
@@ -104,7 +113,7 @@ def fetch_appointments_info(user):
     }
 
 
-def fetch_data_from_all_files(data_path="dashboard/sample_data"):
+def fetch_data_from_all_files(data_path=CASE_DATA_PATH):
     confirmed = fetch_data_from_file(f"{data_path}/confirmed_cases.csv")
     daily_confirmed = extract_daily_data(confirmed)
 
@@ -167,4 +176,25 @@ def fetch_own_case_info(user):
         "is_quarantining": user.patient.is_quarantining,
         "is_positive": user.patient.is_confirmed and not user.patient.is_negative,
         "is_negative": user.patient.is_negative,
+    }
+
+
+def fetch_data_from_opencovid(opencovid_url="https://api.opencovid.ca/summary?loc=QC"):
+    with urllib.request.urlopen(opencovid_url) as url:
+        data = json.loads(url.read().decode())['summary'][-1]
+
+    return {
+        "date": data["date"],
+        "confirmed": data["cumulative_cases"],
+        "daily_confirmed": data["cases"],
+        "current_positives": data["active_cases"],
+        "daily_positives": data["active_cases_change"],
+        "recoveries": data["cumulative_recovered"],
+        "daily_recoveries": data["recovered"],
+        "deaths": data["cumulative_deaths"],
+        "daily_deaths": data["deaths"],
+        "vaccines": data["cumulative_avaccine"],
+        "daily_vaccines": data["avaccine"],
+        "fully_vaccinated": data["cumulative_cvaccine"],
+        "daily_fully_vaccinated": data["cvaccine"],
     }

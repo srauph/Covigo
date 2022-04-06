@@ -12,11 +12,11 @@
             </span>
             <span class="flex flex-wrap items-center gap-x-2">
                 <span>Case Data</span>
-                <span class="text-xs md:text-sm font-normal">(Covigo)</span>
+                <span class="text-xs md:text-sm font-normal">(QC, {{ external_case_data.date }})</span>
             </span>
         </div>
 
-        <a href="{% url "dashboard:covigo_case_data" %}">
+        <a href="{% url "dashboard:external_case_data" %}">
             <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                 <span>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
@@ -41,28 +41,33 @@
             </tr>
             <tr class="py-1 hover:bg-slate-200 border-b">
                 <td class="p-1">Total Confirmed Patients:</td>
-                <td class="p-1 text-orange-500">{{ covigo_case_data.confirmed.numbers|last }}</td>
-                <td class="p-1 text-orange-500">{{ covigo_case_data.daily_confirmed.numbers|last }}</td>
+                <td class="p-1 text-orange-500">{{ external_case_data.confirmed }}</td>
+                <td class="p-1 text-orange-500">{{ external_case_data.daily_confirmed }}</td>
             </tr>
             <tr class="py-1 hover:bg-slate-200 border-b">
                 <td class="p-1">Currently Positive:</td>
-                <td class="p-1 text-red-500">{{ covigo_case_data.current_positives.numbers|last }}</td>
-                <td class="p-1 text-red-500">{{ covigo_case_data.daily_positives.numbers|last }}</td>
+                <td class="p-1 text-red-500">{{ external_case_data.current_positives }}</td>
+                <td class="p-1 text-red-500">{{ external_case_data.daily_positives }}</td>
             </tr>
             <tr class="py-1 hover:bg-slate-200 border-b">
                 <td class="p-1">Currently Recovered:</td>
-                <td class="p-1 text-green-500">{{ covigo_case_data.recoveries.numbers|last }}</td>
-                <td class="p-1 text-green-500">{{ covigo_case_data.daily_recoveries.numbers|last }}</td>
+                <td class="p-1 text-green-500">{{ external_case_data.recoveries }}</td>
+                <td class="p-1 text-green-500">{{ external_case_data.daily_recoveries }}</td>
             </tr>
             <tr class="py-1 hover:bg-slate-200 border-b">
-                <td class="p-1">Negative Cases:</td>
-                <td class="p-1 text-amber-400">{{ covigo_case_data.unconfirmed_negative.numbers|last }}</td>
-                <td class="p-1 text-amber-400">{{ covigo_case_data.daily_unconfirmed_negative.numbers|last }}</td>
+                <td class="p-1">Deaths:</td>
+                <td class="p-1 text-amber-400">{{ external_case_data.deaths }}</td>
+                <td class="p-1 text-amber-400">{{ external_case_data.daily_deaths }}</td>
+            </tr>
+            <tr class="py-1 hover:bg-slate-200 border-b">
+                <td class="p-1">Administered Vaccines:</td>
+                <td class="p-1 text-cyan-400">{{ external_case_data.vaccines }}</td>
+                <td class="p-1 text-cyan-400">{{ external_case_data.daily_vaccines }}</td>
             </tr>
             <tr class="py-1 hover:bg-slate-200">
-                <td class="p-1">Probable Cases</td>
-                <td class="p-1 text-blue-500">{{ covigo_case_data.unconfirmed_untested.numbers|last }}</td>
-                <td class="p-1 text-blue-500">{{ covigo_case_data.daily_unconfirmed_untested.numbers|last }}</td>
+                <td class="p-1">Fully Vaccinated:</td>
+                <td class="p-1 text-blue-500">{{ external_case_data.fully_vaccinated }}</td>
+                <td class="p-1 text-blue-500">{{ external_case_data.daily_fully_vaccinated }}</td>
             </tr>
         </table>
     </div>
