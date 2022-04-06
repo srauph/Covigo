@@ -20,6 +20,7 @@ from django.shortcuts import redirect
 from django.urls import path, include
 from messaging.views import list_notifications, toggle_read_notification, read_notification
 
+
 from Covigo.settings import PRODUCTION_MODE
 
 urlpatterns = [
@@ -37,6 +38,7 @@ urlpatterns = [
     path('toggle_read_notification/<int:message_group_id>/', toggle_read_notification,
          name='toggle_read_notification'),
     path('help/', manager.views.help_page, name='help'),
+    path('about/', manager.views.about, name='about'),
 
 ]
 
