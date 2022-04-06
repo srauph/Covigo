@@ -11,7 +11,8 @@ from django.shortcuts import render
 from accounts.models import Patient, Staff
 
 
-CASE_DATA_PATH = "static/Covigo/data"
+CASE_DATA_PATH = "static/Covigo/data/case_data"
+CONTACT_TRACING_PATH = "static/Covigo/data/contact_tracing"
 
 
 def index(request):
@@ -56,8 +57,15 @@ def contact_tracing(request):
     if not request.user.is_staff or not request.user.has_perm("accounts.manage_contact_tracing"):
         raise PermissionDenied
 
-    user_count = User.objects.count()
-    return render(request, 'manager/contact_tracing.html', {"user_count": user_count})
+    if request.method == "POST" and request.FILES["contact_tracing_file"]:
+        f = request.FILES["contact_tracing_file"]
+
+
+    data_files = [f for f in listdir(CONTACT_TRACING_PATH) if isfile(join(CONTACT_TRACING_PATH, f))]
+
+    return render(request, 'manager/contact_tracing.html', {
+        "data_files": data_files
+    })
 
 
 def case_data(request):
@@ -81,7 +89,20 @@ def about(request):
 
 
 def download_case_data_file(request, file_name):
+    if not request.user.is_staff or not request.user.has_perm("accounts.manage_case_data"):
+        raise Http404
+
     with open(f"{CASE_DATA_PATH}/{file_name}", 'rb') as fh:
+        response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
+        response['Content-Disposition'] = 'inline; filename=' + path.basename(file_name)
+        return response
+
+
+def download_contact_tracing_file(request, file_name):
+    if not request.user.is_staff or not request.user.has_perm("accounts.manage_contact_tracing"):
+        raise Http404
+
+    with open(f"{CONTACT_TRACING_PATH}/{file_name}", 'rb') as fh:
         response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
         response['Content-Disposition'] = 'inline; filename=' + path.basename(file_name)
         return response
