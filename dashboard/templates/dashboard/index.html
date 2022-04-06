@@ -83,7 +83,7 @@
                     {% include './cards/covigo_data.html' %}
                 {% endif %}
                 {% if perms.accounts.dashboard_external_data %}
-                    {# Card for external data goes here #}
+                    {% include './cards/external_data.html' %}
                 {% endif %}
             {% endif %}
         </div>

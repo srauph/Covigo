@@ -60,6 +60,10 @@ def covigo_case_data_graphs(request):
     })
 
 
+def external_case_data_graphs(request):
+    return render(request, 'dashboard/external_case_data.html')
+
+
 def fetch_messaging_info(user):
     msg_group_filter = Q(type=0) & (Q(author=user) | Q(recipient=user))
     all_messages = MessageGroup.objects.filter(msg_group_filter)
