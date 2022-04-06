@@ -3,145 +3,12 @@
 {% block content %}
     <div class="min-h-full bg-slate-100 flex flex-col">
         <div class="bg-slate-700 border-b">
-            <h1 class="text-2xl text-white font-semibold px-8 py-4">External Case Data</h1>
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">Covigo Case Data</h1>
         </div>
 
         {% block script %}
             <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
             <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-            <script>
-
-
-                let selected_data_set = "Confirmed";
-                let selected_data_type = "Current";
-                let current_label = "Confirmed Cases";
-                let current_color = "rgb(249, 115, 22)";
-                let current_labels = {{ covigo_case_data.confirmed.dates|safe }};
-                let current_data = {{ covigo_case_data.confirmed.numbers|safe }};
-
-                $(document).ready(function () {
-                    $("#footer").hide();
-
-                    $('.data-set').click(function () {
-                        let lastClass = $('.data-set').filter(function(){return this.value==selected_data_set}).attr('class').split(' ').pop();
-                        $('.data-set').filter(function(){return this.value==selected_data_set}).removeClass(lastClass);
-                        selected_data_set = $(this).val();
-                        updateChartData(true);
-                    })
-
-                    $('.data-type').click(function () {
-                        $('.data-type').filter(function(){return this.value==selected_data_type}).removeClass('bg-blue-600');
-                        $(this).addClass('bg-blue-600')
-                        selected_data_type = $(this).val();
-                        updateChartData();
-                    })
-
-                function updateChartData(updateLabel=false) {
-                    switch (selected_data_set) {
-                        case "Confirmed":
-                            current_label = "Confirmed Cases";
-                            current_color = "rgb(251, 146, 60)";
-                            if (updateLabel)
-                                $('.data-set').filter(function(){return this.value==selected_data_set}).addClass('bg-orange-500')
-                            if (selected_data_type === "Current") {
-                                current_labels = {{ covigo_case_data.confirmed.dates|safe }};
-                                current_data = {{ covigo_case_data.confirmed.numbers|safe }};
-                            } else {
-                                current_labels = {{ covigo_case_data.daily_confirmed.dates|safe }};
-                                current_data = {{ covigo_case_data.daily_confirmed.numbers|safe }};
-                            }
-                            break;
-
-                        case "Positive":
-                            current_label = "Positive Cases";
-                            current_color = "rgb(220, 38, 38)";
-                            if (updateLabel)
-                                $('.data-set').filter(function(){return this.value==selected_data_set}).addClass('bg-red-600')
-                            if (selected_data_type === "Current") {
-                                current_labels = {{ covigo_case_data.current_positives.dates|safe }};
-                                current_data = {{ covigo_case_data.current_positives.numbers|safe }};
-                            } else {
-                                current_labels = {{ covigo_case_data.daily_positives.dates|safe }};
-                                current_data = {{ covigo_case_data.daily_positives.numbers|safe }};
-                            }
-                            break;
-
-                        case "Recovered":
-                            current_label = "Recovered Cases";
-                            current_color = "rgb(34, 197, 94)";
-                            if (updateLabel)
-                                $('.data-set').filter(function(){return this.value==selected_data_set}).addClass('bg-green-600')
-                            if (selected_data_type === "Current") {
-                                current_labels = {{ covigo_case_data.recoveries.dates|safe }};
-                                current_data = {{ covigo_case_data.recoveries.numbers|safe }};
-                            } else {
-                                current_labels = {{ covigo_case_data.daily_recoveries.dates|safe }};
-                                current_data = {{ covigo_case_data.daily_recoveries.numbers|safe }};
-                            }
-                            break;
-
-                        case "Negative":
-                            current_label = "Negative Cases";
-                            current_color = "rgb(250, 204, 21)";
-                            if (updateLabel)
-                                $('.data-set').filter(function(){return this.value==selected_data_set}).addClass('bg-amber-400')
-                            if (selected_data_type === "Current") {
-                                current_labels = {{ covigo_case_data.unconfirmed_negative.dates|safe }};
-                                current_data = {{ covigo_case_data.unconfirmed_negative.numbers|safe }};
-                            } else {
-                                current_labels = {{ covigo_case_data.daily_unconfirmed_negative.dates|safe }};
-                                current_data = {{ covigo_case_data.daily_unconfirmed_negative.numbers|safe }};
-                            }
-                            break;
-
-                        case "Probable":
-                            current_label = "Probable Cases";
-                            current_color = "rgb(59, 130, 246)";
-                            if (updateLabel)
-                                $('.data-set').filter(function(){return this.value==selected_data_set}).addClass('bg-blue-600')
-                            if (selected_data_type === "Current") {
-                                current_labels = {{ covigo_case_data.unconfirmed_untested.dates|safe }};
-                                current_data = {{ covigo_case_data.unconfirmed_untested.numbers|safe }};
-                            } else {
-                                current_labels = {{ covigo_case_data.daily_unconfirmed_untested.dates|safe }};
-                                current_data = {{ covigo_case_data.daily_unconfirmed_untested.numbers|safe }};
-                            }
-                            break;
-                        }
-
-                        chart.data.labels = current_labels;
-                        chart.data.datasets[0].label = current_label;
-                        chart.data.datasets[0].backgroundColor = current_color;
-                        chart.data.datasets[0].borderColor = current_color;
-                        chart.data.datasets[0].data = current_data;
-                        chart.update();
-                    }
-                });
-
-                const chart_data = {
-                    labels: current_labels,
-                    datasets: [{
-                        label: current_label,
-                        backgroundColor: current_color,
-                        borderColor: current_color,
-                        data: current_data,
-                    }]
-                };
-
-                const chart_config = {
-                    type: 'line',
-                    data: chart_data,
-                    options: {
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
-                        },
-                        responsive: true,
-                        maintainAspectRatio: false,
-                    }
-                };
-            </script>
         {% endblock %}
 
         <div class="flex flex-col justify-between grow gap-8 m-8">
@@ -157,11 +24,14 @@
                         <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Recovered">
                             Currently Recovered
                         </button>
-                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Negative">
-                            Negative Cases
+                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Deaths">
+                            Deaths
                         </button>
-                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-l-none" value="Probable">
-                            Probable Cases
+                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Administered Vaccines">
+                            Administered Vaccines
+                        </button>
+                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-l-none" value="Fully Vaccinated">
+                            Fully Vaccinated
                         </button>
                     </div>
                     <div class="flex text-sm md:text-base">
@@ -182,39 +52,231 @@
             </div>
 
             <script>
-                let chart = new Chart(
-                    document.getElementById('chart'),
-                    chart_config
-                );
+                async function getData() {
+                    let full_qc_data;
 
-                $(function(){
-                    resizeCanvas();
-                });
+                    await $.getJSON("https://api.opencovid.ca/summary?loc=QC", function(data) {
+                        full_qc_data = data;
+                    });
 
-                let doit;
-                let lastWidth = $(window).width();
-                let lastHeight = $(window).height();
+                    return full_qc_data.summary;
+                }
 
-                $(window).on('resize', function(){
-                    let currentWidth = $(window).width();
-                    let currentHeight = $(window).height();
 
-                    if (lastWidth > currentWidth || lastHeight > currentHeight) {
-                        clearTimeout(doit);
-                        doit = setTimeout(resizeCanvas, 100);
+                async function setUp() {
+                    const full_qc_data = await getData();
+
+                    let dates = [];
+                    let daily_cases = [];
+                    let cases = [];
+                    let daily_positive = [];
+                    let positive = [];
+                    let daily_recoveries = [];
+                    let recoveries = [];
+                    let daily_deaths = [];
+                    let deaths = [];
+                    let daily_administered_vaccines = [];
+                    let administered_vaccines = [];
+                    let daily_fully_vaccinated = [];
+                    let fully_vaccinated = [];
+
+                    for (i of full_qc_data) {
+                        dates.push(i.date)
+                        daily_cases.push(i.cases)
+                        cases.push(i.cumulative_cases)
+                        daily_positive.push(i.active_cases_change)
+                        positive.push(i.active_cases)
+                        daily_recoveries.push(i.recovered)
+                        recoveries.push(i.cumulative_recovered)
+                        daily_deaths.push(i.deaths)
+                        deaths.push(i.cumulative_deaths)
+                        daily_administered_vaccines.push(i.avaccine)
+                        administered_vaccines.push(i.cumulative_avaccine)
+                        daily_fully_vaccinated.push(i.cvaccine)
+                        fully_vaccinated.push(i.cumulative_cvaccine)
                     }
 
-                    lastWidth = currentWidth;
-                    lastHeight = currentHeight;
-                });
+                    let selected_data_set = "Confirmed";
+                    let selected_data_type = "Current";
+                    let current_label = "Confirmed Cases";
+                    let current_color = "rgb(249, 115, 22)";
+                    let current_labels = dates;
+                    let current_data = cases;
 
-                function resizeCanvas()
-                {
-                    let canvas = $('#chart');
-                    canvas.css("width", $(window).width()/9999);
-                    canvas.css("height", $(window).height()/9999);
-                    console.log('hi');
+                    $(document).ready(function () {
+                        $("#footer").hide();
+
+                        $('.data-set').click(function () {
+                            let lastClass = $('.data-set').filter(function () {
+                                return this.value == selected_data_set
+                            }).attr('class').split(' ').pop();
+                            $('.data-set').filter(function () {
+                                return this.value == selected_data_set
+                            }).removeClass(lastClass);
+                            selected_data_set = $(this).val();
+                            updateChartData(true);
+                        })
+
+                        $('.data-type').click(function () {
+                            $('.data-type').filter(function () {
+                                return this.value == selected_data_type
+                            }).removeClass('bg-blue-600');
+                            $(this).addClass('bg-blue-600')
+                            selected_data_type = $(this).val();
+                            updateChartData();
+                        })
+
+                        function updateChartData(updateLabel = false) {
+                            switch (selected_data_set) {
+                                case "Confirmed":
+                                    current_label = "Confirmed Cases";
+                                    current_color = "rgb(251, 146, 60)";
+                                    if (updateLabel)
+                                        $('.data-set').filter(function () {
+                                            return this.value == selected_data_set
+                                        }).addClass('bg-orange-500')
+                                    if (selected_data_type === "Current") {
+                                        current_data = cases;
+                                    } else {
+                                        current_data = daily_cases;
+                                    }
+                                    break;
+
+                                case "Positive":
+                                    current_label = "Positive Cases";
+                                    current_color = "rgb(220, 38, 38)";
+                                    if (updateLabel)
+                                        $('.data-set').filter(function () {
+                                            return this.value == selected_data_set
+                                        }).addClass('bg-red-600')
+                                    if (selected_data_type === "Current") {
+                                        current_data = positive;
+                                    } else {
+                                        current_data = daily_positive;
+                                    }
+                                    break;
+
+                                case "Recovered":
+                                    current_label = "Recovered Cases";
+                                    current_color = "rgb(34, 197, 94)";
+                                    if (updateLabel)
+                                        $('.data-set').filter(function () {
+                                            return this.value == selected_data_set
+                                        }).addClass('bg-green-600')
+                                    if (selected_data_type === "Current") {
+                                        current_data = recoveries;
+                                    } else {
+                                        current_data = daily_recoveries;
+                                    }
+                                    break;
+
+                                case "Deaths":
+                                    current_label = "Deaths";
+                                    current_color = "rgb(250, 204, 21)";
+                                    if (updateLabel)
+                                        $('.data-set').filter(function () {
+                                            return this.value == selected_data_set
+                                        }).addClass('bg-amber-400')
+                                    if (selected_data_type === "Current") {
+                                        current_data = deaths;
+                                    } else {
+                                        current_data = daily_deaths;
+                                    }
+                                    break;
+
+                                case "Administered Vaccines":
+                                    current_label = "Administered Vaccines";
+                                    current_color = "rgb(34, 211, 238)";
+                                    if (updateLabel)
+                                        $('.data-set').filter(function () {
+                                            return this.value == selected_data_set
+                                        }).addClass('bg-cyan-500')
+                                    if (selected_data_type === "Current") {
+                                        current_data = administered_vaccines;
+                                    } else {
+                                        current_data = daily_administered_vaccines;
+                                    }
+                                    break;
+
+                                case "Fully Vaccinated":
+                                    current_label = "Fully Vaccinated";
+                                    current_color = "rgb(59, 130, 246)";
+                                    if (updateLabel)
+                                        $('.data-set').filter(function () {
+                                            return this.value == selected_data_set
+                                        }).addClass('bg-blue-600')
+                                    if (selected_data_type === "Current") {
+                                        current_data = fully_vaccinated;
+                                    } else {
+                                        current_data = daily_fully_vaccinated;
+                                    }
+                                    break;
+                            }
+                            chart.data.datasets[0].label = current_label;
+                            chart.data.datasets[0].backgroundColor = current_color;
+                            chart.data.datasets[0].borderColor = current_color;
+                            chart.data.datasets[0].data = current_data;
+                            chart.update();
+                        }
+                    });
+
+                    const chart_data = {
+                        labels: current_labels,
+                        datasets: [{
+                            label: current_label,
+                            backgroundColor: current_color,
+                            borderColor: current_color,
+                            data: current_data,
+                        }]
+                    };
+
+                    const chart_config = {
+                        type: 'line',
+                        data: chart_data,
+                        options: {
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            responsive: true,
+                            maintainAspectRatio: false,
+                        }
+                    };
+
+                    let chart = new Chart(
+                        document.getElementById('chart'),
+                        chart_config
+                    );
+
+                    $(function () {
+                        resizeCanvas();
+                    });
+
+                    let doit;
+                    let lastWidth = $(window).width();
+                    let lastHeight = $(window).height();
+
+                    $(window).on('resize', function () {
+                        let currentWidth = $(window).width();
+                        let currentHeight = $(window).height();
+
+                        if (lastWidth > currentWidth || lastHeight > currentHeight) {
+                            clearTimeout(doit);
+                            doit = setTimeout(resizeCanvas, 100);
+                        }
+
+                        lastWidth = currentWidth;
+                        lastHeight = currentHeight;
+                    });
+
+                    function resizeCanvas() {
+                        let canvas = $('#chart');
+                        canvas.css("width", $(window).width() / 9999);
+                        canvas.css("height", $(window).height() / 9999);
+                    }
                 }
+                setUp();
             </script>
         </div>
     </div>
