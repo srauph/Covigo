@@ -18,6 +18,8 @@
                 let current_data = {{ covigo_case_data.confirmed.numbers|safe }};
 
                 $(document).ready(function () {
+                    $("#footer").hide();
+
                     $('.data-set').click(function () {
                         let lastClass = $('.data-set').filter(function(){return this.value==selected_data_set}).attr('class').split(' ').pop();
                         $('.data-set').filter(function(){return this.value==selected_data_set}).removeClass(lastClass);
@@ -75,9 +77,9 @@
                             break;
                         case "Negative":
                             current_label = "Negative Cases";
-                            current_color = "rgb(251, 191, 36)";
+                            current_color = "rgb(250, 204, 21)";
                             if (updateLabel)
-                                $('.data-set').filter(function(){return this.value==selected_data_set}).addClass('bg-amber-500')
+                                $('.data-set').filter(function(){return this.value==selected_data_set}).addClass('bg-amber-400')
                             if (selected_data_type === "Current") {
                                 current_labels = {{ covigo_case_data.unconfirmed_negative.dates|safe }};
                                 current_data = {{ covigo_case_data.unconfirmed_negative.numbers|safe }};
@@ -186,6 +188,7 @@
                 let doit;
                 let lastWidth = $(window).width();
                 let lastHeight = $(window).height();
+
                 $(window).on('resize', function(){
                     let currentWidth = $(window).width();
                     let currentHeight = $(window).height();
@@ -204,6 +207,7 @@
                     let canvas = $('#chart');
                     canvas.css("width", $(window).width()/9999);
                     canvas.css("height", $(window).height()/9999);
+                    console.log('hi');
                 }
             </script>
         </div>
