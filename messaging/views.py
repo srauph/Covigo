@@ -325,7 +325,7 @@ def list_notifications(request):
         a = re.sub("<span class='notification-link cursor-pointer' data-href=", "", i['title'])
         a = re.sub(">.*", "", a)
 
-        i['title'] = re.sub("<span class='notification-link' data-href=[^>]*>", "", i['title'])
+        i['title'] = re.sub("<span class='notification-link cursor-pointer' data-href=[^>]*>", "", i['title'])
         i['title'] = re.sub("</span>", "", i['title'])
 
         # Create new "attribute" to hold the href for the notification
