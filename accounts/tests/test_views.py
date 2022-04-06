@@ -9,6 +9,78 @@ from accounts.views import flag_user, unflag_user, profile_from_code, convert_pe
 from accounts.models import Flag, Patient, Staff
 
 
+class EditCaseTests(TestCase):
+    def setUp(self):
+        self.staff_user = User.objects.create(is_superuser=True, username='PhillyB1', is_staff=True, first_name="Phil", last_name="Baldhead")
+        self.doctor = Staff.objects.create(user=self.staff_user)
+        self.staff_user.set_password('BaldMan123')
+        self.staff_user.save()
+
+        self.patient_user = User.objects.create(is_superuser=True, username='JohnnyD2', is_staff=False, first_name="John", last_name="Doe")
+        self.patient = Patient.objects.create(user=self.patient_user, is_confirmed=True, is_negative=False, is_quarantining=True, assigned_staff=self.doctor)
+        self.patient_user.set_password('JohnGuy123')
+        self.patient_user.save()
+
+        self.edited_mocked_case_data1 = {'is_confirmed': False, 'is_negative': False, 'is_quarantining': True}
+        self.edited_mocked_case_data2 = {'is_confirmed': True, 'is_negative': False, 'is_quarantining': True}
+
+        self.client = Client()
+        self.client.login(username='PhillyB1', password='BaldMan123')
+        self.response = self.client.get(
+            reverse('accounts:edit_case',
+                    kwargs={'user_id': self.patient.user_id}
+                    )
+        )
+
+    def test_staff_can_edit_case_info_successfully(self):
+        """
+        test to check if a staff user can change/edit a patient's case info/data successfully
+        @return: void
+        """
+
+        self.assertEqual(self.response.status_code, 200)
+
+        # Act/simulate a staff user changing/editing a patient's case info/data in the edit case form with mocked form data
+        self.response = self.client.post(
+            reverse('accounts:edit_case',
+                    kwargs={'user_id': self.patient.user_id}
+                    ),
+            self.edited_mocked_case_data1
+        )
+
+        # this refreshes the patient datatable in the database for the changes to take effect
+        self.patient.refresh_from_db()
+
+        # Assert/verify that the patient's case info/data was changed/edited successfully
+        self.assertEqual(self.edited_mocked_case_data1['is_confirmed'], self.patient.is_confirmed)
+        self.assertEqual(self.edited_mocked_case_data1['is_negative'], self.patient.is_negative)
+        self.assertEqual(self.edited_mocked_case_data1['is_quarantining'], self.patient.is_quarantining)
+
+    def test_edit_case_info_error(self):
+        """
+        test to check if a staff user can't submit an unchanged/unedited case info/data of a patient successfully
+        @return: void
+        """
+
+        self.assertEqual(self.response.status_code, 200)
+
+        # Act/simulate a staff user changing/editing a patient's case info/data in
+        # the edit case form with identical/unchanged/unedited mocked form data
+        self.response = self.client.post(
+            reverse('accounts:edit_case',
+                    kwargs={'user_id': self.patient.user_id}
+                    ),
+            self.edited_mocked_case_data2
+        )
+
+        # Assert/verify that the patient's case info/data was not changed/edited successfully with
+        # identical/unchanged/unedited mocked form data and that an error message was thrown in the response context
+        self.assertEqual('This patient\'s case data was not edited successfully: No edits made on this patient\'s case data. If you wish to make no changes, please click the "Cancel" button to go back to this patient\'s profile page.', str(list(self.response.context['messages'])[0]))
+        self.assertEqual(self.edited_mocked_case_data2['is_confirmed'], bool(self.response.context['case_form']['is_confirmed'].value()))
+        self.assertEqual(self.edited_mocked_case_data2['is_negative'], not bool(self.response.context['case_form']['is_negative'].value()))
+        self.assertEqual(self.edited_mocked_case_data2['is_quarantining'], bool(self.response.context['case_form']['is_quarantining'].value()))
+
+
 class ChangePasswordTests(TestCase):
     def setUp(self):
         user = User.objects.create(email='bob@gmail.com', username='bob1')

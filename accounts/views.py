@@ -944,31 +944,38 @@ def edit_case(request, user_id):
     if request.method == "POST":
         case_form = EditCaseForm(request.POST)
         if case_form.is_valid():
-            if not case_form.has_changed():
+            is_confirmed_not_changed = patient.is_confirmed == (case_form.cleaned_data['is_confirmed'] == 'True')
+            is_negative_not_changed = patient.is_negative == (case_form.cleaned_data['is_negative'] == 'True')
+            is_quarantining_not_changed = patient.is_quarantining == (case_form.cleaned_data['is_quarantining'] == 'True')
+            if is_confirmed_not_changed and is_negative_not_changed and is_quarantining_not_changed:
                 messages.error(
                     request,
-                    "The patient's case data was not edited successfully: No edits made on this patient. If you wish to make no changes, please click the \"Cancel\" button to go back to the profile page."
+                    "This patient's case data was not edited successfully: No edits made on this patient's case data. If you wish to make no changes, please click the \"Cancel\" button to go back to this patient's profile page."
                 )
-            else:
-                is_confirmed = case_form.cleaned_data.get("is_confirmed")
-                is_negative = case_form.cleaned_data.get("is_negative")
-                is_quarantining = case_form.cleaned_data.get("is_quarantining")
+                return render(request, 'accounts/edit_case.html', {
+                    "usr": user,
+                    "case_form": case_form
+                })
 
-                patient.is_confirmed = is_confirmed
-                patient.is_negative = is_negative
-                patient.is_quarantining = is_quarantining
+            is_confirmed = case_form.cleaned_data.get("is_confirmed")
+            is_negative = case_form.cleaned_data.get("is_negative")
+            is_quarantining = case_form.cleaned_data.get("is_quarantining")
 
-                patient.save()
-                messages.success(
-                    request,
-                    "The patient's case data was edited successfully."
-                )
-                return redirect("accounts:profile", user.id)
+            patient.is_confirmed = is_confirmed
+            patient.is_negative = is_negative
+            patient.is_quarantining = is_quarantining
+
+            patient.save()
+            messages.success(
+                request,
+                "This patient's case data was edited successfully."
+            )
+            return redirect("accounts:profile", user.id)
         else:
             # No Error expected here, but we have an error message in case something else goes wrong
             messages.error(
                 request,
-                "The patient's case data was not edited successfully: The form is invalid. Please verify the form's data."
+                "This patient's case data was not edited successfully: The form is invalid. Please verify the form's data and try again."
             )
     else:
         old_case_info = dict()

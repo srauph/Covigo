@@ -1,0 +1,52 @@
+<style>
+    .img {
+        width: 22rem;
+        height: 22rem;
+    }
+
+    .niz {
+        color: #ec4899;
+    }
+</style>
+
+{% extends "manager/card-base4.html" %}
+{% load static %}
+
+{% block portrait %}
+    <div class="flex justify-center items-center">
+        <div class="img image object-fill">
+            <img class="img rounded-lg shadow" src="{% static 'manager/niz.jpg' %}" alt=""/>
+        </div>
+    </div>
+{% endblock %}
+{% block profile %}
+    <div class="flex flex-wrap gap-2 items-center justify-end ">
+        <div class="flex items-center gap-2 font-semibold text-gray-900 text-lg flex-row-reverse">
+            <span class="niz">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" stroke-width="2">
+  <path stroke-linecap="round" stroke-linejoin="round"
+        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+</svg>
+            </span>
+            <span class="align-middle text-3xl">Nizar El Jurdi</span>
+        </div>
+    </div>
+
+    <hr class="border-slate-400 mx-1 my-2">
+
+    <div class="flex items-center justify-center m-4 h-full flex-wrap">
+            <div class="text-xl flex flex-col justify-center w-1/2 h-full">
+                <span class="text-center font-semibold text-2xl pt-1 pb-2"> Contribution Highlights: </span><br/>
+            <span class="text-center py-1"> Software Architecture Document </span>
+            <span class="text-center py-1"> Messaging </span>
+            <span class="text-center py-1"> Patient Reports </span>
+            <span class="text-center py-1"> Browser Agent Tracking & About Page</span>
+
+        </div>
+
+        <div class="text-xl flex flex-col items-center justify-center w-1/2 h-full text-3xl">
+          <p class="quote text-xl"><em> "Fake it till you make it." </em></p>
+        </div>
+    </div>
+{% endblock %}

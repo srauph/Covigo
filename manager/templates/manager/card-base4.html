@@ -1,0 +1,14 @@
+<div class="w-full flex flex-wrap h-96 gap-4">
+    <div class="grow">
+        <div class="w-full h-full flex flex-col p-4 group rounded-lg bg-white shadow">
+            {% block profile %}
+                {{ content }}
+            {% endblock %}
+        </div>
+    </div>
+    <div class="xl:w-96 h-full flex justify-center items-center group rounded-lg bg-white shadow w-full">
+        {% block portrait %}
+            {{ content }}
+        {% endblock %}
+    </div>
+</div>

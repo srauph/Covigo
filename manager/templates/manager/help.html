@@ -434,104 +434,111 @@
                         {% endif %}
                     </div>
                 </div>
-                {% if not usr.is_staff %}
-                    <div class="mt-2 mb-2">
-                        <button type="button" class="outer_collapsible">Test Results and Health Status Reports</button>
-                        <div class="outer_content">
-                            <div class="mt-2 mb-2">
-                                <button type="button" class="inner_collapsible">How do I submit a test results?</button>
-                                <div class="inner_content">
-                                    To submit your test results, you will have to:
-                                    <ol class="list-decimal list-inside mt-2 mb-2">
+                <div class="mt-2 mb-2">
+                    <button type="button" class="outer_collapsible">Test Results {{ usr.is_staff|yesno:",and Health Status Reports" }}</button>
+                    <div class="outer_content">
+                        <div class="mt-2 mb-2">
+                            <button type="button" class="inner_collapsible">How do I submit a test result?</button>
+                            <div class="inner_content">
+                                To submit {{ usr.is_staff|yesno:"a patient's,my" }} test results, you will have to:
+                                <ol class="list-decimal list-inside mt-2 mb-2">
+                                    {% if usr.is_staff %}
+                                        <li>Open your patient's user profile.
+                                        </li>
+                                    {% else %}
                                         <li>Open your user profile, by clicking on your username in the top right of the
                                             screen.
                                         </li>
-                                        <li>Click on "Test Results" button in the top right near "Edit" button.</li>
-                                        <li>You will be redirected to the "Test Results" page. Click on the "Submit a
-                                            Test
-                                            Result" button to open the "Submit Test Results" page.
-                                        </li>
-                                        <li>You should enter the type of the test in the "Test Type" field.</li>
-                                        <li>Input the test result i.e. Positive or Negative by choosing the appropriate
-                                            radio button.
-                                        </li>
-                                        <li>Enter the date the test result was obtained in the "Result Date" field.</li>
-                                        <li>Lastly upload the test result document in the last field.</li>
-                                        <li>Click on the "Submit button" to submit your test results.</li>
-                                    </ol>
-                                </div>
-                            </div>
-                            <div class="mt-2 mb-2">
-                                <button type="button" class="inner_collapsible">How can I view my test results?</button>
-                                <div class="inner_content">
-                                    To view your test results, you will have to:
-                                    <ol class="list-decimal list-inside mt-2 mb-2">
-                                        <li>Open your user profile, by clicking on your username in the top right of the
-                                            screen.
-                                        </li>
-                                        <li>Click on "Test Results" button in the top right near "Edit" button.</li>
-                                        <li>You will be redirected to the "Test Results" page. All the test results that
-                                            were submitted should be visible in the table.
-                                        </li>
-                                    </ol>
-                                </div>
-                            </div>
-                            <div class="mt-2 mb-2">
-                                <button type="button" class="inner_collapsible">How do I submit a health status report?
-                                </button>
-                                <div class="inner_content">
-                                    To submit your health status update, you will have to:
-                                    <ol class="list-decimal list-inside mt-2 mb-2">
-                                        <li>Open the "Update Health Status" Page which can be found in the sidebar.</li>
-                                        <li>In the page, you will see a "Submit a new report" button, which will take
-                                            you to
-                                            the status report page. Click on it.
-                                        </li>
-                                        <li>You will see all the symptoms that you are required to provide updates on.
-                                            Read
-                                            the descriptions and input relevant information. For example:
-                                            <ul class="ml-4 list-inside list-disc mt-2 mb-2">
-                                                <li>For a Fever symptom, provide a thermometer reading for your fever.
-                                                    You
-                                                    can describe your fever briefly too
-                                                </li>
-                                                <li>For a Cough symptom, provide information such "Persistent", "Dry",
-                                                    "Throat Pain" etc.
-                                                </li>
-                                                <li>If you don't experience a symptom, you can state that you are not
-                                                    experiencing it.
-                                                </li>
-                                            </ul>
-                                        </li>
-                                        <li>Once you have filled all symptoms, you can click on "Create and Return" to
-                                            submit the report.
-                                        </li>
-                                    </ol>
-                                    Note that you will see "You are all set, your doctor will contact you if necessary"
-                                    message if you have no symptoms assigned by the doctor to report, or you have
-                                    already
-                                    submitted your report.
-                                </div>
-                            </div>
-                            <div class="mt-2 mb-2">
-                                <button type="button" class="inner_collapsible">Can I make changes to my health status
-                                    report after submission?
-                                </button>
-                                <div class="inner_content">
-                                    To make changes your health status update, you will have to:
-                                    <ol class="list-decimal list-inside mt-2 mb-2">
-                                        <li>Open the "Update Health Status" Page which can be found in the sidebar.</li>
-                                        <li>In the page, you will see a table with your health status reports. Click on
-                                            "View Report" button of the report you want to view.
-                                        </li>
-                                        <li>Find the symptom you wish to change and click on the "Resubmit" button.</li>
-                                        <li>Make the changes and click on "Submit and Return" to save the report.</li>
-                                    </ol>
-                                </div>
+                                    {% endif %}
+                                    <li>Click on "Test Results" button in the top right near "Edit" button.</li>
+                                    <li>You will be redirected to the "Test Results" page. Click on the "Submit a
+                                        Test
+                                        Result" button to open the "Submit Test Results" page.
+                                    </li>
+                                    <li>You should enter the type of the test in the "Test Type" field.</li>
+                                    <li>Input the test result i.e. Positive or Negative by choosing the appropriate
+                                        radio button.
+                                    </li>
+                                    <li>Enter the date the test result was obtained in the "Result Date" field.</li>
+                                    <li>Lastly upload the test result document in the last field.</li>
+                                    <li>Click on the "Submit button" to submit your test results.</li>
+                                </ol>
                             </div>
                         </div>
+                        <div class="mt-2 mb-2">
+                            <button type="button" class="inner_collapsible">How can I
+                                view {{ usr.is_staff|yesno:"a patient's,my" }} test results?
+                            </button>
+                            <div class="inner_content">
+                                To view your test results, you will have to:
+                                <ol class="list-decimal list-inside mt-2 mb-2">
+                                    <li>Open your user profile, by clicking on your username in the top right of the
+                                        screen.
+                                    </li>
+                                    <li>Click on "Test Results" button in the top right near "Edit" button.</li>
+                                    <li>You will be redirected to the "Test Results" page. All the test results that
+                                        were submitted should be visible in the table.
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                        {% if not usr.is_staff %}
+                        <div class="mt-2 mb-2">
+                            <button type="button" class="inner_collapsible">How do I submit a health status report?
+                            </button>
+                            <div class="inner_content">
+                                To submit your health status update, you will have to:
+                                <ol class="list-decimal list-inside mt-2 mb-2">
+                                    <li>Open the "Update Health Status" Page which can be found in the sidebar.</li>
+                                    <li>In the page, you will see a "Submit a new report" button, which will take
+                                        you to
+                                        the status report page. Click on it.
+                                    </li>
+                                    <li>You will see all the symptoms that you are required to provide updates on.
+                                        Read
+                                        the descriptions and input relevant information. For example:
+                                        <ul class="ml-4 list-inside list-disc mt-2 mb-2">
+                                            <li>For a Fever symptom, provide a thermometer reading for your fever.
+                                                You
+                                                can describe your fever briefly too
+                                            </li>
+                                            <li>For a Cough symptom, provide information such "Persistent", "Dry",
+                                                "Throat Pain" etc.
+                                            </li>
+                                            <li>If you don't experience a symptom, you can state that you are not
+                                                experiencing it.
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li>Once you have filled all symptoms, you can click on "Create and Return" to
+                                        submit the report.
+                                    </li>
+                                </ol>
+                                Note that you will see "You are all set, your doctor will contact you if necessary"
+                                message if you have no symptoms assigned by the doctor to report, or you have
+                                already
+                                submitted your report.
+                            </div>
+                        </div>
+                        <div class="mt-2 mb-2">
+                            <button type="button" class="inner_collapsible">Can I make changes to my health status
+                                report after submission?
+                            </button>
+                            <div class="inner_content">
+                                To make changes your health status update, you will have to:
+                                <ol class="list-decimal list-inside mt-2 mb-2">
+                                    <li>Open the "Update Health Status" Page which can be found in the sidebar.</li>
+                                    <li>In the page, you will see a table with your health status reports. Click on
+                                        "View Report" button of the report you want to view.
+                                    </li>
+                                    <li>Find the symptom you wish to change and click on the "Resubmit" button.</li>
+                                    <li>Make the changes and click on "Submit and Return" to save the report.</li>
+                                </ol>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
-                {% endif %}
+                </div>
                 {% if usr.is_staff %}
                     <div class="mt-2 mb-2">
                         <button type="button" class="outer_collapsible">Symptoms</button>

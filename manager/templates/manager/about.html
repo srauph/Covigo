@@ -1,0 +1,25 @@
+{% extends "Covigo/base.html" %}
+
+{% block content %}
+    <div class="min-h-full bg-slate-100">
+        <div class="bg-slate-700 border-b">
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">About</h1>
+        </div>
+
+        <div class="flex flex-col gap-4 p-8">
+            {% include './cards/soen-squad.html' %}
+            {% include './cards/sprint12.html' %}
+            {% include './cards/sprint34.html' %}
+            {% include './cards/shuaib.html' %}
+            {% include './cards/amir.html' %}
+            {% include './cards/auvigo.html' %}
+            {% include './cards/justin.html' %}
+            {% include './cards/moe.html' %}
+            {% include './cards/nizar.html' %}
+            {% include './cards/aseel.html' %}
+            {% include './cards/isaac.html' %}
+            {% include './cards/shahd.html' %}
+
+        </div>
+    </div>
+{% endblock %}

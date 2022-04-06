@@ -86,7 +86,7 @@ def is_symptom_editing_allowed(user_id):
 def get_assigned_symptoms_from_patient(patient):
     """
     Checks if editing symptoms is allowed and returns the assigned symptoms with data = None meaning they still have to report them.
-    Returns () if there is no symptom to report meaning they have expired or the there are no new reports.
+    Returns () if there is no symptom to report meaning they have expired or there are no new reports.
     @param patient: the patient user
     @return: symptoms if they must still be reported otherwise ()
     """
