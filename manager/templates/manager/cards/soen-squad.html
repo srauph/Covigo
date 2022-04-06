@@ -1,27 +1,57 @@
+<style>
+    /* unvisited link */
+    a.classic:link {
+        color: red;
+    }
+
+    /* visited link */
+    a.classic:visited {
+        color: green;
+    }
+
+    /* mouse over link */
+    a.classic:hover {
+        color: hotpink;
+    }
+
+    /* selected link */
+    a.classic:active {
+        color: blue;
+    }
+
+    .color {
+        color: #1e293b;
+    }
+</style>
 {% extends "manager/card-base1.html" %}
 
 {% block card1 %}
     <div class="flex flex-wrap gap-2 justify-between items-center">
         <div class="flex items-center gap-2 font-semibold text-gray-900 text-lg">
-            <span class="text-cyan-500">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                     stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                </svg>
+            <span class="color">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+</svg>
             </span>
-            <span >Soen Squad</span>
+            <span class="align-middle text-3xl">Soen Squad</span>
         </div>
     </div>
 
     <hr class="border-slate-400 mx-1 my-2">
 
-    <div class="flex flex-col justify-center items-center w-full h-full rounded-lg">
-        <ul class="w-full list-inside text-center">
+    <div class="flex items-center justify-center m-4 h-full flex-wrap">
 
-            <li class="py-1 hover:bg-slate-200 text-gray-900 font-bold text-xl">{{ assigned_doctor.first_name }} {{ assigned_doctor.last_name }}</li>
-            <li class="py-0.5 hover:bg-slate-200">Phone number: {{ assigned_doctor.profile.phone_number }}</li>
-
-        </ul>
+        <div class="text-xl flex flex-col justify-center w-full h-full">
+            <span class="text-center font-semibold text-2xl pt-1 pb-2"> "The app that connects patients and doctors in this new digital era." </span>
+            <span class="text-center py-1">We followed the <a class="classic"
+                                                              href=https://designjustice.org/read-the-principles>Design
+                Justice Network Principles</a>,
+                especially Design 5 which states that "We see the role of the designer as a facilitator rather than an
+                expert."</span><br/>
+            <span class="text-center font-semibold text-2xl pt-1 pb-2">Members:</span>
+            <span class="text-center py-1">Shuaib Rauph &nbsp&nbsp Amir Sadeghi &nbsp&nbsp Auvigoo Ahmed &nbsp&nbsp Justin Klein &nbsp&nbsp Mohamed
+                Amine Ahmadi &nbsp&nbsp Nizar El Jurdi &nbsp&nbsp Aseel Meeran Babu Hussain &nbsp&nbsp Isaac Muruiki
+                &nbsp&nbsp Shahd Yousef.</span>
+        </div>
     </div>
 {% endblock %}
