@@ -1,4 +1,6 @@
 import datetime
+import json
+import urllib.request
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -29,6 +31,7 @@ def index(request):
             status_updates = []
 
         covigo_case_data = fetch_data_from_all_files()
+        external_case_data = fetch_data_from_opencovid()
 
         return render(request, 'dashboard/index.html', {
             "messages": messages,
@@ -36,6 +39,7 @@ def index(request):
             "status_updates": status_updates,
             "assigned_patients": assigned_patients,
             "covigo_case_data": covigo_case_data,
+            "external_case_data": external_case_data
         })
 
     else:
@@ -171,4 +175,27 @@ def fetch_own_case_info(user):
         "is_quarantining": user.patient.is_quarantining,
         "is_positive": user.patient.is_confirmed and not user.patient.is_negative,
         "is_negative": user.patient.is_negative,
+    }
+
+
+def fetch_data_from_opencovid(opencovid_url="https://api.opencovid.ca/summary?loc=QC"):
+    with urllib.request.urlopen(opencovid_url) as url:
+        data = json.loads(url.read().decode())['summary'][-1]
+
+    print(data["cvaccine"])
+
+    return {
+        "date": data["date"],
+        "confirmed": data["cumulative_cases"],
+        "daily_confirmed": data["cases"],
+        "current_positives": data["active_cases"],
+        "daily_positives": data["active_cases_change"],
+        "recoveries": data["cumulative_recovered"],
+        "daily_recoveries": data["recovered"],
+        "deaths": data["cumulative_deaths"],
+        "daily_deaths": data["deaths"],
+        "vaccines": data["cumulative_avaccine"],
+        "daily_vaccines": data["avaccine"],
+        "fully_vaccinated": data["cumulative_cvaccine"],
+        "daily_fully_vaccinated": data["cvaccine"],
     }

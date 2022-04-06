@@ -354,10 +354,13 @@ def profile(request, user_id):
         if request.method == "POST":
             doctor_staff_id = request.POST.get('doctor_id')
 
-            # rebooks previously booked appointments with the old doctor with the new doctor if the new doctor has
-            # an availability at the same day and time as the previously booked appointment
-            rebook_appointment_with_new_doctor(doctor_staff_id, get_assigned_staff_id_by_patient_id(user_id), user)
-            user.patient.assigned_staff_id = doctor_staff_id
+            if doctor_staff_id == "-1":
+                user.patient.assigned_staff = None
+            else:
+                # rebooks previously booked appointments with the old doctor with the new doctor if the new doctor has
+                # an availability at the same day and time as the previously booked appointment
+                rebook_appointment_with_new_doctor(doctor_staff_id, get_assigned_staff_id_by_patient_id(user_id), user)
+                user.patient.assigned_staff_id = doctor_staff_id
             user.patient.save()
 
         qr = get_or_generate_patient_profile_qr(user_id)
@@ -378,7 +381,11 @@ def profile(request, user_id):
 
         assigned_flags = Flag.objects.filter(patient=user, is_active=True)
 
-        all_doctors = User.objects.with_perm("accounts.is_doctor").exclude(is_superuser=True)
+        all_doctors = list(User.objects.with_perm("accounts.is_doctor").exclude(is_superuser=True))
+        all_doctors.append({
+            "first_name": "(Unassign)",
+            "staff": {"id": -1},
+        })
 
         flag = get_flag(request.user, user)
         is_flagged = False if not request.user.is_staff else flag and flag.is_active
