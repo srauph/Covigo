@@ -12,7 +12,7 @@ from django.core.exceptions import MultipleObjectsReturned, PermissionDenied
 from django.db.models import Q
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, redirect
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
@@ -221,7 +221,7 @@ class RegisterPasswordResetConfirmView(PasswordResetConfirmView):
     @method_decorator(sensitive_post_parameters())
     @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
-        self.success_url = reverse_lazy('accounts:register_user_password_done', kwargs={'uidb64': kwargs['uidb64']})
+        self.success_url = reverse_lazy('accounts:register_user_password_done', kwargs={"uidb64": kwargs['uidb64']})
         return super(RegisterPasswordResetConfirmView, self).dispatch(*args, **kwargs)
 
 
@@ -264,8 +264,11 @@ def register_user_details(request, uidb64, token):
 
             if process_register_or_edit_user_form(request, user_form, profile_form):
                 patient = user.patient
-                patient.assigned_staff_id = return_closest_with_least_patients_doctor(
-                    profile_form.data.get("postal_code")).staff.id
+                try:
+                    patient.assigned_staff_id = return_closest_with_least_patients_doctor(
+                        profile_form.data.get("postal_code")).staff.id
+                except IndexError:
+                    pass
                 patient.save()
                 request.session[internal_set_details_session_token] = None
                 return redirect("accounts:register_user_done")

@@ -1,4 +1,10 @@
-<div class="w-full h-80 flex flex-col p-4 group rounded-lg bg-white shadow">
+<style>
+    .min-h-80 {
+        min-height: 20rem;
+    }
+</style>
+
+<div class="w-full min-h-80 flex flex-col p-4 group rounded-lg bg-white shadow">
     {% block card1 %}
         {{ content }}
     {% endblock %}
