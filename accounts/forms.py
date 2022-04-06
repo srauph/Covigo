@@ -19,8 +19,8 @@ STAFF_PATIENT_CHOICES = (
 )
 
 IS_CONFIRMED_CHOICES = (
-    (True, 'Confirmed case'),
-    (False, 'Unconfirmed case')
+    (True, 'Confirmed Case'),
+    (False, 'Unconfirmed Case')
 )
 
 IS_NEGATIVE_CHOICES = (
