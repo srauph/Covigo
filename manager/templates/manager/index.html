@@ -79,7 +79,7 @@
 
                     {% if perms.accounts.manage_case_data %}
                         <div class="flex">
-                            <a class="w-full" href="#">
+                            <a class="w-full" href="{% url 'manager:case_data' %}">
                                 <button type="button" class="w-full justify-center bg-green-600 hover:bg-green-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
                                     <span>
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

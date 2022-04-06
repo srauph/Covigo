@@ -1,11 +1,17 @@
 from datetime import timedelta, date
+from os import listdir, path
+from os.path import join, isfile
 
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
+from django.http import HttpResponse, Http404
 from django.shortcuts import render
 
 from accounts.models import Patient, Staff
+
+
+CASE_DATA_PATH = "static/Covigo/data"
 
 
 def index(request):
@@ -54,6 +60,17 @@ def contact_tracing(request):
     return render(request, 'manager/contact_tracing.html', {"user_count": user_count})
 
 
+def case_data(request):
+    if not request.user.is_staff or not request.user.has_perm("accounts.manage_case_data"):
+        raise PermissionDenied
+
+    data_files = [f for f in listdir(CASE_DATA_PATH) if isfile(join(CASE_DATA_PATH, f))]
+
+    return render(request, 'manager/case_data.html', {
+        "data_files": data_files
+    })
+
+
 def help_page(request):
     usr = request.user
     return render(request, 'manager/help.html', {"usr": usr})
@@ -61,3 +78,10 @@ def help_page(request):
 
 def about(request):
     return render(request, 'manager/about.html')
+
+
+def download_case_data_file(request, file_name):
+    with open(f"{CASE_DATA_PATH}/{file_name}", 'rb') as fh:
+        response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
+        response['Content-Disposition'] = 'inline; filename=' + path.basename(file_name)
+        return response
