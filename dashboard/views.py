@@ -112,7 +112,7 @@ def fetch_appointments_info(user):
     }
 
 
-def fetch_data_from_all_files(data_path="dashboard/sample_data"):
+def fetch_data_from_all_files(data_path="static/Covigo/data"):
     confirmed = fetch_data_from_file(f"{data_path}/confirmed_cases.csv")
     daily_confirmed = extract_daily_data(confirmed)
 
@@ -181,8 +181,6 @@ def fetch_own_case_info(user):
 def fetch_data_from_opencovid(opencovid_url="https://api.opencovid.ca/summary?loc=QC"):
     with urllib.request.urlopen(opencovid_url) as url:
         data = json.loads(url.read().decode())['summary'][-1]
-
-    print(data["cvaccine"])
 
     return {
         "date": data["date"],
