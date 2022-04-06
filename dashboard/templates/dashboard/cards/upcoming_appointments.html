@@ -1,4 +1,4 @@
-{% extends "dashboard/card-base.html" %}
+{% extends "dashboard/card_base.html" %}
 
 {% block card %}
     <div class="flex flex-wrap gap-2 justify-between items-center">
@@ -19,15 +19,15 @@
     <div class="flex justify-center items-center w-full h-full rounded-lg">
         <ul class="w-full list-inside text-center">
             {% if appointments.today|length > 0 %}
-                <li class="py-2 hover:bg-slate-200">Your next appointment is <b>today</b> at <b>{{ appointments.all.0.start_date.time }}</b></li>
+                <li class="rounded-md py-2 hover:bg-slate-200">Your next appointment is <b>today</b> at <b>{{ appointments.all.0.start_date.time }}</b></li>
             {% elif appointments.tomorrow|length > 0 %}
-                <li class="py-2 hover:bg-slate-200">Your next appointment is <b>tomorrow</b> at <b>{{ appointments.all.0.start_date.time }}</b></li>
+                <li class="rounded-md py-2 hover:bg-slate-200">Your next appointment is <b>tomorrow</b> at <b>{{ appointments.all.0.start_date.time }}</b></li>
             {% elif appointments.all|length > 0 %}
-                <li class="py-2 hover:bg-slate-200">Your next appointment is on <b>{{ appointments.all.0.start_date.date }}</b> at <b>{{ appointments.all.0.start_date.time }}</b></li>
+                <li class="rounded-md py-2 hover:bg-slate-200">Your next appointment is on <b>{{ appointments.all.0.start_date.date }}</b> at <b>{{ appointments.all.0.start_date.time }}</b></li>
             {% endif %}
 
             {% if appointments.all|length > 0 %}
-                <li class="py-2 hover:bg-slate-200">In total, you have {{ appointments.all|length }} upcoming appointment(s)
+                <li class="rounded-md py-2 hover:bg-slate-200">In total, you have {{ appointments.all|length }} upcoming appointment(s)
                 {% if appointments.today|length > 1 %}
                     <br>Of them, {{ appointments.today|length }} occur today
                     {% if appointments.tomorrow|length > 0 %}
@@ -38,7 +38,7 @@
                 {% endif %}
                 </li>
             {% else %}
-                <li class="py-2 hover:bg-slate-200">You have no upcoming appointments</li>
+                <li class="rounded-md py-2 hover:bg-slate-200">You have no upcoming appointments</li>
             {% endif %}
         </ul>
     </div>

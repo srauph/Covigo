@@ -1,4 +1,4 @@
-{% extends "dashboard/card-base.html" %}
+{% extends "dashboard/card_base.html" %}
 
 {% block card %}
     <div class="flex flex-wrap gap-2 justify-between items-center">
@@ -29,7 +29,7 @@
         {% else %}
             <div class="grid {% if assigned_patients|length > 14 %}grid-cols-3{% else %}grid-cols-2{% endif %}">
                 {% for patient_user in assigned_patients %}
-                    <span class="p-1 flex items-center gap-2 hover:bg-slate-200">
+                    <span class="rounded-md p-1 flex items-center gap-2 hover:bg-slate-200">
                         {% if not assigned_patients|length > 14 %}
                             <a href="{% url 'accounts:profile' patient_user.id %}">
                                 <button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">

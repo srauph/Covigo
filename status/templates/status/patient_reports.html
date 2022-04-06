@@ -37,8 +37,8 @@
             let table = $('#patient_reports_table').DataTable({
                 "ajax": "{% url 'status:patient_reports_table' %}",
                 createdRow: function (row, data, index) {
-                    $(row).attr('data-read', data.is_viewed)
-                    if (data.is_viewed === false) {
+                    $(row).attr('data-read', !data.unread)
+                    if (data.unread) {
                         $(row).addClass('font-semibold border-b')
                     } else {
                         $(row).addClass('border-b')
@@ -52,29 +52,36 @@
                 stripeClasses: [],
                 "orderClasses": false,
                 "columns": [
-                    {"data": "user__patients_assigned_flags__is_active"},
+                    {"data": "flagged"},
                     {"data": "user__first_name"},
                     {"data": "user_id"},
-                    {"data": "is_viewed"},
+                    {"data": "unread"},
                     {"data": "date_updated__date"},
                     {"data": "user__last_name"},
                     {
-                        defaultContent: '<button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1 report-modal-link">' +
-                            '<span> <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round"stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' +
-                            '</span><span>View Report</span></button>'
+                        defaultContent: '<span class="flex items-center justify-end">' +
+                            '<button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1 report-modal-link">' +
+                            '<span><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round"stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>' +
+                            '<span>View Report</span></button></span>'
                     },
                 ],
                 "columnDefs": [
-                    { // user__patients_assigned_flags__is_active
+                    { // flagged
                         "targets": [0],
-                        "visible": false,
+                        "visible": true,
                         "searchable": false,
-                         "render": function (data, type, row) {
-                             let is_active = row.user__patients_assigned_flags__is_active;
-                             if (typeof is_active != "boolean") {
-                                 return false;
-                             }
-                             return is_active;
+                        "render": function (data, type, row) {
+                            let is_active = row.flagged;
+                            if (typeof is_active != "boolean") {
+                                return false;
+                            }
+                            if (is_active) {
+                                return '<span class="flex items-center justify-center text-orange-400">' +
+                                '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">' +
+                                '<path stroke-linecap="round" stroke-linejoin="round" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9">' +
+                                '</path></svg></span>'
+                            }
+                            return null;
                         }
                     },
                     { // user__first_name
@@ -112,7 +119,7 @@
                         "bSortable": false,
                     },
                 ],
-                "order": [[3, "asc"], [0, "desc"], [4, "desc"]]
+                "order": [[3, "desc"], [0, "desc"], [4, "desc"]]
             });
             $('#toggleRead').change(function () {
                 $.fn.dataTable.ext.search.pop();
@@ -175,6 +182,45 @@
         <div class="flex justify-between bg-slate-700">
             <h1 class="text-2xl text-white font-semibold px-8 py-4">Patient Reports</h1>
         </div>
+        {% if messages %}
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+            <script>
+                Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
+                    x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
+                }));
+
+                setTimeout(function() {
+                    $('.message').fadeOut('fast');
+                    }, 10000); // <-- time in milliseconds
+            </script>
+        {% endif %}
+
+        {% for message in messages %}
+            {% if message.tags == 'error'%}
+                <div role="alert" class="px-8 pt-8">
+                    <div class="message p-5 rounded-lg border border-red-400 bg-red-300 text-red-900">
+                        <div class="divide-y-2 divide-solid divide-red-400">
+                            <h2 class="font-bold text-xl flex items-center pb-2">
+                                <span class="mr-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </span>
+                                Error!
+                                <div class="text-xl flex align-center w-full justify-end">
+                                    <strong class="alert-del cursor-pointer">
+                                        &times;
+                                    </strong>
+                                </div>
+                            </h2>
+                            <p class="pt-2">
+                                {{ message }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
 
         <div class="bg-white shadow m-8 rounded-xl">
             <div class="w-full flex justify-between items-center p-4">
@@ -196,7 +242,7 @@
                        id="patient_reports_table">
                     <thead>
                     <tr class="border-b">
-                        <th class="p-2">user__patients_assigned_flags__is_active</th>
+                        <th class="p-2 w-2">Flag</th>
                         <th class="p-2">Patient Name</th>
                         <th class="p-2">user_id</th>
                         <th class="p-2">is_viewed</th>

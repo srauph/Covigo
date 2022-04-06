@@ -22,7 +22,7 @@ urlpatterns = [
     path('verify_otp/<int:user_id>/', views.verify_otp, name='verify_otp'),
     path('profile/<int:user_id>/', views.profile, name='profile'),
     path('profile/<code>/', views.profile_from_code, name='profile_from_code'),
-    path('edit_case/<int:user_id>', views.edit_case, name='edit_case'),
+    path('edit_case/<int:user_id>/', views.edit_case, name='edit_case'),
 
     path(
         'login/',
@@ -82,7 +82,7 @@ urlpatterns = [
         name='register_user_password'
     ),
     path(
-        'register/password/<uidb64>/password_done',
+        'register/password/<uidb64>/password_done/',
         views.register_user_password_done,
         name="register_user_password_done"
     ),
@@ -97,6 +97,6 @@ urlpatterns = [
         name='register_user_done'
     ),
 
-    path('get_distance/<postal_code>/<current_lat>/<current_long>',
+    path('get_distance/<postal_code>/<current_lat>/<current_long>/',
          views.get_distance_from_postal_code_to_current_location, name='get_distance')
 ]

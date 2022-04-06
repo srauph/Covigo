@@ -4,4 +4,5 @@ from . import views
 app_name = 'dashboard'
 urlpatterns = [
     path('', views.index, name='index'),
+    path('covigo_case_data/', views.covigo_case_data_graphs, name='covigo_case_data')
 ]

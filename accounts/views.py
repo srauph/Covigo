@@ -18,7 +18,6 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 
-
 from Covigo.default_permissions import DEFAULT_PERMISSIONS
 from Covigo.messages import Messages
 from Covigo.settings import PRODUCTION_MODE
@@ -29,6 +28,7 @@ from accounts.utils import (
     convert_dict_of_bools_to_list,
     dictfetchall,
     get_assigned_staff_id_by_patient_id,
+    get_flag,
     get_or_generate_patient_profile_qr,
     get_user_from_uidb64,
     return_closest_with_least_patients_doctor,
@@ -340,16 +340,17 @@ def profile(request, user_id):
         or request.user.has_perm("accounts.edit_assigned") and user in request.user.staff.get_assigned_patient_users()
     )
 
-    show_left_side = usr_is_doctor or not user.is_staff
+    perms_view_appointments = (
+        user == request.user
+        or request.user.has_perm("accounts.view_user_appointment")
+        or request.user.has_perm("accounts.view_patient_appointment") and not user.is_staff
+        or request.user.has_perm("accounts.is_doctor") and user in request.user.staff.get_assigned_patient_users()
+    )
+
+
 
     # If profile belongs to a patient
     if not user.is_staff:
-        can_edit_flag = (
-            False if not request.user.is_staff else
-            request.user.has_perm("accounts.flag_patients") and not user.is_staff
-            or request.user.has_perm("accounts.flag_assigned") and user in request.user.staff.get_assigned_patient_users()
-        )
-
         if request.method == "POST":
             doctor_staff_id = request.POST.get('doctor_id')
 
@@ -374,42 +375,44 @@ def profile(request, user_id):
             assigned_staff_patient_count = user.patient.assigned_staff.get_assigned_patient_users().count()
         except AttributeError:
             assigned_staff_patient_count = 0
-        assigned_flags = Flag.objects.filter(patient=user)
+
+        assigned_flags = Flag.objects.filter(patient=user, is_active=True)
 
         all_doctors = User.objects.with_perm("accounts.is_doctor").exclude(is_superuser=True)
+
+        flag = get_flag(request.user, user)
+        is_flagged = False if not request.user.is_staff else flag and flag.is_active
+
+
+        perms_flag = (
+            False if not request.user.is_staff else
+            request.user.has_perm("accounts.flag_patients") and not user.is_staff
+            or request.user.has_perm(
+                "accounts.flag_assigned") and user in request.user.staff.get_assigned_patient_users()
+        )
 
         perms_code = (
             user == request.user and request.user.has_perm("accounts.view_own_code")
             or request.user.has_perm("accounts.view_patient_code")
-            or request.user.has_perm("accounts.view_assigned_code") and user in request.user.staff.get_assigned_patient_users()
-        )
-
-        perms_negative = (
-            user == request.user
-            or request.user.has_perm("accounts.view_patient_case")
-            or request.user.has_perm("accounts.view_assigned_case") and user in request.user.staff.get_assigned_patient_users()
-        )
-
-        perms_quarantine = (
-            user == request.user
-            or request.user.has_perm("accounts.view_patient_quarantine")
-            or request.user.has_perm("accounts.view_assigned_quarantine") and user in request.user.staff.get_assigned_patient_users()
+            or (
+                request.user.has_perm("accounts.view_assigned_code")
+                and user in request.user.staff.get_assigned_patient_users()
+            )
         )
 
         perms_test_report = (
-            request.user.has_perm("accounts.view_patient_test_report")
-            or request.user.has_perm("accounts.view_assigned_test_report") and user in request.user.staff.get_assigned_patient_users()
+            user == request.user
+            or request.user.has_perm("accounts.view_patient_test_report")
+            or (
+                request.user.has_perm("accounts.view_assigned_test_report")
+                and user in request.user.staff.get_assigned_patient_users()
+            )
         )
 
         perms_assigned_doctor = (
             user == request.user
             or request.user.has_perm("accounts.view_assigned_doctor")
             or user in request.user.staff.get_assigned_patient_users()
-        )
-
-        perms_assigned_patients = (
-            user == request.user
-            or request.user.has_perm("accounts.view_assigned_patients")
         )
 
         perms_message_doctor = (
@@ -422,7 +425,8 @@ def profile(request, user_id):
         perms_assign_symptoms = (
             not user.is_staff and (
                 request.user.has_perm("accounts.assign_symptom_patient")
-                or request.user.has_perm("accounts.assign_symptom_assigned") and user in request.user.staff.get_assigned_patient_users()
+                or request.user.has_perm(
+                "accounts.assign_symptom_assigned") and user in request.user.staff.get_assigned_patient_users()
             )
         )
 
@@ -430,14 +434,18 @@ def profile(request, user_id):
             not user.is_staff and (
                 request.user.has_perm("accounts.set_patient_case")
                 or request.user.has_perm("accounts.set_patient_quarantine")
-                or request.user.has_perm("accounts.is_doctor") and user in request.user.staff.get_assigned_patient_users() and (
-                    request.user.has_perm("accounts.set_assigned_case")
-                    or request.user.has_perm("accounts.set_assigned_quarantine")
+                or (
+                    request.user.has_perm("accounts.is_doctor")
+                    and user in request.user.staff.get_assigned_patient_users()
+                    and (
+                        request.user.has_perm("accounts.set_assigned_case")
+                        or request.user.has_perm("accounts.set_assigned_quarantine")
+                    )
                 )
             )
         )
 
-        return render(request, 'accounts/profile.html', {
+        return render(request, 'accounts/profile/profile.html', {
             "usr": user,
             "appointments": appointments,
             "appointments_truncated": appointments_truncated,
@@ -448,16 +456,15 @@ def profile(request, user_id):
             "full_view": True,
             "allow_editing": is_symptom_editing_allowed(user_id),
             "all_doctors": all_doctors,
-            "can_edit_flag": can_edit_flag,
-            "show_left_side": show_left_side,
+            "show_left_side": True,
+            "is_flagged": is_flagged,
 
             "perms_edit_user": perms_edit_user,
+            "perms_view_appointments": perms_view_appointments,
+            "perms_flag": perms_flag,
             "perms_code": perms_code,
-            "perms_negative": perms_negative,
-            "perms_quarantine": perms_quarantine,
             "perms_test_report": perms_test_report,
             "perms_assigned_doctor": perms_assigned_doctor,
-            "perms_assigned_patients": perms_assigned_patients,
             "perms_message_doctor": perms_message_doctor,
             "perms_assign_symptoms": perms_assign_symptoms,
             "perms_edit_case": perms_edit_case,
@@ -468,9 +475,19 @@ def profile(request, user_id):
         appointments = Appointment.objects.filter(staff=user).filter(all_filter).order_by("start_date")
         appointments_truncated = appointments[:4]
         assigned_patients = [] if user.is_superuser else user.staff.get_assigned_patient_users()
-        issued_flags = Flag.objects.filter(staff=user)
+        issued_flags = Flag.objects.filter(staff=user, is_active=True)
 
-        return render(request, 'accounts/profile.html', {
+        perms_assigned_patients = (
+                user == request.user
+                or request.user.has_perm("accounts.view_assigned_patients")
+        )
+
+        show_left_side = (
+            usr_is_doctor and perms_assigned_patients
+            or not user.is_staff
+        )
+
+        return render(request, 'accounts/profile/profile.html', {
             "usr": user,
             "appointments": appointments,
             "appointments_truncated": appointments_truncated,
@@ -479,9 +496,10 @@ def profile(request, user_id):
             "full_view": True,
             "show_left_side": show_left_side,
 
-
             "usr_is_doctor": usr_is_doctor,
             "perms_edit_user": perms_edit_user,
+            "perms_view_appointments": perms_view_appointments,
+            "perms_assigned_patients": perms_assigned_patients,
         })
 
 
@@ -490,18 +508,26 @@ def profile_from_code(request, code):
     patient = Patient.objects.get(code=code)
     user = User.objects.get(patient=patient)
     image = get_or_generate_patient_profile_qr(user.id)
-    return render(request, 'accounts/profile.html', {"qr": image, "usr": user, "full_view": False})
+    return render(request, 'accounts/profile/profile.html', {"qr": image, "usr": user, "full_view": False})
 
 
 @login_required
 @never_cache
 def list_users(request):
+    if request.user.has_perm("accounts.view_flagged_user_list"):
+        flagged_filter = Q(id__in=request.user.staffs_created_flags.exclude(is_active=False).values("patient_id"))
+    else:
+        flagged_filter = Q()
+
     if request.user.has_perm("accounts.view_user_list"):
         users = User.objects.all()
     elif request.user.has_perm("accounts.view_patient_list"):
-        users = User.objects.all().filter(is_staff=False)
+        users = User.objects.filter(is_staff=False)
     elif request.user.has_perm("accounts.view_assigned_list"):
-        users = request.user.staff.get_assigned_patient_users()
+        assigned_filter = Q(patient__in=request.user.staff.assigned_patients.all())
+        users = User.objects.filter(flagged_filter | assigned_filter)
+    elif request.user.has_perm("accounts.view_flagged_user_list"):
+        users = User.objects.filter(flagged_filter)
     else:
         raise PermissionDenied
 
@@ -617,8 +643,6 @@ def edit_user(request, user_id):
         raise PermissionDenied
 
     edit_perms = {
-        "edit_password": False if user == request.user and not request.user.has_perm(
-            "accounts.edit_password") else True,
         "edit_username": False if user == request.user and not request.user.has_perm(
             "accounts.edit_username") else True,
         "edit_email": False if user == request.user and not request.user.has_perm("accounts.edit_email") else True,
@@ -628,9 +652,9 @@ def edit_user(request, user_id):
         "edit_preferences": (
             user != request.user and request.user.has_perm("accounts.edit_preference_user")
             or user == request.user and (
-                request.user.has_perm("accounts.system_message_preference")
-                or request.user.has_perm("accounts.status_deadline_reminder_preference")
-                or request.user.has_perm("accounts.appointment_reminder_preference")
+                    request.user.has_perm("accounts.system_message_preference")
+                    or request.user.has_perm("accounts.status_deadline_reminder_preference")
+                    or request.user.has_perm("accounts.appointment_reminder_preference")
             )
         ),
     }
@@ -664,9 +688,9 @@ def edit_preferences(request, user_id):
     can_view_page = (
         user != request.user and request.user.has_perm("accounts.edit_preference_user")
         or user == request.user and (
-            request.user.has_perm("accounts.system_message_preference")
-            or request.user.has_perm("accounts.status_deadline_reminder_preference")
-            or request.user.has_perm("accounts.appointment_reminder_preference")
+                request.user.has_perm("accounts.system_message_preference")
+                or request.user.has_perm("accounts.status_deadline_reminder_preference")
+                or request.user.has_perm("accounts.appointment_reminder_preference")
         )
     )
 
@@ -846,8 +870,9 @@ def flag_user(request, user_id):
     user_patient = User.objects.get(id=user_id)
 
     can_edit_flag = (
-        user_staff.has_perm("accounts.flag_patients") and not user_patient.is_staff
-        or user_staff.has_perm("accounts.flag_assigned") and user_patient in user_staff.staff.get_assigned_patient_users()
+            user_staff.has_perm("accounts.flag_patients") and not user_patient.is_staff
+            or user_staff.has_perm(
+        "accounts.flag_assigned") and user_patient in user_staff.staff.get_assigned_patient_users()
     )
 
     if not can_edit_flag:
@@ -878,8 +903,9 @@ def unflag_user(request, user_id):
     user_patient = User.objects.get(id=user_id)
 
     can_edit_flag = (
-        user_staff.has_perm("accounts.flag_patients") and not user_patient.is_staff
-        or user_staff.has_perm("accounts.flag_assigned") and user_patient in user_staff.staff.get_assigned_patient_users()
+            user_staff.has_perm("accounts.flag_patients") and not user_patient.is_staff
+            or user_staff.has_perm(
+        "accounts.flag_assigned") and user_patient in user_staff.staff.get_assigned_patient_users()
     )
 
     if not can_edit_flag:

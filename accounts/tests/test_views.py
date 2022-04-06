@@ -341,7 +341,7 @@ class ListOrViewAccountTests(TestCase):
         response = other_client.get('/accounts/profile/1/')
 
         # Assert
-        self.assertTemplateNotUsed(response, 'accounts/profile.html')
+        self.assertTemplateNotUsed(response, 'accounts/profile/profile.html')
 
     @mock.patch('accounts.views.get_or_generate_patient_profile_qr')
     def test_profile_logged_in(self, m_get_or_generate_patient_profile_qr_function):
@@ -354,7 +354,7 @@ class ListOrViewAccountTests(TestCase):
         response = self.client.get('/accounts/profile/1/')
 
         # Assert
-        self.assertTemplateUsed(response, 'accounts/profile.html')
+        self.assertTemplateUsed(response, 'accounts/profile/profile.html')
         m_get_or_generate_patient_profile_qr_function.assert_called_once()
 
     @mock.patch('accounts.views.get_or_generate_patient_profile_qr')
@@ -900,7 +900,7 @@ class EditGroupTests(TestCase):
         self.assertEqual(new_group_name, Group.objects.last().name)
         self.assertSetEqual(expected_permissions_set, set(Group.objects.last().permissions.all()))
 
-    @skip
+
     def test_edit_group_to_existing_perms_successfully(self):
         """
         Test that editing a group to have permissions identical to another group works

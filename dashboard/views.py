@@ -9,6 +9,7 @@ from accounts.models import Staff
 from appointments.models import Appointment
 from dashboard.utils import fetch_data_from_file, extract_daily_data
 from messaging.models import MessageGroup
+from status.utils import return_symptoms_for_today, is_requested, get_reports_by_patient, get_report_unread_status
 
 
 @login_required
@@ -20,44 +21,53 @@ def index(request):
     appointments = fetch_appointments_info(user)
 
     if user.is_staff:
-        recent_status_updates = []
         if not user.is_superuser and user.has_perm("accounts.is_doctor"):
             assigned_patients = user.staff.get_assigned_patient_users()
+            status_updates = fetch_status_updates_info(user)
         else:
             assigned_patients = []
+            status_updates = []
 
         covigo_case_data = fetch_data_from_all_files()
 
         return render(request, 'dashboard/index.html', {
             "messages": messages,
             "appointments": appointments,
-            "recent_status_updates": recent_status_updates,
+            "status_updates": status_updates,
             "assigned_patients": assigned_patients,
             "covigo_case_data": covigo_case_data,
         })
 
     else:
-        status_reminder = []
-        quarantine = []
+        status_reminder = fetch_status_reminder_info(user)
+        case = fetch_own_case_info(user)
         assigned_doctor = user.patient.get_assigned_staff_user()
 
         return render(request, 'dashboard/index.html', {
             "messages": messages,
             "appointments": appointments,
             "status_reminder": status_reminder,
-            "quarantine": quarantine,
+            "case": case,
             "assigned_doctor": assigned_doctor,
         })
 
 
+def covigo_case_data_graphs(request):
+    covigo_case_data = fetch_data_from_all_files()
+
+    return render(request, 'dashboard/covigo_case_data.html', {
+        "covigo_case_data": covigo_case_data,
+    })
+
+
 def fetch_messaging_info(user):
-    msg_group_filter = Q(author=user) | Q(recipient=user)
+    msg_group_filter = Q(type=0) & (Q(author=user) | Q(recipient=user))
     all_messages = MessageGroup.objects.filter(msg_group_filter)
 
     urgent_msg_group_filter = msg_group_filter & Q(priority=2)
     urgent = all_messages.filter(urgent_msg_group_filter)
 
-    unread_msg_group_filter = (Q(author=user) & Q(author_seen=False)) | (Q(recipient=user) & Q(recipient_seen=False))
+    unread_msg_group_filter = Q(type=0) & ((Q(author=user) & Q(author_seen=False)) | (Q(recipient=user) & Q(recipient_seen=False)))
     unread = all_messages.filter(unread_msg_group_filter)
     unread_urgent = urgent.filter(unread_msg_group_filter)
 
@@ -121,4 +131,40 @@ def fetch_data_from_all_files(data_path="dashboard/sample_data"):
         "daily_unconfirmed_negative": daily_unconfirmed_negative,
         "unconfirmed_untested": unconfirmed_untested,
         "daily_unconfirmed_untested": daily_unconfirmed_untested,
+    }
+
+
+def fetch_status_reminder_info(user):
+    patient_symptoms = return_symptoms_for_today(user.id)
+    is_resubmit_requested = is_requested(user.id)
+
+    return {
+        "is_reporting_today": patient_symptoms.exists(),
+        "is_resubmit_requested": is_resubmit_requested,
+    }
+
+
+def fetch_status_updates_info(user):
+    reports_list = []
+    unread_count = 0
+
+    for patient in user.staff.get_assigned_patient_users():
+        report_set = get_reports_by_patient(patient.id)
+
+        for report in report_set:
+            if get_report_unread_status(report):
+                unread_count += 1
+        reports_list.append(report_set)
+
+    return {
+        "reports_list": reports_list,
+        "unread_count": unread_count,
+    }
+
+
+def fetch_own_case_info(user):
+    return {
+        "is_quarantining": user.patient.is_quarantining,
+        "is_positive": user.patient.is_confirmed and not user.patient.is_negative,
+        "is_negative": user.patient.is_negative,
     }

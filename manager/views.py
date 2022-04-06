@@ -2,6 +2,7 @@ from datetime import timedelta, date
 
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 from django.shortcuts import render
 
 from accounts.models import Patient, Staff
@@ -24,8 +25,8 @@ def index(request):
     
     if request.user.has_perm("accounts.view_manager_data"):
         user_count = User.objects.count()
-        patient_count = Patient.objects.count()
-        staff_count = Staff.objects.count()
+        patient_count = User.objects.filter(is_staff=False).count()
+        staff_count = User.objects.filter(is_staff=True).count()
 
         today = date.today()
         yesterday = today - timedelta(days=1)

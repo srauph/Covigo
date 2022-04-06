@@ -19,7 +19,6 @@ class Profile(models.Model):
         permissions = [
             ("edit_self", "Can edit their own user"),
             ("cancel_appointment", "Can cancel an appointment"),
-            ("edit_password", "Can change their own password while logged in"),
             ("edit_username", "Can edit their username"),
             ("edit_name", "Can edit their first and last name"),
             ("edit_email", "Can edit their email address"),
@@ -63,14 +62,10 @@ class Staff(models.Model):
             ("dashboard_covigo_data", "Can view Covigo case data in dashboard"),
             ("dashboard_external_data", "Can view external case data in dashboard"),
             ("view_patient_code", "Can view any patient's QR and patient code"),
-            ("view_patient_case", "Can view any patient's case status (confirmation status and latest test)"),
-            ("view_patient_quarantine", "Can view any patient's quarantine status"),
             ("set_patient_case", "Can edit any patient's case status (confirmed and latest test)"),
             ("set_patient_quarantine", "Can edit any patient's quarantine status"),
             ("view_patient_test_report", "Can view any patient's test report"),
             ("view_assigned_code", "Can view an assigned patient's QR and patient code"),
-            ("view_assigned_case", "Can view an assigned patient's case status (confirmation status and latest test)"),
-            ("view_assigned_quarantine", "Can view an assigned patient's quarantine status"),
             ("set_assigned_case", "Can edit an assigned patient's case status (confirmed and latest test)"),
             ("set_assigned_quarantine", "Can edit an assigned patient's quarantine status"),
             ("view_assigned_test_report", "Can view an assigned patient's test report"),
@@ -82,8 +77,11 @@ class Staff(models.Model):
             ("view_assigned_list", "Can view their assigned patients in Accounts page"),
             ("view_patient_list", "Can view all patients in Accounts page"),
             ("view_user_list", "Can view all users in the Accounts page"),
+            ("view_flagged_user_list", "Can view flagged users in the Accounts page"),
             ("manage_contact_tracing", "Can access the contact tracing management page"),
             ("manage_case_data", "Can access the case data management page"),
+            ("view_patient_appointment", "Can view any patient's upcoming appointments"),
+            ("view_user_appointment", "Can view any user's upcoming appointments"),
             # ("request_resubmission", "Can request that a patient resubmit their status report"),
             # ("view_status_assigned", "Can view assigned patients' status reports"),
             # ("view_status_any", "Can view any patient's status report"),
@@ -180,6 +178,7 @@ class Flag(models.Model):
 
     def __str__(self):
         return f"{self.patient}_flaggedby_{self.staff}"
+
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):

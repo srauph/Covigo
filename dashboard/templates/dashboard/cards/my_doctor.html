@@ -1,4 +1,4 @@
-{% extends "dashboard/card-base.html" %}
+{% extends "dashboard/card_base.html" %}
 
 {% block card %}
     <div class="flex flex-wrap gap-2 justify-between items-center">
@@ -19,13 +19,13 @@
     <div class="flex flex-col justify-center items-center w-full h-full rounded-lg">
         <ul class="w-full list-inside text-center">
             {% if assigned_doctor %}
-                <li class="py-1 hover:bg-slate-200 text-gray-900 font-bold text-xl">{{ assigned_doctor.first_name }} {{ assigned_doctor.last_name }}</li>
-                <li class="py-0.5 hover:bg-slate-200">Email: <a class="text-blue-500" href="mailto:{{ assigned_doctor.email }}">{{ assigned_doctor.email }}</a></li>
+                <li class="rounded-md py-1 hover:bg-slate-200 text-gray-900 font-bold text-xl">{{ assigned_doctor.first_name }} {{ assigned_doctor.last_name }}</li>
+                <li class="rounded-md py-0.5 hover:bg-slate-200">Email: <a class="text-blue-500" href="mailto:{{ assigned_doctor.email }}">{{ assigned_doctor.email }}</a></li>
                 {% if assigned_doctor.profile.phone_number %}
-                    <li class="py-0.5 hover:bg-slate-200">Phone number: {{ assigned_doctor.profile.phone_number }}</li>
+                    <li class="rounded-md py-0.5 hover:bg-slate-200">Phone number: {{ assigned_doctor.profile.phone_number }}</li>
                 {% endif %}
             {% else %}
-                <li class="py-2 hover:bg-slate-200">You do not currently have an assigned doctor</li>
+                <li class="rounded-md py-2 hover:bg-slate-200">You do not currently have an assigned doctor</li>
             {% endif %}
         </ul>
     </div>
