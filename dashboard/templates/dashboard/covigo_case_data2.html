@@ -24,11 +24,14 @@
                         <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Recovered">
                             Currently Recovered
                         </button>
-                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Negative">
-                            Negative Cases
+                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Deaths">
+                            Deaths
                         </button>
-                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-l-none" value="Probable">
-                            Probable Cases
+                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Administered Vaccines">
+                            Administered Vaccines
+                        </button>
+                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-l-none" value="Fully Vaccinated">
+                            Fully Vaccinated
                         </button>
                     </div>
                     <div class="flex text-sm md:text-base">
@@ -70,36 +73,37 @@
                     let positive = [];
                     let daily_recoveries = [];
                     let recoveries = [];
-                    let administered_vaccines = [];
-                    let vaccines = [];
-                    let fully_vaccinated = [];
-                    let daily_fully_vaccinated = [];
-                    let deaths = [];
                     let daily_deaths = [];
+                    let deaths = [];
+                    let daily_administered_vaccines = [];
+                    let administered_vaccines = [];
+                    let daily_fully_vaccinated = [];
+                    let fully_vaccinated = [];
 
                     for (i of full_qc_data) {
+                        dates.push(i.date)
                         daily_cases.push(i.cases)
-                        cases.push()
-                        daily_positive.push()
-                        positive.push()
-                        daily_recoveries.push()
-                        recoveries.push()
-                        administered_vaccines.push()
-                        vaccines.push()
-                        fully_vaccinated.push()
-                        daily_fully_vaccinated.push()
-                        deaths.push()
-                        daily_deaths.push()
+                        cases.push(i.cumulative_cases)
+                        daily_positive.push(i.active_cases_change)
+                        positive.push(i.active_cases)
+                        daily_recoveries.push(i.recovered)
+                        recoveries.push(i.recovered_cumulative)
+                        daily_deaths.push(i.deaths)
+                        deaths.push(i.cumulative_deaths)
+                        daily_administered_vaccines.push(i.avaccine)
+                        administered_vaccines.push(i.cumulative_avaccine)
+                        daily_fully_vaccinated.push(i.cvaccine)
+                        fully_vaccinated.push(i.cumulative_cvaccine)
                     }
 
-                    console.log(daily_cases);
+                    console.log(full_qc_data);
 
                     let selected_data_set = "Confirmed";
                     let selected_data_type = "Current";
                     let current_label = "Confirmed Cases";
                     let current_color = "rgb(249, 115, 22)";
-                    let current_labels = {{ covigo_case_data.confirmed.dates|safe }};
-                    let current_data = {{ covigo_case_data.confirmed.numbers|safe }};
+                    let current_labels = dates;
+                    let current_data = daily_cases;
 
                     $(document).ready(function () {
                         $("#footer").hide();
@@ -134,10 +138,8 @@
                                             return this.value == selected_data_set
                                         }).addClass('bg-orange-500')
                                     if (selected_data_type === "Current") {
-                                        current_labels = {{ covigo_case_data.confirmed.dates|safe }};
                                         current_data = {{ covigo_case_data.confirmed.numbers|safe }};
                                     } else {
-                                        current_labels = {{ covigo_case_data.daily_confirmed.dates|safe }};
                                         current_data = {{ covigo_case_data.daily_confirmed.numbers|safe }};
                                     }
                                     break;
@@ -150,10 +152,8 @@
                                             return this.value == selected_data_set
                                         }).addClass('bg-red-600')
                                     if (selected_data_type === "Current") {
-                                        current_labels = {{ covigo_case_data.current_positives.dates|safe }};
                                         current_data = {{ covigo_case_data.current_positives.numbers|safe }};
                                     } else {
-                                        current_labels = {{ covigo_case_data.daily_positives.dates|safe }};
                                         current_data = {{ covigo_case_data.daily_positives.numbers|safe }};
                                     }
                                     break;
@@ -166,48 +166,54 @@
                                             return this.value == selected_data_set
                                         }).addClass('bg-green-600')
                                     if (selected_data_type === "Current") {
-                                        current_labels = {{ covigo_case_data.recoveries.dates|safe }};
                                         current_data = {{ covigo_case_data.recoveries.numbers|safe }};
                                     } else {
-                                        current_labels = {{ covigo_case_data.daily_recoveries.dates|safe }};
                                         current_data = {{ covigo_case_data.daily_recoveries.numbers|safe }};
                                     }
                                     break;
 
-                                case "Negative":
-                                    current_label = "Negative Cases";
+                                case "Deaths":
+                                    current_label = "Deaths";
                                     current_color = "rgb(250, 204, 21)";
                                     if (updateLabel)
                                         $('.data-set').filter(function () {
                                             return this.value == selected_data_set
                                         }).addClass('bg-amber-400')
                                     if (selected_data_type === "Current") {
-                                        current_labels = {{ covigo_case_data.unconfirmed_negative.dates|safe }};
                                         current_data = {{ covigo_case_data.unconfirmed_negative.numbers|safe }};
                                     } else {
-                                        current_labels = {{ covigo_case_data.daily_unconfirmed_negative.dates|safe }};
                                         current_data = {{ covigo_case_data.daily_unconfirmed_negative.numbers|safe }};
                                     }
                                     break;
 
-                                case "Probable":
-                                    current_label = "Probable Cases";
+                                case "Administered Vaccines":
+                                    current_label = "Administered Vaccines";
                                     current_color = "rgb(59, 130, 246)";
                                     if (updateLabel)
                                         $('.data-set').filter(function () {
                                             return this.value == selected_data_set
                                         }).addClass('bg-blue-600')
                                     if (selected_data_type === "Current") {
-                                        current_labels = {{ covigo_case_data.unconfirmed_untested.dates|safe }};
                                         current_data = {{ covigo_case_data.unconfirmed_untested.numbers|safe }};
                                     } else {
-                                        current_labels = {{ covigo_case_data.daily_unconfirmed_untested.dates|safe }};
+                                        current_data = {{ covigo_case_data.daily_unconfirmed_untested.numbers|safe }};
+                                    }
+                                    break;
+
+                                case "Fully Vaccinated":
+                                    current_label = "Fully Vaccinated";
+                                    current_color = "rgb(59, 130, 246)";
+                                    if (updateLabel)
+                                        $('.data-set').filter(function () {
+                                            return this.value == selected_data_set
+                                        }).addClass('bg-blue-600')
+                                    if (selected_data_type === "Current") {
+                                        current_data = {{ covigo_case_data.unconfirmed_untested.numbers|safe }};
+                                    } else {
                                         current_data = {{ covigo_case_data.daily_unconfirmed_untested.numbers|safe }};
                                     }
                                     break;
                             }
-
-                            chart.data.labels = current_labels;
                             chart.data.datasets[0].label = current_label;
                             chart.data.datasets[0].backgroundColor = current_color;
                             chart.data.datasets[0].borderColor = current_color;
