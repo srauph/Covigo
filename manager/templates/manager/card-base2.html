@@ -1,13 +1,20 @@
-<div class="w-full flex flex-wrap h-96">
-    <div class="w-1/2 h-full flex flex-col p-4 group rounded-lg bg-white shadow">
-        {% block card2p1 %}
-            {{ content }}
-        {% endblock %}
+<style>
+    .min-h-80 {
+        min-height: 20rem;
+    }
+</style>
+
+<div class="w-full flex flex-wrap min-h-80 h-full">
+    <div class="min-h-full w-full lg:w-1/2 mb-4 lg:mb-0 pr-0 lg:pr-2 flex flex-col">
+        <div class="grow p-4 group rounded-lg bg-white shadow">
+            {% block card2p1 %}
+                {{ content }}
+            {% endblock %}
+        </div>
     </div>
 
-
-    <div class="w-1/2 pl-4">
-        <div class="w-full h-full flex flex-col p-4 group rounded-lg bg-white shadow">
+    <div class="min-h-full w-full lg:w-1/2 pl-0 lg:pl-2 flex flex-col ">
+        <div class="grow p-4 group rounded-lg bg-white shadow">
             {% block card2p2 %}
                 {{ content }}
             {% endblock %}
