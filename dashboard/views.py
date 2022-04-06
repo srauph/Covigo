@@ -55,7 +55,7 @@ def index(request):
 def covigo_case_data_graphs(request):
     covigo_case_data = fetch_data_from_all_files()
 
-    return render(request, 'dashboard/covigo_case_data.html', {
+    return render(request, 'dashboard/covigo_case_data2.html', {
         "covigo_case_data": covigo_case_data,
     })
 
