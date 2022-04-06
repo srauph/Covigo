@@ -36,8 +36,8 @@
                         $j("#notification-list").append(li);
 
                         //Display maximum 10 notifications
-                        if (i == 9) {
-                            const remainingNumOfNotifications = allNotifications.length - 10;
+                        if (i == 4) {
+                            const remainingNumOfNotifications = allNotifications.length - 5;
                             if (remainingNumOfNotifications > 0) {
                                 const differenceRow = "<li class='flex text-center items-center px-4 py-3 border-b text-gray-700 hover:bg-slate-100 '>+" + remainingNumOfNotifications + " notifications</li>";
                                 $j("#notification-list").append(differenceRow);
@@ -46,8 +46,13 @@
                         }
                     }
 
+                    if (allNotifications.length == 0) {
+                        const li = "<li class='h-min px-4 py-3 border-b text-gray-700 hover:bg-slate-100 text-left'><div class='w-full font-bold  top-1.5'>You're all up to date!</div></li>";
+                        $j("#notification-list").append(li);
+                    }
+
                     //Last row is a button that opens the list of all notifications
-                    const lastRow = "<a href='{% url 'list_notifications' %}'><li class='block bg-slate-900 text-white text-center font-bold py-2'>View all notifications</li></a>";
+                    const lastRow = "<a href='{% url 'list_notifications' %}'><li class='block text-white text-center font-bold py-2 bg-blue-600 hover:bg-blue-800'>View all notifications</li></a>";
                     $j("#notification-list").append(lastRow);
 
                     $j('#unread-notifications').html(allNotifications.length);
