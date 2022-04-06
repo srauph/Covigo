@@ -74,17 +74,17 @@ urlpatterns = [
         name='register_user'
     ),
     path(
+        'register/password/<uidb64>/password_done/',
+        views.register_user_password_done,
+        name='register_user_password_done'
+    ),
+    path(
         'register/password/<uidb64>/<token>/',
         views.RegisterPasswordResetConfirmView.as_view(
             form_class=ResetPasswordForm,
             template_name='accounts/registration/register_user_password.html',
         ),
         name='register_user_password'
-    ),
-    path(
-        'register/password/<uidb64>/password_done/',
-        views.register_user_password_done,
-        name="register_user_password_done"
     ),
     path(
         'register/details/<uidb64>/<token>/',

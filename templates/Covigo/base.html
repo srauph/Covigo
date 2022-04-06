@@ -7,11 +7,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    {% if PRODUCTION_MODE %}
-        <link rel="stylesheet" type="text/css" href="{% static 'Covigo/css/dist/styles.css' %}">
-    {% else %}
-        <script src="https://cdn.tailwindcss.com"></script>
-    {% endif %}
+    {# Broken at the moment. #}
+{#    {% if PRODUCTION_MODE %} #}
+{#        <link rel="stylesheet" type="text/css" href="{% static 'Covigo/css/dist/styles.css' %}">#}
+{#    {% else %}#}
+    <script src="https://cdn.tailwindcss.com"></script>
+{#    {% endif %}#}
     {% block styles %}
         {{ styles }}
     {%  endblock %}
