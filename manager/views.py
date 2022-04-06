@@ -77,7 +77,7 @@ def contact_tracing(request):
                 create_users_from_csv_date(request, data)
 
             messages.success(request, 'File uploaded and processed successfully!')
-            
+
         else:
             messages.error(request, 'Invalid File Format: Please upload a csv file.')
 

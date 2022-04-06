@@ -10,6 +10,7 @@ from django.views.decorators.cache import never_cache
 from accounts.models import Staff
 from appointments.models import Appointment
 from dashboard.utils import fetch_data_from_file, extract_daily_data
+from manager.views import CASE_DATA_PATH
 from messaging.models import MessageGroup
 from status.utils import return_symptoms_for_today, is_requested, get_reports_by_patient, get_report_unread_status
 
@@ -112,7 +113,7 @@ def fetch_appointments_info(user):
     }
 
 
-def fetch_data_from_all_files(data_path="static/Covigo/data"):
+def fetch_data_from_all_files(data_path=CASE_DATA_PATH):
     confirmed = fetch_data_from_file(f"{data_path}/confirmed_cases.csv")
     daily_confirmed = extract_daily_data(confirmed)
 
