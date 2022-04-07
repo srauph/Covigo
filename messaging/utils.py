@@ -55,8 +55,8 @@ class RSAEncryption:
         return self.private_key, self.public_key
 
     def encrypt(self, message):
-        return base64.b64encode(rsa.encrypt(message.encode('ascii'), self.public_key)).decode('ascii')
+        return base64.b64encode(rsa.encrypt(message.encode(), self.public_key)).decode()
 
     def decrypt(self, cipher_text):
-        cipher_text = base64.b64decode(cipher_text.encode('ascii'))
-        return rsa.decrypt(cipher_text, self.private_key).decode('ascii')
+        cipher_text = base64.b64decode(cipher_text.encode())
+        return rsa.decrypt(cipher_text, self.private_key).decode()
