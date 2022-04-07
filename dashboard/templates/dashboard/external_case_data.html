@@ -55,7 +55,7 @@
                 async function getData() {
                     let full_qc_data;
 
-                    await $.getJSON("https://api.opencovid.ca/summary?loc=QC", function(data) {
+                    await $.getJSON("https://api.opencovid.ca/summary?loc=QC&after=01-01-2020", function(data) {
                         full_qc_data = data;
                     });
 
@@ -65,6 +65,8 @@
 
                 async function setUp() {
                     const full_qc_data = await getData();
+
+                    console.log(full_qc_data);
 
                     let dates = [];
                     let daily_cases = [];

@@ -20,7 +20,7 @@ from django.views.decorators.debug import sensitive_post_parameters
 
 from Covigo.default_permissions import DEFAULT_PERMISSIONS
 from Covigo.messages import Messages
-from Covigo.settings import PRODUCTION_MODE
+from Covigo.settings import PRODUCTION_MODE, HOST_NAME
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient, Code
 from accounts.preferences import SystemMessagesPreference, StatusReminderPreference
@@ -133,7 +133,9 @@ class LoginViewTo2FA(LoginView):
 @never_cache
 def two_factor_authentication(request):
     if "start_2fa" not in request.session:
-        raise Http404
+        logout(request)
+        messages.error("Could not send 2FA code. Please try logging in again.")
+        return redirect("accounts:login")
 
     del request.session["start_2fa"]
 
@@ -263,13 +265,14 @@ def register_user_details(request, uidb64, token):
             profile_form = RegisterProfileForm(request.POST, instance=user.profile, user_id=user_id)
 
             if process_register_or_edit_user_form(request, user_form, profile_form):
-                patient = user.patient
-                try:
-                    patient.assigned_staff_id = return_closest_with_least_patients_doctor(
-                        profile_form.data.get("postal_code")).staff.id
-                except IndexError:
-                    pass
-                patient.save()
+                if not user.is_staff:
+                    patient = user.patient
+                    try:
+                        patient.assigned_staff_id = return_closest_with_least_patients_doctor(
+                            profile_form.data.get("postal_code")).staff.id
+                    except IndexError:
+                        pass
+                    patient.save()
                 request.session[internal_set_details_session_token] = None
                 return redirect("accounts:register_user_done")
 
@@ -392,6 +395,7 @@ def profile(request, user_id):
 
         flag = get_flag(request.user, user)
         is_flagged = False if not request.user.is_staff else flag and flag.is_active
+        qr_link = f"{HOST_NAME}{reverse('accounts:profile_from_code', args=[user.patient.code])}"
 
 
         perms_flag = (
@@ -468,6 +472,7 @@ def profile(request, user_id):
             "all_doctors": all_doctors,
             "show_left_side": True,
             "is_flagged": is_flagged,
+            "qr_link": qr_link,
 
             "perms_edit_user": perms_edit_user,
             "perms_view_appointments": perms_view_appointments,
