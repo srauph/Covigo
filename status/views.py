@@ -1,4 +1,4 @@
-from datetime import datetime as dt
+import datetime as dt
 import json
 import os
 
@@ -201,7 +201,7 @@ def create_patient_report(request):
 
     report = PatientSymptom.objects.filter(
         user_id=current_user,
-        due_date__date=dt.today().date(),
+        due_date__date=dt.date.today(),
         is_hidden=False
     )
 
@@ -261,7 +261,7 @@ def edit_patient_report(request):
 
     current_user_id = request.user.id
 
-    if not request.user.has_perm('accounts.is_doctor'):
+    if request.user.has_perm('accounts.is_doctor'):
         raise PermissionDenied
 
     is_resubmit_requested = is_requested(current_user_id)
@@ -269,14 +269,14 @@ def edit_patient_report(request):
     if is_resubmit_requested:
         report = PatientSymptom.objects.filter(
             user_id=current_user_id,
-            due_date__date=dt.today().date(),
+            due_date__date=dt.date.today(),
             is_hidden=False,
             status=-2
         )
     else:
         report = PatientSymptom.objects.filter(
             Q(user_id=current_user_id)
-            & Q(due_date__date=dt.today().date())
+            & Q(due_date__date=dt.date.today())
             & Q(is_hidden=False)
             & (Q(status=0) | Q(status=3))
         )
@@ -296,7 +296,7 @@ def edit_patient_report(request):
             if symptom.status == -1:
                 messages.error(request, 'Edited an invalidated symptom: Please refresh your page to ensure you are seeing the latest symptom information.')
                 return redirect('status:index')
-            elif symptom.due_date.date() != dt.date.today():
+            elif symptom.due_date.date != dt.date.today():
                 messages.error(request,'Edited an old symptom: Please refresh your page to ensure you are seeing the latest symptom information.')
                 return redirect('status:index')
 
@@ -365,7 +365,7 @@ def resubmit_request(request, patient_symptom_id):
     if symptom.status in (-1, -2, -3):
         messages.error(request, 'Requested resubmission on an invalidated symptom: Please refresh your page to ensure you are seeing the latest symptom information.')
         return redirect('status:patient_reports')
-    elif symptom.due_date.date() != dt.date.today():
+    elif symptom.due_date.date != dt.date.today():
         messages.error(request, 'Requested resubmission on an old symptom: Please refresh your page to ensure you are seeing the latest symptom information.')
         return redirect('status:patient_reports')
 
