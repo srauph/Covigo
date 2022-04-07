@@ -1,6 +1,8 @@
 import csv
 import io
 import os
+import threading
+
 from datetime import timedelta, date
 from os import listdir, path
 from os.path import join, isfile
@@ -75,7 +77,9 @@ def contact_tracing(request):
             with open(Path(join(CONTACT_TRACING_PATH, f.name)), "r") as contact_tracing_file:
                 reader = csv.DictReader(contact_tracing_file)
                 data = list(reader)
-                failed_entries = create_users_from_csv_date(request, data)
+                t = threading.Thread(target=create_users_from_csv_date, args=[request, data])
+                t.daemon = True
+                t.start()
 
 
         else:
