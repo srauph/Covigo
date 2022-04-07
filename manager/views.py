@@ -92,7 +92,7 @@ def contact_tracing(request):
             with open(Path(join(CONTACT_TRACING_PATH, file_name)), "r") as contact_tracing_file:
                 reader = csv.DictReader(contact_tracing_file)
                 data = list(reader)
-                t = threading.Thread(target=process_contact_tracing_csv, args=[request, data, f.name])
+                t = threading.Thread(target=process_contact_tracing_csv, args=[request, data, file_name])
                 t.daemon = True
                 t.start()
 
