@@ -1,4 +1,5 @@
 import json
+import threading
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -162,6 +163,7 @@ def add_availabilities(request):
         return render(request, 'appointments/add_availabilities.html', {
             'availability_form': availability_form
         })
+    raise PermissionDenied
 
 
 @login_required
@@ -182,7 +184,9 @@ def book_appointments(request):
         appointment_id = request.POST.get('Book Appointment')
 
         # books a single appointment by adding the patient's id to the appointment's patient_id column
-        book_appointments_util(appointment_id, request.user)
+        t_booking = threading.Thread(target=book_appointments_util, args=[appointment_id, request.user])
+        t_booking.daemon = True
+        t_booking.start()
 
         # success message to show to the user if the existing appointment was booked successfully
         messages.success(request, 'The appointment was booked successfully.')
@@ -192,8 +196,9 @@ def book_appointments(request):
         appointment_ids = request.POST.getlist('booking_ids[]')
 
         # books all selected appointments by adding the patient's id to the appointment's patient_id column
-        for appointment_id in appointment_ids:
-            book_appointments_util(appointment_id, request.user)
+        t_mass_booking = threading.Thread(target=mass_appointment_booking, args=[appointment_ids, request])
+        t_mass_booking.daemon = True
+        t_mass_booking.start()
 
         # success message to show user if multiple selected appointments were booked
         if len(appointment_ids) > 1:
@@ -242,7 +247,9 @@ def cancel_appointments_or_delete_availabilities(request):
         booked_id = request.POST.get('Cancel Appointment')
 
         # cancels a single appointment by setting the patient's id in the appointment's patient_id column to "None"
-        cancel_appointments(booked_id)
+        t_cancelling = threading.Thread(target=cancel_appointments, args=[booked_id])
+        t_cancelling.daemon = True
+        t_cancelling.start()
 
         # success message to show to the user if the existing appointment was canceled successfully
         messages.success(request, 'The appointment was canceled successfully.')
@@ -268,8 +275,9 @@ def cancel_appointments_or_delete_availabilities(request):
         booked_ids = request.POST.getlist('booked_ids[]')
 
         # cancels all selected existing appointments by setting the patient's id in the appointment's patient_id column to "None"
-        for booked_id in booked_ids:
-            cancel_appointments(booked_id)
+        t_mass_cancelling = threading.Thread(target=mass_appointment_cancelling, args=[booked_ids])
+        t_mass_cancelling.daemon = True
+        t_mass_cancelling.start()
 
         # success message to show to the doctor/staff if multiple selected existing appointments were canceled successfully
         if len(booked_ids) > 1:
@@ -306,3 +314,13 @@ def cancel_appointments_or_delete_availabilities(request):
         'is_staff': is_staff,
         'staff_last_name': staff_last_name
     })
+
+
+def mass_appointment_booking(appointment_ids, request):
+    for appointment_id in appointment_ids:
+        book_appointments_util(appointment_id, request.user)
+
+
+def mass_appointment_cancelling(booked_ids):
+    for booked_id in booked_ids:
+        cancel_appointments(booked_id)

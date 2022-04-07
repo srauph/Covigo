@@ -134,7 +134,7 @@ class LoginViewTo2FA(LoginView):
 def two_factor_authentication(request):
     if "start_2fa" not in request.session:
         logout(request)
-        messages.error("Could not send 2FA code. Please try logging in again.")
+        messages.error(request, "Could not send 2FA code. Please try logging in again.")
         return redirect("accounts:login")
 
     del request.session["start_2fa"]
@@ -731,12 +731,12 @@ def edit_preferences(request, user_id):
         preferences_form = EditPreferencesForm(request.POST)
 
         if preferences_form.is_valid():
-            if convert_dict_of_bools_to_list(profile.preferences[SystemMessagesPreference.NAME.value]) == preferences_form.cleaned_data.get(SystemMessagesPreference.NAME.value) and profile.preferences[StatusReminderPreference.NAME.value] == preferences_form.cleaned_data.get(StatusReminderPreference.NAME.value):
-                messages.error(request, f"The account preferences settings were not edited successfully: No edits made on the current account preferences settings. If you wish to make no changes, please click the \"Cancel\" button to go back to your account information in the previous page.")
-                return render(request, "accounts/edit_preferences.html", {
-                    "preferences_form": preferences_form,
-                    "usr": user
-                })
+            # if convert_dict_of_bools_to_list(profile.preferences[SystemMessagesPreference.NAME.value]) == preferences_form.cleaned_data.get(SystemMessagesPreference.NAME.value) and profile.preferences[StatusReminderPreference.NAME.value] == preferences_form.cleaned_data.get(StatusReminderPreference.NAME.value):
+            #     messages.error(request, f"The account preferences settings were not edited successfully: No edits made on the current account preferences settings. If you wish to make no changes, please click the \"Cancel\" button to go back to your account information in the previous page.")
+            #     return render(request, "accounts/edit_preferences.html", {
+            #         "preferences_form": preferences_form,
+            #         "usr": user
+            #     })
 
             system_msg_preferences = preferences_form.cleaned_data.get(SystemMessagesPreference.NAME.value)
             status_reminder_interval = preferences_form.cleaned_data.get(StatusReminderPreference.NAME.value)

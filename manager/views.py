@@ -14,9 +14,11 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.http import HttpResponse, Http404
 from django.shortcuts import render
+from django.urls import reverse
 
 from accounts.models import Patient, Staff, Profile
 from accounts.utils import get_or_generate_patient_code
+from messaging.utils import send_notification
 
 CASE_DATA_PATH = "static/Covigo/data/case_data"
 CONTACT_TRACING_PATH = "static/Covigo/data/contact_tracing"
@@ -68,6 +70,15 @@ def contact_tracing(request):
     ensure_path_exists(contact_tracing_path)
     failed_entries = []
 
+    if "tracing_uploads" in request.session:
+        uploads = request.session.pop("tracing_uploads")
+        for i in uploads:
+            if uploads[i] == "Success":
+                messages.success(request, f"All entries in file {i} were entered successfully!")
+            else:
+                failed_entries = uploads[i]
+                messages.warning(request, f"The following {len(failed_entries)} entries in file {i} failed to import:")
+
     if request.method == "POST" and request.FILES["contact_tracing_file"]:
         f = request.FILES["contact_tracing_file"]
 
@@ -77,10 +88,11 @@ def contact_tracing(request):
             with open(Path(join(CONTACT_TRACING_PATH, f.name)), "r") as contact_tracing_file:
                 reader = csv.DictReader(contact_tracing_file)
                 data = list(reader)
-                t = threading.Thread(target=create_users_from_csv_date, args=[request, data])
+                t = threading.Thread(target=process_contact_tracing_csv, args=[request, data, f.name])
                 t.daemon = True
                 t.start()
 
+            messages.success(request, f"File {f.name} uploaded successfully!")
 
         else:
             messages.error(request, 'Invalid File Format: Please upload a csv file.')
@@ -158,14 +170,32 @@ def create_users_from_csv_date(request, data):
         email = entry["Email"]
         phone = entry["Phone Number"]
 
+        existing_filter = Q()
+
         if not first_name:
             first_name = ""
+        else:
+            existing_filter &= Q(first_name=first_name)
+
         if not last_name:
             last_name = ""
+        else:
+            existing_filter &= Q(last_name=last_name)
+
         if not email:
             email = ""
+        else:
+            existing_filter &= Q(email=email)
+
         if not phone:
             phone = ""
+        else:
+            existing_filter &= Q(profile__phone_number=phone)
+
+        if User.objects.filter(existing_filter).exists():
+            entry["Reason"] = "A user with the exact same entry data already exists."
+            failed_entries.append(entry)
+            continue
 
         if email != "" and User.objects.filter(email=email).exists():
             entry["Reason"] = "Email address in email already in use."
@@ -192,11 +222,6 @@ def create_users_from_csv_date(request, data):
         p = Patient.objects.create(user=u)
         get_or_generate_patient_code(p, prefix="T")
 
-    if failed_entries:
-        messages.warning(request, f"The following {len(failed_entries)} accounts failed to import:")
-    else:
-        messages.success(request, "All entries entered successfully!")
-
     return failed_entries
 
 
@@ -209,3 +234,26 @@ def ensure_path_exists(path_to_check):
             i += 1
         Path.rename(path_to_check, Path(f"{path_to_check}_{i}"))
         Path.mkdir(path_to_check, exist_ok=True)
+
+
+def process_contact_tracing_csv(request, data, filename):
+
+    failed_entries = create_users_from_csv_date(request, data)
+    if "tracing_uploads" not in request.session:
+        request.session["tracing_uploads"] = {}
+
+    if failed_entries:
+        request.session["tracing_uploads"][filename] = failed_entries
+    else:
+        request.session["tracing_uploads"][filename] = "Success"
+
+    request.session.modified = True
+    request.session.save()
+
+    href = reverse('manager:contact_tracing')
+    send_notification(
+        request.user.id,
+        request.user.id,
+        f"Your contact tracing file {filename} has finished importing",
+        href=href
+    )
