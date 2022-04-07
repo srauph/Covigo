@@ -27,11 +27,6 @@
         {% if messages %}
             <script src="https://code.jquery.com/jquery-3.6.0.min.js"
                     integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-            <script>
-                setTimeout(function () {
-                    $('.message').fadeOut('fast');
-                }, 10000); // <-- time in milliseconds
-            </script>
         {% endif %}
 
         {% for message in messages %}
@@ -70,7 +65,7 @@
                                           d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                             </span>
-                            Error!
+                            Warning!
                             <div class="text-xl flex align-center w-full justify-end">
                                 <strong class="alert-del cursor-pointer">
                                     &times;
@@ -79,6 +74,13 @@
                         </h2>
                         <p class="pt-2">
                             {{ message }}
+                            {% if failed_entries %}
+                                <ul>
+                                {% for f in failed_entries %}
+                                    <li>{{ f }}</li>
+                                {% endfor %}
+                                </ul>
+                            {% endif %}
                         </p>
                     </div>
                 </div>
