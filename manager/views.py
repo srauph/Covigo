@@ -157,8 +157,10 @@ def download_contact_tracing_file(request, file_name):
 
 def save_contact_tracing_csv_file(f):
     file_name = Path(join(CONTACT_TRACING_PATH, f.name))
+    file_existed = False
     i = 1
     if file_name.exists():
+        file_existed = True
         old_name = str(file_name)
         while Path(f"{old_name[:-4]}__{i}{old_name[-4:]}").exists():
             i += 1
@@ -168,7 +170,10 @@ def save_contact_tracing_csv_file(f):
         file_to_save.write(f.file.read())
         file_to_save.close()
 
-    return f"{f.name[:-4]}__{i}{f.name[-4:]}"
+    if file_existed:
+        return f"{f.name[:-4]}__{i}{f.name[-4:]}"
+    else:
+        return f.name
 
 
 def create_users_from_csv_date(request, data):
