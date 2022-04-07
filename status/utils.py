@@ -1,4 +1,4 @@
-from datetime import time
+from datetime import time, date
 
 from django.db.models import Q, Count
 from django.utils.datetime_safe import datetime
@@ -103,7 +103,7 @@ def return_symptoms_for_today(user_id):
     """
     criteria = (
         Q(user_id=user_id)
-        & Q(due_date__date=datetime.today().date())
+        & Q(due_date__date=date.today())
         & (Q(data=None) | Q(status=-2))
     )
     query = PatientSymptom.objects.select_related('symptom') \
@@ -120,7 +120,7 @@ def is_requested(user_id):
     """
     criteria1 = (
         Q(user_id=user_id)
-        & Q(due_date__date=datetime.today().date())
+        & Q(due_date__date=date.today())
     )
     query = PatientSymptom.objects.filter(criteria1)
 
@@ -149,7 +149,7 @@ def send_status_reminders(date=datetime.now(), current_date=datetime.now()):
     if current_hour < 18:
         return
 
-    statuses = PatientSymptom.objects.filter(data=None, due_date__date=datetime.today().date())
+    statuses = PatientSymptom.objects.filter(data=None, due_date__date=date.today())
     my_due_date = datetime.combine(date, time.max)
 
     # get user ids for the patients that have status reports due on the day
