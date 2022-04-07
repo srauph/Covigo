@@ -3,7 +3,7 @@ from datetime import datetime
 import names
 
 
-NUM_ROWS = 300
+NUM_ROWS = 200
 EMPTY_CHANCE_PERCENTAGE = 10
 ALLOW_INVALID_ROWS=True
 

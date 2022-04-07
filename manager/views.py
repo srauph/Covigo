@@ -76,7 +76,9 @@ def contact_tracing(request):
             if uploads[i] == "Success":
                 messages.success(request, f"All entries in file {i} were entered successfully!")
             elif uploads[i] == "Failure":
-                messages.error(request, f"Failed to process file {i}. You may try again; if the problem persists, the file may be corrupted.")
+                messages.error(request, f"Failed to process file {i}: Some or all of the data could not be read. You may try again; if the problem persists, the file may be corrupted.")
+            elif uploads[i] == "Empty":
+                messages.error(request, f"Failed to process file {i}: The file is empty. If this is not the case, you may try again; if the problem persists, the file may be corrupted.")
             else:
                 failed_entries = uploads[i]
                 messages.warning(request, f"The following {len(failed_entries)} entries in file {i} failed to import:")
@@ -165,8 +167,12 @@ def save_contact_tracing_csv_file(f):
 
 
 def create_users_from_csv_date(request, data):
+    if not data:
+        return "Empty"
+
     failed_entries = []
     line = 0
+
     try:
         for entry in data:
             line += 1
@@ -228,7 +234,7 @@ def create_users_from_csv_date(request, data):
             get_or_generate_patient_code(p, prefix="T")
 
     except Exception as e:
-        failed_entries = "Failure"
+        return "Failure"
 
     return failed_entries
 
@@ -251,7 +257,9 @@ def process_contact_tracing_csv(request, data, filename):
         request.session["tracing_uploads"] = {}
 
     if failed_entries:
-        if failed_entries == "Failure":
+        if failed_entries == "Empty":
+            request.session["tracing_uploads"][filename] = "Empty"
+        elif failed_entries == "Failure":
             request.session["tracing_uploads"][filename] = "Failure"
         else:
             request.session["tracing_uploads"][filename] = failed_entries
