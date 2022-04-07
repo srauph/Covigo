@@ -7,10 +7,11 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError, connection
 from django.db.models import Q
 from django.template.loader import render_to_string
+from django.templatetags.static import static
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
-from Covigo.settings import HOST_NAME
+from Covigo.settings import HOST_NAME, PRODUCTION_MODE
 from accounts.models import Flag, Staff, Patient
 from accounts.preferences import SystemMessagesPreference
 
@@ -199,14 +200,20 @@ def get_or_generate_patient_profile_qr(user_id):
 
         # Create path to store generated qr code image
         path = f"accounts/qrs/{str(patient_code)}.png"
-        Path("accounts/static/accounts/qrs").mkdir(parents=True, exist_ok=True)
+        if PRODUCTION_MODE:
+            Path(static("accounts/qrs")).mkdir(parents=True, exist_ok=True)
+        else:
+            Path("accounts/static/accounts/qrs").mkdir(parents=True, exist_ok=True)
 
         if os.path.exists(path):
             return path
         else:
             # Generate the qr code
             img: PilImage = make(data)
-            img.save("accounts/static/" + path)
+            if PRODUCTION_MODE:
+                img.save(static(path))
+            else:
+                img.save("accounts/static/" + path)
             return path
     else:
         return None
