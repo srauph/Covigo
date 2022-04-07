@@ -380,6 +380,11 @@ def profile(request, user_id):
 
         appointments = Appointment.objects.filter(patient=user).filter(all_filter).order_by("start_date")
         appointments_truncated = appointments[:4]
+        # Hotfix for accessing the doctor's first and last name in template
+        for appt in appointments_truncated:
+            doctor_user_id = Staff.objects.filter(id=appt.staff_id).first().user_id
+            doctor_user = User.objects.filter(id=doctor_user_id).first()
+            appt.staff = doctor_user
         try:
             assigned_staff_patient_count = user.patient.assigned_staff.get_assigned_patient_users().count()
         except AttributeError:
@@ -487,7 +492,8 @@ def profile(request, user_id):
 
     # If profile belongs to a staff member
     else:
-        appointments = Appointment.objects.filter(staff=user).filter(all_filter).order_by("start_date")
+        doctor_id = Staff.objects.filter(user_id=user.id).first().id
+        appointments = Appointment.objects.filter(staff_id=doctor_id).filter(all_filter).order_by("start_date")
         appointments_truncated = appointments[:4]
         assigned_patients = [] if user.is_superuser else user.staff.get_assigned_patient_users()
         issued_flags = Flag.objects.filter(staff=user, is_active=True)
