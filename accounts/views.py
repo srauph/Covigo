@@ -20,7 +20,7 @@ from django.views.decorators.debug import sensitive_post_parameters
 
 from Covigo.default_permissions import DEFAULT_PERMISSIONS
 from Covigo.messages import Messages
-from Covigo.settings import PRODUCTION_MODE
+from Covigo.settings import PRODUCTION_MODE, HOST_NAME
 from accounts.forms import *
 from accounts.models import Flag, Staff, Patient, Code
 from accounts.preferences import SystemMessagesPreference, StatusReminderPreference
@@ -133,7 +133,9 @@ class LoginViewTo2FA(LoginView):
 @never_cache
 def two_factor_authentication(request):
     if "start_2fa" not in request.session:
-        raise Http404
+        logout(request)
+        messages.error("Could not send 2FA code. Please try logging in again.")
+        return redirect("accounts:login")
 
     del request.session["start_2fa"]
 
@@ -263,13 +265,14 @@ def register_user_details(request, uidb64, token):
             profile_form = RegisterProfileForm(request.POST, instance=user.profile, user_id=user_id)
 
             if process_register_or_edit_user_form(request, user_form, profile_form):
-                patient = user.patient
-                try:
-                    patient.assigned_staff_id = return_closest_with_least_patients_doctor(
-                        profile_form.data.get("postal_code")).staff.id
-                except IndexError:
-                    pass
-                patient.save()
+                if not user.is_staff:
+                    patient = user.patient
+                    try:
+                        patient.assigned_staff_id = return_closest_with_least_patients_doctor(
+                            profile_form.data.get("postal_code")).staff.id
+                    except IndexError:
+                        pass
+                    patient.save()
                 request.session[internal_set_details_session_token] = None
                 return redirect("accounts:register_user_done")
 
@@ -344,10 +347,12 @@ def profile(request, user_id):
     )
 
     perms_view_appointments = (
-        user == request.user
-        or request.user.has_perm("accounts.view_user_appointment")
-        or request.user.has_perm("accounts.view_patient_appointment") and not user.is_staff
-        or request.user.has_perm("accounts.is_doctor") and user in request.user.staff.get_assigned_patient_users()
+        not user.is_superuser and (
+            user == request.user
+            or request.user.has_perm("accounts.view_user_appointment")
+            or request.user.has_perm("accounts.view_patient_appointment") and not user.is_staff
+            or request.user.has_perm("accounts.is_doctor") and user in request.user.staff.get_assigned_patient_users()
+        )
     )
 
 
@@ -377,6 +382,11 @@ def profile(request, user_id):
 
         appointments = Appointment.objects.filter(patient=user).filter(all_filter).order_by("start_date")
         appointments_truncated = appointments[:4]
+        # Hotfix for accessing the doctor's first and last name in template
+        for appt in appointments_truncated:
+            doctor_user_id = Staff.objects.filter(id=appt.staff_id).first().user_id
+            doctor_user = User.objects.filter(id=doctor_user_id).first()
+            appt.staff = doctor_user
         try:
             assigned_staff_patient_count = user.patient.assigned_staff.get_assigned_patient_users().count()
         except AttributeError:
@@ -392,6 +402,7 @@ def profile(request, user_id):
 
         flag = get_flag(request.user, user)
         is_flagged = False if not request.user.is_staff else flag and flag.is_active
+        qr_link = f"{HOST_NAME}{reverse('accounts:profile_from_code', args=[user.patient.code])}"
 
 
         perms_flag = (
@@ -468,6 +479,7 @@ def profile(request, user_id):
             "all_doctors": all_doctors,
             "show_left_side": True,
             "is_flagged": is_flagged,
+            "qr_link": qr_link,
 
             "perms_edit_user": perms_edit_user,
             "perms_view_appointments": perms_view_appointments,
@@ -482,8 +494,13 @@ def profile(request, user_id):
 
     # If profile belongs to a staff member
     else:
-        appointments = Appointment.objects.filter(staff=user).filter(all_filter).order_by("start_date")
-        appointments_truncated = appointments[:4]
+        if not user.is_superuser:
+            doctor_id = Staff.objects.filter(user_id=user.id).first().id
+            appointments = Appointment.objects.filter(staff_id=doctor_id).filter(all_filter).order_by("start_date")
+            appointments_truncated = appointments[:4]
+        else:
+            appointments = []
+            appointments_truncated = []
         assigned_patients = [] if user.is_superuser else user.staff.get_assigned_patient_users()
         issued_flags = Flag.objects.filter(staff=user, is_active=True)
 

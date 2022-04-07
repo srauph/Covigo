@@ -44,7 +44,7 @@ def list_messages(request, user_id=''):
 
         if is_staff:
             my_patients = request.user.staff.assigned_patients.all().values('user')
-            filter1 |= Q(author_id__in=my_patients) | Q(recipient_id__in=my_patients)
+            filter1 |= (Q(author_id__in=my_patients) | Q(recipient_id__in=my_patients)) & Q(type=0)
     else:
         filter1 = (Q(author_id=user_id) | Q(recipient_id=user_id)) & Q(type=0)
 
@@ -325,7 +325,7 @@ def list_notifications(request):
         a = re.sub("<span class='notification-link cursor-pointer' data-href=", "", i['title'])
         a = re.sub(">.*", "", a)
 
-        i['title'] = re.sub("<span class='notification-link' data-href=[^>]*>", "", i['title'])
+        i['title'] = re.sub("<span class='notification-link cursor-pointer' data-href=[^>]*>", "", i['title'])
         i['title'] = re.sub("</span>", "", i['title'])
 
         # Create new "attribute" to hold the href for the notification

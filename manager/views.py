@@ -64,6 +64,7 @@ def contact_tracing(request):
 
     contact_tracing_path = Path(CONTACT_TRACING_PATH)
     ensure_path_exists(contact_tracing_path)
+    failed_entries = []
 
     if request.method == "POST" and request.FILES["contact_tracing_file"]:
         f = request.FILES["contact_tracing_file"]
@@ -74,9 +75,8 @@ def contact_tracing(request):
             with open(Path(join(CONTACT_TRACING_PATH, f.name)), "r") as contact_tracing_file:
                 reader = csv.DictReader(contact_tracing_file)
                 data = list(reader)
-                create_users_from_csv_date(request, data)
+                failed_entries = create_users_from_csv_date(request, data)
 
-            messages.success(request, 'File uploaded and processed successfully!')
 
         else:
             messages.error(request, 'Invalid File Format: Please upload a csv file.')
@@ -84,7 +84,8 @@ def contact_tracing(request):
     data_files = [f for f in listdir(CONTACT_TRACING_PATH) if isfile(join(CONTACT_TRACING_PATH, f))]
 
     return render(request, 'manager/contact_tracing.html', {
-        "data_files": data_files
+        "data_files": data_files,
+        "failed_entries": failed_entries
     })
 
 
@@ -146,6 +147,7 @@ def save_contact_tracing_csv_file(f):
 
 
 def create_users_from_csv_date(request, data):
+    failed_entries = []
     for entry in data:
         first_name = entry["First Name"]
         last_name = entry["Last Name"]
@@ -162,7 +164,8 @@ def create_users_from_csv_date(request, data):
             phone = ""
 
         if email != "" and User.objects.filter(email=email).exists():
-            messages.warning(request, f"Unable to make user: Could not make user with information {first_name}, {last_name}, {email}, {phone}: User with email {email} already exists.")
+            entry["Reason"] = "Email address in email already in use."
+            failed_entries.append(entry)
             continue
         else:
             if email != "":
@@ -176,13 +179,21 @@ def create_users_from_csv_date(request, data):
                 else:
                     new_username = f"{phone}-{1 + User.objects.filter(username__startswith=phone).count()}"
             else:
-                messages.warning(request, f"Unable to make user: Could not make user with information {first_name}, {last_name}, {email}, {phone}.")
+                entry["Reason"] = "Entry lacks both email and phone number."
+                failed_entries.append(entry)
                 continue
 
         u = User.objects.create(username=new_username, first_name=first_name, last_name=last_name, email=email)
         Profile.objects.filter(user=u).update(phone_number=phone)
         p = Patient.objects.create(user=u)
         get_or_generate_patient_code(p, prefix="T")
+
+    if failed_entries:
+        messages.warning(request, f"The following {len(failed_entries)} accounts failed to import:")
+    else:
+        messages.success(request, "All entries entered successfully!")
+
+    return failed_entries
 
 
 def ensure_path_exists(path_to_check):
