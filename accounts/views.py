@@ -721,7 +721,7 @@ def edit_preferences(request, user_id):
     if not can_view_page:
         raise PermissionDenied
 
-    profile = user.profile
+    user_profile = user.profile
 
     # Process forms
     if request.method == "POST":
@@ -748,8 +748,8 @@ def edit_preferences(request, user_id):
                 StatusReminderPreference.NAME.value: status_reminder_interval,
             }
 
-            profile.preferences = preferences
-            profile.save()
+            user_profile.preferences = preferences
+            user_profile.save()
 
             messages.success(request, f"The account preferences settings were edited successfully.")
             return redirect("accounts:edit_user", user_id)
@@ -760,15 +760,15 @@ def edit_preferences(request, user_id):
     # Create forms
     else:
         # Try to load current preferences
-        if profile.preferences:
+        if user_profile.preferences:
             # Load previous user-defined preferences
             old_preferences = dict()
 
             old_preferences[SystemMessagesPreference.NAME.value] = convert_dict_of_bools_to_list(
-                profile.preferences[SystemMessagesPreference.NAME.value])
+                user_profile.preferences[SystemMessagesPreference.NAME.value])
 
-            if StatusReminderPreference.NAME.value in profile.preferences:
-                old_preferences[StatusReminderPreference.NAME.value] = profile.preferences[
+            if StatusReminderPreference.NAME.value in user_profile.preferences:
+                old_preferences[StatusReminderPreference.NAME.value] = user_profile.preferences[
                     StatusReminderPreference.NAME.value]
             else:
                 # TODO: Replace this with admin-defined default advance warning, if we implement it.
