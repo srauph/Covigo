@@ -435,10 +435,10 @@ class EditProfileForm(ModelForm):
                 "Please enter a valid postal code."
             )
         c = connection.cursor()
-        r = c.execute('SELECT id from postal_codes where POSTAL_CODE = %s', [subbed_postal_code])
+        r = c.execute('SELECT id from Covigo.postal_codes where POSTAL_CODE = %s', [subbed_postal_code])
         if r != 1:
             raise forms.ValidationError(
-                "The postal code entered may not exist; check spelling and try again"
+                "The postal code entered may not exist; check its spelling and try again."
             )
         return subbed_postal_code
 
