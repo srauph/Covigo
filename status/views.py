@@ -296,7 +296,7 @@ def edit_patient_report(request):
             if symptom.status == -1:
                 messages.error(request, 'Edited an invalidated symptom: Please refresh your page to ensure you are seeing the latest symptom information.')
                 return redirect('status:index')
-            elif symptom.due_date.date != dt.date.today():
+            elif symptom.due_date.date() != dt.date.today():
                 messages.error(request,'Edited an old symptom: Please refresh your page to ensure you are seeing the latest symptom information.')
                 return redirect('status:index')
 
@@ -365,7 +365,7 @@ def resubmit_request(request, patient_symptom_id):
     if symptom.status in (-1, -2, -3):
         messages.error(request, 'Requested resubmission on an invalidated symptom: Please refresh your page to ensure you are seeing the latest symptom information.')
         return redirect('status:patient_reports')
-    elif symptom.due_date.date != dt.date.today():
+    elif symptom.due_date.date() != dt.date.today():
         messages.error(request, 'Requested resubmission on an old symptom: Please refresh your page to ensure you are seeing the latest symptom information.')
         return redirect('status:patient_reports')
 
