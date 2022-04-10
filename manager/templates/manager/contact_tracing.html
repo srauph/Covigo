@@ -14,6 +14,11 @@
            this.form.submit();
         });
     </script>
+    <script>
+        $("input[placeholder]").each(function () {
+            $(this).attr('size', $(this).attr('placeholder').length);
+        });
+    </script>
 {% endblock %}
 
 {% block content %}
@@ -25,8 +30,7 @@
         </div>
 
         {% if messages %}
-            <script src="https://code.jquery.com/jquery-3.6.0.min.js"
-                    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
         {% endif %}
 
         {% for message in messages %}
@@ -113,11 +117,10 @@
         <div class="bg-white shadow m-8 rounded-xl">
             <div class="w-full flex flex-wrap justify-end p-4 gap-2">
                 <div>
-                    {# TODO: Filters should go HERE #}
-                    <form action="" class="flex justify-between items-center gap-2">
-                        <input name="" id="" class="bg-slate-100 border border-slate-400 h-8 text-sm text-black px-2 rounded-md"
-                               placeholder="Search...">
-                        <button class="bg-green-600 hover:bg-green-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                    <form method="GET" class="flex justify-between items-center gap-2">
+                        <input type="search" name="Search by File Name" class="bg-slate-100 border border-slate-400 h-8 text-sm text-black px-2 rounded-md"
+                               placeholder="Search by File Name...">
+                        <button type="submit" class="bg-green-600 hover:bg-green-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                             <span>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -165,27 +168,56 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {% for f in data_files %}
-                        <tr class="hover:bg-gray-200">
-                            <td name="Symptom Name" class="p-2">
-                                {{ f }}
-                            </td>
-                            <td class="p-2 text-center flex flex-wrap justify-center sm:justify-end gap-2">
-                                <a href="{% url 'manager:download_contact_tracing_file' f %}">
-                                    <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-                                        <span>
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                            </svg>
-                                        </span>
-                                        Download
-                                    </button>
-                                </a>
-                            </td>
-                        </tr>
-                    {% endfor %}
+
+                    {% if data_files_search_result %}
+                        {# this for loop will check for a data file with the specific name searched in the search bar and display/return it in table/row form on the view #}
+                        {% for result in data_files_search_result %}
+                            <tr class="hover:bg-gray-200">
+                                <td name="File Name" class="p-2">
+                                    {{ result }}
+                                </td>
+                                <td class="p-2 text-center flex flex-wrap justify-center sm:justify-end gap-2">
+                                    <a href="{% url 'manager:download_contact_tracing_file' result %}">
+                                        <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                                            <span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                </svg>
+                                            </span>
+                                            Download
+                                        </button>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if data_files %}
+                        {# this for loop will check for every data file present and display/return all of them in table/row form to generate the list of data files on the view #}
+                        {% for f in data_files %}
+                            <tr class="hover:bg-gray-200">
+                                <td name="File Name" class="p-2">
+                                    {{ f }}
+                                </td>
+                                <td class="p-2 text-center flex flex-wrap justify-center sm:justify-end gap-2">
+                                    <a href="{% url 'manager:download_contact_tracing_file' f %}">
+                                        <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                                            <span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                </svg>
+                                            </span>
+                                            Download
+                                        </button>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% endif %}
                     </tbody>
                 </table>
             </div>
