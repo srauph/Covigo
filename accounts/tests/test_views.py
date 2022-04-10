@@ -549,7 +549,6 @@ class AccountsTestCase(TransactionTestCase):
         self.mocked_group3 = Group.objects.create(name='Officer')
 
         c = connection.cursor()
-        c.execute('GRANT ALL ON Covigo TO ' + settings.DATABASES['default']['USER'] + '@localhost')
         c.execute('SELECT * FROM Covigo.postal_codes WHERE POSTAL_CODE = %s', ['J7G 2M2'])
         r = dictfetchall(c)
 
