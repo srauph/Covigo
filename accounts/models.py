@@ -4,6 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 import random
 
+
 class Profile(models.Model):
     user = models.OneToOneField(
         User,
@@ -132,7 +133,8 @@ class Patient(models.Model):
     class Meta:
         permissions = [
             ("message_doctor", "Can compose a new message with the assigned doctor"),
-            ("dashboard_doctor", "Can view the assigned doctor's contact information (name, email, phone number) in dashboard"),
+            ("dashboard_doctor",
+             "Can view the assigned doctor's contact information (name, email, phone number) in dashboard"),
             ("view_own_code", "Can view their own QR and patient code"),
         ]
 

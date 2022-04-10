@@ -36,7 +36,6 @@ class MessagingViewReplyTests(TestCase):
         MessageContent.objects.create(message=msg_group_1, author=doctor_1,
                                       content=self.encrypted_message_2, id=2)
 
-
     def test_view_message_page_success(self):
         """
         Checks if currently logged-in user can view their authorized messages
@@ -61,7 +60,6 @@ class MessagingViewReplyTests(TestCase):
         # Assert
         self.assertTemplateNotUsed(response, 'messaging/view_message.html')
 
-
     def test_reply_message(self):
         """
         Checks if user can reply to a message
@@ -77,7 +75,6 @@ class MessagingViewReplyTests(TestCase):
 
         # Assert
         self.assertEqual(self.encryption.decrypt(msg_content.content), 'Another message reply!!!')
-
 
     def test_seen_recipient(self):
         """
@@ -133,8 +130,7 @@ class MessagingListTests(TestCase):
 
         doctor_1 = User.objects.create(id=2, username="doctor_1", is_staff=True)
 
-        msg_group_1 = MessageGroup.objects.create(id=1, author=user_1, recipient=doctor_1,
-                                                  title="Question about my fever")
+        self.msg_group_1 = MessageGroup.objects.create(id=1, author=user_1, recipient=doctor_1, title="Question about my fever")
 
     def test_open_messages_list(self):
         """
@@ -152,26 +148,26 @@ class MessagingListTests(TestCase):
         # Arrange & Act
         # Toggle the seen status to be True
         toggle_read(self.request, 1)
-        msg_group_1 = MessageGroup.objects.get(id=1)
+        self.msg_group_1 = MessageGroup.objects.get(id=1)
 
         # Assert
-        self.assertTrue(msg_group_1.author_seen)
+        self.assertTrue(self.msg_group_1.author_seen)
 
         # Act again
         # Toggle it again to be False
         toggle_read(self.request, 1)
-        msg_group_1.refresh_from_db()
+        self.msg_group_1.refresh_from_db()
 
         # Assert again
-        self.assertFalse(msg_group_1.author_seen)
+        self.assertFalse(self.msg_group_1.author_seen)
 
         # Act again
         # Toggle it again to be True
         toggle_read(self.request, 1)
-        msg_group_1.refresh_from_db()
+        self.msg_group_1.refresh_from_db()
 
         # Assert again
-        self.assertTrue(msg_group_1.author_seen)
+        self.assertTrue(self.msg_group_1.author_seen)
 
 
 class MessagingComposeTest(TestCase):
