@@ -317,7 +317,7 @@ class RegisterProfileForm(ModelForm):
 
 class EditUserForm(ModelForm):
     def __init__(self, *args, **kwargs):
-        self.user_id = kwargs.pop('user_id')
+        self.user = User.objects.get(id=kwargs.pop('user_id'))
         super(EditUserForm, self).__init__(*args, **kwargs)
 
     class Meta:
@@ -360,12 +360,12 @@ class EditUserForm(ModelForm):
 
     def clean_username(self):
         cleaned_username = self.cleaned_data.get("username")
-        old_username = User.objects.get(id=self.user_id).username
+        old_username = self.user.username
         if cleaned_username == "":
             raise ValidationError(
                 "Please provide a username."
             )
-        if cleaned_username != "" and User.objects.filter(email=cleaned_username).exclude(id=self.user_id).exists():
+        if cleaned_username != "" and User.objects.filter(email=cleaned_username).exclude(id=self.user.id).exists():
             raise ValidationError(
                 "Username already in use by another user."
             )
@@ -377,7 +377,7 @@ class EditUserForm(ModelForm):
 
     def clean_email(self):
         cleaned_email = self.cleaned_data.get("email")
-        if cleaned_email != "" and User.objects.filter(email=cleaned_email).exclude(id=self.user_id).exists():
+        if cleaned_email != "" and User.objects.filter(email=cleaned_email).exclude(id=self.user.id).exists():
             raise ValidationError(
                 "Email already in use by another user."
             )
@@ -385,10 +385,23 @@ class EditUserForm(ModelForm):
 
     def clean_groups(self):
         cleaned_groups = self.cleaned_data.get("groups")
+        permissions = cleaned_groups.values_list("permissions__codename", flat=True)
+
         if len(cleaned_groups) > 1:
             raise ValidationError(
                 "Cannot select more than one group."
             )
+
+        if not self.user.is_staff and any(item in permissions for item in get_staff_permission_codenames()):
+            raise ValidationError(
+                "Cannot assign a Staff group to a Patient user."
+            )
+
+        elif self.user.is_staff and any(item in permissions for item in get_patient_permission_codenames()):
+            raise ValidationError(
+                "Cannot assign a Patient group to a Staff/Doctor user."
+            )
+
         return cleaned_groups
 
 

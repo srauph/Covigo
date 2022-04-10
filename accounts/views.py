@@ -59,7 +59,6 @@ def unauthorized(request):
 def process_register_or_edit_user_form(request, user_form, profile_form, mode=None):
     user_email = user_form.data.get("email")
     user_phone = profile_form.data.get("phone_number")
-    user_groups = user_form.data.get("groups")
     has_email = user_email != ""
     has_phone = user_phone != ""
 
@@ -70,9 +69,6 @@ def process_register_or_edit_user_form(request, user_form, profile_form, mode=No
             return False
 
         edited_user = user_form.save(commit=False)
-
-        if user_groups:
-            edited_user.groups.set(user_groups)
 
         edited_user.save()
         profile_form.save()
@@ -582,6 +578,7 @@ def create_user(request):
         user_email = user_form.data.get("email")
         user_phone = profile_form.data.get("phone_number")
         user_groups = user_form.data.get("groups")
+        user_type = user_form.data.get("user_type")
         has_email = user_email != ""
         has_phone = user_phone != ""
 
@@ -598,17 +595,23 @@ def create_user(request):
 
             new_user.save()
             new_user.profile.phone_number = user_phone
-            # TODO: Discuss the possibility of having no groups and remove `if` if we enforce having at least one
+
+            if user_type in ("Staff", "Doctor"):
+                new_user.is_staff = True
+                Staff.objects.create(user=new_user)
+
+                if user_type == "Doctor":
+                    doctor_permission = Permission.objects.get(codename="is_doctor")
+                    new_user.user_permissions.add(doctor_permission)
+
+            else:
+                new_user.is_staff = False
+                Patient.objects.create(user=new_user)
+
             if user_groups:
                 new_user.groups.set(user_groups)
-            new_user.save()
 
-            if new_user.is_staff:
-                Staff.objects.create(user=new_user)
-            elif not new_user.is_staff:
-                # TODO: Figure out if the next todo has been addressed already or not.
-                # TODO: discuss if we should keep this behaviour for now or make Patient.staff nullable instead.
-                Patient.objects.create(user=new_user)
+            new_user.save()
 
             template = Messages.REGISTER_USER.value
             c = {
@@ -692,6 +695,14 @@ def edit_user(request, user_id):
         profile_form = EditProfileForm(request.POST, instance=user.profile, user_id=user_id)
 
         if process_register_or_edit_user_form(request, user_form, profile_form, mode="Edit"):
+            user_groups = user_form.data.get("groups")
+            if user_groups:
+                user.groups.set(user_groups)
+            else:
+                user.groups.clear()
+
+            user.save()
+
             messages.success(request, 'The account was edited successfully.')
             return redirect('accounts:profile', user_id)
 

@@ -3,27 +3,33 @@
 {% block script %}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <script>
-       $('#postalcode').find('input').keyup(function(e){
-           let val = $(this).val();
-           if(val.length == 3 && e.keyCode != 8){
-               $(this).val(val+" ")
-           }
-       })
-       $('#postalcode').find('input').keydown(function(e){
-           let val = $(this).val();
-           if(val.length > 6 && e.keyCode != 8){
-               e.preventDefault();
-               e.stopPropagation();
-               return false;
-           }
-       })
+        let postalcode = $('#postalcode').find('input');
+        let groups = $('#groups').find('input');
+
+        postalcode.keyup(function(e){
+            let val = $(this).val();
+            if(val.length == 3 && e.keyCode != 8){
+                $(this).val(val+" ")
+            }
+        });
+
+        postalcode.keydown(function(e){
+            let val = $(this).val();
+            if(val.length > 6 && e.keyCode != 8){
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        });
+
+        groups.click(function () {
+            groups.not(this).prop("checked", false);
+        });
     </script>
     <script>
         Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
             x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
-        }
-        )
-        );
+        }));
     </script>
 {% endblock %}
 
@@ -196,7 +202,7 @@
                 {% if perms.accounts.assign_group %}
                     <div class="w-full max-w-2xl px-2">
                         <label>Group:</label>
-                        <div class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400">
+                        <div id="groups" class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400">
                             {{ user_form.groups }}
                         </div>
                     </div>
