@@ -8,4 +8,6 @@ urlpatterns = [
     path('contact_tracing/<str:file_name>/', views.download_contact_tracing_file, name='download_contact_tracing_file'),
     path('case_data/', views.case_data, name='case_data'),
     path('case_data/<str:file_name>/', views.download_case_data_file, name='download_case_data_file'),
+    path('doctors/', views.doctor_patient_list, name='doctors'),
+    path('doctors-table/', views.doctor_patient_list_table, name='doctors_table'),
 ]

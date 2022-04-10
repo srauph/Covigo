@@ -11,11 +11,12 @@ from accounts.models import Profile
 
 from re import match, sub
 
-from accounts.utils import hour_options_generator
+from accounts.utils import hour_options_generator, get_staff_permission_codenames, get_patient_permission_codenames
 
 STAFF_PATIENT_CHOICES = (
-    (True, 'Staff User'),
-    (False, 'Patient User')
+    ("Patient", 'Patient User'),
+    ("Doctor", 'Doctor User'),
+    ("Staff", 'Staff User'),
 )
 
 IS_CONFIRMED_CHOICES = (
@@ -69,12 +70,20 @@ CHECKBOX_CLASS = "p-2"
 
 
 class CreateUserForm(ModelForm):
+    user_type = ChoiceField(
+        choices=STAFF_PATIENT_CHOICES,
+        widget=Select(
+            attrs={
+                "class": SELECTION_CLASS
+            }
+        )
+    )
+
     class Meta:
         model = User
         fields = [
             "email",
             "groups",
-            "is_staff"
         ]
         widgets = {
             "email": TextInput(
@@ -86,13 +95,7 @@ class CreateUserForm(ModelForm):
                 attrs={
                     "class": CHECKBOX_CLASS
                 }
-            ),
-            "is_staff": Select(
-                choices=STAFF_PATIENT_CHOICES,
-                attrs={
-                    "class": SELECTION_CLASS
-                }
-            ),
+            )
         }
 
     def clean_email(self):
@@ -105,10 +108,18 @@ class CreateUserForm(ModelForm):
 
     def clean_groups(self):
         cleaned_groups = self.cleaned_data.get("groups")
-        # TODO: Discuss the possibility of having no groups and fix error and if: != 1 if we enforce having at least one
+        user_type = self.data.get("user_type")
         if len(cleaned_groups) > 1:
             raise ValidationError(
                 "Cannot select more than one group."
+            )
+        if user_type == "Patient" and any(item in cleaned_groups.values_list("permissions__codename", flat=True) for item in get_staff_permission_codenames()):
+            raise ValidationError(
+                "Cannot assign a Staff group to a Patient user."
+            )
+        elif user_type != "Patient" and any(item in cleaned_groups.values_list("permissions__codename", flat=True) for item in get_patient_permission_codenames()):
+            raise ValidationError(
+                "Cannot assign a Patient group to a Staff/Doctor user."
             )
         return cleaned_groups
 
@@ -374,7 +385,6 @@ class EditUserForm(ModelForm):
 
     def clean_groups(self):
         cleaned_groups = self.cleaned_data.get("groups")
-        # TODO: Discuss the possibility of having no groups and fix error and if: != 1 if we enforce having at least one
         if len(cleaned_groups) > 1:
             raise ValidationError(
                 "Cannot select more than one group."

@@ -111,8 +111,8 @@
         $j(document).on('click', '.notification-item', function () {
 
             //Get the notification id (message group object id)
-            var notif_id = $j(this).attr('data-notif-id');
-            var _this = $j(this)
+            let notif_id = $j(this).attr('data-notif-id');
+            let _this = $j(this)
 
             let url = "{% url 'read_notification' 999999999 %}";
             url = url.replace(999999999, notif_id);

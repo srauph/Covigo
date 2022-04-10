@@ -52,7 +52,7 @@
             let _this = $(this);
             let url = "{% url 'read_notification' 999999999 %}";
             url = url.replace(999999999, notif_id);
-            $j.ajax({
+            $.ajax({
                 method: 'POST',
                 url: url,
                 data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
@@ -142,7 +142,7 @@
                         </td>
                         <td class="p-2">{{ msg.title }}</td>
                         <td class="p-2">{{ msg.date_created }}</td>
-                        <td class="p-2 flex flex-wrap justify-center gap-2">
+                        <td class="p-2 flex flex-wrap justify-end gap-2">
                             <a href="{% url 'toggle_read_notification' msg.id %}">
                                 <button type="button" class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                                         <span>
@@ -175,7 +175,7 @@
                             </a>
 
                             <a class="view-notification" data-notif-id="{{ msg.id }}" data-href="{{ msg.link }}">
-                                <button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                                <button type="button" class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                                         <span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
                                                  viewBox="0 0 24 24" stroke="currentColor">

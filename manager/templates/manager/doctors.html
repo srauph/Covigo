@@ -35,7 +35,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script>
         let table = $('#doctor_patient_list').DataTable({
-            "ajax": "{% url 'accounts:doctors_table' %}",
+            "ajax": "{% url 'manager:doctors_table' %}",
             "type": "POST",
             responsive: true,
             "draggable ": false,

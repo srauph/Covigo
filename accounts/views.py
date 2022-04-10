@@ -27,9 +27,12 @@ from accounts.preferences import SystemMessagesPreference, StatusReminderPrefere
 from accounts.utils import (
     convert_dict_of_bools_to_list,
     dictfetchall,
+    get_allowable_patient_permissions,
+    get_allowable_staff_permissions,
     get_assigned_staff_id_by_patient_id,
     get_flag,
     get_or_generate_patient_profile_qr,
+    get_profile_permissions,
     get_user_from_uidb64,
     return_closest_with_least_patients_doctor,
     send_system_message_to_user,
@@ -68,7 +71,6 @@ def process_register_or_edit_user_form(request, user_form, profile_form, mode=No
 
         edited_user = user_form.save(commit=False)
 
-        # TODO: Discuss possibility of having no groups and adjust `if` to enforce at least one when editing
         if user_groups:
             edited_user.groups.set(user_groups)
 
@@ -642,12 +644,12 @@ def create_user(request):
 
     # Create forms
     else:
-        user_form = CreateUserForm()
+        user_form = CreateUserForm(initial={"user_type": "Patient"})
         profile_form = CreateProfileForm()
 
     return render(request, "accounts/create_user.html", {
         "user_form": user_form,
-        "profile_form": profile_form
+        "profile_form": profile_form,
     })
 
 
@@ -803,11 +805,14 @@ def create_group(request):
     if not request.user.has_perm("accounts.manage_groups"):
         raise PermissionDenied
 
-    non_default_permissions = Permission.objects.all().exclude(codename__in=DEFAULT_PERMISSIONS)
+    staff_permissions = get_allowable_staff_permissions()
+    patient_permissions = get_allowable_patient_permissions()
+    profile_permissions = get_profile_permissions()
     new_name = ''
 
     if request.method == 'POST':
         new_name = request.POST['name']
+        permission_array = convert_permission_name_to_id(request)
 
         if not new_name:
             messages.error(request, 'Please enter a group/role name.')
@@ -815,17 +820,21 @@ def create_group(request):
         elif Group.objects.filter(name=new_name).exists():
             messages.error(request, 'Another group/role with the same name exists.')
 
+        elif len(permission_array) == 0:
+            messages.error(request, 'Please select at least one permission.')
+
         else:
             group = Group(name=new_name)
             group.save()
 
-            permission_array = convert_permission_name_to_id(request)
             group.permissions.set(permission_array)
 
             if request.POST.get('Create'):
                 messages.success(request, 'The group/role was created successfully.')
                 return render(request, 'accounts/access_control/groups/create_group.html', {
-                    'permissions': non_default_permissions,
+                    'staff_permissions': staff_permissions,
+                    'patient_permissions': patient_permissions,
+                    'profile_permissions': profile_permissions,
                     'new_name': new_name
                 })
 
@@ -834,7 +843,9 @@ def create_group(request):
                 return redirect('accounts:list_groups')
 
     return render(request, 'accounts/access_control/groups/create_group.html', {
-        'permissions': non_default_permissions,
+        'staff_permissions': staff_permissions,
+        'patient_permissions': patient_permissions,
+        'profile_permissions': profile_permissions,
         'new_name': new_name
     })
 
@@ -845,13 +856,26 @@ def edit_group(request, group_id):
     if not request.user.has_perm("accounts.manage_groups"):
         raise PermissionDenied
 
-    non_default_permissions = Permission.objects.all().exclude(codename__in=DEFAULT_PERMISSIONS)
+    staff_permissions = get_allowable_staff_permissions()
+    patient_permissions = get_allowable_patient_permissions()
+    profile_permissions = get_profile_permissions()
+
     group = Group.objects.get(id=group_id)
     old_name = group.name
     new_name = old_name
 
+    if any(item in group.permissions.values_list("codename", flat=True) for item in get_patient_permission_codenames()):
+        group_type = "Patient"
+
+    elif any(item in group.permissions.values_list("codename", flat=True) for item in get_staff_permission_codenames()):
+        group_type = "Staff"
+
+    else:
+        group_type = "Any"
+
     if request.method == 'POST':
         new_name = request.POST['name']
+        permission_array = convert_permission_name_to_id(request)
 
         if not new_name:
             messages.error(request, 'Please enter a group/role name.')
@@ -859,18 +883,22 @@ def edit_group(request, group_id):
         elif Group.objects.exclude(name=old_name).filter(name=new_name).exists():
             messages.error(request, 'Another group/role with the same name exists.')
 
-        else:
-            permission_array = convert_permission_name_to_id(request)
+        elif len(permission_array) == 0:
+            messages.error(request, 'Please select at least one permission.')
 
+        else:
             if set(group.permissions.values_list("id", flat=True)) == set(permission_array) and new_name == old_name:
                 messages.error(
                     request,
                     f"The group/role name was not edited successfully: No edits made on this group/role. If you wish to make no changes, please click the \"Cancel\" button to go back to the list of groups/roles."
                 )
                 return render(request, 'accounts/access_control/groups/edit_group.html', {
-                    'permissions': non_default_permissions,
+                    'staff_permissions': staff_permissions,
+                    'patient_permissions': patient_permissions,
+                    'profile_permissions': profile_permissions,
                     'new_name': new_name,
-                    'group': group
+                    'group': group,
+                    'group_type': group_type,
                 })
 
             group.name = new_name
@@ -883,9 +911,12 @@ def edit_group(request, group_id):
             return redirect('accounts:list_groups')
 
     return render(request, 'accounts/access_control/groups/edit_group.html', {
-        'permissions': non_default_permissions,
+        'staff_permissions': staff_permissions,
+        'patient_permissions': patient_permissions,
+        'profile_permissions': profile_permissions,
         'new_name': new_name,
-        'group': group
+        'group': group,
+        'group_type': group_type,
     })
 
 
@@ -1006,35 +1037,6 @@ def edit_case(request, user_id):
         "usr": user,
         "case_form": case_form
     })
-
-
-def doctor_patient_list(request):
-    if not request.user.has_perm("accounts.edit_assigned_doctor"):
-        raise PermissionDenied
-
-    return render(request, 'accounts/doctors.html')
-
-
-def doctor_patient_list_table(request):
-    # TODO FILTER FOR DOCTORS ONLY (Currently anyone in accounts_staff is treated as a doctor for the query)
-    if not request.user.has_perm("accounts.edit_assigned_doctor"):
-        raise PermissionDenied
-
-    # Raw query to get each doctor and their patient count
-    query = Staff.objects.raw(
-        "SELECT `auth_user`.`id`, `auth_user`.`first_name`, `auth_user`.`last_name`, `accounts_staff`.`user_id`, COUNT(*) AS patient_count FROM `accounts_staff` JOIN `accounts_patient` ON (`accounts_staff`.`id` = `accounts_patient`.`assigned_staff_id`) LEFT OUTER JOIN `auth_user` ON (`accounts_staff`.`user_id` = `auth_user`.`id`) GROUP BY `accounts_patient`.`assigned_staff_id` ORDER BY `auth_user`.`first_name` , `auth_user`.`last_name`")
-
-    # Build the JSON from the raw query
-    table_info = []
-    for i in query:
-        record = {"user_id": i.user_id, "first_name": i.first_name, "last_name": i.last_name,
-                  "patient_count": i.patient_count}
-        table_info.append(record)
-
-    # Serialize it
-    serialized_reports = json.dumps({'data': table_info}, indent=4)
-
-    return HttpResponse(serialized_reports, content_type='application/json')
 
 
 def get_distance_from_postal_code_to_current_location(request, postal_code, current_lat, current_long):

@@ -1,5 +1,6 @@
 import csv
 import io
+import json
 import os
 import threading
 
@@ -10,7 +11,7 @@ from pathlib import Path
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
@@ -297,8 +298,8 @@ def ensure_path_exists(path_to_check):
 
 
 def process_contact_tracing_csv(request, data, filename):
-
     failed_entries = create_users_from_csv_date(request, data)
+
     if "tracing_uploads" not in request.session:
         request.session["tracing_uploads"] = {}
 
@@ -322,3 +323,81 @@ def process_contact_tracing_csv(request, data, filename):
         f"Your contact tracing file {filename} has finished importing",
         href=href
     )
+
+
+def doctor_patient_list(request):
+    if not request.user.has_perm("accounts.edit_assigned_doctor"):
+        raise PermissionDenied
+
+    return render(request, 'manager/doctors.html')
+
+
+def doctor_patient_list_table(request):
+    # TODO FILTER FOR DOCTORS ONLY (Currently anyone in accounts_staff is treated as a doctor for the query)
+    if not request.user.has_perm("accounts.edit_assigned_doctor"):
+        raise PermissionDenied
+
+    query = get_doctors_list()
+
+    # Build the JSON from the raw query
+    table_info = []
+    for i in query:
+        record = {"user_id": i.user_id, "first_name": i.first_name, "last_name": i.last_name,
+                  "patient_count": i.patient_count}
+        table_info.append(record)
+
+    # Serialize it
+    serialized_reports = json.dumps({'data': table_info}, indent=4)
+
+    return HttpResponse(serialized_reports, content_type='application/json')
+
+
+def reassign_doctor(request):
+    if not request.user.has_perm("accounts.edit_assigned_doctor"):
+        raise PermissionDenied
+
+    return render(request, 'manager/reassign_doctor.html')
+
+
+def reassign_doctor_list_table(request, patient_id):
+    if not request.user.has_perm("accounts.edit_assigned_doctor"):
+        raise PermissionDenied
+
+    query = get_doctors_list()
+
+    # Build the JSON from the raw query
+    table_info = []
+    for i in query:
+        record = {"user_id": i.user_id, "first_name": i.first_name, "last_name": i.last_name,
+                  "patient_count": i.patient_count}
+        table_info.append(record)
+
+    # Serialize it
+    serialized_reports = json.dumps({'data': table_info}, indent=4)
+
+    return HttpResponse(serialized_reports, content_type='application/json')
+
+
+def get_doctors_list():
+    """
+    Raw query to get each doctor and their patient count
+    @return: Queryset of all doctors
+    """
+    query = Staff.objects.raw(
+        "SELECT `auth_user`.`id`, `auth_user`.`first_name`, `auth_user`.`last_name`, `accounts_staff`.`user_id`, COUNT(*) AS patient_count FROM `accounts_staff` LEFT JOIN `accounts_patient` ON (`accounts_staff`.`id` = `accounts_patient`.`assigned_staff_id`) LEFT OUTER JOIN `auth_user` ON (`accounts_staff`.`user_id` = `auth_user`.`id`) GROUP BY `accounts_patient`.`assigned_staff_id` ORDER BY `auth_user`.`first_name` , `auth_user`.`last_name`"
+    )
+
+    doctor_perm = Permission.objects.get(codename="is_doctor")
+    new_query = User.objects.filter(user_permissions=doctor_perm)
+    print(new_query)
+
+    def zero_null_patients(original_query_obj):
+        print(original_query_obj)
+        try:
+            original_query_obj.assigned_patients
+        except AttributeError:
+            print("hi")
+        return original_query_obj
+
+
+    return list(map(zero_null_patients, query))

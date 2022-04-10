@@ -3,7 +3,7 @@ import random
 import shortuuid
 import smtplib
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission
 from django.core.management import call_command
 from django.db import IntegrityError, connection
 from django.db.models import Q
@@ -12,7 +12,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
 from Covigo.settings import HOST_NAME, PRODUCTION_MODE
-from accounts.models import Flag, Staff, Patient
+from accounts.models import Flag, Staff, Patient, Profile
 from accounts.preferences import SystemMessagesPreference
 
 from geopy import distance
@@ -423,3 +423,31 @@ def hour_options_generator(number_of_hours, step=1):
             hours_list.append((i, f"{i} hours"))
 
     return tuple(hours_list)
+
+
+def get_staff_permission_codenames():
+    permissions = list(map(lambda x: x[0], Staff._meta.permissions))
+    permissions.remove("is_doctor")
+    return permissions
+
+
+def get_patient_permission_codenames():
+    return list(map(lambda x: x[0], Patient._meta.permissions))
+
+
+def get_profile_permission_codenames():
+    return list(map(lambda x: x[0], Profile._meta.permissions))
+
+
+def get_allowable_staff_permissions():
+    allowable_codenames = get_staff_permission_codenames() + get_profile_permission_codenames()
+    return Permission.objects.filter(codename__in=allowable_codenames)
+
+
+def get_allowable_patient_permissions():
+    allowable_codenames = get_patient_permission_codenames() + get_profile_permission_codenames()
+    return Permission.objects.filter(codename__in=allowable_codenames)
+
+
+def get_profile_permissions():
+    return Permission.objects.filter(codename__in=get_profile_permission_codenames())
