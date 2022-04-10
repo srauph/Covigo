@@ -9,23 +9,29 @@ from os.path import join, isfile
 from pathlib import Path
 
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.http import HttpResponse, Http404
 from django.shortcuts import render
 from django.urls import reverse
+from django.views.decorators.cache import never_cache
 
+from Covigo.feature_toggles import FeatureToggles
+from Covigo.messages import Messages
 from accounts.models import Patient, Staff, Profile
-from accounts.utils import get_or_generate_patient_code
+from accounts.utils import get_or_generate_patient_code, send_system_message_to_user
 from messaging.utils import send_notification
 
 CASE_DATA_PATH = "static/Covigo/data/case_data"
 CONTACT_TRACING_PATH = "static/Covigo/data/contact_tracing"
 
 
+@login_required
+@never_cache
 def index(request):
-
     can_view_any_quicklink = (
         request.user.has_perm("accounts.manage_symptoms")
         or request.user.has_perm("accounts.edit_assigned_doctor")
@@ -62,6 +68,8 @@ def index(request):
     })
 
 
+@login_required
+@never_cache
 def contact_tracing(request):
     if not request.user.is_staff or not request.user.has_perm("accounts.manage_contact_tracing"):
         raise PermissionDenied
@@ -112,6 +120,8 @@ def contact_tracing(request):
     })
 
 
+@login_required
+@never_cache
 def case_data(request):
     if not request.user.is_staff or not request.user.has_perm("accounts.manage_case_data"):
         raise PermissionDenied
@@ -126,15 +136,21 @@ def case_data(request):
     })
 
 
+@login_required
+@never_cache
 def help_page(request):
     usr = request.user
     return render(request, 'manager/help.html', {"usr": usr})
 
 
+@login_required
+@never_cache
 def about(request):
     return render(request, 'manager/about.html')
 
 
+@login_required
+@never_cache
 def download_case_data_file(request, file_name):
     if not request.user.is_staff or not request.user.has_perm("accounts.manage_case_data"):
         raise Http404
@@ -145,6 +161,8 @@ def download_case_data_file(request, file_name):
         return response
 
 
+@login_required
+@never_cache
 def download_contact_tracing_file(request, file_name):
     if not request.user.is_staff or not request.user.has_perm("accounts.manage_contact_tracing"):
         raise Http404
@@ -252,6 +270,14 @@ def create_users_from_csv_date(request, data):
             Profile.objects.filter(user=u).update(phone_number=phone)
             p = Patient.objects.create(user=u)
             get_or_generate_patient_code(p, prefix="T")
+
+            if FeatureToggles.SEND_SYSTEM_MESSAGES_TO_NEW_TRACED_USERS:
+                template = Messages.REGISTER_USER.value
+                c = {
+                    'token': default_token_generator.make_token(u),
+                }
+
+                send_system_message_to_user(u, template=template, c=c)
 
     except Exception:
         return "Failure"

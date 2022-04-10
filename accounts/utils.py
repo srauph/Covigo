@@ -4,6 +4,7 @@ import shortuuid
 import smtplib
 
 from django.contrib.auth.models import User
+from django.contrib.staticfiles.management.commands import collectstatic
 from django.db import IntegrityError, connection
 from django.db.models import Q
 from django.template.loader import render_to_string
@@ -207,6 +208,8 @@ def get_or_generate_patient_profile_qr(user_id):
             # Generate the qr code
             img: PilImage = make(data)
             img.save("accounts/static/" + path)
+            command = collectstatic.Command()
+            command.collect()
             return path
     else:
         return None
