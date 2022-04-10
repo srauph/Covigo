@@ -101,6 +101,10 @@ def book_appointments(appointment_id, user):
                       user.first_name + " " + user.last_name + " has booked an appointment with you on " + appointment.start_date.strftime(
                           "%B %d, %Y, at %I:%M %p"),
                       app_name=app_name)
+    send_notification(doctor_id, user.id,
+                      f"You have successfully booked an appointment with your doctor {doctor.first_name} {doctor.last_name}on " + appointment.start_date.strftime(
+                          "%B %d, %Y, at %I:%M %p"),
+                      app_name=app_name)
 
 
 def rebook_appointment_with_new_doctor(new_doctor_id, old_doctor_id, patient):
