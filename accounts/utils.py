@@ -4,14 +4,14 @@ import shortuuid
 import smtplib
 
 from django.contrib.auth.models import User
-from django.contrib.staticfiles.management.commands import collectstatic
+from django.core.management import call_command
 from django.db import IntegrityError, connection
 from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
-from Covigo.settings import HOST_NAME
+from Covigo.settings import HOST_NAME, PRODUCTION_MODE
 from accounts.models import Flag, Staff, Patient
 from accounts.preferences import SystemMessagesPreference
 
@@ -208,8 +208,8 @@ def get_or_generate_patient_profile_qr(user_id):
             # Generate the qr code
             img: PilImage = make(data)
             img.save("accounts/static/" + path)
-            command = collectstatic.Command()
-            command.collect()
+            if PRODUCTION_MODE:
+                call_command('collectstatic', '--noinput')
             return path
     else:
         return None
