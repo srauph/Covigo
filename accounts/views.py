@@ -124,6 +124,8 @@ class LoginViewTo2FA(LoginView):
     @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         self.request.session["start_2fa"] = True
+        self.request.session.modified = True
+        self.request.session.save()
         return super(LoginViewTo2FA, self).dispatch(*args, **kwargs)
 
     def get_success_url(self):
@@ -134,10 +136,11 @@ class LoginViewTo2FA(LoginView):
 def two_factor_authentication(request):
     if "start_2fa" not in request.session:
         logout(request)
-        messages.error(request, "Could not send 2FA code. Please try logging in again.")
         return redirect("accounts:login")
 
     del request.session["start_2fa"]
+    request.session.modified = True
+    request.session.save()
 
     user = request.user
     code, _ = Code.objects.get_or_create(user=request.user.profile)
@@ -149,8 +152,6 @@ def two_factor_authentication(request):
     message = "Your OTP is " + otp + ". "
     subject = "Covigo OTP"
     send_system_message_to_user(user, message=message, subject=subject)
-
-    request.session["verify_otp"] = True
 
     return render(request, 'accounts/authentication/2FA.html', {
         "usr": user
