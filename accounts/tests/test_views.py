@@ -600,7 +600,7 @@ class AccountsTestCase(TransactionTestCase):
                                           'groups': self.mocked_group3.id, 'postal_code': '000000'}
         self.edited_mocked_form_data13 = {'username': 'my_sister@gmail.com', 'email': 'my_sister@gmail.com',
                                           'phone_number': '5149067845', 'is_staff': True,
-                                          'groups': self.mocked_group3.id, 'postal_code': 'J7G 2M3'}
+                                          'groups': self.mocked_group3.id, 'postal_code': 'J7G 0B0'}
         self.edited_mocked_form_data14 = {'username': 'my_sister@gmail.com', 'email': 'my_father@gmail.com',
                                           'phone_number': '5149067845', 'is_staff': True,
                                           'groups': [self.mocked_group2.id, self.mocked_group3.id],
