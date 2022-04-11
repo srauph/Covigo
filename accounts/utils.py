@@ -378,9 +378,13 @@ def dictfetchall(cursor):
 
 def get_distance_of_all_doctors_to_postal_code(postal_code):
     doc_dict = []
+    # This wwon't work anymore (refactored to doctor permission en lieu of doctor group
     all_doctors = User.objects.raw(
-        "SELECT * FROM `auth_user` INNER JOIN `auth_user_groups` ON (`auth_user`.`id` = `auth_user_groups`.`user_id`) INNER JOIN `auth_group` ON (`auth_user_groups`.`group_id` = `auth_group`.`id`) LEFT OUTER JOIN `accounts_profile` ON (`auth_user`.`id` = `accounts_profile`.`user_id`) JOIN `postal_codes` ON (`accounts_profile`.`postal_code` = `postal_codes`.POSTAL_CODE) WHERE `auth_group`.`name` = %s",
-        ['doctor'])
+        "SELECT * FROM `auth_user` INNER JOIN `auth_user_user_permissions` ON (`auth_user`.`id` = `auth_user_user_permissions`.`user_id`) INNER JOIN `auth_permission` ON (`auth_user_user_permissions`.`permission_id` = `auth_permission`.`id`) LEFT OUTER JOIN `accounts_profile` ON (`auth_user`.`id` = `accounts_profile`.`user_id`) JOIN `postal_codes` ON (`accounts_profile`.`postal_code` = `postal_codes`.POSTAL_CODE) WHERE `auth_permission`.`codename` = %s",
+        ['is_doctor'])
+
+    print(list(all_doctors))
+
     c = connection.cursor()
     c.execute('SELECT * FROM postal_codes WHERE POSTAL_CODE = %s', [postal_code])
     r = dictfetchall(c)

@@ -42,14 +42,14 @@
             stripeClasses: [],
             "orderClasses": false,
             "columns": [
-                {"data": "user_id"},
+                {"data": "id"},
                 {"data": "first_name"},
                 {"data": "last_name"},
                 {"data": "patient_count"},
                 {defaultContent: ""},
             ],
             "columnDefs": [
-                { // user_id
+                { // id
                     "targets": [0],
                     "visible": false,
                     "searchable": false
@@ -80,7 +80,7 @@
                     "className": 'dt-body-center',
                     "render": function (data, type, row) {
                         return '<span class="flex justify-end">' +
-                        '<a href="{% url 'accounts:profile' 999999999  %}">'.replace(999999999, row.user_id) +
+                        '<a href="{% url 'accounts:profile' 999999999  %}">'.replace(999999999, row.id) +
                         '<button class="bg-cyan-500 justify-center hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">' +
                         '<span> <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round"stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' +
                         '</span><span>View Profile</span></button></a></span>'

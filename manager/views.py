@@ -14,7 +14,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User, Permission
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import PermissionDenied
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import HttpResponse, Http404
 from django.shortcuts import render
 from django.urls import reverse
@@ -339,15 +339,8 @@ def doctor_patient_list_table(request):
 
     query = get_doctors_list()
 
-    # Build the JSON from the raw query
-    table_info = []
-    for i in query:
-        record = {"user_id": i.user_id, "first_name": i.first_name, "last_name": i.last_name,
-                  "patient_count": i.patient_count}
-        table_info.append(record)
-
-    # Serialize it
-    serialized_reports = json.dumps({'data': table_info}, indent=4)
+    # Serialize the JSON from the query
+    serialized_reports = json.dumps({'data': query}, indent=4)
 
     return HttpResponse(serialized_reports, content_type='application/json')
 
@@ -365,15 +358,8 @@ def reassign_doctor_list_table(request, patient_id):
 
     query = get_doctors_list()
 
-    # Build the JSON from the raw query
-    table_info = []
-    for i in query:
-        record = {"user_id": i.user_id, "first_name": i.first_name, "last_name": i.last_name,
-                  "patient_count": i.patient_count}
-        table_info.append(record)
-
-    # Serialize it
-    serialized_reports = json.dumps({'data': table_info}, indent=4)
+    # Serialize the JSON from the query
+    serialized_reports = json.dumps({'data': query}, indent=4)
 
     return HttpResponse(serialized_reports, content_type='application/json')
 
@@ -383,21 +369,18 @@ def get_doctors_list():
     Raw query to get each doctor and their patient count
     @return: Queryset of all doctors
     """
-    query = Staff.objects.raw(
-        "SELECT `auth_user`.`id`, `auth_user`.`first_name`, `auth_user`.`last_name`, `accounts_staff`.`user_id`, COUNT(*) AS patient_count FROM `accounts_staff` LEFT JOIN `accounts_patient` ON (`accounts_staff`.`id` = `accounts_patient`.`assigned_staff_id`) LEFT OUTER JOIN `auth_user` ON (`accounts_staff`.`user_id` = `auth_user`.`id`) GROUP BY `accounts_patient`.`assigned_staff_id` ORDER BY `auth_user`.`first_name` , `auth_user`.`last_name`"
-    )
+
+    # Old raw query. Didn't work properly (cont returns 1 instead of 0 when filtered to include 0s; or didn't return doctors with 0 assigned patients when filtered to exclude 0s)
+    # query = Staff.objects.raw(
+    #     "SELECT `auth_user`.`id`, `auth_user`.`first_name`, `auth_user`.`last_name`, `accounts_staff`.`user_id`, COUNT(*) AS patient_count FROM `accounts_staff` LEFT JOIN `accounts_patient` ON (`accounts_staff`.`id` = `accounts_patient`.`assigned_staff_id`) LEFT OUTER JOIN `auth_user` ON (`accounts_staff`.`user_id` = `auth_user`.`id`) GROUP BY `accounts_patient`.`assigned_staff_id` ORDER BY `auth_user`.`first_name` , `auth_user`.`last_name`"
+    # )
 
     doctor_perm = Permission.objects.get(codename="is_doctor")
-    new_query = User.objects.filter(user_permissions=doctor_perm)
-    print(new_query)
+    query = User.objects.filter(user_permissions=doctor_perm).values(
+        "id",
+        "first_name",
+        "last_name",
+        "staff__id",
+    ).annotate(patient_count=Count("staff__assigned_patients"))
 
-    def zero_null_patients(original_query_obj):
-        print(original_query_obj)
-        try:
-            original_query_obj.assigned_patients
-        except AttributeError:
-            print("hi")
-        return original_query_obj
-
-
-    return list(map(zero_null_patients, query))
+    return list(query)
