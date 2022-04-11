@@ -23,7 +23,9 @@ from django.views.decorators.cache import never_cache
 from Covigo.feature_toggles import FeatureToggles
 from Covigo.messages import Messages
 from accounts.models import Patient, Staff, Profile
-from accounts.utils import get_or_generate_patient_code, send_system_message_to_user
+from accounts.utils import get_or_generate_patient_code, send_system_message_to_user, \
+    get_distance_of_all_doctors_to_postal_code, get_assigned_staff_id_by_patient_id
+from appointments.utils import rebook_appointment_with_new_doctor
 from messaging.utils import send_notification
 
 CASE_DATA_PATH = "static/Covigo/data/case_data"
@@ -345,23 +347,63 @@ def doctor_patient_list_table(request):
     return HttpResponse(serialized_reports, content_type='application/json')
 
 
-def reassign_doctor(request):
+def reassign_doctor(request, user_id):
+    user = User.objects.get(id=user_id)
+
+    if user.is_staff:
+        raise Http404
+
+    if request.method == "POST":
+        doctor_user_id = request.POST.get('new_doctor_id')
+
+        if doctor_user_id == "-1":
+            user.patient.assigned_staff = None
+            messages.success(request, "This patient was unassigned from their doctor successfully.")
+        else:
+            doctor_staff_id = Staff.objects.get(user__id=doctor_user_id).id
+            # rebooks previously booked appointments with the old doctor with the new doctor if the new doctor has
+            # an availability at the same day and time as the previously booked appointment
+            rebook_appointment_with_new_doctor(doctor_staff_id, get_assigned_staff_id_by_patient_id(user_id), user)
+            user.patient.assigned_staff_id = doctor_staff_id
+            messages.success(request, "This patient was assigned to the new doctor successfully.")
+        user.patient.save()
+
+    assigned_staff = user.patient.get_assigned_staff_user()
+
+    return render(request, 'manager/reassign_doctor.html', {
+        "user_id": user_id,
+        "assigned_staff": assigned_staff,
+    })
+
+
+def reassign_doctor_list_table(request, user_id):
     if not request.user.has_perm("accounts.edit_assigned_doctor"):
         raise PermissionDenied
 
-    return render(request, 'manager/reassign_doctor.html')
+    user = User.objects.get(id=user_id)
 
+    if user.is_staff:
+        raise Http404
 
-def reassign_doctor_list_table(request, patient_id):
-    if not request.user.has_perm("accounts.edit_assigned_doctor"):
-        raise PermissionDenied
+    postal_code = user.profile.postal_code
 
-    query = get_doctors_list()
+    docs_list = get_distance_of_all_doctors_to_postal_code(postal_code)
+
+    # Build JSON
+    docs_table = []
+    for i in docs_list:
+        docs_table.append({
+            "doc_id": i[0].id,
+            "first_name": i[0].first_name,
+            "last_name": i[0].last_name,
+            "distance": i[1],
+            "patient_count": i[2],
+        })
 
     # Serialize the JSON from the query
-    serialized_reports = json.dumps({'data': query}, indent=4)
+    serialized_docs = json.dumps({'data': docs_table}, indent=4)
 
-    return HttpResponse(serialized_reports, content_type='application/json')
+    return HttpResponse(serialized_docs, content_type='application/json')
 
 
 def get_doctors_list():
@@ -370,7 +412,9 @@ def get_doctors_list():
     @return: Queryset of all doctors
     """
 
-    # Old raw query. Didn't work properly (cont returns 1 instead of 0 when filtered to include 0s; or didn't return doctors with 0 assigned patients when filtered to exclude 0s)
+    # Old raw query. Didn't work properly (cont returns 1 instead of 0 when filtered to include 0s;
+    # or didn't return doctors with 0 assigned patients when filtered to exclude 0s)
+    #
     # query = Staff.objects.raw(
     #     "SELECT `auth_user`.`id`, `auth_user`.`first_name`, `auth_user`.`last_name`, `accounts_staff`.`user_id`, COUNT(*) AS patient_count FROM `accounts_staff` LEFT JOIN `accounts_patient` ON (`accounts_staff`.`id` = `accounts_patient`.`assigned_staff_id`) LEFT OUTER JOIN `auth_user` ON (`accounts_staff`.`user_id` = `auth_user`.`id`) GROUP BY `accounts_patient`.`assigned_staff_id` ORDER BY `auth_user`.`first_name` , `auth_user`.`last_name`"
     # )

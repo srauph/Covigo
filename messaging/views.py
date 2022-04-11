@@ -348,8 +348,6 @@ def list_notifications(request):
             notification.save()
         return redirect('/notifications')
 
-    print(message_group)
-
     return render(request, 'notifications/list_notifications.html', {
         'message_group': message_group,
     })

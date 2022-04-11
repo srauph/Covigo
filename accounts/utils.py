@@ -383,8 +383,6 @@ def get_distance_of_all_doctors_to_postal_code(postal_code):
         "SELECT * FROM `auth_user` INNER JOIN `auth_user_user_permissions` ON (`auth_user`.`id` = `auth_user_user_permissions`.`user_id`) INNER JOIN `auth_permission` ON (`auth_user_user_permissions`.`permission_id` = `auth_permission`.`id`) LEFT OUTER JOIN `accounts_profile` ON (`auth_user`.`id` = `accounts_profile`.`user_id`) JOIN `postal_codes` ON (`accounts_profile`.`postal_code` = `postal_codes`.POSTAL_CODE) WHERE `auth_permission`.`codename` = %s",
         ['is_doctor'])
 
-    print(list(all_doctors))
-
     c = connection.cursor()
     c.execute('SELECT * FROM postal_codes WHERE POSTAL_CODE = %s', [postal_code])
     r = dictfetchall(c)
@@ -455,3 +453,16 @@ def get_allowable_patient_permissions():
 
 def get_profile_permissions():
     return Permission.objects.filter(codename__in=get_profile_permission_codenames())
+
+
+def get_group_type(group):
+    group_perms = group.permissions.values_list("codename", flat=True)
+
+    if any(item in group_perms for item in get_patient_permission_codenames()):
+        return "Patient"
+
+    elif any(item in group_perms for item in get_staff_permission_codenames()):
+        return "Staff"
+
+    else:
+        return "Any"

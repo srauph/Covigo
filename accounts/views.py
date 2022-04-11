@@ -35,7 +35,7 @@ from accounts.utils import (
     get_profile_permissions,
     get_user_from_uidb64,
     return_closest_with_least_patients_doctor,
-    send_system_message_to_user,
+    send_system_message_to_user, get_group_type,
 )
 from appointments.models import Appointment
 from appointments.utils import rebook_appointment_with_new_doctor
@@ -356,26 +356,8 @@ def profile(request, user_id):
 
     # If profile belongs to a patient
     if not user.is_staff:
-        if request.method == "POST":
-            doctor_staff_id = request.POST.get('doctor_id')
-
-            if doctor_staff_id == "-1":
-                user.patient.assigned_staff = None
-            else:
-                # rebooks previously booked appointments with the old doctor with the new doctor if the new doctor has
-                # an availability at the same day and time as the previously booked appointment
-                rebook_appointment_with_new_doctor(doctor_staff_id, get_assigned_staff_id_by_patient_id(user_id), user)
-                user.patient.assigned_staff_id = doctor_staff_id
-            user.patient.save()
-
         qr = get_or_generate_patient_profile_qr(user_id)
         assigned_staff = user.patient.get_assigned_staff_user()
-
-        if request.POST.get('Reassign'):
-            messages.success(request, "This patient was reassigned to the new doctor successfully.")
-
-        if request.POST.get('Assign'):
-            messages.success(request, "This patient was assigned a new doctor successfully.")
 
         appointments = Appointment.objects.filter(patient=user).filter(all_filter).order_by("start_date")
         appointments_truncated = appointments[:4]
@@ -812,6 +794,25 @@ def list_groups(request):
 
 @login_required
 @never_cache
+def list_groups_table(request):
+    if not request.user.has_perm("accounts.manage_groups"):
+        raise PermissionDenied
+
+    groups_table = []
+    for grp in Group.objects.all():
+        groups_table.append({
+            "id": grp.id,
+            "name": grp.name,
+            "type": get_group_type(grp)
+        })
+
+    serialized_groups = json.dumps({'data': groups_table}, indent=4)
+
+    return HttpResponse(serialized_groups, content_type='application/json')
+
+
+@login_required
+@never_cache
 def create_group(request):
     if not request.user.has_perm("accounts.manage_groups"):
         raise PermissionDenied
@@ -875,14 +876,7 @@ def edit_group(request, group_id):
     old_name = group.name
     new_name = old_name
 
-    if any(item in group.permissions.values_list("codename", flat=True) for item in get_patient_permission_codenames()):
-        group_type = "Patient"
-
-    elif any(item in group.permissions.values_list("codename", flat=True) for item in get_staff_permission_codenames()):
-        group_type = "Staff"
-
-    else:
-        group_type = "Any"
+    group_type = get_group_type(group)
 
     if request.method == 'POST':
         new_name = request.POST['name']

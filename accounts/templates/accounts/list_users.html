@@ -15,8 +15,8 @@
                 initComplete: function () {
                     this.api().columns(3).every(function () {
                         let column = this;
-                        let select = $('<select class="border-2 cursor-pointer"><option value="">Filter ...</option></select>')
-                            .appendTo($(column.header()))
+                        let select = $('<select class="cursor-pointer bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md"><option value="">Show All Groups</option></select>')
+                            .appendTo($('#group-filter'))
                             .on('change', function () {
                                 let val = $.fn.dataTable.util.escapeRegex(
                                     $(this).val()
@@ -28,7 +28,12 @@
                             });
 
                         column.data().unique().sort().each(function (d, j) {
-                            select.append('<option value="' + d + '">' + d + '</option>')
+                            if (d == "") {
+                                return;
+                            } else {
+                                select.append('<option value="' + d + '">' + d + '</option>')
+                            }
+
                         });
                     })
                 }
@@ -38,9 +43,7 @@
     <script>
         Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
             x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
-        }
-        )
-        );
+        }));
     </script>
 {% endblock %}
 
@@ -52,13 +55,9 @@
 
         <div class="bg-white shadow m-8 rounded-xl">
             <div class="w-full flex justify-between items-center p-4">
-                <div>
+                <div id="group-filter">
                     {# TODO: Filters should go HERE #}
-                    <span class="font-semibold px-2">Filters:</span>
-                    <select name="" id="toggleRead"
-                            class="cursor-pointer bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md">
-                        <option value="showAll">Show All Groups</option>
-                    </select>
+                    <span class="font-semibold px-2">Filter Groups:</span>
                 </div>
                 <div class="flex gap-2">
                     {% if perms.accounts.manage_groups %}
@@ -131,7 +130,7 @@
                         <th class="p-2">Username</th>
                         <th class="p-2">Email</th>
                         <th class="p-2">Phone Number</th>
-                        <th class="p-2">Role</th>
+                        <th class="p-2">Group</th>
                         <th class="p-2" data-orderable="false"></th>
                     </tr>
                     </thead>
@@ -143,7 +142,6 @@
                             <td class="p-2">{{ usr.profile.phone_number }}</td>
                             <td class="p-2">{{ usr.groups.all.0 }}</td>
                             <td class="flex justify-end gap-2">
-                                {# this is a temporary button, we will move it to user profile once user profile is done :) #}
                                 <a href="{% url 'accounts:profile' usr.id %}">
                                     <button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                                             <span>

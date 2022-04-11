@@ -77,6 +77,7 @@
                     "targets": [4],
                     "visible": true,
                     "searchable": false,
+                    "sortable": false,
                     "className": 'dt-body-center',
                     "render": function (data, type, row) {
                         return '<span class="flex justify-end">' +
@@ -98,18 +99,18 @@
         <div class="flex justify-between bg-slate-700">
             <h1 class="text-2xl text-white font-semibold px-8 py-4">Doctor List</h1>
         </div>
-        <div class="m-4">
-            <div class="m-4 p-4 bg-white shadow rounded-lg text-center">
+        <div class="p-8">
+            <div class="p-4 bg-white shadow rounded-lg text-center">
                 <table class="w-full table-auto display responsive nowrap" style="width:100%"
                        id="doctor_patient_list">
                     <thead>
-                    <tr class="border-b">
-                        <th class="p-2"></th>
-                        <th class="p-2">Doctor Name</th>
-                        <th class="p-2"></th>
-                        <th class="p-2">Number of Patients</th>
-                        <th class="p-2"></th>
-                    </tr>
+                        <tr class="border-b">
+                            <th class="p-2"></th>
+                            <th class="p-2">Doctor Name</th>
+                            <th class="p-2"></th>
+                            <th class="p-2">Number of Patients</th>
+                            <th class="p-2"></th>
+                        </tr>
                     </thead>
                     <!-- Table entries is handled by the DataTable -->
                 </table>

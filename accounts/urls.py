@@ -12,6 +12,7 @@ urlpatterns = [
     path('edit/<int:user_id>/', views.edit_user, name='edit_user'),
     path('preferences/<int:user_id>/', views.edit_preferences, name='edit_preferences'),
     path('access_control/groups/list/', views.list_groups, name='list_groups'),
+    path('access_control/groups/list_table/', views.list_groups_table, name='list_groups_table'),
     path('access_control/groups/create/', views.create_group, name='create_group'),
     path('access_control/groups/edit/<int:group_id>/', views.edit_group, name='edit_group'),
     path('flag/<int:user_id>/', views.flag_user, name='flag_user'),
