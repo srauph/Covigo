@@ -97,14 +97,16 @@
                         <table class="table-auto w-full">
                             <tbody>
                             {% for sym in symptoms %}
-                                <div class="flex gap-2 items-center">
-                                    <input type="checkbox" name="symptom" value="{{ sym.id }}"
-                                        {% if sym in assigned_symptoms %}
-                                            checked
-                                        {% endif %}
-                                    />
-                                    <label class="text-left">{{ sym.name }}</label>
-                                </div>
+                                {% if sym.is_active %}
+                                    <div class="flex gap-2 items-center">
+                                        <input type="checkbox" name="symptom" value="{{ sym.id }}"
+                                            {% if sym in assigned_symptoms %}
+                                                checked
+                                            {% endif %}
+                                        />
+                                        <label class="text-left">{{ sym.name }}</label>
+                                    </div>
+                                {% endif %}
                             {% endfor %}
                             </tbody>
                         </table>

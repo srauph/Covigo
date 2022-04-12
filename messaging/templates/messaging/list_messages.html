@@ -1,7 +1,27 @@
 {% extends "Covigo/base.html" %}
 
 {% block styles %}
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.4/css/jquery.dataTables.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/rowreorder/1.2.8/css/rowReorder.dataTables.min.css">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css"/>
+    <style>
+        table.display tbody tr:nth-child(odd):hover td,
+        table.display tbody tr:nth-child(even):hover td {
+            background-color: rgb(226 232 240) !important;
+        }
+
+        table.dataTable.dtr-inline.collapsed > tbody > tr > td.dtr-control:before,
+        table.dataTable.dtr-inline.collapsed > tbody > tr > th.dtr-control:before {
+            background-color: rgb(6 182 212) !important;
+        }
+
+        #patient_reports_modal_table.dataTable.nowrap th, table.dataTable.nowrap td {
+            white-space: normal !important;
+        }
+    </style>
 {% endblock %}
 
 {% block script %}
@@ -9,45 +29,198 @@
             integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <script type="text/javascript" charset="utf8"
             src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/rowreorder/1.2.8/js/dataTables.rowReorder.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
     <script>
         $(document).ready(function () {
             let table = $('#message_list_table').DataTable({
-                language: {
-                    "zeroRecords": "No messages/active conversations started at this time"
-                },
-                "order": [2, "desc"],
+                "ajax": "{% url 'messaging:list_messages_table' %}",
+                "type": "POST",
+                responsive: true,
+                "draggable ": false,
+                stripeClasses: [],
+                "orderClasses": false,
+                "columns": [
+                    {"data": "id"},
+                    {"data": "priority"},
+                    {"data": "author_fname"},
+                    {"data": "author_lname"},
+                    {"data": "recipient_fname"},
+                    {"data": "recipient_lname"},
+                    {"data": "title"},
+                    {"data": "date_created"},
+                    {"data": "date_updated"},
+                    {"data": "seen"},
+                    {defaultContent: ""},
+                ],
                 "columnDefs": [
-                    {
+                    { // id
+                        "targets": [0],
+                        "visible": false,
+                        "searchable": false
+                    },
+                    { // priority
                         "targets": [1],
+                        "visible": true,
+                        "searchable": true,
+                        "className": 'dt-body-center',
+                        "render": {
+                            _: "display",
+                            sort: "value",
+                        }
+                    },
+                    { // author_first_name
+                        "targets": [2],
+                        "visible": true,
+                        "searchable": true,
+                        "render": function (data, type, row) {
+                            return `${row.author_fname} ${row.author_lname}`;
+                        }
+                    },
+                    { // author_last_name
+                        "targets": [3],
                         "visible": false,
                         "searchable": true
-                    }
-                ]
-            });
-
-            $('#toggleRead').change(function () {
-                $.fn.dataTable.ext.search.pop();
-                let value = $(this).val();
-                if (value == "showAll") {
-                    $.fn.dataTable.ext.search.pop();
-                    table.draw();
-                } else {
-                    $.fn.dataTable.ext.search.push(
-                        function (settings, data, dataIndex) {
-                            return $(table.row(dataIndex).node()).attr('data-read') == value;
+                    },
+                    { // recipient_first_name
+                        "targets": [4],
+                        "visible": true,
+                        "searchable": true,
+                        "render": function (data, type, row) {
+                            return `${row.recipient_fname} ${row.recipient_lname}`;
                         }
-                    );
-                    table.draw();
+                    },
+                    { // recipient_last_name
+                        "targets": [5],
+                        "visible": false,
+                        "searchable": true
+                    },
+                    { // title
+                        "targets": [6],
+                        "visible": true,
+                        "searchable": true,
+                        "className": 'dt-body-center'
+                    },
+                    { // date_created
+                        "targets": [7],
+                        "visible": true,
+                        "searchable": false,
+                        "className": 'dt-body-center'
+                    },
+                    { // date_updated
+                        "targets": [8],
+                        "visible": true,
+                        "searchable": false,
+                        "className": 'dt-body-center'
+                    },
+                    { // seen
+                        "targets": [9],
+                        "visible": true,
+                        "searchable": true,
+                        "render": function (data, type, row) {
+                            return row.seen ? "Read" : "Unread";
+                        }
+                    },
+                    { // Action
+                        "targets": [10],
+                        "visible": true,
+                        "searchable": false,
+                        "sortable": false,
+                        "className": 'dt-body-center',
+                        "render": function (data, type, row) {
+                            let buttonView =
+                                '<a href="{% url 'messaging:view_message' 999999999 %}">'.replace(999999999, row.id) +
+                                '<button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">' +
+                                '<span><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+                                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>' +
+                                '<span>View Message</span>' +
+                                '</button></a>';
+
+                            let buttonMarkUnread =
+                                '<a href="{% url 'messaging:toggle_read' 999999999 %}">'.replace(999999999, row.id) +
+                                '<button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">' +
+                                '<span><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+                                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>' +
+                                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></span>' +
+                                '<span>Mark Unread</span>' +
+                                '</button></a>';
+
+                            let buttonMarkRead =
+                                '<a href="{% url 'messaging:toggle_read' 999999999 %}">'.replace(999999999, row.id) +
+                                '<button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">' +
+                                '<span><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+                                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg></span>' +
+                                '<span>Mark Read</span>' +
+                                '</button></a>';
+
+                            if (row.seen) {
+                                return '<span class="flex justify-end gap-2">' + buttonMarkUnread + buttonView + '</span>';
+                            } else {
+                                return '<span class="flex justify-end gap-2">' + buttonMarkRead + buttonView + '</span>';
+                            }
+                        }
+                    }
+                ],
+
+                "order": [[9, "asc"], [1, "asc"]],
+
+                rowCallback: function(row, data){
+                    if(!data.seen) {
+                        $(row).addClass("font-semibold");
+                    }
+                },
+
+                initComplete: function () {
+                    this.api().columns(9).every(function () {
+                        let column = this;
+                        let select = $('<select class="cursor-pointer bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md"><option value="">Show All Messages</option></select>')
+                            .appendTo($('#seen-filter'))
+                            .on('change', function () {
+                                let val = $.fn.dataTable.util.escapeRegex(
+                                    $(this).val()
+                                );
+
+                                column
+                                    .search(val ? '^' + val + '$' : '', true, false)
+                                    .draw();
+                            });
+
+                        column.data().unique().sort().each(function (d, j) {
+                            console.log(d);
+                            let status = (d ? "Read" : "Unread");
+                            select.append(`<option value="${status}">${status} Messages</option>`);
+                        });
+                    });
+
+                    this.api().columns(1).every(function () {
+                        let column = this;
+                        let select = $('<select class="cursor-pointer bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md"><option value="">Show All Messages</option></select>')
+                            .appendTo($('#priority-filter'))
+                            .on('change', function () {
+                                let val = $.fn.dataTable.util.escapeRegex(
+                                    $(this).val()
+                                );
+
+                                column
+                                    .search(val ? '^' + val + '$' : '', true, false)
+                                    .draw();
+                            });
+
+                        column.data().unique().sort().each(function (d, j) {
+                            priority = d.display;
+                            select.append(`<option value="${priority}">${priority} Priority</option>`);
+                        });
+                    })
                 }
-            })
+            });
         });
     </script>
     <script>
         Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
             x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
-        }
-        )
-        );
+        }));
     </script>
 {% endblock %}
 
@@ -58,14 +231,12 @@
         </div>
 
         <div class="bg-white shadow m-8 rounded-xl">
-            <div class="w-full flex justify-between items-center p-4">
-                <div>
-                    <span class="font-semibold px-2">Filters:</span>
-                    <select name="" id="toggleRead" class="cursor-pointer bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md">
-                        <option value="showAll">Show All Messages</option>
-                        <option value="unread">Show Unread Messages</option>
-                        <option value="read">Show Read Messages</option>
-                    </select>
+            <div class="w-full flex justify-start gap-4 items-center p-4">
+                <div id="seen-filter">
+                    <span class="font-semibold px-2">Filter Seen:</span>
+                </div>
+                <div id="priority-filter">
+                    <span class="font-semibold px-2">Filter by Priority:</span>
                 </div>
             </div>
         </div>
@@ -104,83 +275,25 @@
             {% endif %}
         {% endfor %}
 
-        <div class="m-4">
-            <div class="m-4 p-4 bg-white shadow rounded-lg">
-                <table class="w-full table-auto text-center" id="message_list_table">
+        <div class="p-8 pt-0">
+            <div class="p-4 bg-white shadow rounded-lg text-center">
+                <table class="w-full table-auto display responsive nowrap" style="width:100%" id="message_list_table">
                     <thead>
-                        <tr class="border-b">
+                        <tr class="border-b text-center">
+                            <th class="p-2"></th>
                             <th class="p-2">Priority</th>
                             <th class="p-2">Sender</th>
+                            <th class="p-2"></th>
+                            <th class="p-2">Recipient</th>
+                            <th class="p-2"></th>
                             <th class="p-2">Subject</th>
                             <th class="p-2">Sent On</th>
                             <th class="p-2">Opened On</th>
-                            <th class="p-2">Last Reply On</th>
-                            <th class="p-2" data-orderable="false"></th>
+                            <th class="p-2">Seen</th>
+                            <th class="p-2"></th>
                         </tr>
                     </thead>
-
-                    <tbody>
-                    {% for msg in message_group %}
-                        {% if msg.author.id == user.id and msg.author_seen == True or msg.recipient.id == user.id and msg.recipient_seen == True %}
-                            <tr class="hover:bg-slate-200 border-b" data-read="read">
-                        {% else %}
-                            <tr class="hover:bg-slate-200 font-semibold border-b" data-read="unread">
-                        {% endif %}
-                            <td class="p-2">
-                                {% if msg.priority == 0 %}
-                                    Low
-                                {% elif msg.priority == 1 %}
-                                    Normal
-                                {% else %}
-                                    Urgent
-                                {% endif %}
-                            </td>
-                            {# TODO: Fix bug where second column disappears #}
-                            <td class="p-2">{{ msg.author.username }}</td>
-                            <td class="p-2">{{ msg.title }}</td>
-                            <td class="p-2">{{ msg.date_created }}</td>
-                            <td class="p-2">{{ msg.date_updated }}</td>
-                            {#                                to be changed#}
-                            <td class="p-2">{{ msg.date_updated }}</td>
-                            <td class="flex justify-end gap-2">
-                                <a href="{% url 'messaging:view_message' msg.id %}">
-                                    <button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-                                        <span>
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </span>
-                                        <span>View Message</span>
-                                    </button>
-                                </a>
-                                <a href="{% url 'messaging:toggle_read' msg.id %}">
-                                    <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-                                        <span>
-                                            {% if msg.author.id == user.id and msg.author_seen == True or msg.recipient.id == user.id and msg.recipient_seen == True %}
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                </svg>
-                                            {% else %}
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                                                </svg>
-                                            {% endif %}
-                                        </span>
-                                        <span>
-                                            {% if msg.author.id == user.id and msg.author_seen == True or msg.recipient.id == user.id and msg.recipient_seen == True %}
-                                                Mark Unread
-                                            {% else %}
-                                                Mark Read
-                                            {% endif %}
-                                        </span>
-                                    </button>
-                                </a>
-
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
+                    <!-- Table entries is handled by the DataTable -->
                 </table>
             </div>
         </div>

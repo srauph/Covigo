@@ -76,7 +76,6 @@ def index(request):
 def contact_tracing(request):
     if not request.user.is_staff or not request.user.has_perm("accounts.manage_contact_tracing"):
         raise PermissionDenied
-
     contact_tracing_path = Path(CONTACT_TRACING_PATH)
     ensure_path_exists(contact_tracing_path)
     failed_entries = []
@@ -115,23 +114,37 @@ def contact_tracing(request):
         else:
             messages.error(request, 'Invalid File Format: Please upload a csv file.')
 
-    data_files = [f for f in listdir(CONTACT_TRACING_PATH) if isfile(join(CONTACT_TRACING_PATH, f))]
-
-    if 'Search by File Name' in request.GET:
-        search_data_file_name_term = request.GET['Search by File Name']
-        if search_data_file_name_term == '':
-            data_files_search_result = [f for f in listdir(CONTACT_TRACING_PATH) if isfile(join(CONTACT_TRACING_PATH, f))]
-        else:
-            data_files_search_result = filter(lambda data_file: data_file == search_data_file_name_term, data_files)
-
-        return render(request, 'manager/contact_tracing.html', {
-            'data_files_search_result': data_files_search_result
-        })
-
     return render(request, 'manager/contact_tracing.html', {
-        "data_files": data_files,
         "failed_entries": failed_entries
     })
+
+
+@login_required
+@never_cache
+def contact_tracing_table(request):
+    if not request.user.is_staff or not request.user.has_perm("accounts.manage_contact_tracing"):
+        raise PermissionDenied
+
+    data_files = [f for f in listdir(CONTACT_TRACING_PATH) if isfile(join(CONTACT_TRACING_PATH, f))]
+
+    # Deprecated for now. May be re-instated later.
+    #
+    # if 'Search by File Name' in request.GET:
+    #     search_data_file_name_term = request.GET['Search by File Name']
+    #     if search_data_file_name_term == '':
+    #         data_files_search_result = [f for f in listdir(CONTACT_TRACING_PATH) if isfile(join(CONTACT_TRACING_PATH, f))]
+    #     else:
+    #         data_files_search_result = filter(lambda data_file: data_file == search_data_file_name_term, data_files)
+    #
+    #     return render(request, 'manager/contact_tracing.html', {
+    #         'data_files_search_result': data_files_search_result
+    #     })
+
+    files_table = list(map(lambda x: {"name": x}, data_files))
+
+    serialized_files = json.dumps({'data': files_table}, indent=4)
+
+    return HttpResponse(serialized_files, content_type='application/json')
 
 
 @login_required

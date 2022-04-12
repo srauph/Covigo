@@ -96,9 +96,6 @@
                                     $(this).val()
                                 );
 
-                                console.log(val);
-                                console.log(column);
-
                                 column
                                     .search(val ? '^' + val + '$' : '', true, false)
                                     .draw();
