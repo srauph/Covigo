@@ -1,6 +1,6 @@
 import datetime
 from django import forms
-from django.forms import Form, TextInput, ModelForm, FileInput, DateInput
+from django.forms import Form
 
 from accounts.forms import CHARFIELD_CLASS
 
