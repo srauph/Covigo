@@ -552,66 +552,67 @@ class AccountsTestCase(TransactionTestCase):
         c.execute('SELECT * FROM Covigo.postal_codes WHERE POSTAL_CODE = %s', ['J7G 2M2'])
         r = dictfetchall(c)
 
-        self.mocked_form_data1 = {'email': '', 'phone_number': '', 'is_staff': True, 'groups': self.mocked_group1.id}
-        self.mocked_form_data2 = {'email': 'my_brother@gmail.com', 'phone_number': '', 'is_staff': True,
+        self.mocked_form_data1 = {'email': '', 'phone_number': '', 'user_type': "Staff", 'groups': self.mocked_group1.id}
+        self.mocked_form_data2 = {'email': 'my_brother@gmail.com', 'phone_number': '', 'user_type': "Staff",
                                   'groups': self.mocked_group2.id}
-        self.mocked_form_data3 = {'email': '', 'phone_number': '5145639236', 'is_staff': True,
+        self.mocked_form_data3 = {'email': '', 'phone_number': '5145639236', 'user_type': "Staff",
                                   'groups': self.mocked_group3.id}
-        self.mocked_form_data4 = {'email': 'my_sister@gmail.com', 'phone_number': '5149067845', 'is_staff': True,
+        self.mocked_form_data4 = {'email': 'my_sister@gmail.com', 'phone_number': '5149067845', 'user_type': "Staff",
                                   'groups': self.mocked_group3.id}
-        self.mocked_form_data5 = {'email': 'm', 'phone_number': '5149067845', 'is_staff': True,
+        self.mocked_form_data5 = {'email': 'm', 'phone_number': '5149067845', 'user_type': "Staff",
                                   'groups': self.mocked_group3.id}
-        self.mocked_form_data6 = {'email': 'my_sister@gmail.com', 'phone_number': '51:l;><906', 'is_staff': True,
+        self.mocked_form_data6 = {'email': 'my_sister@gmail.com', 'phone_number': '51:l;><906', 'user_type': "Staff",
                                   'groups': self.mocked_group3.id}
-        self.mocked_form_data7 = {'email': 'my_other@gmail.com', 'phone_number': '5143728471', 'is_staff': True,
+        self.mocked_form_data7 = {'email': 'my_other@gmail.com', 'phone_number': '5143728471', 'user_type': "Staff",
                                   'groups': [self.mocked_group2.id, self.mocked_group3.id]}
         self.edited_mocked_form_data2 = {'username': 'my_brother@gmail.com', 'email': 'my_mother@gmail.com',
-                                         'phone_number': '', 'is_staff': True, 'groups': self.mocked_group2.id,
+                                         'phone_number': '', 'user_type': "Staff", 'groups': self.mocked_group2.id,
                                          'postal_code': r[0]['POSTAL_CODE']}
         self.edited_mocked_form_data3 = {'username': '5145639236', 'email': 'my_otter@gmail.com',
-                                         'phone_number': '5145639236', 'is_staff': True,
+                                         'phone_number': '5145639236', 'user_type': "Staff",
                                          'groups': self.mocked_group2.id, 'postal_code': r[0]['POSTAL_CODE']}
         self.edited_mocked_form_data4 = {'username': 'my_sister@gmail.com', 'email': 'my_sister@gmail.com',
-                                         'phone_number': '5140398275', 'is_staff': True,
+                                         'phone_number': '5140398275', 'user_type': "Staff",
                                          'groups': self.mocked_group3.id, 'postal_code': r[0]['POSTAL_CODE']}
         self.edited_mocked_form_data5 = {'username': 'my_sister@gmail.com', 'email': 'my_sister@gmail.com',
-                                         'phone_number': '5149067845', 'is_staff': True,
+                                         'phone_number': '5149067845', 'user_type': "Staff",
                                          'groups': self.mocked_group2.id, 'postal_code': r[0]['POSTAL_CODE']}
         self.edited_mocked_form_data6 = {'username': '', 'email': 'my_sister@gmail.com', 'phone_number': '5140398275',
-                                         'is_staff': True, 'groups': self.mocked_group3.id,
+                                         'user_type': "Staff", 'groups': self.mocked_group3.id,
                                          'postal_code': r[0]['POSTAL_CODE']}
         self.edited_mocked_form_data7 = {'username': 'my_sister;', 'email': 'my_sister@gmail.com',
-                                         'phone_number': '5140398275', 'is_staff': True,
+                                         'phone_number': '5140398275', 'user_type': "Staff",
                                          'groups': self.mocked_group3.id, 'postal_code': r[0]['POSTAL_CODE']}
         self.edited_mocked_form_data8 = {'username': 'my_sister@gmail.com', 'email': 'y', 'phone_number': '5149067845',
-                                         'is_staff': True, 'groups': self.mocked_group3.id,
+                                         'user_type': "Staff", 'groups': self.mocked_group3.id,
                                          'postal_code': r[0]['POSTAL_CODE']}
         self.edited_mocked_form_data9 = {'username': 'my_sister@gmail.com', 'email': 'my_sister@gmail.com',
-                                         'phone_number': 'h', 'is_staff': True, 'groups': self.mocked_group3.id,
+                                         'phone_number': 'h', 'user_type': "Staff", 'groups': self.mocked_group3.id,
                                          'postal_code': r[0]['POSTAL_CODE']}
         self.edited_mocked_form_data10 = {'username': 'my_sister@gmail.com', 'email': '', 'phone_number': '',
-                                          'is_staff': True, 'groups': self.mocked_group3.id,
+                                          'user_type': "Staff", 'groups': self.mocked_group3.id,
                                           'postal_code': r[0]['POSTAL_CODE']}
         self.edited_mocked_form_data11 = {'username': 'my_sister@gmail.com', 'email': 'my_sister@gmail.com',
-                                          'phone_number': '5149067845', 'is_staff': True,
+                                          'phone_number': '5149067845', 'user_type': "Staff",
                                           'groups': self.mocked_group3.id, 'postal_code': ''}
         self.edited_mocked_form_data12 = {'username': 'my_sister@gmail.com', 'email': 'my_sister@gmail.com',
-                                          'phone_number': '5149067845', 'is_staff': True,
+                                          'phone_number': '5149067845', 'user_type': "Staff",
                                           'groups': self.mocked_group3.id, 'postal_code': '000000'}
         self.edited_mocked_form_data13 = {'username': 'my_sister@gmail.com', 'email': 'my_sister@gmail.com',
-                                          'phone_number': '5149067845', 'is_staff': True,
+                                          'phone_number': '5149067845', 'user_type': "Staff",
                                           'groups': self.mocked_group3.id, 'postal_code': 'J7G 0B0'}
         self.edited_mocked_form_data14 = {'username': 'my_sister@gmail.com', 'email': 'my_father@gmail.com',
-                                          'phone_number': '5149067845', 'is_staff': True,
+                                          'phone_number': '5149067845', 'user_type': "Staff",
                                           'groups': [self.mocked_group2.id, self.mocked_group3.id],
                                           'postal_code': r[0]['POSTAL_CODE']}
         self.edited_mocked_form_data15 = {'username': 'my_brother@gmail.com', 'email': 'my_mother@gmail.com',
-                                          'phone_number': '5145639236', 'is_staff': True,
+                                          'phone_number': '5145639236', 'user_type': "Staff",
                                           'groups': self.mocked_group3.id, 'postal_code': r[0]['POSTAL_CODE']}
 
         self.response = self.client.get(reverse('accounts:create_user'))
 
-    def test_empty_create_new_user_account_forms(self):
+    @mock.patch('accounts.views.send_system_message_to_user')
+    def test_empty_create_new_user_account_forms(self, _):
         """
         this test allows us to test directly for form fields when dealing with empty forms
         :return: void
@@ -629,7 +630,8 @@ class AccountsTestCase(TransactionTestCase):
         self.assertEqual('Please enter an email address or a phone number.',
                          str(list(self.response.context['messages'])[0]))
 
-    def test_user_can_create_new_user_account(self):
+    @mock.patch('accounts.views.send_system_message_to_user')
+    def test_user_can_create_new_user_account(self, _):
         """
         this test allows us to test for if an account that is submitted through a form
         (with the "Create" or "Create and Return" buttons) ends up actually being indeed added to the database or not
@@ -646,7 +648,7 @@ class AccountsTestCase(TransactionTestCase):
         self.assertEqual(self.mocked_form_data2['email'], User.objects.get(id=2).email)
         self.assertEqual(self.mocked_form_data2['phone_number'], User.objects.get(id=2).profile.phone_number)
         self.assertEqual(self.mocked_form_data2['groups'], User.objects.get(id=2).groups.get().id)
-        self.assertEqual(self.mocked_form_data2['is_staff'], User.objects.get(id=2).is_staff)
+        self.assertTrue(User.objects.get(id=2).is_staff)
 
         self.response = self.client.post(reverse('accounts:create_user'), self.mocked_form_data3)
 
@@ -654,7 +656,7 @@ class AccountsTestCase(TransactionTestCase):
         self.assertEqual(self.mocked_form_data3['email'], User.objects.get(id=3).email)
         self.assertEqual(self.mocked_form_data3['phone_number'], User.objects.get(id=3).profile.phone_number)
         self.assertEqual(self.mocked_form_data3['groups'], User.objects.get(id=3).groups.get().id)
-        self.assertEqual(self.mocked_form_data3['is_staff'], User.objects.get(id=3).is_staff)
+        self.assertTrue(User.objects.get(id=3).is_staff)
 
         # Here, I am checking if it is possible to create an account with the same
         # groups/role as another account (should be possible as it is intended behaviour)
@@ -664,7 +666,7 @@ class AccountsTestCase(TransactionTestCase):
         self.assertEqual(self.mocked_form_data4['email'], User.objects.get(id=4).email)
         self.assertEqual(self.mocked_form_data4['phone_number'], User.objects.get(id=4).profile.phone_number)
         self.assertEqual(self.mocked_form_data4['groups'], User.objects.get(id=4).groups.get().id)
-        self.assertEqual(self.mocked_form_data4['is_staff'], User.objects.get(id=4).is_staff)
+        self.assertTrue(User.objects.get(id=4).is_staff)
         self.assertEqual(User.objects.get(id=3).groups.get().id, User.objects.get(id=4).groups.get().id)
 
         # here, I am testing for the valid email address form error body by making sure that it works:
@@ -701,7 +703,8 @@ class AccountsTestCase(TransactionTestCase):
         self.assertEqual('Cannot select more than one group.',
                          list(self.response.context['user_form']['groups'].errors)[0])
 
-    def test_user_can_edit_existing_user_account(self):
+    @mock.patch('accounts.views.send_system_message_to_user')
+    def test_user_can_edit_existing_user_account(self, _):
         """
         this test allows us to test for if an account that is edited and submitted through a form
         ends up actually being indeed properly edited in the list of users and in the database or not
@@ -998,9 +1001,9 @@ class CreateGroupTests(TestCase):
         self.assertEqual(new_group_name, Group.objects.last().name)
         self.assertSetEqual(expected_permissions_set, set(Group.objects.last().permissions.all()))
 
-    def test_create_group_with_no_perms_successfully(self):
+    def test_create_group_with_no_perms_raises_error(self):
         """
-        Test that creating a group with an empty set of permissions works
+        Test that creating a group with an empty set of permissions fails
         @return: void
         """
 
@@ -1010,11 +1013,11 @@ class CreateGroupTests(TestCase):
         expected_permissions_set = set()
 
         # Act
-        create_group_helper(self.client, new_group_name, new_group_perms)
+        response = create_group_helper(self.client, new_group_name, new_group_perms)
 
         # Assert
-        self.assertEqual(new_group_name, Group.objects.last().name)
-        self.assertSetEqual(expected_permissions_set, set(Group.objects.last().permissions.all()))
+        self.assertTrue(list(response.context['messages'])[0])
+        self.assertFalse(set(Group.objects.all()))
 
     def test_create_group_with_existing_perms_successfully(self):
         """
@@ -1102,24 +1105,28 @@ class EditGroupTests(TestCase):
         self.assertEqual(new_group_name, Group.objects.last().name)
         self.assertSetEqual(expected_permissions_set, set(Group.objects.last().permissions.all()))
 
-    def test_edit_group_to_no_perms_successfully(self):
+    def test_edit_group_to_no_perms_raises_error(self):
         """
-        Test that editing a group to have an empty set of permissions works
+        Test that editing a group to have an empty set of permissions fails
         @return: void
         """
 
         # Arrange
         group_to_edit = Group.objects.first()
+        old_group_name = group_to_edit.name
+        old_group_perms = set(group_to_edit.permissions.all())
+
         new_group_name = 'new groups name lol'
         new_group_perms = []
         expected_permissions_set = set()
 
         # Act
-        edit_group_helper(self.client, new_group_name, new_group_perms, group_to_edit.id)
+        response = edit_group_helper(self.client, new_group_name, new_group_perms, group_to_edit.id)
 
         # Assert
-        self.assertEqual(new_group_name, Group.objects.last().name)
-        self.assertSetEqual(expected_permissions_set, set(Group.objects.last().permissions.all()))
+        self.assertTrue(list(response.context['messages'])[1])
+        self.assertEqual(old_group_name, Group.objects.first().name)
+        self.assertEqual(old_group_perms, set(Group.objects.first().permissions.all()))
 
     def test_edit_group_to_existing_perms_successfully(self):
         """

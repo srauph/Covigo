@@ -1,3 +1,5 @@
+import json
+
 from django.urls import reverse
 from symptoms.views import toggle_symptom
 from symptoms.models import Symptom, PatientSymptom
@@ -109,10 +111,10 @@ class SymptomsTestCase(TransactionTestCase):
 
         # these two assertions below check that the list of symptoms page actually shows
         # the two posted symptoms in its context
-        self.assertEqual(set(self.response.context['symptoms']), set(Symptom.objects.all()))
+        self.response = self.client.get(reverse('symptoms:list_symptoms_table'))
         self.assertEqual(
-            list(self.response.context['symptoms'].values("description")),
-            list(Symptom.objects.values("description"))
+            list(map(lambda x: x["description"], json.loads(self.response.content)["data"])),
+            list(Symptom.objects.values_list("description", flat=True))
         )
 
     def test_user_can_edit_existing_symptom_and_return(self):
@@ -201,10 +203,10 @@ class SymptomsTestCase(TransactionTestCase):
 
         # these two assertions below check that the list of symptoms page actually shows
         # the two posted symptoms with changes in its context
-        self.assertEqual(set(self.response.context['symptoms']), set(Symptom.objects.all()))
+        self.response = self.client.get(reverse('symptoms:list_symptoms_table'))
         self.assertEqual(
-            list(self.response.context['symptoms'].values("description")),
-            list(Symptom.objects.values("description"))
+            list(map(lambda x: x["description"], json.loads(self.response.content)["data"])),
+            list(Symptom.objects.values_list("description", flat=True))
         )
 
 
