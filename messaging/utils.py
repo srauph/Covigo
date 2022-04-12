@@ -1,11 +1,10 @@
 from django.urls import reverse
 import base64
 
-from django.template.loader import render_to_string
-
 from messaging.models import MessageGroup
 
 import rsa
+
 
 def send_notification(sender_id, recipient_id, notification_message, app_name=None, href=None):
     """
@@ -33,12 +32,13 @@ def send_notification(sender_id, recipient_id, notification_message, app_name=No
                                                title=message_with_link, type=1)
     notification.save()
 
+
 class RSAEncryption:
-    #keyLocation: place where you store the keys
+    # keyLocation: place where you store the keys
     def __init__(self, key_location):
         self.key_location = key_location
-        self.public_key_location = self.key_location/"publicKey.pem"
-        self.private_key_location = self.key_location/"privateKey.pem"
+        self.public_key_location = self.key_location / "publicKey.pem"
+        self.private_key_location = self.key_location / "privateKey.pem"
 
     def generate_keys(self):
         (self.public_key, self.private_key) = rsa.newkeys(1024)

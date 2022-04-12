@@ -787,6 +787,14 @@ def list_groups(request):
     if not request.user.has_perm("accounts.manage_groups"):
         raise PermissionDenied
 
+    if 'Search by Group Name' in request.GET:
+        search_group_name_term = request.GET['Search by Group Name']
+        groups_search_result = Group.objects.all().filter(name__icontains=search_group_name_term)
+
+        return render(request, 'accounts/access_control/groups/list_groups.html', {
+            'groups_search_result': groups_search_result
+        })
+
     return render(request, 'accounts/access_control/groups/list_groups.html', {
         'groups': Group.objects.all()
     })

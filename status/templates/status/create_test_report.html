@@ -3,6 +3,11 @@
 {% load static %}
 
 {% block script %}
+    <script>
+        Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
+            x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
+        }));
+    </script>
 {% endblock %}
 
 {% block content %}
@@ -82,7 +87,8 @@
                 </div>
             </div>
             <div class="w-full mt-8 md:mt-0">
-                <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">                <a href="{% url "status:test_results" user_id %}">
+                <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
+                    <a href="{% url "status:test_results" user_id %}">
                     <button type="button"
                             class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
                                     <span>
@@ -95,9 +101,8 @@
                         <span>Cancel</span>
                     </button>
                 </a>
-
                     <a href ="{% url "status:test_results" user_id %}">
-                        <button type="submit" value="Create" name="Create"
+                        <button type="submit" value="Submit and Return" name="Submit and Return"
                                 class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
                                 <span>
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
@@ -113,5 +118,4 @@
             </div>
         </div>
     </form>
-
 {% endblock %}

@@ -117,6 +117,17 @@ def contact_tracing(request):
 
     data_files = [f for f in listdir(CONTACT_TRACING_PATH) if isfile(join(CONTACT_TRACING_PATH, f))]
 
+    if 'Search by File Name' in request.GET:
+        search_data_file_name_term = request.GET['Search by File Name']
+        if search_data_file_name_term == '':
+            data_files_search_result = [f for f in listdir(CONTACT_TRACING_PATH) if isfile(join(CONTACT_TRACING_PATH, f))]
+        else:
+            data_files_search_result = filter(lambda data_file: data_file == search_data_file_name_term, data_files)
+
+        return render(request, 'manager/contact_tracing.html', {
+            'data_files_search_result': data_files_search_result
+        })
+
     return render(request, 'manager/contact_tracing.html', {
         "data_files": data_files,
         "failed_entries": failed_entries

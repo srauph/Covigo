@@ -36,8 +36,18 @@ def list_symptoms(request):
     if not request.user.has_perm("accounts.manage_symptoms"):
         raise PermissionDenied
 
+    if 'Search by Symptom Name' in request.GET:
+        search_symptom_name_term = request.GET['Search by Symptom Name']
+        symptoms_search_result = Symptom.objects.all().filter(name__icontains=search_symptom_name_term)
+
+        return render(request, 'symptoms/list_symptoms.html', {
+            'symptoms_search_result': symptoms_search_result
+        })
+
+    symptoms = Symptom.objects.all()
+
     return render(request, 'symptoms/list_symptoms.html', {
-        'symptoms': Symptom.objects.all()
+        'symptoms': symptoms
     })
 
 
@@ -124,15 +134,10 @@ def edit_symptom(request, symptom_id):
 def assign_symptom(request, user_id):
     patient = User.objects.get(pk=user_id)
 
-    can_assign_symptom = (
-        not patient.is_staff and (
-            request.user.has_perm("accounts.assign_symptom_patient")
-            or request.user.has_perm("accounts.assign_symptom_assigned") and patient in request.user.staff.get_assigned_patient_users()
-        )
-    )
+    can_assign_symptom = (not patient.is_staff and (request.user.has_perm("accounts.assign_symptom_patient") or request.user.has_perm("accounts.assign_symptom_assigned") and patient in request.user.staff.get_assigned_patient_users()))
+
     if not can_assign_symptom:
         raise PermissionDenied
-
 
     if patient.first_name == "" and patient.last_name == "":
         patient_name = patient
@@ -167,7 +172,8 @@ def assign_symptom(request, user_id):
                     messages.success(request, 'The symptom was assigned to this patient successfully.')
 
                 else:
-                    messages.error(request, 'No symptoms were selected to be assigned to this patient. If you wish to not assign any symptoms to this patient at this point in time, please click the \"Cancel\" button to go back to this patient\'s profile. Otherwise, please select at least one symptom to assign.')
+                    messages.error(request,
+                                   'No symptoms were selected to be assigned to this patient. If you wish to not assign any symptoms to this patient at this point in time, please click the \"Cancel\" button to go back to this patient\'s profile. Otherwise, please select at least one symptom to assign.')
                     return render(request, 'symptoms/assign_symptom.html', {
                         'symptoms': Symptom.objects.all(),
                         'patient': patient,

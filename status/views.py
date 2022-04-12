@@ -303,7 +303,6 @@ def edit_patient_report(request):
         for s in report_data:
             symptom = PatientSymptom.objects.filter(Q(id=int(s)))
 
-
             # check if user updated the symptom
             if data[i] != '':
 
