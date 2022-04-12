@@ -64,7 +64,7 @@
                     { // type
                         "targets": [2],
                         "visible": true,
-                        "searchable": false,
+                        "searchable": true,
                         "className": 'dt-body-center'
                     },
                     { // Action
@@ -96,6 +96,9 @@
                                     $(this).val()
                                 );
 
+                                console.log(val);
+                                console.log(column);
+
                                 column
                                     .search(val ? '^' + val + '$' : '', true, false)
                                     .draw();
@@ -106,7 +109,7 @@
                             if (d == "Any") {
                                 userStr = ' user';
                             }
-                            select.append('<option value="' + d + '">Valid for ' + d + userStr + '</option>');
+                            select.append(`<option value="${d}">Valid for ${d} ${userStr}</option>`);
                         });
                     })
                 }
@@ -129,24 +132,7 @@
 
         <div class="bg-white shadow m-8 rounded-xl">
             <div class="w-full flex justify-between items-center p-4">
-                <div>
-                    <form method="GET" class="flex justify-between items-center gap-2">
-                        <input type="search" name="Search by Group Name" class="bg-slate-100 border border-slate-400 h-8 text-sm text-black px-2 rounded-md"
-                               placeholder="Search by Group Name...">
-                        <button type="submit" class="bg-green-600 hover:bg-green-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-                            <span>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                            </span>
-                            <span>
-                                Search
-                            </span>
-                        </button>
-                    </form>
-                {# hidden until fixed #}
                 <div id="group-filter">
-                    {# TODO: Filters should go HERE #}
                     <span class="font-semibold px-2">Filter Groups:</span>
                 </div>
                 <div class="flex gap-2">

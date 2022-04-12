@@ -141,8 +141,8 @@
         </div>
         <div class="bg-white shadow m-8 rounded-xl">
             <div class="w-full flex justify-between items-center p-4">
-                <div class="flex">
-                    <span>
+                <div class="flex items-center">
+                    <span class="font-semibold pr-2">
                         Select one or any:
                     </span>
                     <button class="weekday-filter bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none border-r border-white" value="Sunday">
@@ -167,11 +167,16 @@
                         Saturday
                     </button>
                 </div>
-                <div>
-                    filter with date: from:
-                    <input type="text" class="py-1 px-1 border border-black rounded-md text-black" id="min">
-                    to:
-                    <input type="text" class="py-1 px-1 border border-black rounded-md text-black" id="max">
+                <div class="flex items-center gap-2">
+                    <span class="font-semibold">Filter with date:</span>
+                    <div>
+                        <span>From:</span>
+                        <input type="text" class="bg-slate-100 rounded-md border border-slate-400 px-2 py-1" id="min">
+                    </div>
+                    <div>
+                        <span>To:</span>
+                        <input type="text" class="bg-slate-100 rounded-md border border-slate-400 px-2 py-1" id="max">
+                    </div>
                 </div>
             </div>
         </div>

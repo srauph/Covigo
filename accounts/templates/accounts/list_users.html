@@ -31,7 +31,7 @@
                             if (d == "") {
                                 return;
                             } else {
-                                select.append('<option value="' + d + '">' + d + '</option>')
+                                select.append(`<option value="${d}">${d}</option>`);
                             }
 
                         });
@@ -56,7 +56,6 @@
         <div class="bg-white shadow m-8 rounded-xl">
             <div class="w-full flex justify-between items-center p-4">
                 <div id="group-filter">
-                    {# TODO: Filters should go HERE #}
                     <span class="font-semibold px-2">Filter Groups:</span>
                 </div>
                 <div class="flex gap-2">
