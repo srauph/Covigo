@@ -34,7 +34,7 @@
                 "columnDefs": [
                     { "orderable": false, "targets": 0 }
                 ],
-                order: [2, 'asc']
+                order: [[1, 'asc'], [2, 'asc']]
             });
 
             $('#min, #max').on('change', function () {
@@ -128,9 +128,7 @@
     <script>
         Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
             x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
-        }
-        )
-        );
+        }));
     </script>
 {% endblock %}
 
@@ -245,7 +243,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        {% for appointment in appointments %}
+                        {% for appointment, time in appointments %}
                             <tr>
                                 <td>
                                     <input type="checkbox" class="checkbox" name="booking_ids[]" value="{{ appointment.id }}">
@@ -254,10 +252,10 @@
                                     {{ appointment.start_date.date }}
                                 </td>
                                 <td>
-                                    {{ appointment.start_date.time }}
+                                    {{ time.start }}
                                 </td>
                                 <td>
-                                    {{ appointment.end_date.time }}
+                                    {{ time.end }}
                                 </td>
                                 <td class="p-2 render-correct-date">
                                     {{ appointment.start_date|date:'l' }}

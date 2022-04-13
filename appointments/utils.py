@@ -171,3 +171,9 @@ def is_appointment_and_availability_same_datetime(appointment, availability):
     availability.end_date = availability.end_date.replace(microsecond=0, second=0)
 
     return appointment.start_date == availability.start_date and appointment.end_date == availability.end_date
+
+
+def format_appointments_start_end_times(appointments):
+    start_end_times = list(appointments.values_list("start_date__time", "end_date__time"))
+    times = list(map(lambda x: {"start": x[0].strftime("%H:%M"), "end": x[1].strftime("%H:%M")}, start_end_times))
+    return zip(appointments, times)

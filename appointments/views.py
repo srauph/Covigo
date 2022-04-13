@@ -14,7 +14,8 @@ from accounts.models import Staff
 from accounts.utils import get_assigned_staff_id_by_patient_id, get_users_names, get_is_staff
 from appointments.forms import AvailabilityForm
 from appointments.models import Appointment
-from appointments.utils import cancel_appointments, delete_availabilities, book_appointments as book_appointments_util
+from appointments.utils import cancel_appointments, delete_availabilities, book_appointments as book_appointments_util, \
+    format_appointments_start_end_times
 
 from datetime import datetime, timedelta
 
@@ -214,8 +215,10 @@ def book_appointments(request):
             messages.success(request, 'The selected appointment was booked successfully.')
             return redirect('appointments:index')
 
+    appointments = Appointment.objects.filter(patient=None, staff=staff_id).all()
+
     return render(request, 'appointments/book_appointments.html', {
-        'appointments': Appointment.objects.filter(patient=None, staff=staff_id).all(),
+        'appointments': format_appointments_start_end_times(appointments),
         'staff_last_name': staff_last_name
     })
 
@@ -317,9 +320,11 @@ def cancel_appointments_or_delete_availabilities(request):
             messages.success(request, 'The selected availability was deleted successfully.')
             return redirect('appointments:index')
 
+    appointments = Appointment.objects.filter(logged_in_filter).all()
+
     return render(request, 'appointments/cancel_appointments.html', {
-        'appointments': Appointment.objects.filter(logged_in_filter).all(),
-        'staff_last_name': staff_last_name
+        'appointments': format_appointments_start_end_times(appointments),
+        'staff_last_name': staff_last_name,
     })
 
 
