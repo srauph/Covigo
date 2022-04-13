@@ -22,6 +22,23 @@
             white-space: normal !important;
         }
     </style>
+
+    <style>
+        .loader {
+            -webkit-animation: spinner 1.5s linear infinite;
+            animation: spinner 1.5s linear infinite;
+        }
+
+        @-webkit-keyframes spinner {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 {% endblock %}
 
 {% block script %}
@@ -88,6 +105,42 @@
         $("input[placeholder]").each(function () {
             $(this).attr('size', $(this).attr('placeholder').length);
         });
+    </script>
+    <script>
+        let isProcessing;
+        async function checkIsProcessing() {
+            let result;
+            await $.ajax({
+                type: "GET",
+                url: "{% url "manager:tracing_uploads_in_progress" %}",
+                success: function(data) {
+                    result = (data == "True");
+                }
+            });
+            return result;
+        }
+
+        async function setUp() {
+            isProcessing = await checkIsProcessing();
+            let processingMessage = $('#processing-message');
+            let newUploadHint = $('#new-upload-hint');
+
+            if (isProcessing) {
+                processingMessage.removeClass("hidden");
+                newUploadHint.addClass("hidden");
+
+                window.setInterval(async function() {
+                    isProcessing = await checkIsProcessing();
+
+                    if (!isProcessing) {
+                        window.location = window.location.href;
+                    }
+                }, 1000);
+            } else {
+                newUploadHint.removeClass("hidden");
+            }
+        }
+        setUp();
     </script>
 {% endblock %}
 
@@ -188,7 +241,11 @@
             <div class="w-full flex flex-wrap justify-end p-4 gap-2">
                 <div class="flex gap-1 items-center text-sm">
                     <span class="font-semibold">Note:</span>
-                    <span>Only .csv files with header "First Name,Last Name,Email,Phone Number" will work.</span>
+                    <span id="new-upload-hint">Only .csv files with header "First Name,Last Name,Email,Phone Number" will work.</span>
+                    <span class="flex items-center gap-2 hidden" id="processing-message">
+                        Your uploaded csv file is still being processed...
+                        <span class="border-slate-200 border-t-blue-400 loader ease-linear rounded-full border-4 border-t-4 h-6 w-6"></span>
+                    </span>
                 </div>
                 <div class="flex flex-auto justify-end gap-2">
 

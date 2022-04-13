@@ -5,9 +5,12 @@
     .w-112 {
         width: 28rem; /* 448px */
     }
+    .min-h-80 {
+        min-height: 20rem;
+    }
 </style>
 
-<div class="w-112 h-80 flex flex-col p-4 group rounded-lg bg-white shadow">
+<div class="w-112 min-h-80 flex flex-col p-4 group rounded-lg bg-white shadow">
     {% block card %}
         {{ content }}
     {% endblock %}

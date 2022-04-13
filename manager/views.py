@@ -3,6 +3,7 @@ import io
 import json
 import os
 import threading
+import time
 
 from datetime import timedelta, date
 from os import listdir, path
@@ -298,7 +299,7 @@ def create_users_from_csv_date(request, data):
             p = Patient.objects.create(user=u)
             get_or_generate_patient_code(p, prefix="T")
 
-            if FeatureToggles.SEND_SYSTEM_MESSAGES_TO_NEW_TRACED_USERS:
+            if FeatureToggles.SEND_SYSTEM_MESSAGES_TO_NEW_TRACED_USERS.value:
                 template = Messages.REGISTER_USER.value
                 c = {
                     'token': default_token_generator.make_token(u),
@@ -324,6 +325,13 @@ def ensure_path_exists(path_to_check):
 
 
 def process_contact_tracing_csv(request, data, filename):
+    request.session["tracing_uploads_in_progress"] = True
+    request.session.modified = True
+    request.session.save()
+
+    # If the upload happens too quick the window won't refresh when the processing completes.
+    time.sleep(1.0)
+
     failed_entries = create_users_from_csv_date(request, data)
 
     if "tracing_uploads" not in request.session:
@@ -339,6 +347,7 @@ def process_contact_tracing_csv(request, data, filename):
     else:
         request.session["tracing_uploads"][filename] = "Success"
 
+    del request.session["tracing_uploads_in_progress"]
     request.session.modified = True
     request.session.save()
 
@@ -349,6 +358,13 @@ def process_contact_tracing_csv(request, data, filename):
         f"Your contact tracing file {filename} has finished importing",
         href=href
     )
+
+
+def check_tracing_uploads_in_progress(request):
+    locked = ("tracing_uploads_in_progress" in request.session
+            and request.session["tracing_uploads_in_progress"] == True)
+
+    return HttpResponse(locked)
 
 
 def doctor_patient_list(request):
