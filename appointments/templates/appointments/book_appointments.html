@@ -182,7 +182,7 @@
         </div>
         <form method="post">
             {% csrf_token %}
-            <div class="m-4 p-4 rounded-lg">
+            <div class="rounded-lg">
 
                 {% if messages %}
                     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
@@ -195,7 +195,7 @@
 
                 {% for message in messages %}
                     {% if message.tags == 'success'%}
-                        <div role="alert" class="message p-5 rounded-lg border border-green-400 bg-green-300 text-green-900">
+                        <div role="alert" class="m-8 mt-0 message p-5 rounded-lg border border-green-400 bg-green-300 text-green-900">
                             <div class="divide-y-2 divide-solid divide-green-400">
                                 <h2 class="font-bold text-xl flex items-center pb-2">
                                         <span class="mr-2">
@@ -219,8 +219,8 @@
                 {% endfor %}
 
             </div>
-            <div class="m-4">
-                <div class="m-4 p-4 bg-white shadow rounded-lg">
+            <div class="m-8 mt-0">
+                <div class="p-4 bg-white shadow rounded-lg">
                     <table class="w-full table-auto text-center" id="availabilities_list_table">
                         <thead>
                         <tr class="border-b">
@@ -263,7 +263,7 @@
                                     {{ appointment.start_date|date:'l' }}
                                 </td>
                                 <td class="p-2 flex flex-wrap justify-center gap-2">
-                                    <button type="submit" value="{{ appointment.id }}" class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1" name="Book Appointment">
+                                    <button type="submit" value="{{ appointment.id }}" class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1" name="Book Appointment">
                                         <span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -277,7 +277,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="w-full mt-8 md:mt-0 md:-mx-4">
+                <div class="w-full my-8">
                     <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
                         <a href="{% url "appointments:index" %}">
                             <button type="button" class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">

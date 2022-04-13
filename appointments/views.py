@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.views.decorators.cache import never_cache
 
@@ -26,10 +27,10 @@ def index(request):
     doctor_booked_appointments_patient_name_dict = {}
 
     if not is_staff:
-        assigned_staff_id = get_assigned_staff_id_by_patient_id(request.user.id)
+        assigned_staff_id = request.user.patient.get_assigned_staff_user().id
         patient_booked_appointments = Appointment.objects.filter(patient=request.user.id, staff=assigned_staff_id).all()
     else:
-        signed_in_staff_id = Staff.objects.get(user_id=request.user.id).id
+        signed_in_staff_id = request.user.id
         doctor_booked_appointments = Appointment.objects.filter(patient__isnull=False, staff=signed_in_staff_id).all()
         for appointment in doctor_booked_appointments:
             doctor_booked_appointments_patient_name_dict[appointment] = get_users_names(appointment.patient.id)
@@ -83,8 +84,7 @@ def add_availabilities(request):
                 num_of_created_availabilities = 0
 
                 # Get staff id
-                # TODO This is a temporary fix to get the staff_id, NEEDS TO BE FIXED LATER
-                staff_id = Staff.objects.filter(user=request.user).first().id
+                staff_id = request.user.id
 
                 # Create availabilities starting at the start date until the end date
                 while date_current <= date_end:
@@ -128,8 +128,6 @@ def add_availabilities(request):
                                                        '%Y-%m-%d %H:%M') + ' and ' + end_datetime_object.strftime(
                                                        '%Y-%m-%d %H:%M') + '.')
                                     return redirect('appointments:add_availabilities')
-
-                            staff_id = Staff.objects.filter(user=request.user).first().id
 
                             # Create new Appointment object
                             apt = Appointment.objects.create(staff_id=staff_id, patient=None,
@@ -176,17 +174,23 @@ def book_appointments(request):
     :return: returns the specific template that is either rendered or redirected to based on the user input logic
     (either redirected to the "index.html" template page or rendered back to the default "book_appointments.html" template page)
     """
+    
+    if session_is_locked(request):
+        if request.user.is_staff:
+            messages.warning(request, 'A request to cancel appointments or delete availabilities is still being processed. Please try again in a few minutes.')
+        else:
+            messages.warning(request, 'A request to book or cancel appointments is still being processed. Please try again in a few minutes.')
+        return redirect('appointments:index')
 
-    staff_id = get_assigned_staff_id_by_patient_id(request.user.id)
-    staff_last_name = User.objects.get(id=Staff.objects.get(id=staff_id).user_id).last_name
+    staff = request.user.patient.get_assigned_staff_user()
+    staff_id = staff.id
+    staff_last_name = staff.last_name
 
     if request.method == 'POST' and request.POST.get('Book Appointment'):
         appointment_id = request.POST.get('Book Appointment')
 
         # books a single appointment by adding the patient's id to the appointment's patient_id column
-        t_booking = threading.Thread(target=book_appointments_util, args=[appointment_id, request.user])
-        t_booking.daemon = True
-        t_booking.start()
+        book_appointments_util(appointment_id, request.user)
 
         # success message to show to the user if the existing appointment was booked successfully
         messages.success(request, 'The appointment was booked successfully.')
@@ -196,13 +200,13 @@ def book_appointments(request):
         appointment_ids = request.POST.getlist('booking_ids[]')
 
         # books all selected appointments by adding the patient's id to the appointment's patient_id column
-        t_mass_booking = threading.Thread(target=mass_appointment_booking, args=[appointment_ids, request])
+        t_mass_booking = threading.Thread(target=mass_appointment_booking, args=[request, appointment_ids])
         t_mass_booking.daemon = True
         t_mass_booking.start()
 
         # success message to show user if multiple selected appointments were booked
         if len(appointment_ids) > 1:
-            messages.success(request, 'The selected appointments were booked successfully.')
+            messages.success(request, 'The request to book the selected appointments was sent successfully and all bookings should be done within a few seconds or minutes.')
             return redirect('appointments:index')
         
         # success message to show user if only one selected appointment was booked
@@ -228,16 +232,21 @@ def cancel_appointments_or_delete_availabilities(request):
     """
     if not request.user.has_perm("accounts.cancel_appointment") and not request.user.has_perm("accounts.remove_availability"):
         raise PermissionDenied
-
-    is_staff = get_is_staff(request.user.id)
+    
+    if session_is_locked(request):
+        if request.user.is_staff:
+            messages.warning(request, 'A request to cancel appointments or delete availabilities is still being processed. Please try again in a few minutes.')
+        else:
+            messages.warning(request, 'A request to book or cancel appointments is still being processed. Please try again in a few minutes.')
+        return redirect('appointments:index')
 
     if request.user.is_staff:
         staff_last_name = ''
-        logged_in_filter = Q(staff_id=request.user.staff.id)
+        logged_in_filter = Q(staff_id=request.user.id)
 
     else:
-        staff_id = get_assigned_staff_id_by_patient_id(request.user.id)
-        staff_last_name = User.objects.get(id=Staff.objects.get(id=staff_id).user_id).last_name
+        staff = request.user.patient.get_assigned_staff_user()
+        staff_last_name = staff.last_name
         logged_in_filter = Q(patient_id=request.user.id)
 
     if request.method == 'POST' and request.POST.get('Cancel Appointment'):
@@ -247,9 +256,7 @@ def cancel_appointments_or_delete_availabilities(request):
         booked_id = request.POST.get('Cancel Appointment')
 
         # cancels a single appointment by setting the patient's id in the appointment's patient_id column to "None"
-        t_cancelling = threading.Thread(target=cancel_appointments, args=[booked_id])
-        t_cancelling.daemon = True
-        t_cancelling.start()
+        cancel_appointments(booked_id)
 
         # success message to show to the user if the existing appointment was canceled successfully
         messages.success(request, 'The appointment was canceled successfully.')
@@ -275,13 +282,13 @@ def cancel_appointments_or_delete_availabilities(request):
         booked_ids = request.POST.getlist('booked_ids[]')
 
         # cancels all selected existing appointments by setting the patient's id in the appointment's patient_id column to "None"
-        t_mass_cancelling = threading.Thread(target=mass_appointment_cancelling, args=[booked_ids])
+        t_mass_cancelling = threading.Thread(target=mass_appointment_cancelling, args=[request, booked_ids])
         t_mass_cancelling.daemon = True
         t_mass_cancelling.start()
 
         # success message to show to the doctor/staff if multiple selected existing appointments were canceled successfully
         if len(booked_ids) > 1:
-            messages.success(request, 'The selected appointments were canceled successfully.')
+            messages.success(request, 'The request to cancel the selected appointments was sent successfully and all cancellations should be done within a few seconds or minutes.')
             return redirect('appointments:index')
         
         # success message to show to the doctor/staff if only one selected existing appointment was canceled successfully
@@ -296,12 +303,13 @@ def cancel_appointments_or_delete_availabilities(request):
         unbooked_ids = request.POST.getlist('booked_ids[]')
 
         # deletes all selected existing doctor availabilities by deleting the entire respective appointment object rows from the database
-        for unbooked_id in unbooked_ids:
-            delete_availabilities(unbooked_id)
+        t_mass_deleting = threading.Thread(target=mass_availability_deleting, args=[request, unbooked_ids])
+        t_mass_deleting.daemon = True
+        t_mass_deleting.start()
 
         # success message to show to the doctor/staff if multiple selected existing availabilities were deleted successfully
         if len(unbooked_ids) > 1:
-            messages.success(request, 'The selected availabilities were deleted successfully.')
+            messages.success(request, 'The request to delete the selected availabilities was sent successfully and all deletions should be done within a few seconds or minutes.')
             return redirect('appointments:index')
         
         # success message to show to the doctor/staff if only one selected existing availability was deleted successfully
@@ -311,16 +319,56 @@ def cancel_appointments_or_delete_availabilities(request):
 
     return render(request, 'appointments/cancel_appointments.html', {
         'appointments': Appointment.objects.filter(logged_in_filter).all(),
-        'is_staff': is_staff,
         'staff_last_name': staff_last_name
     })
 
 
-def mass_appointment_booking(appointment_ids, request):
+def mass_appointment_booking(request, appointment_ids):
+    lock_session(request)
+    
     for appointment_id in appointment_ids:
         book_appointments_util(appointment_id, request.user)
+        
+    unlock_session(request)
 
 
-def mass_appointment_cancelling(booked_ids):
+def mass_appointment_cancelling(request, booked_ids):
+    lock_session(request)
+    
     for booked_id in booked_ids:
         cancel_appointments(booked_id)
+        
+    unlock_session(request)
+
+
+def mass_availability_deleting(request, availability_ids):
+    lock_session(request)
+    
+    for availability_id in availability_ids:
+        delete_availabilities(availability_id)
+        
+    unlock_session(request)
+
+
+def lock_session(request):
+    request.session["appointment_request_in_progress"] = True
+    request.session.modified = True
+    request.session.save()
+
+
+def unlock_session(request):
+    del request.session["appointment_request_in_progress"]
+    request.session.modified = True
+    request.session.save()
+
+
+def session_is_locked(request):
+    return ("appointment_request_in_progress" in request.session
+            and request.session["appointment_request_in_progress"] == True)
+
+
+def check_session_is_locked(request):
+    locked = ("appointment_request_in_progress" in request.session
+            and request.session["appointment_request_in_progress"] == True)
+
+    return HttpResponse(locked)

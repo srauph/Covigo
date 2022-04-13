@@ -2,10 +2,28 @@
 
 {% block styles %}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.css">
+
+    <style>
+        .loader {
+            -webkit-animation: spinner 1.5s linear infinite;
+            animation: spinner 1.5s linear infinite;
+        }
+
+        @-webkit-keyframes spinner {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 {% endblock %}
 
 {% block script %}
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             var calendarEl = document.getElementById('fullcalendar');
@@ -38,13 +56,49 @@
             });
             calendar.render();
         });
+
+        let isProcessing;
+        async function checkIsProcessing() {
+            let result;
+            await $.ajax({
+                type: "GET",
+                url: "{% url "appointments:session_is_locked" %}",
+                success: function(data) {
+                    result = (data == "True");
+                }
+            });
+            return result;
+        }
+
+        async function setUp() {
+            isProcessing = await checkIsProcessing();
+            let processingMessage = $('#processing-message');
+            let actionButtons = $('.action-button');
+            let upcomingAppointments = $('#upcoming-appointments');
+
+            if (isProcessing) {
+                processingMessage.removeClass("hidden");
+                actionButtons.addClass("hidden");
+                upcomingAppointments.empty().append("<li>Waiting on request to complete...</li>");
+
+                window.setInterval(async function() {
+                    isProcessing = await checkIsProcessing();
+
+                    if (!isProcessing) {
+                        window.location.reload();
+                    }
+                }, 2000);
+            } else {
+                actionButtons.removeClass("hidden");
+            }
+        }
+        setUp();
+
     </script>
     <script>
         Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
             x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
-        }
-        )
-        );
+        }));
     </script>
 {% endblock %}
 
@@ -53,145 +107,191 @@
         <div class="flex justify-between bg-slate-700">
             <h1 class="text-2xl text-white font-semibold px-8 py-4">Appointments</h1>
         </div>
-        <div class="p-8 flex flex-wrap xl:flex-nowrap">
 
-            <div class="grow rounded rounded-lg bg-white shadow p-4 w-full xl:w-2/3">
-                <div id="fullcalendar" class="p-4"></div>
-            </div>
-
-            <div class="grow flex flex-col gap-4 items-center grow">
-                {% if messages %}
-                    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-                    <script>
-                        setTimeout(function() {
-                            $('.message').fadeOut('fast');
-                            }, 10000); // <-- time in milliseconds
-                    </script>
-                {% endif %}
-
-                {% for message in messages %}
-                    {% if message.tags == 'success'%}
-                        <div class="w-full px-8">
-                            <div role="alert" class="message p-5 rounded-lg border border-green-400 bg-green-300 text-green-900">
-                                <div class="divide-y-2 divide-solid divide-green-400">
-                                    <h2 class="font-bold text-xl flex items-center pb-2">
-                                        <span class="mr-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+        <div class="flex flex-col gap-8 m-8">
+            <div class="bg-white shadow rounded-xl">
+                <div class="w-full flex flex-wrap justify-end p-4 gap-2">
+                    <div class="flex gap-2 items-center text-sm">
+                        <span class="flex items-center gap-2 hidden" id="processing-message">
+                            {% if user.is_staff %}
+                                Your request to cancel appointments or delete availabilities is still being processed...
+                            {% else %}
+                                Your request to book or cancel appointments is still being processed...
+                            {% endif %}
+                            <span class="border-slate-200 border-t-blue-400 loader ease-linear rounded-full border-4 border-t-4 h-6 w-6"></span>
+                        </span>
+                        {# only display the "Book an appointment" and "Cancel an appointment" buttons to patient as staff can't book appointments #}
+                        {% if not is_staff %}
+                            <div class="action-button hidden">
+                                <a href="{% url 'appointments:book_appointments' %}">
+                                    <button type="button"
+                                            class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                                        <span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                 viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                             </svg>
                                         </span>
-                                        Success!
-                                        <div class="text-xl flex align-center w-full justify-end">
-                                            <strong class="alert-del cursor-pointer">
-                                                &times;
-                                            </strong>
-                                        </div>
-                                    </h2>
-                                    <p class="pt-2">
-                                        {{ message }}
-                                    </p>
-                                </div>
+                                        <span>Book an appointment</span>
+                                    </button>
+                                </a>
                             </div>
-                        </div>
-                    {% endif %}
-                {% endfor %}
-
-                {# only display the "Add availabilities" button to staff #}
-                {% if is_staff %}
-                    <div class="w-full px-8">
-                        <a href="{% url 'appointments:add_availabilities' %}">
-                            <button type="button"
-                                    class="w-full justify-center bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
-                                <span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                         viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                </span>
-                                <span>Add availabilities</span>
-                            </button>
-                        </a>
-                    </div>
-                {% endif %}
-
-                {# only display the "Book an appointment" and "Cancel an appointment" buttons to patient as staff can't book appointments #}
-                {% if not is_staff %}
-                    <div class="w-full px-8">
-                        <a href="{% url 'appointments:book_appointments' %}">
-                            <button type="button"
-                                    class="w-full justify-center bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
-                                <span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                         viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                </span>
-                                <span>Book an appointment</span>
-                            </button>
-                        </a>
-                    </div>
-                    {% if perms.accounts.cancel_appointment %}
-                        <div class="w-full px-8">
-                            <a href="{%  url 'appointments:cancel_appointments_or_delete_availabilities' %}">
-                                <button type="button"
-                                        class="w-full justify-center bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
-                                <span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                                         stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                </span>
-                                    <span>Cancel an appointment</span>
-                                </button>
-                            </a>
-                        </div>
-                    {% endif %}
-                {% else %}
-                    {% if perms.accounts.cancel_appointment or perms.accounts.remove_availability %}
-                        <div class="w-full px-8">
-                            <a href="{%  url 'appointments:cancel_appointments_or_delete_availabilities' %}">
-                                <button type="button"
-                                        class="w-full justify-center bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
-                                <span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                                         stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                </span>
-                                    <span>Cancel an appointment or delete an availability</span>
-                                </button>
-                            </a>
-                        </div>
-                    {% endif %}
-                {% endif %}
-
-                <div class="grow block mx-4 p-8 rounded rounded-lg bg-white shadow text-center text-lg font-semibold">
-                    <h3>Upcoming Appointments</h3>
-                    <hr class="my-2 border-slate-400">
-                    <div class="text-left text-lg font-normal xl:w-96">
-                        <ul class="px-1 list-disc">
-                            {% if not is_staff %}
-                                {% for appointment in patient_booked_appointments %}
-                                    <li>
-                                        {{ appointment.start_date }}
-                                    </li>
-                                {% endfor %}
-                            {% else %}
-                                {% for key, value in doctor_booked_appointments_patient_name_dict.items %}
-                                    <li>
-                                        {{ key.start_date }} with {{ value }}
-                                    </li>
-                                {% endfor %}
+                            {% if perms.accounts.cancel_appointment %}
+                                <div class="action-button hidden">
+                                    <a href="{%  url 'appointments:cancel_appointments_or_delete_availabilities' %}">
+                                        <button type="button"
+                                                class="bg-red-600 hover:bg-red-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                                        <span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                                 stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                        </span>
+                                            <span>Cancel an appointment</span>
+                                        </button>
+                                    </a>
+                                </div>
                             {% endif %}
-                        </ul>
+                        {% else %}
+                            {% if perms.accounts.cancel_appointment or perms.accounts.remove_availability %}
+                                <div class="action-button hidden">
+                                    <a href="{%  url 'appointments:cancel_appointments_or_delete_availabilities' %}">
+                                        <button type="button"
+                                                class="bg-red-600 hover:bg-red-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                                        <span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                                 stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                        </span>
+                                            <span>Cancel an appointment or delete an availability</span>
+                                        </button>
+                                    </a>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+
+
+                    <div class="flex flex-auto justify-end gap-2">
+                        {# only display the "Add availabilities" button to staff #}
+                        {% if is_staff %}
+                            <div>
+                                <a href="{% url 'appointments:add_availabilities' %}">
+                                    <button type="button"
+                                            class="bg-green-600 hover:bg-green-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                                        <span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                                 stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                      d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </span>
+                                        <span>Add availabilities</span>
+                                    </button>
+                                </a>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
+            </div>
 
+            {% if messages %}
+                <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+                <script>
+                    setTimeout(function() {
+                        $('.message').fadeOut('fast');
+                        }, 10000); // <-- time in milliseconds
+                </script>
+            {% endif %}
 
+            {% for message in messages %}
+                {% if message.tags == 'success'%}
+                    <div class="w-full">
+                        <div role="alert" class="message p-5 rounded-lg border border-green-400 bg-green-300 text-green-900">
+                            <div class="divide-y-2 divide-solid divide-green-400">
+                                <h2 class="font-bold text-xl flex items-center pb-2">
+                                    <span class="mr-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                                        </svg>
+                                    </span>
+                                    Success!
+                                    <div class="text-xl flex align-center w-full justify-end">
+                                        <strong class="alert-del cursor-pointer">
+                                            &times;
+                                        </strong>
+                                    </div>
+                                </h2>
+                                <p class="pt-2">
+                                    {{ message }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                {% elif message.tags == 'warning' %}
+                    <div class="w-full">
+                        <div role="alert" class="message p-5 rounded-lg border border-yellow-400 bg-yellow-300 text-yellow-900">
+                            <div class="divide-y-2 divide-solid divide-yellow-400">
+                                <h2 class="font-bold text-xl flex items-center pb-2">
+                                    <span class="mr-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                             stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </span>
+                                    Warning!
+                                    <div class="text-xl flex align-center w-full justify-end">
+                                        <strong class="alert-del cursor-pointer">
+                                            &times;
+                                        </strong>
+                                    </div>
+                                </h2>
+                                <p class="pt-2">
+                                    {{ message }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+            <div class="flex flex-wrap gap-8 xl:gap-0 xl:flex-nowrap">
+
+                <div class="grow rounded rounded-lg bg-white shadow p-4 w-full xl:w-2/3">
+                    <div id="fullcalendar" class="p-4"></div>
+                </div>
+
+                <div class="grow xl:grow-0 xl:p-0 xl:pl-4 flex flex-col gap-4 items-center grow">
+                    <div class="grow block p-8 rounded rounded-lg bg-white shadow text-center text-lg font-semibold">
+                        <h3>Upcoming Appointments</h3>
+                        <hr class="my-2 border-slate-400">
+                        <div class="text-left text-lg font-normal xl:w-96">
+                            <ul class="px-1 list-disc" id="upcoming-appointments">
+                                {% if not is_staff %}
+                                    {% for appointment in patient_booked_appointments %}
+                                        <li>
+                                            {{ appointment.start_date }}
+                                        </li>
+                                    {% endfor %}
+                                {% else %}
+                                    {% for key, value in doctor_booked_appointments_patient_name_dict.items %}
+                                        <li>
+                                            {{ key.start_date }} with {{ value }}
+                                        </li>
+                                    {% endfor %}
+                                {% endif %}
+                            {% if not patient_booked_appointments and not doctor_booked_appointments_patient_name_dict.items %}
+                                <li>No upcoming appointments.</li>
+                            {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

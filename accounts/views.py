@@ -10,7 +10,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView, PasswordChangeView, LoginView
 from django.core.exceptions import MultipleObjectsReturned, PermissionDenied
 from django.db.models import Q
-from django.http import JsonResponse, HttpResponse, HttpResponseRedirect, Http404
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy, reverse
 from django.utils.decorators import method_decorator
@@ -18,7 +18,6 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 
-from Covigo.default_permissions import DEFAULT_PERMISSIONS
 from Covigo.messages import Messages
 from Covigo.settings import HOST_NAME
 from accounts.forms import *
@@ -29,7 +28,6 @@ from accounts.utils import (
     dictfetchall,
     get_allowable_patient_permissions,
     get_allowable_staff_permissions,
-    get_assigned_staff_id_by_patient_id,
     get_flag,
     get_or_generate_patient_profile_qr,
     get_profile_permissions,
@@ -38,7 +36,6 @@ from accounts.utils import (
     send_system_message_to_user, get_group_type,
 )
 from appointments.models import Appointment
-from appointments.utils import rebook_appointment_with_new_doctor
 from geopy import distance
 from symptoms.utils import is_symptom_editing_allowed
 
@@ -361,11 +358,6 @@ def profile(request, user_id):
 
         appointments = Appointment.objects.filter(patient=user).filter(all_filter).order_by("start_date")
         appointments_truncated = appointments[:4]
-        # Hotfix for accessing the doctor's first and last name in template
-        for appt in appointments_truncated:
-            doctor_user_id = Staff.objects.filter(id=appt.staff_id).first().user_id
-            doctor_user = User.objects.filter(id=doctor_user_id).first()
-            appt.staff = doctor_user
         try:
             assigned_staff_patient_count = user.patient.assigned_staff.get_assigned_patient_users().count()
         except AttributeError:

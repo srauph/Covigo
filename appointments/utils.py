@@ -17,10 +17,11 @@ def cancel_appointments(appointment_id):
 
     booked = Appointment.objects.get(id=appointment_id)
     patient_user = booked.patient
-    doctor = patient_user.patient.get_assigned_staff_user()
+    doctor_user = booked.staff
     template = Messages.APPOINTMENT_CANCELLED.value
     booked.patient = None
     booked.save()
+
     c_doctor = {
         "other_person": patient_user,
         "is_doctor": True,
@@ -28,24 +29,20 @@ def cancel_appointments(appointment_id):
         "time": str(booked.start_date.time())
     }
     c_patient = {
-        "other_person": doctor,
+        "other_person": doctor_user,
         "is_doctor": False,
         "date": str(booked.start_date.date()),
         "time": str(booked.start_date.time())
     }
     send_system_message_to_user(patient_user, template=template, c=c_patient)
-    send_system_message_to_user(doctor, template=template, c=c_doctor)
+    send_system_message_to_user(doctor_user, template=template, c=c_doctor)
 
     # SEND NOTIFICATION TO DOCTOR AND PATIENT
-    staff_id = get_assigned_staff_id_by_patient_id(patient_user.id)
-    doctor_id = Staff.objects.filter(id=staff_id).first().user_id
-    # Create href for notification redirection
-    href = reverse('status:patient_reports')
     app_name = 'appointments'
-    send_notification(patient_user.id, doctor_id,
+    send_notification(patient_user.id, doctor_user.id,
                       "The appointment on " + booked.start_date.strftime("%B %d, %Y, at %I:%M %p") + " has been cancelled",
                       app_name=app_name)
-    send_notification(doctor_id, patient_user.id,
+    send_notification(doctor_user.id, patient_user.id,
                       "The appointment on " + booked.start_date.strftime("%B %d, %Y, at %I:%M %p") + " has been cancelled",
                       app_name=app_name)
 
@@ -76,6 +73,7 @@ def book_appointments(appointment_id, user):
     doctor = user.patient.get_assigned_staff_user()
     template = Messages.APPOINTMENT_BOOKED.value
     appointment.save()
+
     c_doctor = {
         "other_person": user,
         "is_doctor": True,
@@ -92,16 +90,12 @@ def book_appointments(appointment_id, user):
     send_system_message_to_user(doctor, template=template, c=c_doctor)
 
     # SEND NOTIFICATION TO DOCTOR
-    staff_id = get_assigned_staff_id_by_patient_id(user.id)
-    doctor_id = Staff.objects.filter(id=staff_id).first().user_id
-    # Create href for notification redirection
-    href = reverse('status:patient_reports')
     app_name = 'appointments'
-    send_notification(user.id, doctor_id,
+    send_notification(user.id, doctor.id,
                       user.first_name + " " + user.last_name + " has booked an appointment with you on " + appointment.start_date.strftime(
                           "%B %d, %Y, at %I:%M %p"),
                       app_name=app_name)
-    send_notification(doctor_id, user.id,
+    send_notification(doctor.id, user.id,
                       f"You have successfully booked an appointment with your doctor {doctor.first_name} {doctor.last_name}on " + appointment.start_date.strftime(
                           "%B %d, %Y, at %I:%M %p"),
                       app_name=app_name)
