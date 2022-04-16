@@ -61,6 +61,26 @@ def index(request):
     })
 
 
+def view_appointments(request, user_id):
+    user = User.objects.get(id=user_id)
+
+    perms_view_appointments = (
+        user == request.user
+        or request.user.has_perm("accounts.view_user_appointment")
+        or request.user.has_perm("accounts.view_patient_appointment") and not user.is_staff
+        or request.user.has_perm("accounts.is_doctor") and user in request.user.staff.get_assigned_patient_users()
+    )
+
+    if not perms_view_appointments:
+        raise PermissionDenied
+
+    return render(request, 'appointments/book_or_cancel_appointments.html', {
+        "name": f"{user.first_name} {user.last_name}",
+        "mode": "View",
+        "usr": user,
+    })
+
+
 @login_required
 @never_cache
 def add_availabilities(request):
@@ -231,7 +251,7 @@ def book_appointments(request):
             return redirect('appointments:index')
 
     return render(request, 'appointments/book_or_cancel_appointments.html', {
-        'staff_last_name': staff_last_name,
+        'name': f"Dr. {staff_last_name}",
         'mode': "Book",
     })
 
@@ -327,12 +347,12 @@ def cancel_appointments_or_delete_availabilities(request):
             return redirect('appointments:index')
 
     return render(request, 'appointments/book_or_cancel_appointments.html', {
-        'staff_last_name': staff_last_name,
+        'name': f"Dr. {staff_last_name}",
         'mode': "Cancel",
     })
 
 
-def current_appointments_table(request, mode=None):
+def current_appointments_table(request, mode=None, user_id=None):
     if mode == "Book":
         staff = request.user.patient.get_assigned_staff_user()
         appointments = Appointment.objects.filter(patient=None, staff=staff).all()
@@ -341,6 +361,24 @@ def current_appointments_table(request, mode=None):
         logged_in_filter = Q(staff_id=request.user.id) if request.user.is_staff else Q(patient_id=request.user.id)
         appointments = Appointment.objects.filter(logged_in_filter).all()
 
+    elif mode == "View":
+        user = User.objects.get(id=user_id)
+        perms_view_appointments = (
+            user == request.user
+            or request.user.has_perm("accounts.view_user_appointment")
+            or request.user.has_perm("accounts.view_patient_appointment") and not user.is_staff
+            or request.user.has_perm("accounts.is_doctor") and user in request.user.staff.get_assigned_patient_users()
+        )
+
+        if not perms_view_appointments:
+            raise PermissionDenied
+
+        if user.is_staff:
+            appointments_filter = Q(staff=user) & Q(patient__isnull=False)
+            appointments = Appointment.objects.filter(appointments_filter).all()
+        else:
+            appointments = Appointment.objects.filter(patient=user).all()
+
     else:
         raise Http404
 
@@ -348,7 +386,11 @@ def current_appointments_table(request, mode=None):
 
     appointments_table = []
     for apt, time in zip(appointments, times):
-        other_person = apt.patient if request.user.is_staff else apt.staff
+        if not mode == "View":
+            other_person = apt.patient if request.user.is_staff else apt.staff
+        else:
+            other_person = apt.patient if user.is_staff else apt.staff
+
         if other_person:
             with_name = f"{other_person.first_name} {other_person.last_name}"
         else:

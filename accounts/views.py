@@ -343,12 +343,10 @@ def profile(request, user_id):
     )
 
     perms_view_appointments = (
-            not user.is_superuser and (
             user == request.user
             or request.user.has_perm("accounts.view_user_appointment")
             or request.user.has_perm("accounts.view_patient_appointment") and not user.is_staff
             or request.user.has_perm("accounts.is_doctor") and user in request.user.staff.get_assigned_patient_users()
-    )
     )
 
     # If profile belongs to a patient
@@ -465,8 +463,7 @@ def profile(request, user_id):
     # If profile belongs to a staff member
     else:
         if not user.is_superuser:
-            doctor_id = Staff.objects.filter(user_id=user.id).first().id
-            appointments = Appointment.objects.filter(staff_id=doctor_id).filter(all_filter).order_by("start_date")
+            appointments = Appointment.objects.filter(staff=user).filter(all_filter).order_by("start_date")
             appointments_truncated = appointments[:4]
         else:
             appointments = []

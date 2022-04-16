@@ -34,7 +34,7 @@
         </div>
     {% endif %}
 
-    <div class="w-full flex flex-wrap gap-2 justify-between items-center pt-4">
+    <div class="w-full flex flex-wrap gap-2 justify-center md:justify-between items-center pt-4">
         <div class="flex flex-col items-start">
             <span class="text-gray-900 font-bold text-xl">{{ assigned_staff.first_name }} {{ assigned_staff.last_name }}</span>
             {% if perms.accounts.view_assigned_patients %}

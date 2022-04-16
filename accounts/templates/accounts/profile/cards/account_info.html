@@ -13,7 +13,7 @@
             <span class="inline tracking-wide">About</span>
         </div>
 
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2">
             {% if perms_test_report %}
                 <a href= "{% url 'status:test_results' usr.id %}">
                     <button type="button"

@@ -18,8 +18,7 @@
             src="https://cdn.datatables.net/rowreorder/1.2.8/js/dataTables.rowReorder.min.js"></script>
     <script type="text/javascript"
             src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
-    <script type="text/javascript" charset="utf8"
-            src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.2/moment.min.js"></script>
     <script type="text/javascript" charset="utf8"
             src="https://cdn.datatables.net/datetime/1.1.2/js/dataTables.dateTime.min.js"></script>
     <script>
@@ -27,16 +26,12 @@
         let maxDate;
         let table;
 
-        minDate = new DateTime($('#min'), {
-            format: 'MMMM Do YYYY'
-        });
-
-        maxDate = new DateTime($('#max'), {
-            format: 'MMMM Do YYYY'
-        });
-
         table = $('#appointments_table').DataTable({
-            "ajax": "{% url 'appointments:current_appointments_table' mode %}",
+            {% if usr.id %}
+                "ajax": "{% url 'appointments:current_appointments_table' mode usr.id %}",
+            {% else %}
+                "ajax": "{% url 'appointments:current_appointments_table' mode %}",
+            {% endif %}
             "type": "POST",
             language: {
                 {% if mode == "Cancel" %}
@@ -75,7 +70,7 @@
                 },
                 { // id
                     "targets": [1],
-                    "visible": true,
+                    "visible": {% if mode == "View" %} false {% else %} true {% endif %},
                     "searchable": false,
                     "sortable": false,
                     "className": 'w-0',
@@ -116,7 +111,7 @@
                 },
                 { // Action
                     "targets": [7],
-                    "visible": true,
+                    "visible": {% if mode == "View" %} false {% else %} true {% endif %},
                     "searchable": false,
                     "sortable": false,
                     "className": 'w-0 dt-body-center',
@@ -152,7 +147,7 @@
 
                         let cancelAppointmentPerm;
                         let deleteAvailabilityPerm;
-                        let bookingMode;
+                        let mode = "{{ mode }}";
 
                         {% if perms.accounts.cancel_appointment %}
                             cancelAppointmentPerm = true;
@@ -166,15 +161,9 @@
                             deleteAvailabilityPerm = false;
                         {% endif %}
 
-                        {% if mode == "Book" %}
-                            bookingMode = true;
-                        {% else %}
-                            bookingMode = false;
-                        {% endif %}
-
-                        if (bookingMode) {
+                        if (mode == "Book") {
                             return bookButton;
-                        } else {
+                        } else if (mode == "Cancel") {
                             if (row.with && cancelAppointmentPerm) {
                                 if (deleteAvailabilityPerm) {
                                     return `<span class="flex justify-center flex-wrap xl:flex-nowrap gap-2">${cancelButton} ${cancelDeleteButton}</span>`;
@@ -188,18 +177,18 @@
                     }
                 }
             ],
-            order: [[2, 'asc'], [3, 'asc']]
+            order: [[3, 'asc'], [4, 'asc']]
         });
 
         let selected_weekdays = [];
 
         function filterByWeekday(table, weekdays) {
             if (weekdays !== '') {
-                table.column(1).search('^' + weekdays + '$', true, false).draw();
+                table.column(2).search('^' + weekdays + '$', true, false).draw();
             }
 
             else {
-                table.column(1).search("").draw();
+                table.column(2).search("").draw();
             }
         }
 
@@ -213,17 +202,17 @@
             let book_button = $('#book_selected');
             let cancel_button = $('#cancel_selected');
             let delete_button = $('#delete_selected');
-            let booking = {% if mode == "Book" %} true {% else %} false {% endif %};
+            let mode = "{{ mode }}";
             let checked = $("#appointments_table input:checkbox:checked");
 
             let unbooked = checked.hasClass('unbooked');
             let booked = checked.hasClass('booked');
 
             if (checked.length > 0) {
-                if (booking) {
+                if (mode == "Book") {
                     book_button.removeClass('hidden');
 
-                } else {
+                } else if (mode == "Cancel") {
                     if (booked) {
                         $('#cancel_delete_button_text').removeClass('hidden');
                         cancel_button.removeClass('hidden');
@@ -271,20 +260,22 @@
 
         $.fn.dataTable.ext.search.push(
             function (settings, data, dataIndex) {
-                let min = minDate.val();
-                let max = maxDate.val();
-                let date = new Date(data[2]);
+                let min = $('#min').val();
+                let max = $('#max').val();
+                let date = moment(data[3]).toDate();
 
+                min = min === "" ? null : moment(min).toDate();
+                max = max === "" ? null : moment(max).toDate();
                 let minCheck;
                 let maxCheck;
 
-                if (min === null) {
+                if (min == null) {
                     minCheck = true;
                 } else {
                     minCheck = compareDates(min, date)
                 }
 
-                if (max === null) {
+                if (max == null) {
                     maxCheck = true;
                 } else {
                     maxCheck = compareDates(date, max)
@@ -317,13 +308,13 @@
 {% block content %}
     <div class="min-h-full bg-slate-100">
         <div class="flex justify-center md:justify-between gap-2 bg-slate-700">
-            <h1 class="text-2xl text-white font-semibold px-8 py-4">Available Appointments with Dr. {{ staff_last_name }}</h1>
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">Available Appointments with {{ name }}</h1>
         </div>
         <div class="bg-white shadow m-8 rounded-xl">
             <div class="w-full flex flex-wrap justify-center md:justify-between gap-y-4 items-center p-4">
                 <div class="flex items-center">
                     <span class="font-semibold pr-2">
-                        Select one or any:
+                        Filter by days:
                     </span>
                     <button class="weekday-filter bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none border-r border-white" value="Sunday">
                         <span class="hidden 2xl:block">Sunday</span>
@@ -361,16 +352,16 @@
                         <span class="sm:hidden">S</span>
                     </button>
                 </div>
-                <div class="w-full md:w-auto flex flex-wrap justify-center md:justify-start items-center gap-x-2 gap-y-1">
-                    <span class="font-semibold">Filter with date:</span>
-                    <div class="w-full md:w-auto flex flex-wrap justify-center md:justify-start gap-2">
-                        <div class="w-full md:w-48 flex gap-1 justify-center items-center">
+                <div class="flex flex-wrap xl:flex-nowrap justify-center md:justify-start items-center gap-x-2 gap-y-1">
+                    <span class="whitespace-nowrap font-semibold">Filter by date:</span>
+                    <div class="w-full flex flex-wrap justify-center md:justify-start gap-2">
+                        <div class="flex gap-1 justify-center items-center">
                             <span>From:</span>
-                            <input type="text" class="w-full bg-slate-100 rounded-md border border-slate-400 px-2 py-1" id="min">
+                            <input type="date" class="bg-slate-100 rounded-md border border-slate-400 px-2 py-1" id="min">
                         </div>
-                        <div class="w-full md:w-48 flex gap-1 justify-center items-center">
+                        <div class="flex gap-1 justify-center items-center">
                             <span>To:</span>
-                            <input type="text" class="w-full bg-slate-100 rounded-md border border-slate-400 px-2 py-1" id="max">
+                            <input type="date" class="bg-slate-100 rounded-md border border-slate-400 px-2 py-1" id="max">
                         </div>
                     </div>
                 </div>
@@ -480,15 +471,19 @@
                 </div>
                 <div class="w-full my-8">
                     <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
-                        <a href="{% url "appointments:index" %}">
-                            <button type="button" class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                        {% if mode == "View" %}
+                            <a href="{% url "accounts:profile" usr.id %}">
+                        {% else %}
+                            <a href="{% url "appointments:index" %}">
+                        {% endif %}
+                            <button type="button" class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
                                 <span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z"></path>
                                     </svg>
                                 </span>
                                 <span>
-                                    Cancel
+                                    Return
                                 </span>
                             </button>
                         </a>
