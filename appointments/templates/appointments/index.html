@@ -108,7 +108,7 @@
             <h1 class="text-2xl text-white font-semibold px-8 py-4">Appointments</h1>
         </div>
 
-        <div class="flex flex-col gap-8 m-8">
+        <div class="flex flex-col m-8">
             <div class="bg-white shadow rounded-xl">
                 <div class="w-full flex flex-wrap justify-end p-4 gap-2">
                     <div class="flex gap-2 items-center text-sm">
@@ -210,7 +210,7 @@
 
             {% for message in messages %}
                 {% if message.tags == 'success'%}
-                    <div class="w-full">
+                    <div class="w-full mt-8">
                         <div role="alert" class="message p-5 rounded-lg border border-green-400 bg-green-300 text-green-900">
                             <div class="divide-y-2 divide-solid divide-green-400">
                                 <h2 class="font-bold text-xl flex items-center pb-2">
@@ -233,7 +233,7 @@
                         </div>
                     </div>
                 {% elif message.tags == 'warning' %}
-                    <div class="w-full">
+                    <div class="w-full mt-8">
                         <div role="alert" class="message p-5 rounded-lg border border-yellow-400 bg-yellow-300 text-yellow-900">
                             <div class="divide-y-2 divide-solid divide-yellow-400">
                                 <h2 class="font-bold text-xl flex items-center pb-2">
@@ -257,10 +257,34 @@
                             </div>
                         </div>
                     </div>
+                {% else %}
+                    <div class="w-full mt-8">
+                        <div role="alert" class="message p-5 rounded-lg border border-red-400 bg-red-300 text-red-900">
+                            <div class="divide-y-2 divide-solid divide-red-400">
+                                <h2 class="font-bold text-xl flex items-center pb-2">
+                                    <span class="mr-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </span>
+                                    Error!
+                                    <div class="text-xl flex align-center w-full justify-end">
+                                        <strong class="alert-del cursor-pointer">
+                                            &times;
+                                        </strong>
+                                    </div>
+                                </h2>
+                                <p class="pt-2">
+                                    {{ message }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 {% endif %}
+
             {% endfor %}
 
-            <div class="flex flex-wrap gap-8 xl:gap-0 xl:flex-nowrap">
+            <div class="flex flex-wrap gap-8 xl:gap-0 xl:flex-nowrap mt-8">
 
                 <div class="grow rounded rounded-lg bg-white shadow p-4 w-full xl:w-2/3">
                     <div id="fullcalendar" class="p-4"></div>

@@ -188,7 +188,6 @@
                             });
 
                         column.data().unique().sort().each(function (d, j) {
-                            console.log(d);
                             let status = (d ? "Read" : "Unread");
                             select.append(`<option value="${status}">${status} Messages</option>`);
                         });

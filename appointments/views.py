@@ -1,12 +1,13 @@
 import json
 import threading
+import time
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
 from django.views.decorators.cache import never_cache
 
@@ -14,10 +15,18 @@ from accounts.models import Staff
 from accounts.utils import get_assigned_staff_id_by_patient_id, get_users_names, get_is_staff
 from appointments.forms import AvailabilityForm
 from appointments.models import Appointment
-from appointments.utils import cancel_appointments, delete_availabilities, book_appointments as book_appointments_util, \
-    format_appointments_start_end_times
+from appointments.utils import (
+    book_appointment,
+    cancel_appointment,
+    delete_availability,
+    format_appointments_start_end_times,
+)
 
 from datetime import datetime, timedelta
+
+t_mass_booking: threading
+t_mass_cancelling: threading
+t_mass_deleting: threading
 
 
 @login_required
@@ -26,6 +35,15 @@ def index(request):
     is_staff = get_is_staff(request.user.id)
     patient_booked_appointments = []
     doctor_booked_appointments_patient_name_dict = {}
+
+    if "appointment_job_messages" in request.session:
+        msg = request.session.pop("appointment_job_messages")
+        if msg[0] == "success":
+            messages.success(request, msg[1])
+        elif msg[0] == "warning":
+            messages.warning(request, msg[1])
+        elif msg[0] == "error":
+            messages.error(request, msg[1])
 
     if not is_staff:
         assigned_staff_id = request.user.patient.get_assigned_staff_user().id
@@ -170,10 +188,10 @@ def add_availabilities(request):
 def book_appointments(request):
     """
     this function handles the booking of one or multiple appointments at the same time in one template page
-    ("book_appointments.html") and makes sure that the proper success messages are displayed
-    :param request: the type of request that is processed in the "book_appointments.html" template page
+    ("book_or_cancel_appointments.html") and makes sure that the proper success messages are displayed
+    :param request: the type of request that is processed in the "book_or_cancel_appointments.html" template page
     :return: returns the specific template that is either rendered or redirected to based on the user input logic
-    (either redirected to the "index.html" template page or rendered back to the default "book_appointments.html" template page)
+    (either redirected to the "index.html" template page or rendered back to the default "book_or_cancel_appointments.html" template page)
     """
     
     if session_is_locked(request):
@@ -184,21 +202,19 @@ def book_appointments(request):
         return redirect('appointments:index')
 
     staff = request.user.patient.get_assigned_staff_user()
-    staff_id = staff.id
     staff_last_name = staff.last_name
 
-    if request.method == 'POST' and request.POST.get('Book Appointment'):
-        appointment_id = request.POST.get('Book Appointment')
+    if request.method == 'POST' and request.POST.get('book_appt'):
+        appointment_id = request.POST.get('book_appt')
 
         # books a single appointment by adding the patient's id to the appointment's patient_id column
-        book_appointments_util(appointment_id, request.user)
+        book_appointment(request, appointment_id, request.user, True)
 
-        # success message to show to the user if the existing appointment was booked successfully
-        messages.success(request, 'The appointment was booked successfully.')
+        # message to show to the user if the existing appointment was booked successfully handled in util
         return redirect('appointments:book_appointments')
 
-    if request.method == 'POST' and request.POST.get('Book Selected Appointments'):
-        appointment_ids = request.POST.getlist('booking_ids[]')
+    if request.method == 'POST' and request.POST.get('book_selected'):
+        appointment_ids = request.POST.getlist('selected_ids[]')
 
         # books all selected appointments by adding the patient's id to the appointment's patient_id column
         t_mass_booking = threading.Thread(target=mass_appointment_booking, args=[request, appointment_ids])
@@ -210,16 +226,13 @@ def book_appointments(request):
             messages.success(request, 'The request to book the selected appointments was sent successfully and all bookings should be done within a few seconds or minutes.')
             return redirect('appointments:index')
         
-        # success message to show user if only one selected appointment was booked
+        # message to show user if only one selected appointment was booked taken care of in util function
         else:
-            messages.success(request, 'The selected appointment was booked successfully.')
             return redirect('appointments:index')
 
-    appointments = Appointment.objects.filter(patient=None, staff=staff_id).all()
-
-    return render(request, 'appointments/book_appointments.html', {
-        'appointments': format_appointments_start_end_times(appointments),
-        'staff_last_name': staff_last_name
+    return render(request, 'appointments/book_or_cancel_appointments.html', {
+        'staff_last_name': staff_last_name,
+        'mode': "Book",
     })
 
 
@@ -245,44 +258,39 @@ def cancel_appointments_or_delete_availabilities(request):
 
     if request.user.is_staff:
         staff_last_name = ''
-        logged_in_filter = Q(staff_id=request.user.id)
-
     else:
         staff = request.user.patient.get_assigned_staff_user()
         staff_last_name = staff.last_name
-        logged_in_filter = Q(patient_id=request.user.id)
 
-    if request.method == 'POST' and request.POST.get('Cancel Appointment'):
+    if request.method == 'POST' and request.POST.get('cancel_appt'):
         if not request.user.has_perm("accounts.cancel_appointment"):
             raise PermissionDenied
 
-        booked_id = request.POST.get('Cancel Appointment')
+        booked_id = request.POST.get('cancel_appt')
 
         # cancels a single appointment by setting the patient's id in the appointment's patient_id column to "None"
-        cancel_appointments(booked_id)
+        cancel_appointment(request, booked_id, True)
 
-        # success message to show to the user if the existing appointment was canceled successfully
-        messages.success(request, 'The appointment was canceled successfully.')
+        # message to show to the user if the existing appointment was canceled successfully handled in util
         return redirect('appointments:cancel_appointments_or_delete_availabilities')
 
-    if request.method == 'POST' and request.POST.get('Delete Availability'):
+    if request.method == 'POST' and request.POST.get('delete_avail'):
         if not request.user.has_perm("accounts.remove_availability"):
             raise PermissionDenied
 
-        unbooked_id = request.POST.get('Delete Availability')
+        unbooked_id = request.POST.get('delete_avail')
 
         # deletes a single existing doctor availability by deleting the entire appointment object row from the database
-        delete_availabilities(unbooked_id)
+        delete_availability(request, unbooked_id, True)
 
-        # success message to show to the doctor/staff if the existing availability was deleted successfully
-        messages.success(request, 'The availability was deleted successfully.')
+        # message to show to the doctor/staff if the existing availability was deleted successfully handled in util
         return redirect('appointments:cancel_appointments_or_delete_availabilities')
 
-    if request.method == 'POST' and request.POST.get('Cancel Selected Appointments'):
+    if request.method == 'POST' and request.POST.get('cancel_selected'):
         if not request.user.has_perm("accounts.cancel_appointment"):
             raise PermissionDenied
 
-        booked_ids = request.POST.getlist('booked_ids[]')
+        booked_ids = request.POST.getlist('selected_ids[]')
 
         # cancels all selected existing appointments by setting the patient's id in the appointment's patient_id column to "None"
         t_mass_cancelling = threading.Thread(target=mass_appointment_cancelling, args=[request, booked_ids])
@@ -294,16 +302,15 @@ def cancel_appointments_or_delete_availabilities(request):
             messages.success(request, 'The request to cancel the selected appointments was sent successfully and all cancellations should be done within a few seconds or minutes.')
             return redirect('appointments:index')
         
-        # success message to show to the doctor/staff if only one selected existing appointment was canceled successfully
+        # message to show to the doctor/staff if only one selected existing appointment was canceled successfully handled in util
         else:
-            messages.success(request, 'The selected appointment was canceled successfully.')
             return redirect('appointments:index')
 
-    if request.method == 'POST' and request.POST.get('Delete Selected Availabilities'):
+    if request.method == 'POST' and request.POST.get('delete_selected'):
         if not request.user.has_perm("accounts.remove_availability"):
             raise PermissionDenied
 
-        unbooked_ids = request.POST.getlist('booked_ids[]')
+        unbooked_ids = request.POST.getlist('selected_ids[]')
 
         # deletes all selected existing doctor availabilities by deleting the entire respective appointment object rows from the database
         t_mass_deleting = threading.Thread(target=mass_availability_deleting, args=[request, unbooked_ids])
@@ -315,44 +322,156 @@ def cancel_appointments_or_delete_availabilities(request):
             messages.success(request, 'The request to delete the selected availabilities was sent successfully and all deletions should be done within a few seconds or minutes.')
             return redirect('appointments:index')
         
-        # success message to show to the doctor/staff if only one selected existing availability was deleted successfully
+        # message to show to the doctor/staff if only one selected existing availability was deleted successfully handled in util
         else:
-            messages.success(request, 'The selected availability was deleted successfully.')
             return redirect('appointments:index')
 
-    appointments = Appointment.objects.filter(logged_in_filter).all()
-
-    return render(request, 'appointments/cancel_appointments.html', {
-        'appointments': format_appointments_start_end_times(appointments),
+    return render(request, 'appointments/book_or_cancel_appointments.html', {
         'staff_last_name': staff_last_name,
+        'mode': "Cancel",
     })
+
+
+def current_appointments_table(request, mode=None):
+    if mode == "Book":
+        staff = request.user.patient.get_assigned_staff_user()
+        appointments = Appointment.objects.filter(patient=None, staff=staff).all()
+
+    elif mode == "Cancel":
+        logged_in_filter = Q(staff_id=request.user.id) if request.user.is_staff else Q(patient_id=request.user.id)
+        appointments = Appointment.objects.filter(logged_in_filter).all()
+
+    else:
+        raise Http404
+
+    times = format_appointments_start_end_times(appointments)
+
+    appointments_table = []
+    for apt, time in zip(appointments, times):
+        other_person = apt.patient if request.user.is_staff else apt.staff
+        if other_person:
+            with_name = f"{other_person.first_name} {other_person.last_name}"
+        else:
+            with_name = None
+
+        appointments_table.append({
+            "id": apt.id,
+            "day": time["day"],
+            "date": time["date"],
+            "start": time["start"],
+            "end": time["end"],
+            "with": with_name,
+        })
+
+    serialized_appointments = json.dumps({'data': appointments_table}, indent=4)
+
+    return HttpResponse(serialized_appointments, content_type='application/json')
 
 
 def mass_appointment_booking(request, appointment_ids):
     lock_session(request)
-    
-    for appointment_id in appointment_ids:
-        book_appointments_util(appointment_id, request.user)
-        
-    unlock_session(request)
+
+    # If the request happens too quick the window won't refresh when it completes.
+    time.sleep(1.0)
+
+    try:
+        num_of_fails = 0
+        total = len(appointment_ids)
+
+        for appointment_id in appointment_ids:
+            if book_appointment(request, appointment_id, request.user, False) == False:
+                num_of_fails += 1
+
+        if num_of_fails > 0:
+            msg = "The selected appointment could not be found; it may have been deleted." if num_of_fails == 1 else "The selected appointments could not be found; they may have been deleted."
+            noun = "appointment" if total == 1 else "appointments"
+
+            if num_of_fails == total:
+                request.session["appointment_job_messages"] = (
+                    "warning", f"Could not book {num_of_fails} of {total} {noun}: {msg}")
+            else:
+                request.session["appointment_job_messages"] = (
+                    "error", f"Could not book {num_of_fails} {noun}: {msg}")
+        else:
+            if total == 1:
+                request.session["appointment_job_messages"] = (
+                    "success", f"The appointment was booked successfully.")
+            else:
+                request.session["appointment_job_messages"] = (
+                    "success", f"All {total} appointments were booked successfully.")
+    finally:
+        unlock_session(request)
 
 
 def mass_appointment_cancelling(request, booked_ids):
     lock_session(request)
-    
-    for booked_id in booked_ids:
-        cancel_appointments(booked_id)
-        
-    unlock_session(request)
+
+    # If the request happens too quick the window won't refresh when it completes.
+    time.sleep(1.0)
+
+    try:
+        num_of_fails = 0
+        total = len(booked_ids)
+
+        for booked_id in booked_ids:
+            if cancel_appointment(request, booked_id, False) == False:
+                num_of_fails += 1
+
+        if num_of_fails > 0:
+            msg = "The selected appointment could not be found; it may have been deleted." if num_of_fails == 1 else "The selected appointments could not be found; they may have been deleted."
+            noun = "appointment" if total == 1 else "appointments"
+
+            if num_of_fails == total:
+                request.session["appointment_job_messages"] = (
+                    "warning", f"Could not cancel {num_of_fails} of {total} {noun}: {msg}")
+            else:
+                request.session["appointment_job_messages"] = (
+                    "error", f"Could not cancel {num_of_fails} {noun}: {msg}")
+        else:
+            if total == 1:
+                request.session["appointment_job_messages"] = (
+                    "success", f"The appointment was cancelled successfully.")
+            else:
+                request.session["appointment_job_messages"] = (
+                    "success", f"All {total} appointments were cancelled successfully.")
+    finally:
+        unlock_session(request)
 
 
 def mass_availability_deleting(request, availability_ids):
     lock_session(request)
-    
-    for availability_id in availability_ids:
-        delete_availabilities(availability_id)
-        
-    unlock_session(request)
+
+    # If the request happens too quick the window won't refresh when it completes.
+    time.sleep(1.0)
+
+    try:
+        num_of_fails = 0
+        total = len(availability_ids)
+
+        for availability_id in availability_ids:
+            if delete_availability(request, availability_id, False) == False:
+                num_of_fails += 1
+
+        if num_of_fails > 0:
+            msg = "The selected availability could not be found; it may have been deleted." if num_of_fails == 1 else "The selected availabilities could not be found; they may have been deleted."
+            noun = "availability" if total == 1 else "availabilities"
+
+            if num_of_fails != total:
+                request.session["appointment_job_messages"] = (
+                    "warning", f"Could not delete {num_of_fails} of {total} {noun}: {msg}")
+            else:
+                request.session["appointment_job_messages"] = (
+                    "error", f"Could not cancel {total} {noun}: {msg}")
+        else:
+            if total == 1:
+                request.session["appointment_job_messages"] = (
+                    "success", f"The availability was deleted successfully.")
+            else:
+                request.session["appointment_job_messages"] = (
+                    "success", f"All {total} availabilities were deleted successfully.")
+
+    finally:
+        unlock_session(request)
 
 
 def lock_session(request):

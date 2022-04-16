@@ -8,9 +8,9 @@ from accounts.models import Patient, Staff
 from accounts.tests.test_views import create_test_client
 from appointments.models import Appointment
 from appointments.utils import (
-    book_appointments,
-    cancel_appointments,
-    delete_availabilities,
+    book_appointment,
+    cancel_appointment,
+    delete_availability,
     rebook_appointment_with_new_doctor,
 )
 
@@ -70,7 +70,7 @@ class AppointmentsTestCase(TransactionTestCase):
         self.assertEqual(self.mocked_appointment_data1.start_date, self.response.context['appointments'][0].start_date)
         self.assertEqual(self.mocked_appointment_data1.end_date, self.response.context['appointments'][0].end_date)
 
-        self.booked_appointment = book_appointments(self.mocked_appointment_data1.id, self.patient_user)
+        self.booked_appointment = book_appointment(self.mocked_appointment_data1.id, self.patient_user)
         self.response = self.client.post(reverse('appointments:book_appointments'), self.booked_appointment)
 
         # here, we expect the user patient's id to be added to the patient_id column
@@ -89,7 +89,7 @@ class AppointmentsTestCase(TransactionTestCase):
         book_selected_appointments = [self.mocked_appointment_data2.id, self.mocked_appointment_data3.id]
 
         for mocked_appointment_id in book_selected_appointments:
-            self.booked_appointments = book_appointments(mocked_appointment_id, self.patient_user)
+            self.booked_appointments = book_appointment(mocked_appointment_id, self.patient_user)
 
         self.response = self.client.post(reverse('appointments:book_appointments'), self.booked_appointments)
 
@@ -119,8 +119,8 @@ class AppointmentsTestCase(TransactionTestCase):
         # appointment objects are already present in the database
         self.assertTrue(Appointment.objects.filter(staff_id=self.doctor1.id).count() == 3)
 
-        self.booked_appointment = book_appointments(self.mocked_appointment_data1.id, self.patient_user)
-        self.unbooked_appointment = cancel_appointments(self.mocked_appointment_data1.id)
+        self.booked_appointment = book_appointment(self.mocked_appointment_data1.id, self.patient_user)
+        self.unbooked_appointment = cancel_appointment(self.mocked_appointment_data1.id)
         self.response = self.client.post(reverse('appointments:cancel_appointments_or_delete_availabilities'), self.unbooked_appointment)
 
         # here, we expect the user patient's id to be removed from the patient_id column
@@ -129,13 +129,13 @@ class AppointmentsTestCase(TransactionTestCase):
         # cancelling only one individual appointment using the "Cancel Appointment" button)
         self.assertTrue(Appointment.objects.get(id=1).patient_id is None)
 
-        self.booked_appointment = book_appointments(self.mocked_appointment_data2.id, self.patient_user)
-        self.booked_appointment = book_appointments(self.mocked_appointment_data3.id, self.patient_user)
+        self.booked_appointment = book_appointment(self.mocked_appointment_data2.id, self.patient_user)
+        self.booked_appointment = book_appointment(self.mocked_appointment_data3.id, self.patient_user)
 
         cancel_selected_appointments = [self.mocked_appointment_data2.id, self.mocked_appointment_data3.id]
 
         for mocked_appointment_id in cancel_selected_appointments:
-            self.unbooked_appointments = cancel_appointments(mocked_appointment_id)
+            self.unbooked_appointments = cancel_appointment(mocked_appointment_id)
 
         self.response = self.client.post(reverse('appointments:cancel_appointments_or_delete_availabilities'), self.unbooked_appointments)
 
@@ -165,7 +165,7 @@ class AppointmentsTestCase(TransactionTestCase):
         # appointment objects are already present in the database
         self.assertTrue(Appointment.objects.filter(staff_id=self.doctor1.id).count() == 3)
 
-        self.deleted_appointment = delete_availabilities(self.mocked_appointment_data1.id)
+        self.deleted_appointment = delete_availability(self.mocked_appointment_data1.id)
         self.response = self.client.post(reverse('appointments:cancel_appointments_or_delete_availabilities'), self.deleted_appointment)
 
         # here, we expect the entire respective appointment object to be deleted completely from the database
@@ -178,7 +178,7 @@ class AppointmentsTestCase(TransactionTestCase):
         delete_selected_availabilities = [self.mocked_appointment_data2.id, self.mocked_appointment_data3.id]
 
         for mocked_appointment_id in delete_selected_availabilities:
-            self.deleted_appointments = delete_availabilities(mocked_appointment_id)
+            self.deleted_appointments = delete_availability(mocked_appointment_id)
 
         self.response = self.client.post(reverse('appointments:cancel_appointments_or_delete_availabilities'), self.deleted_appointments)
 
@@ -211,7 +211,7 @@ class AppointmentsTestCase(TransactionTestCase):
         book_selected_appointments = [self.mocked_appointment_data1.id, self.mocked_appointment_data2.id, self.mocked_appointment_data3.id]
 
         for mocked_appointment_id in book_selected_appointments:
-            self.booked_appointments = book_appointments(mocked_appointment_id, self.patient_user)
+            self.booked_appointments = book_appointment(mocked_appointment_id, self.patient_user)
 
         rebook_appointment_with_new_doctor(self.mocked_appointment_data4.staff_id, self.mocked_appointment_data1.staff_id, self.patient_user)
 
@@ -224,7 +224,7 @@ class AppointmentsTestCase(TransactionTestCase):
         self.assertTrue(Appointment.objects.get(id=5).patient_id == self.patient_user.id)
         self.assertTrue(Appointment.objects.get(id=6).patient_id == self.patient_user.id)
 
-        self.booked_appointment = book_appointments(self.mocked_appointment_data7.id, self.patient_user)
+        self.booked_appointment = book_appointment(self.mocked_appointment_data7.id, self.patient_user)
         rebook_appointment_with_new_doctor(self.mocked_appointment_data4.staff_id, self.mocked_appointment_data1.staff_id, self.patient_user)
 
         # here, since the newly assigned doctor does not have an identical open availability

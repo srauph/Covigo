@@ -1,7 +1,12 @@
 {% extends "Covigo/base.html" %}
 
 {% block styles %}
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.4/css/jquery.dataTables.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/rowreorder/1.2.8/css/rowReorder.dataTables.min.css">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css"/>
 {% endblock %}
 
 {% block script %}
@@ -9,9 +14,91 @@
             integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <script type="text/javascript" charset="utf8"
             src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/rowreorder/1.2.8/js/dataTables.rowReorder.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
     <script>
         $(document).ready(function () {
             $('#user_list_table').DataTable({
+                "ajax": "{% url 'accounts:list_users_table' %}",
+                "type": "POST",
+                responsive: true,
+                "draggable ": false,
+                stripeClasses: [],
+                "orderClasses": false,
+                "columns": [
+                    {"data": "id"},
+                    {"data": "username"},
+                    {"data": "fname"},
+                    {"data": "lname"},
+                    {"data": "email"},
+                    {"data": "phone_number"},
+                    {"data": "groups"},
+                    {defaultContent: ""},
+                ],
+                "columnDefs": [
+                    { // id
+                        "targets": [0],
+                        "visible": false,
+                        "searchable": false
+                    },
+                    { // username
+                        "targets": [1],
+                        "visible": true,
+                        "searchable": true,
+                        "className": 'dt-body-center'
+                    },
+                    { // first name
+                        "targets": [2],
+                        "visible": true,
+                        "searchable": true,
+                        "render": function (data, type, row) {
+                            return row.fname + ' ' + row.lname;
+                        }
+                    },
+                    { // last name
+                        "targets": [3],
+                        "visible": false,
+                        "searchable": true
+                    },
+                    { // email
+                        "targets": [4],
+                        "visible": true,
+                        "searchable": true,
+                        "className": 'dt-body-center'
+                    },
+                    { // phone number
+                        "targets": [5],
+                        "visible": true,
+                        "searchable": true,
+                        "className": 'dt-body-center'
+                    },
+                    { // groups
+                        "targets": [6],
+                        "visible": true,
+                        "searchable": true,
+                        "className": 'dt-body-center'
+                    },
+                    { // Action
+                        "targets": [7],
+                        "visible": true,
+                        "searchable": false,
+                        "sortable": false,
+                        "className": 'w-0 dt-body-center',
+                        "render": function (data, type, row) {
+                            return '<span class="flex justify-center gap-2">' +
+                            '<a href="{% url 'accounts:profile' 999999999 %}">'.replace(999999999, row.id) +
+                            '<button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">' +
+                            '<span><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></span>' +
+                            '<span>Profile</span>' +
+                            '</button></a>'
+                        }
+                    }
+                ],
+
+                "order": [[1, "asc"]],
+
                 initComplete: function () {
                     this.api().columns(3).every(function () {
                         let column = this;
@@ -121,42 +208,22 @@
             {% endif %}
         {% endfor %}
 
-        <div class="m-4 justify-evenly gap-4">
-            <div class="m-4 p-4 bg-white shadow rounded-lg">
-                <table class="w-full table-auto text-center" id="user_list_table">
+        <div class="p-8 pt-0">
+            <div class="p-4 bg-white shadow rounded-lg text-center">
+                <table class="w-full table-auto display responsive nowrap" style="width:100%" id="user_list_table">
                     <thead>
-                    <tr class="border-b">
-                        <th class="p-2">Username</th>
-                        <th class="p-2">Email</th>
-                        <th class="p-2">Phone Number</th>
-                        <th class="p-2">Group</th>
-                        <th class="p-2" data-orderable="false"></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for usr in users %}
-                        <tr class="border-b hover:bg-slate-200">
-                            <td class="p-2">{{ usr.username }}</td>
-                            <td class="p-2">{{ usr.email }}</td>
-                            <td class="p-2">{{ usr.profile.phone_number }}</td>
-                            <td class="p-2">{{ usr.groups.all.0 }}</td>
-                            <td class="flex justify-end gap-2">
-                                <a href="{% url 'accounts:profile' usr.id %}">
-                                    <button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-                                            <span>
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                                     viewBox="0 0 24 24" stroke="currentColor">
-                                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                                </svg>
-                                            </span>
-                                        <span>Profile</span>
-                                    </button>
-                                </a>
-                            </td>
+                        <tr class="border-b">
+                            <th class="p-2"></th>
+                            <th class="p-2">Username</th>
+                            <th class="p-2">Name</th>
+                            <th class="p-2"></th>
+                            <th class="p-2">Email</th>
+                            <th class="p-2">Phone Number</th>
+                            <th class="p-2">Group</th>
+                            <th class="p-2"></th>
                         </tr>
-                    {% endfor %}
-                    </tbody>
+                    </thead>
+
                 </table>
             </div>
         </div>

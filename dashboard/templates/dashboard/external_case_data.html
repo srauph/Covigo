@@ -68,7 +68,7 @@
                 <div class="grow relative">
                     <canvas id="chart"></canvas>
                     <div id="spinner" class="flex w-full h-full items-center justify-center">
-                        <span class="border-slate-200 border-t-blue-400 loader ease-linear rounded-full border-8 border-t-8 h-64 w-64"></span>
+                        <span class="border-slate-200 border-t-blue-400 loader ease-linear rounded-full border-8 border-t-8 h-48 w-48"></span>
                     </div>
                 </div>
             </div>
@@ -95,8 +95,6 @@
 
 
                     const full_qc_data = await getData();
-
-                    console.log(full_qc_data);
 
                     let dates = [];
                     let daily_cases = [];
