@@ -74,7 +74,7 @@ def view_appointments(request, user_id):
     if not perms_view_appointments:
         raise PermissionDenied
 
-    return render(request, 'appointments/book_or_cancel_appointments.html', {
+    return render(request, 'appointments/list_appointments.html', {
         "name": f"{user.first_name} {user.last_name}",
         "mode": "View",
         "usr": user,
@@ -208,10 +208,10 @@ def add_availabilities(request):
 def book_appointments(request):
     """
     this function handles the booking of one or multiple appointments at the same time in one template page
-    ("book_or_cancel_appointments.html") and makes sure that the proper success messages are displayed
-    :param request: the type of request that is processed in the "book_or_cancel_appointments.html" template page
+    ("list_appointments.html") and makes sure that the proper success messages are displayed
+    :param request: the type of request that is processed in the "list_appointments.html" template page
     :return: returns the specific template that is either rendered or redirected to based on the user input logic
-    (either redirected to the "index.html" template page or rendered back to the default "book_or_cancel_appointments.html" template page)
+    (either redirected to the "index.html" template page or rendered back to the default "list_appointments.html" template page)
     """
     
     if session_is_locked(request):
@@ -250,7 +250,7 @@ def book_appointments(request):
         else:
             return redirect('appointments:index')
 
-    return render(request, 'appointments/book_or_cancel_appointments.html', {
+    return render(request, 'appointments/list_appointments.html', {
         'name': f"Dr. {staff_last_name}",
         'mode': "Book",
     })
@@ -346,7 +346,7 @@ def cancel_appointments_or_delete_availabilities(request):
         else:
             return redirect('appointments:index')
 
-    return render(request, 'appointments/book_or_cancel_appointments.html', {
+    return render(request, 'appointments/list_appointments.html', {
         'name': f"Dr. {staff_last_name}",
         'mode': "Cancel",
     })
