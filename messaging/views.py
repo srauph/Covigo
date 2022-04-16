@@ -408,23 +408,6 @@ def read_notification(request, message_group_id):
 @login_required
 @never_cache
 def list_notifications(request):
-    current_user = request.user
-
-    # Fetch received notifications
-    filter1 = Q(recipient_id=current_user.id) & Q(type=1)
-
-    message_group = list(MessageGroup.objects.filter(filter1).all().values())
-
-    # Only for the notifications list, reformat the message groups titles to not include the hrefs
-    for i in message_group:
-        a = re.sub("<span class='notification-link cursor-pointer' data-href=", "", i['title'])
-        a = re.sub(">.*", "", a)
-
-        i['title'] = re.sub("<span class='notification-link cursor-pointer' data-href=[^>]*>", "", i['title'])
-        i['title'] = re.sub("</span>", "", i['title'])
-
-        # Create new "attribute" to hold the href for the notification
-        i['link'] = a
 
     if request.method == 'POST' and request.POST.get('mark_selected_notifications_read'):
         selected_notification_ids = request.POST.getlist('selected_notification_ids[]')
@@ -442,14 +425,45 @@ def list_notifications(request):
             notification.save()
         return redirect('/notifications')
 
-    return render(request, 'notifications/list_notifications.html', {
-        'message_group': message_group,
-    })
+    return render(request, 'notifications/list_notifications.html')
+
+
+@login_required
+@never_cache
+def list_notifications_table(request):
+    current_user = request.user
+
+    # Fetch received notifications
+    filter1 = Q(recipient_id=current_user.id) & Q(type=1)
+
+    message_group = list(MessageGroup.objects.filter(filter1).all().values())
+
+    # Only for the notifications list, reformat the message groups titles to not include the hrefs
+    notifications_table = []
+    for i in message_group:
+        a = re.sub("<span class='notification-link cursor-pointer' data-href=", "", i['title'])
+        a = re.sub(">.*", "", a)
+
+        i['title'] = re.sub("<span class='notification-link cursor-pointer' data-href=[^>]*>", "", i['title'])
+        i['title'] = re.sub("</span>", "", i['title'])
+
+        notifications_table.append({
+            "id": i["id"],
+            "title": i['title'],
+            "date_created": i["date_created"].strftime("%B %d, %Y, at %I:%M %p"),
+            "seen": i["recipient_seen"],
+            "link": a,
+        })
+
+    serialized_notifications = json.dumps({'data': notifications_table}, indent=4)
+
+    return HttpResponse(serialized_notifications, content_type='application/json')
 
 
 @login_required
 @never_cache
 def toggle_read_notification(request, message_group_id):
+    print(message_group_id)
     message_group = MessageGroup.objects.get(id=message_group_id)
 
     message_group.recipient_seen = not message_group.recipient_seen

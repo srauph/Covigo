@@ -53,6 +53,7 @@
                         "targets": [2],
                         "visible": true,
                         "searchable": true,
+                        "responsivePriority": 1,
                         "render": function (data, type, row) {
                             return row.fname + ' ' + row.lname;
                         }
@@ -85,7 +86,7 @@
                         "visible": true,
                         "searchable": false,
                         "sortable": false,
-                        "className": 'w-0 dt-body-center',
+                        "className": 'dt-body-center',
                         "render": function (data, type, row) {
                             return '<span class="flex justify-center gap-2">' +
                             '<a href="{% url 'accounts:profile' 999999999 %}">'.replace(999999999, row.id) +

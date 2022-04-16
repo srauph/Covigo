@@ -67,6 +67,7 @@
                     "searchable": false,
                     "sortable": false,
                     "className": 'w-0',
+                    "responsivePriority": 1,
                 },
                 { // id
                     "targets": [1],
@@ -74,6 +75,7 @@
                     "searchable": false,
                     "sortable": false,
                     "className": 'w-0',
+                    "responsivePriority": 1,
                     "render": function (data, type, row) {
                         let booked = row.with ? "booked" : "unbooked";
                         return `<input type="checkbox" class="checkbox ${booked}" name="selected_ids[]" value="${row.id}">`;
@@ -89,13 +91,15 @@
                     "targets": [3],
                     "visible": true,
                     "searchable": true,
-                    "className": 'dt-body-center'
+                    "className": 'dt-body-center',
+                    "responsivePriority": 1,
                 },
                 { // start
                     "targets": [4],
                     "visible": true,
                     "searchable": true,
-                    "className": 'dt-body-center'
+                    "className": 'dt-body-center',
+                    "responsivePriority": 2,
                 },
                 { // end
                     "targets": [5],
@@ -114,7 +118,7 @@
                     "visible": {% if mode == "View" %} false {% else %} true {% endif %},
                     "searchable": false,
                     "sortable": false,
-                    "className": 'w-0 dt-body-center',
+                    "className": 'dt-body-center',
                     "render": function (data, type, row) {
                         let bookButton =
                             '<span class="flex justify-center gap-2">' +

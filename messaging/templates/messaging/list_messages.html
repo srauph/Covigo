@@ -6,22 +6,6 @@
           href="https://cdn.datatables.net/rowreorder/1.2.8/css/rowReorder.dataTables.min.css">
     <link rel="stylesheet" type="text/css"
           href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.dataTables.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css"/>
-    <style>
-        table.display tbody tr:nth-child(odd):hover td,
-        table.display tbody tr:nth-child(even):hover td {
-            background-color: rgb(226 232 240) !important;
-        }
-
-        table.dataTable.dtr-inline.collapsed > tbody > tr > td.dtr-control:before,
-        table.dataTable.dtr-inline.collapsed > tbody > tr > th.dtr-control:before {
-            background-color: rgb(6 182 212) !important;
-        }
-
-        #patient_reports_modal_table.dataTable.nowrap th, table.dataTable.nowrap td {
-            white-space: normal !important;
-        }
-    </style>
 {% endblock %}
 
 {% block script %}
@@ -75,6 +59,7 @@
                         "targets": [2],
                         "visible": true,
                         "searchable": true,
+                        "responsivePriority": 2,
                         "render": function (data, type, row) {
                             return `${row.author_fname} ${row.author_lname}`;
                         }
@@ -88,6 +73,7 @@
                         "targets": [4],
                         "visible": true,
                         "searchable": true,
+                        "responsivePriority": 2,
                         "render": function (data, type, row) {
                             return `${row.recipient_fname} ${row.recipient_lname}`;
                         }
@@ -101,7 +87,8 @@
                         "targets": [6],
                         "visible": true,
                         "searchable": true,
-                        "className": 'dt-body-center'
+                        "className": 'dt-body-center',
+                        "responsivePriority": 1,
                     },
                     { // date_created
                         "targets": [7],

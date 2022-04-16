@@ -51,7 +51,7 @@ def book_appointment(request, appointment_id, user, send_message=True):
                           "%B %d, %Y, at %I:%M %p"),
                       app_name=app_name)
     send_notification(doctor.id, user.id,
-                      f"You have successfully booked an appointment with your doctor {doctor.first_name} {doctor.last_name}on " + appointment.start_date.strftime(
+                      f"You have successfully booked an appointment with Dr. {doctor.last_name} on " + appointment.start_date.strftime(
                           "%B %d, %Y, at %I:%M %p"),
                       app_name=app_name)
 
@@ -106,10 +106,10 @@ def cancel_appointment(request, appointment_id, send_message=True):
     # SEND NOTIFICATION TO DOCTOR AND PATIENT
     app_name = 'appointments'
     send_notification(patient_user.id, doctor_user.id,
-                      "The appointment on " + booked.start_date.strftime("%B %d, %Y, at %I:%M %p") + " has been cancelled",
+                      f"The appointment on {booked.start_date.strftime('%B %d, %Y, at %I:%M %p')} with {patient_user.first_name} {patient_user.last_name} has been cancelled",
                       app_name=app_name)
     send_notification(doctor_user.id, patient_user.id,
-                      "The appointment on " + booked.start_date.strftime("%B %d, %Y, at %I:%M %p") + " has been cancelled",
+                      f"The appointment on {booked.start_date.strftime('%B %d, %Y, at %I:%M %p')} with Dr. {doctor_user.last_name} has been cancelled",
                       app_name=app_name)
 
     return True
