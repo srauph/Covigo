@@ -35,7 +35,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script>
         let table = $('#doctor_patient_list').DataTable({
-            "ajax": "{% url 'manager:reassign_doctor_list_table' user_id %}",
+            "ajax": "{% url 'manager:reassign_doctor_list_table' usr.id %}",
             "type": "POST",
             responsive: true,
             "draggable ": false,
@@ -101,14 +101,14 @@
 
                         if (old_id === row.doc_id) {
                             button_reassign =
-                                '<a href="{% url 'manager:reassign_doctor' user_id  %}">' +
+                                '<a href="{% url 'manager:reassign_doctor' usr.id  %}">' +
                                 '<button type="submit" name="new_doctor_id" value="-1" class="bg-red-600 hover:bg-red-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">' +
                                 '<span> <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"  stroke="currentColor" stroke-width="2"> <path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path></svg> </span>' +
                                 '<span>Unassign</span>' +
                                 '</button></a>';
                         } else {
                             button_reassign =
-                                '<a href="{% url 'manager:reassign_doctor' user_id  %}">' +
+                                '<a href="{% url 'manager:reassign_doctor' usr.id  %}">' +
                                 '<button type="submit" name="new_doctor_id" value="999999999" class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">'.replace(999999999, row.doc_id) +
                                 {% if assigned_staff %}
                                     '<span> <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"> <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg></span>' +
@@ -144,7 +144,7 @@
 {% block content %}
     <div class="min-h-full bg-slate-100">
         <div class="flex justify-between bg-slate-700">
-            <h1 class="text-2xl text-white font-semibold px-8 py-4">Reassign Doctor</h1>
+            <h1 class="text-2xl text-white font-semibold px-8 py-4">Reassign Doctor for {{ usr.first_name }} {{ usr.last_name }}</h1>
         </div>
 
         {% if messages %}

@@ -127,53 +127,77 @@
                 }
             });
         });
-
-
-
     </script>
 {% endblock %}
 
 {% block header %}
-    <nav class="bg-slate-900 text-white flex items-center justify-between bg-teal p-3">
-        <div class="flex items-center flex-no-shrink px-4 py-2 mr-6">
-            <span class="cursor-pointer font-semibold text-3xl tracking-tight">
-                <a href="{% url 'dashboard:index' %}">
-                    Covigo
-                </a>
-            </span>
-        </div>
-        <div class="flex block text-right">
+    <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
+    <nav class="bg-slate-900 text-white flex items-center justify-between px-4 py-2">
+        <div @click.away="open = false" class="w-full flex flex-col w-full items-end" x-data="{ open: false }">
+            <div class="w-full flex justify-between">
+                <div class="flex items-center flex-no-shrink px-4 py-2 mr-6">
+                    <span class="cursor-pointer font-semibold text-3xl tracking-tight">
+                        <a href="{% url 'dashboard:index' %}">
+                            Covigo
+                        </a>
+                    </span>
+                </div>
 
+                <div class="flex justify-center items-center gap-2 px-4 py-2">
+                    <div class="flex items-center">
+                        <button type="button" id="notification-icon" class="inline-block text-sm px-3 py-2 leading-none relative">
+                            <svg class="h-8 w-8 text-white hover:fill-white" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                            </svg>
+                            <span id="unread-notifications"
+                                  class="absolute rounded-full bg-red-500 hover:bg-red-400 right-0 py-1 px-2 -top-px right-px"></span>
+                        </button>
+                        <div id="notification-dropdown"
+                             class="absolute top-16 right-8 mt-2 w-80 bg-white rounded-md shadow-lg overflow-hidden z-20 hidden">
+                            <ul id="notification-list">
 
-            <div class="relative">
-                <a id="notification-icon" href="#" class="inline-block text-sm px-3 py-2 leading-none relative">
-                    <svg class="h-8 w-8 text-white hover:fill-white" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
-                              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                    </svg>
-                    <span id="unread-notifications"
-                          class="absolute rounded-full bg-red-500 hover:bg-red-400 right-0 py-1 px-2 -top-px right-px"></span>
-                </a>
-                <div id="notification-dropdown"
-                     class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg overflow-hidden z-20 hidden">
-                    <ul id="notification-list">
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="inline-block md:hidden flex items-center">
+                        <button class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white"
+                                @click="open = !open">
+                                {{ user.get_username }}
+                        </button>
+                    </div>
+                    <div class="hidden md:inline-block text-sm leading-none">
+                        <a href="{% url 'accounts:profile' user.id %}"
+                           class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
+                            {{ user.get_username }}
+                        </a>
+                    </div>
 
-                    </ul>
+                    <div class="hidden md:inline-block text-sm leading-none">
+                        <a href="{% url 'accounts:logout' %}"
+                           class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
+                            Log out
+                        </a>
+                    </div>
                 </div>
             </div>
 
-            <div class="inline-block text-sm px-2 py-2 leading-none">
-                <a href="{% url 'accounts:profile' user.id %}"
-                   class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
-                    {{ user.get_username }}
-                </a>
-            </div>
-            <div class="inline-block text-sm mr-4 px-2 py-2 leading-none">
-                <a href="{% url 'accounts:logout' %}"
-                   class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
-                    Log out
-                </a>
-            </div>
+            <nav :class="{'block': open, 'hidden': !open}" class="hidden flex gap-2 px-4 py-2">
+
+                <div class="inline-block text-sm leading-none">
+                    <a href="{% url 'accounts:profile' user.id %}"
+                       class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
+                        Profile
+                    </a>
+                </div>
+
+                <div class="inline-block text-sm leading-none">
+                    <a href="{% url 'accounts:logout' %}"
+                       class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
+                        Log out
+                    </a>
+                </div>
+            </nav>
         </div>
     </nav>
 {% endblock %}

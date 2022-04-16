@@ -410,7 +410,7 @@ def reassign_doctor(request, user_id):
     assigned_staff = user.patient.get_assigned_staff_user()
 
     return render(request, 'manager/reassign_doctor.html', {
-        "user_id": user_id,
+        "usr": user,
         "assigned_staff": assigned_staff,
     })
 
