@@ -7,7 +7,6 @@
           href="https://cdn.datatables.net/rowreorder/1.2.8/css/rowReorder.dataTables.min.css">
     <link rel="stylesheet" type="text/css"
           href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.dataTables.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css"/>
     <style>
         table.display tbody tr:nth-child(odd):hover td,
         table.display tbody tr:nth-child(even):hover td {
@@ -27,7 +26,7 @@
 
 {% block script %}
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.js"></script>
-    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.js"></script>
+
     <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript"
             src="https://cdn.datatables.net/rowreorder/1.2.8/js/dataTables.rowReorder.min.js"></script>
@@ -110,7 +109,7 @@
         <div class="m-4">
             <div class="m-4 p-4 bg-white shadow rounded-lg text-center">
                 {% if messages %}
-                    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
                     <script>
                         setTimeout(function() {
                             $('.message').fadeOut('fast');

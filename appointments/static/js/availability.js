@@ -29,9 +29,9 @@ $(document).ready(function () {
 
     $('.timepicker_1').timepicker({
         timeFormat: 'h:mm p',
-        interval: 15,
-        defaultTime: '6:00',
-        startTime: '6:00',
+        interval: 30,
+        defaultTime: '9:00',
+        startTime: '00:00',
         dropdown: true,
         scrollbar: true,
         dynamic: false,
@@ -45,9 +45,9 @@ $(document).ready(function () {
 
     $('.timepicker_2').timepicker({
         timeFormat: 'h:mm p',
-        interval: 15,
-        defaultTime: '7:00',
-        startTime: '6:00',
+        interval: 30,
+        defaultTime: '17:00',
+        startTime: '00:00',
         dropdown: true,
         scrollbar: true,
         dynamic: false,

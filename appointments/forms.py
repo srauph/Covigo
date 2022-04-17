@@ -15,6 +15,8 @@ DAYS = (
 
 SLOT_HOURS = [tuple([x, x]) for x in range(0, 24)]
 SLOT_MINUTES = [tuple([x, x]) for x in range(0, 65, 5)]
+SELECTION_CLASS = "w-16 px-1 bg-slate-100 rounded-md border border-slate-400"
+DATEINPUT_CLASS = "bg-slate-100 rounded-md border border-slate-400 px-2 py-1"
 
 
 class AvailabilityForm(forms.Form):
@@ -29,7 +31,7 @@ class AvailabilityForm(forms.Form):
     slot_duration_hours = forms.IntegerField(
         widget=forms.Select(
             choices=SLOT_HOURS,
-            attrs={'class': 'border border-black px-1 rounded-md'}
+            attrs={'class': SELECTION_CLASS}
         ),
         initial='1',
         required=True
@@ -38,7 +40,7 @@ class AvailabilityForm(forms.Form):
     slot_duration_minutes = forms.IntegerField(
         widget=forms.Select(
             choices=SLOT_MINUTES,
-            attrs={'class': 'border border-black px-1 rounded-md'}
+            attrs={'class': SELECTION_CLASS}
         ),
         required=True
     )
@@ -51,7 +53,7 @@ class AvailabilityForm(forms.Form):
         required=True,
         widget=forms.widgets.DateInput(
             attrs={
-                'class': 'border border-black px-1 rounded-md',
+                'class': DATEINPUT_CLASS,
                 'type': 'date',
                 'min': date_today.strftime("%Y-%m-%d"),
                 'max': date_one_year.strftime("%Y-%m-%d")
@@ -63,7 +65,7 @@ class AvailabilityForm(forms.Form):
         required=True,
         widget=forms.widgets.DateInput(
             attrs={
-                'class': 'border border-black px-1 rounded-md',
+                'class': DATEINPUT_CLASS,
                 'type': 'date',
                 'min': date_today.strftime("%Y-%m-%d"),
                 'max': date_one_year.strftime("%Y-%m-%d")
