@@ -149,25 +149,30 @@
 
         <div class="flex flex-col justify-between grow gap-8 m-8">
             <div class="bg-white shadow rounded-xl">
-                <div class="w-full flex flex-wrap gap-2 justify-between items-center p-4">
-                    <div class="flex text-sm md:text-base">
+                <div class="w-full flex flex-wrap gap-2 justify-center sm:justify-between items-center p-4">
+                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-y-0.5 text-sm lg:text-base">
                         <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none border-r border-white bg-orange-500" id="ds-Confirmed" value="Confirmed">
-                            Total Confirmed
+                            <span class="hidden xl:inline">Total Confirmed</span>
+                            <span class="xl:hidden">Confirmed</span>
                         </button>
                         <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" id="ds-Positive" value="Positive">
-                            Currently Positive
+                            <span class="hidden xl:inline">Currently Positive</span>
+                            <span class="xl:hidden">Positive</span>
                         </button>
-                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" id="ds-Recovered" value="Recovered">
-                            Currently Recovered
+                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md sm:rounded-r-none rounded-l-none border-r border-white" id="ds-Recovered" value="Recovered">
+                            <span class="hidden xl:inline">Currently Recovered</span>
+                            <span class="xl:hidden">Recovered</span>
                         </button>
-                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" id="ds-Negative" value="Negative">
-                            Negative Cases
+                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none sm:rounded-l-none border-r border-white" id="ds-Negative" value="Negative">
+                            <span class="hidden xl:inline">Negative Cases</span>
+                            <span class="xl:hidden">Negative</span>
                         </button>
                         <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-l-none" id="ds-Probable" value="Probable">
-                            Probable Cases
+                            <span class="hidden xl:inline">Probable Cases</span>
+                            <span class="xl:hidden">Probable</span>
                         </button>
                     </div>
-                    <div class="flex text-sm md:text-base">
+                    <div class="flex text-sm lg:text-base">
                         <button class="data-type bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none border-r border-white bg-blue-600" id="dt-Current" value="Current">
                             Current
                         </button>
@@ -180,7 +185,7 @@
 
             <div id="chartContainer" class="flex grow p-8 bg-white shadow rounded-lg">
                 <div class="grow relative">
-                    <canvas id="chart"></canvas>
+                    <canvas id="chart" style="min-height: 20rem;"></canvas>
                     <div id="spinner" class="flex w-full h-full items-center justify-center">
                         <span class="border-slate-200 border-t-blue-400 loader ease-linear rounded-full border-8 border-t-8 h-64 w-64"></span>
                     </div>
