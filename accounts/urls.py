@@ -98,5 +98,5 @@ urlpatterns = [
     ),
 
     path('get_distance/<postal_code>/<current_lat>/<current_long>/',
-         views.get_distance_from_postal_code_to_current_location, name='get_distance')
+         views.verify_quarantine_compliance, name='get_distance')
 ]

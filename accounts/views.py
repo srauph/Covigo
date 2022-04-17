@@ -1071,7 +1071,7 @@ def edit_case(request, user_id):
     })
 
 
-def get_distance_from_postal_code_to_current_location(request, postal_code, current_lat, current_long):
+def verify_quarantine_compliance(request, postal_code, current_lat, current_long):
     """
     Computes and returns the distance between a specified postal code and a user's specified location.
     The postal code must be a valid Canadian postal code, and the specified location is in latitude and longitude.

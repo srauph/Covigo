@@ -43,7 +43,7 @@
                         "visible": true,
                         "searchable": false,
                         "sortable": false,
-                        "className": 'w-0',
+                        "className": 'all w-0',
                         "responsivePriority": 1,
                     },
                     { // id
@@ -51,7 +51,7 @@
                         "visible": true,
                         "searchable": false,
                         "sortable": false,
-                        "className": 'w-0',
+                        "className": 'all w-0',
                         "responsivePriority": 1,
                         "render": function (data, type, row) {
                             return `<input type="checkbox" class="checkbox" name="selected_notification_ids[]" value="${row.id}">`;
@@ -61,21 +61,28 @@
                         "targets": [2],
                         "visible": true,
                         "searchable": true,
-                        "className": 'dt-body-center wrap',
+                        "className": 'all dt-body-center',
+                        "responsivePriority": 1,
+                        "render": function (data, type, row) {
+                            return `<div class="whitespace-normal">${data}</div>`;
+                        }
                     },
                     { // date_created
                         "targets": [3],
                         "visible": true,
                         "searchable": false,
                         "className": 'dt-body-center',
-                        "responsivePriority": 2,
+                        "render": function (data, type, row) {
+                            return `<div class="whitespace-normal">${data}</div>`;
+                        }
                     },
                     { // seen
                         "targets": [4],
                         "visible": true,
                         "searchable": true,
                         "render": function (data, type, row) {
-                            return row.seen ? "Read" : "Unread";
+                            let text = row.seen ? "Read" : "Unread";
+                            return `<div class="whitespace-normal">${text}</div>`;
                         }
                     },
                     { // link
@@ -116,9 +123,9 @@
                                 '</button></a>';
 
                             if (row.seen) {
-                                return '<span class="flex justify-end gap-2">' + buttonMarkUnread + buttonView + '</span>';
+                                return '<span class="flex justify-center md:justify-end gap-2">' + buttonMarkUnread + buttonView + '</span>';
                             } else {
-                                return '<span class="flex justify-end gap-2">' + buttonMarkRead + buttonView + '</span>';
+                                return '<span class="flex justify-center md:justify-end gap-2">' + buttonMarkRead + buttonView + '</span>';
                             }
                         }
                     }

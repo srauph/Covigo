@@ -18,6 +18,75 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .fc-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        @media (min-width: 1024px) {
+            .fc-toolbar {
+                display: flex;
+                flex-wrap: wrap;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+
+        .fc-event-time {
+            display: flex;
+            justify-items: center;
+            align-items: center;
+            white-space: normal !important;
+        }
+
+        @media (min-width: 480px) {
+            .fc-event-time {
+                display: flex;
+                align-items: center;
+            }
+        }
+
+        @media (min-width: 1360px) {
+            .fc-event-time {
+                white-space: nowrap !important;
+            }
+        }
+
+        .fc-daygrid-day {
+            height: 6rem;
+        }
+
+        .min-calendar-height {
+            min-height: 50rem;
+        }
+
+        .fc-event-time, .fc-timegrid-slot-label-frame, .fc-col-header-cell-cushion {
+            font-size: 0.6rem;
+        }
+
+        @media (min-width: 480px) {
+            .fc-event-time, .fc-timegrid-slot-label-frame, .fc-col-header-cell-cushion {
+                font-size: 0.75rem;
+            }
+        }
+
+        @media (min-width: 640px) {
+            .fc-event-time, .fc-timegrid-slot-label-frame, .fc-col-header-cell-cushion {
+                font-size: 0.875rem;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .fc-event-time, .fc-timegrid-slot-label-frame, .fc-col-header-cell-cushion {
+                font-size: 1rem;
+            }
+        }
     </style>
 {% endblock %}
 
@@ -26,13 +95,22 @@
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            var calendarEl = document.getElementById('fullcalendar');
-            var calendar = new FullCalendar.Calendar(calendarEl, {
+            let calendarEl = document.getElementById('fullcalendar');
+            let calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 headerToolbar: {
                     left: 'dayGridMonth,timeGridWeek,timeGridDay',
                     center: 'title',
                     right: 'prevYear,prev,next,nextYear'
+                },
+                moreLinkContent: function(args){
+                    return `+${args.num}`;
+                },
+                allDaySlot: false,
+                views: {
+                    week: {
+                        displayEventEnd: screen.width >= 1024,
+                    },
                 },
                 events: [
                     {% for e in patient_booked_appointments %}
@@ -94,6 +172,8 @@
         }
         setUp();
 
+        $('#fullcalendar div').addClass('flex flex-wrap')
+
     </script>
     <script>
         Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
@@ -110,7 +190,7 @@
 
         <div class="flex flex-col m-8">
             <div class="bg-white shadow rounded-xl">
-                <div class="w-full flex flex-wrap justify-end p-4 gap-2">
+                <div class="w-full flex flex-wrap justify-center md:justify-between items-center gap-2 p-4">
                     <div class="flex gap-2 items-center text-sm">
                         <span class="flex items-center gap-2 hidden" id="processing-message">
                             {% if user.is_staff %}
@@ -160,14 +240,15 @@
                                     <a href="{%  url 'appointments:cancel_appointments_or_delete_availabilities' %}">
                                         <button type="button"
                                                 class="bg-red-600 hover:bg-red-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-                                        <span>
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                                                 stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                            </svg>
-                                        </span>
-                                            <span>Cancel an appointment or delete an availability</span>
+                                            <span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                                     stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                          d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                            </span>
+                                            <span class="hidden lg:inline-block">Cancel appointments/Delete availabilities</span>
+                                            <span class="lg:hidden">Cancel appt./Delete avail.</span>
                                         </button>
                                     </a>
                                 </div>
@@ -176,7 +257,7 @@
                     </div>
 
 
-                    <div class="flex flex-auto justify-end gap-2">
+                    <div class="flex flex-wrap justify-center md:justify-start gap-2">
                         {# only display the "Add availabilities" button to staff #}
                         {% if is_staff %}
                             <div>
@@ -287,7 +368,7 @@
             <div class="flex flex-wrap gap-8 xl:gap-0 xl:flex-nowrap mt-8">
 
                 <div class="grow rounded rounded-lg bg-white shadow p-4 w-full xl:w-2/3">
-                    <div id="fullcalendar" class="p-4"></div>
+                    <div id="fullcalendar" class="p-4 min-calendar-height"></div>
                 </div>
 
                 <div class="grow xl:grow-0 xl:p-0 xl:pl-4 flex flex-col gap-4 items-center grow">
