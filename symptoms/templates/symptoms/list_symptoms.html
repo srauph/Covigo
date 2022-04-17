@@ -155,11 +155,11 @@
         </div>
 
         <div class="bg-white shadow m-8 rounded-xl">
-            <div class="w-full flex flex-wrap justify-end p-4 gap-2">
-                <div id="symptom-filter">
+            <div class="w-full flex flex-wrap justify-center md:justify-between items-center gap-2 p-4">
+                <div id="symptom-filter" class="flex flex-wrap justify-center items-center">
                     <span class="font-semibold px-2">Filter Symptoms:</span>
                 </div>
-                <div class="flex flex-auto justify-end gap-2">
+                <div class="flex justify-center items-center gap-2">
 
                     {# clicking on this button creates a GET request and redirects the user to the "Create Symptom" page #}
                     <a href="{% url 'symptoms:create_symptom' %}">

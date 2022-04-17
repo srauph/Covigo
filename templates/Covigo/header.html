@@ -1,10 +1,11 @@
 {% load static %}
 
 {% block script %}
-
-
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.2/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/timeago@1.6.7/jquery.timeago.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
     <script>
         //Timeago was not working without using jquery like this:
         var $j = jQuery.noConflict();
@@ -135,7 +136,6 @@
 {% endblock %}
 
 {% block header %}
-    <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
     <nav class="bg-slate-900 text-white flex items-center justify-between px-4 py-2">
         <div @click.away="open = false" class="w-full flex flex-col w-full items-end" x-data="{ open: false }">
             <div class="w-full flex justify-between">
@@ -148,11 +148,11 @@
                 </div>
 
                 <div class="flex justify-center items-center gap-2 px-4 py-2">
-                    <div class="flex items-center group">
-                        <button type="button" id="notification-icon" class="inline-block text-sm px-3 py-2 leading-none relative">
+                    <div class="flex items-center">
+                        <button type="button" id="notification-icon" class="inline-block text-sm px-3 py-2 leading-none relative group">
                             <svg class="h-8 w-8 text-white group-hover:fill-white" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
-                                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
                             </svg>
                             <span id="unread-notifications"
                                   class="absolute rounded-full bg-red-500 group-hover:bg-red-400 right-0 py-1 px-2 -top-px right-px hidden"></span>
