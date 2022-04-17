@@ -2,7 +2,7 @@ import datetime
 from django import forms
 from django.forms import Form
 
-from accounts.forms import CHARFIELD_CLASS
+from accounts.forms import *
 
 
 class TestResultForm(Form):
@@ -14,7 +14,7 @@ class TestResultForm(Form):
         widget=forms.TextInput(
             attrs={
                 "placeholder": "PCR, antigen, etc.",
-                "class": CHARFIELD_CLASS
+                "class": TEXTINPUT_CLASS
             }
         )
     )
@@ -24,7 +24,7 @@ class TestResultForm(Form):
         required=True,
         widget=forms.widgets.DateInput(
             attrs={
-                'class': 'border border-black px-1 rounded-md',
+                'class': DATEINPUT_CLASS,
                 'type': 'date',
                 'min': date_three_months.strftime("%Y-%m-%d"),
                 'max': date_today.strftime("%Y-%m-%d")
@@ -36,10 +36,17 @@ class TestResultForm(Form):
         widget=forms.RadioSelect(
             attrs={
                 'required': True,
-                'class': 'p-2'
+                'class': CHECKBOX_CLASS
             }
         ),
         choices=[('0', 'Negative'), ('1', 'Positive'), ('2', 'Inconclusive')]
     )
 
-    test_file = forms.FileField()
+    test_file = forms.FileField(
+        widget=forms.FileInput(
+            attrs={
+                'required': True,
+                'class': FILEINPUT_CLASS_HIDDEN
+            }
+        )
+    )

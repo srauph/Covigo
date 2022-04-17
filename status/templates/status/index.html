@@ -164,9 +164,9 @@
             </div>
         {% endif %}
         <div class="bg-white shadow m-8 rounded-xl">
-            <div class="w-full flex items-center justify-between flex-col md:flex-row p-4">
+            <div class="w-full flex flex-wrap justify-center md:justify-between items-center gap-2 p-4">
                 {% if is_reporting_today %}
-                    <div>
+                    <div class="flex justify-center items-center">
                         {% if is_resubmit_requested %}
                             <a href="{% url "status:edit_status_report" %}">
                         {% else %}
@@ -190,23 +190,27 @@
                         </a>
                     </div>
                     {% if is_resubmit_requested %}
-                        <div class="text-red-600 font-bold">
-                            Your doctor has requested you resubmit some symptoms today by 11:59:59, remaining time:
-                            <span id="countdown"></span>
+                        <div class="text-red-600 font-bold flex justify-center items-center">
+                            <span class="text-center">
+                                Your doctor has requested you resubmit some symptoms today by 11:59:59, remaining time:
+                                <span id="countdown"></span>
+                            </span>
                         </div>
                     {% else %}
-                        <div class="text-red-600 font-bold">
-                            You should submit your report with all requested data today by 11:59:59, remaining time:
-                            <span id="countdown"></span>
+                        <div class="text-red-600 font-bold flex justify-center items-center">
+                            <span class="text-center">
+                                You should submit your report with all requested data today by 11:59:59, remaining time:
+                                <span id="countdown"></span>
+                            </span>
                         </div>
                     {% endif %}
                 {% else %}
-                    <div class="text-green-600 font-bold">
+                    <div class="text-green-600 font-bold flex justify-center items-center">
                         You are all set, your doctor will contact you if necessary.
                     </div>
                 {% endif %}
                 {% if perms.accounts.message_doctor or perms.accounts.message_user %}
-                    <a href="{% url "messaging:compose_message" assigned_staff_id %}">
+                    <a href="{% url "messaging:compose_message" assigned_staff_id %}" class="flex justify-center items-center">
                         <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
                             <span>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"

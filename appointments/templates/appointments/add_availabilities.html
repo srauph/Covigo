@@ -128,10 +128,10 @@
                         </div>
                     {% endif %}
 
-                    <div class="flex flex-col gap-8 mt-8">
-                        <div class="flex flex-wrap md:w-1/2 px-2 gap-4">
+                    <div class="flex flex-col gap-8 mt-8 max-w-2xl">
+                        <div class="flex flex-wrap px-2 gap-4">
                             <div class="w-full">
-                                <label class="block text-gray-700 text-sm font-bold">Start date:</label>
+                                <label>Start date:</label>
                                 <div class="text-red-500 text-sm font-semibold hidden" id="date-error">
                                     Invalid start and end dates
                                 </div>
@@ -140,73 +140,76 @@
                                 </div>
                             </div>
                             <div class="w-full">
-                                <label class="block text-gray-700 text-sm font-bold">End date:</label>
+                                <label>End date:</label>
                                 <div>
                                     {{ availability_form.end_date }}
                                 </div>
                             </div>
                         </div>
 
-                        <div class="w-full max-w-2xl px-2">
-                            <label class="block text-gray-700 text-sm font-bold">Select days to create availabilities
+                        <div class="w-full px-2">
+                            <label>Select days to create availabilities
                                 for:</label>
-                            <div class="w-full max-w-2xl flex flex-wrap gap-2 mt-1 mb-2">
-                                <button type="button"
-                                        class="bg-blue-600 hover:bg-blue-800 px-2 py-1 text-white rounded-md text-sm select-multi-days selecta-all"
-                                        data-action="select_all_days">Select All
-                                </button>
-                                <button type="button"
-                                        class="bg-blue-600 hover:bg-blue-800 px-2 py-1 text-white rounded-md text-sm select-multi-days hidden deselect"
-                                        data-action="deselect_all_days">Deselect All
-                                </button>
-                                <button type="button"
-                                        class="bg-blue-600 hover:bg-blue-800 px-2 py-1 text-white rounded-md text-sm select-multi-days"
-                                        data-action="select_weekdays">Select Weekdays
-                                </button>
-                                <button type="button"
-                                        class="bg-blue-600 hover:bg-blue-800 px-2 py-1 text-white rounded-md text-sm select-multi-days"
-                                        data-action="select_weekends">Select Weekends
-                                </button>
+                            <div class="w-full flex flex-col mt-1 ">
+                                <div class="w-full flex flex-wrap gap-2">
+                                    <button type="button"
+                                            class="bg-blue-600 hover:bg-blue-800 px-2 py-1 text-white rounded-md text-sm select-multi-days selecta-all"
+                                            data-action="select_all_days">Select All
+                                    </button>
+                                    <button type="button"
+                                            class="bg-blue-600 hover:bg-blue-800 px-2 py-1 text-white rounded-md text-sm select-multi-days hidden deselect"
+                                            data-action="deselect_all_days">Deselect All
+                                    </button>
+                                    <button type="button"
+                                            class="bg-blue-600 hover:bg-blue-800 px-2 py-1 text-white rounded-md text-sm select-multi-days"
+                                            data-action="select_weekdays">Select Weekdays
+                                    </button>
+                                    <button type="button"
+                                            class="bg-blue-600 hover:bg-blue-800 px-2 py-1 text-white rounded-md text-sm select-multi-days"
+                                            data-action="select_weekends">Select Weekends
+                                    </button>
+                                </div>
+                                <div class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400">
+                                    {{ availability_form.availability_days }}
+                                </div>
                             </div>
-                            {{ availability_form.availability_days }}
+
                         </div>
-                        <div class="flex flex-wrap max-w-2xl gap-4">
+                        <div class="flex flex-wrap gap-4">
                             <div id="type-time-hint" role="tooltip" class="inline-block absolute invisible z-10 py-2 px-3 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 transition-opacity duration-300 tooltip dark:bg-gray-700">
                                 Tip: You can type the time, if you prefer!
                                 <div class="tooltip-arrow" data-popper-arrow></div>
                             </div>
                             <div class="w-full px-2">
-                                <label class="block text-gray-700 text-sm font-bold label-start">Start time:</label>
+                                <label>Start time:</label>
                                 <div class="text-red-500 text-sm font-semibold inline hidden" id="time-error">Invalid time
                                     range
                                 </div>
                                 <div>
-                                    <input id="start_time" class="timepicker_1 bg-slate-100 rounded-md border border-slate-400 px-2 py-1"
+                                    <input id="start_time" class="timepicker_1 w-full bg-slate-100 rounded-md border border-slate-400 px-2 py-1"
                                            name="start_time" required data-tooltip-target="type-time-hint" data-tooltip-trigger="click">
                                 </div>
                             </div>
                             <div class="w-full px-2">
-                                <label class="block text-gray-700 text-sm font-bold">End time:</label>
+                                <label>End time:</label>
                                 <div>
-                                    <input id="end_time" class="timepicker_2 bg-slate-100 rounded-md border border-slate-400 px-2 py-1"
+                                    <input id="end_time" class="timepicker_2 w-full bg-slate-100 rounded-md border border-slate-400 px-2 py-1"
                                            name="end_time" required data-tooltip-target="type-time-hint" data-tooltip-trigger="click">
                                 </div>
                             </div>
                         </div>
                         <div class="w-full px-2">
-                            <label class="block text-gray-700 text-sm font-bold">Slot duration:</label>
-                            <div class="text-red-500 text-sm font-semibold hidden" id="slot-error">
-                                Invalid slot duration
-                            </div>
-                            <div>
+                            <label>Slot duration:</label>
+                            <div class="text-red-500 text-sm font-semibold hidden" id="slot-error"> </div>
+                            <div class="mt-1">
                                 {{ availability_form.slot_duration_hours }}
                                 hours
                                 {{ availability_form.slot_duration_minutes }}
                                 minutes
                             </div>
                         </div>
-                        <div class="w-full max-w-2xl px-2">
-                            <label class="block text-gray-700 text-sm font-bold">Select availabilities:</label>
+                        <div class="w-full px-2">
+                            <label>Select availabilities:</label>
                             <div class="text-red-500 text-sm font-semibold hidden" id="availability_error">
                                 Please select at least once availability
                             </div>

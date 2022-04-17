@@ -7,6 +7,7 @@ from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, Select, C
 from django.db import connection
 from django.contrib.auth.models import User
 
+from Covigo.form_field_classes import *
 from accounts.models import Profile
 
 from re import match, sub
@@ -41,33 +42,6 @@ SYSTEM_MESSAGE_CHOICES = (
 
 REMINDER_INTERVAL_CHOICES = hour_options_generator(6)
 
-GUEST_CHARFIELD_CLASS = \
-    'appearance-none ' \
-    'rounded-none ' \
-    'relative ' \
-    'block ' \
-    'w-full ' \
-    'px-3 ' \
-    'py-2 ' \
-    'border ' \
-    'border-gray-300 ' \
-    'placeholder-gray-500 ' \
-    'text-gray-900 ' \
-    'focus:outline-none ' \
-    'focus:ring-indigo-500 ' \
-    'focus:border-indigo-500 ' \
-    'focus:z-10 ' \
-    'sm:text-sm'
-
-GUEST_CHARFIELD_CLASS_TOP = GUEST_CHARFIELD_CLASS + ' rounded-t-md'
-GUEST_CHARFIELD_CLASS_MIDDLE = GUEST_CHARFIELD_CLASS
-GUEST_CHARFIELD_CLASS_BOTTOM = GUEST_CHARFIELD_CLASS + ' rounded-b-md'
-GUEST_CHARFIELD_CLASS_STANDALONE = GUEST_CHARFIELD_CLASS + ' rounded-md'
-
-CHARFIELD_CLASS = "w-full h-8 px-2 bg-slate-100 rounded-md border border-slate-400"
-SELECTION_CLASS = "w-full h-8 px-1 bg-slate-100 rounded-md border border-slate-400"
-CHECKBOX_CLASS = "p-2"
-
 
 class CreateUserForm(ModelForm):
     user_type = ChoiceField(
@@ -88,7 +62,7 @@ class CreateUserForm(ModelForm):
         widgets = {
             "email": TextInput(
                 attrs={
-                    "class": CHARFIELD_CLASS
+                    "class": TEXTINPUT_CLASS
                 }
             ),
             "groups": CheckboxSelectMultiple(
@@ -133,7 +107,7 @@ class CreateProfileForm(ModelForm):
         widgets = {
             "phone_number": TextInput(
                 attrs={
-                    "class": CHARFIELD_CLASS
+                    "class": TEXTINPUT_CLASS
                 }
             )
         }
@@ -332,23 +306,23 @@ class EditUserForm(ModelForm):
         widgets = {
             "username": TextInput(
                 attrs={
-                    "class": CHARFIELD_CLASS
+                    "class": TEXTINPUT_CLASS
                 }
             ),
             "email": TextInput(
                 attrs={
-                    "class": CHARFIELD_CLASS
+                    "class": TEXTINPUT_CLASS
                 }
             ),
 
             "first_name": TextInput(
                 attrs={
-                    "class": CHARFIELD_CLASS
+                    "class": TEXTINPUT_CLASS
                 }
             ),
             "last_name": TextInput(
                 attrs={
-                    "class": CHARFIELD_CLASS
+                    "class": TEXTINPUT_CLASS
                 }
             ),
             "groups": CheckboxSelectMultiple(
@@ -420,17 +394,17 @@ class EditProfileForm(ModelForm):
         widgets = {
             "phone_number": TextInput(
                 attrs={
-                    "class": CHARFIELD_CLASS
+                    "class": TEXTINPUT_CLASS
                 }
             ),
             "address": TextInput(
                 attrs={
-                    "class": CHARFIELD_CLASS
+                    "class": TEXTINPUT_CLASS
                 }
             ),
             "postal_code": TextInput(
                 attrs={
-                    "class": CHARFIELD_CLASS
+                    "class": TEXTINPUT_CLASS
                 }
             )
         }

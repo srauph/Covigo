@@ -3,6 +3,8 @@ import datetime
 from django import forms
 from django.core.exceptions import ValidationError
 
+from Covigo.form_field_classes import *
+
 DAYS = (
     ('sunday', 'Sunday'),
     ('monday', 'Monday'),
@@ -14,16 +16,14 @@ DAYS = (
 )
 
 SLOT_HOURS = [tuple([x, x]) for x in range(0, 24)]
-SLOT_MINUTES = [tuple([x, x]) for x in range(0, 65, 5)]
-SELECTION_CLASS = "w-16 px-1 bg-slate-100 rounded-md border border-slate-400"
-DATEINPUT_CLASS = "bg-slate-100 rounded-md border border-slate-400 px-2 py-1"
+SLOT_MINUTES = [tuple([x, x]) for x in range(0, 60, 5)]
 
 
 class AvailabilityForm(forms.Form):
     availability_days = forms.MultipleChoiceField(
         choices=DAYS,
         widget=forms.CheckboxSelectMultiple(
-            attrs={'class': 'days_checkbox'}
+            attrs={'class': f'days_checkbox {CHECKBOX_CLASS}'}
         ),
         required=True,
     )
@@ -31,7 +31,7 @@ class AvailabilityForm(forms.Form):
     slot_duration_hours = forms.IntegerField(
         widget=forms.Select(
             choices=SLOT_HOURS,
-            attrs={'class': SELECTION_CLASS}
+            attrs={'class': SELECTION_CLASS_INLINE}
         ),
         initial='1',
         required=True
@@ -40,7 +40,7 @@ class AvailabilityForm(forms.Form):
     slot_duration_minutes = forms.IntegerField(
         widget=forms.Select(
             choices=SLOT_MINUTES,
-            attrs={'class': SELECTION_CLASS}
+            attrs={'class': SELECTION_CLASS_INLINE}
         ),
         required=True
     )
