@@ -58,6 +58,13 @@
             }
         }
 
+        .fc-daygrid-more-link {
+            top: 2px;
+            color: #2563EB;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
         .fc-daygrid-day {
             height: 6rem;
         }
@@ -104,7 +111,7 @@
                     right: 'prevYear,prev,next,nextYear'
                 },
                 moreLinkContent: function(args){
-                    return `+${args.num}`;
+                    return screen.width >= 640 ? `+${args.num} more` : `(+${args.num})`;
                 },
                 allDaySlot: false,
                 views: {
@@ -365,10 +372,10 @@
 
             {% endfor %}
 
-            <div class="flex flex-wrap gap-8 xl:gap-0 xl:flex-nowrap mt-8">
+            <div class="flex flex-wrap gap-8 xl:gap-0 xl:flex-nowrap mt-8 mb-8 md:mb-0">
 
-                <div class="grow rounded rounded-lg bg-white shadow p-4 w-full xl:w-2/3">
-                    <div id="fullcalendar" class="p-4 min-calendar-height"></div>
+                <div class="grow rounded rounded-lg bg-white shadow sm:px-4 py-4 w-full xl:w-2/3">
+                    <div id="fullcalendar" class="px-2 sm:px-4 py-4 min-calendar-height"></div>
                 </div>
 
                 <div class="grow xl:grow-0 xl:p-0 xl:pl-4 flex flex-col gap-4 items-center grow">
