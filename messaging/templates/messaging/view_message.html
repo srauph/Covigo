@@ -52,10 +52,10 @@
                 {% if user.id == message.author_id %}
 
                     <div class="my-4">
-                        <div class="bg-blue-100 hover:bg-blue-200 shadow w-full p-4 rounded-2xl border-b flex items-center">
+                        <div class="bg-blue-100 hover:bg-blue-200 shadow w-full p-4 rounded-2xl border-b flex items-center gap-2">
 
                             <!-- message info (name, date, time) -->
-                            <div class="w-2/12">
+                            <div class="w-32">
                                 <div class="font-bold text-lg mb-2">{{ message.author.first_name }} {{ message.author.last_name }}</div>
                                 <!-- Date -->
                                 <p class="text-sm text-gray-600 items-center pb-1">
@@ -83,7 +83,7 @@
                             </div>
 
                             <!-- message content -->
-                            <div class="w-10/12">
+                            <div class="grow">
                                 <p class="text-left">{{ message.content }}</p>
                             </div>
                         </div>
@@ -91,13 +91,13 @@
                 {% else %}
                     <!-- RECEIVER MESSAGES -->
                     <div class="my-4">
-                        <div class="hover:bg-slate-200 shadow w-full bg-white p-4 rounded-2xl border-b flex items-center">
+                        <div class="hover:bg-slate-200 shadow w-full bg-white p-4 rounded-2xl border-b flex items-center gap-2">
 
                             <!-- message info (name, date, time) -->
-                            <div class="w-2/12">
+                            <div class="w-32">
                                 <div class="font-bold text-lg mb-2">{{ message.author.first_name }} {{ message.author.last_name }} </div>
                                 <!-- Date -->
-                                <p class="text-sm text-gray-600 flex items-center pb-1">
+                                <p class="text-sm text-gray-600 flex nowrap items-center pb-1">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="pr-1 h-5 w-5 float-left"
                                          viewBox="0 0 20 20"
                                          fill="currentColor">
@@ -106,10 +106,10 @@
                                               clip-rule="evenodd"/>
                                         <title>Date sent</title>
                                     </svg>
-                                    {{ message.date_created|date:"SHORT_DATE_FORMAT" }}
+                                    <span>{{ message.date_created|date:"SHORT_DATE_FORMAT" }}</span>
                                 </p>
                                 <!-- Time -->
-                                <p class="text-sm text-gray-600 flex items-center pb-1">
+                                <p class="text-sm text-gray-600 flex nowrap items-center pb-1">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="pr-1 h-5 w-5" viewBox="0 0 20 20"
                                          fill="currentColor">
                                         <path fill-rule="evenodd"
@@ -117,12 +117,12 @@
                                               clip-rule="evenodd"/>
                                         <title>Time</title>
                                     </svg>
-                                    {{ message.date_created|time:"H:i" }}
+                                    <span>{{ message.date_created|time:"H:i" }}</span>
                                 </p>
                             </div>
 
                             <!-- message content -->
-                            <div class="w-10/12">
+                            <div class="grow">
                                 <p class="text-left">{{ message.content }}</p>
                             </div>
                         </div>
@@ -148,7 +148,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                         </svg>
                                     </span>
-                                    <span>Reply</span>
+                                    <span class="hidden sm:inline">Reply</span>
                                 </button>
                             </div>
                         </div>

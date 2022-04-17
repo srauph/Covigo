@@ -34,7 +34,7 @@ class CreateMessageGroupForm(forms.ModelForm):
     title = forms.CharField(
         widget=forms.TextInput(
             attrs={
-                'placeholder': "e.g. Concern with loss of smell and taste",
+                'placeholder': "e.g. Concern with loss of smell",
                 'required': True,
                 'size': 50,
                 'class': 'w-full h-8 px-2 bg-slate-100 rounded-md border border-slate-400'

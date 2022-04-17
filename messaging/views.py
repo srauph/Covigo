@@ -463,7 +463,6 @@ def list_notifications_table(request):
 @login_required
 @never_cache
 def toggle_read_notification(request, message_group_id):
-    print(message_group_id)
     message_group = MessageGroup.objects.get(id=message_group_id)
 
     message_group.recipient_seen = not message_group.recipient_seen
