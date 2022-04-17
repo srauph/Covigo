@@ -237,16 +237,15 @@
         {% endfor %}
 
         <div class="bg-white shadow m-8 rounded-xl">
-            <div class="w-full flex flex-wrap justify-end p-4 gap-2">
-                <div class="flex gap-1 items-center text-sm">
-                    <span class="font-semibold">Note:</span>
-                    <span id="new-upload-hint">Only .csv files with header "First Name,Last Name,Email,Phone Number" will work.</span>
+            <div class="w-full flex flex-wrap justify-center md:justify-between items-center gap-2 p-4">
+                <div class="text-center md:text-left text-sm">
+                    <span id="new-upload-hint"><span class="font-semibold">Note:</span> Only .csv files with header "First Name,Last Name,Email,Phone Number" will work properly.</span>
                     <span class="flex items-center gap-2 hidden" id="processing-message">
                         Your uploaded csv file is still being processed...
                         <span class="border-slate-200 border-t-blue-400 loader ease-linear rounded-full border-4 border-t-4 h-6 w-6"></span>
                     </span>
                 </div>
-                <div class="flex flex-auto justify-end gap-2">
+                <div class="flex justify-end gap-2">
 
                     {# clicking on this button uploads a contact tracing file to be processed by the system #}
                     <form method="post" enctype="multipart/form-data">
