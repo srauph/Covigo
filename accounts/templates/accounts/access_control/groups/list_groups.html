@@ -63,7 +63,10 @@
                         "targets": [2],
                         "visible": true,
                         "searchable": true,
-                        "className": 'dt-body-center'
+                        "className": 'dt-body-center',
+                        "render": function (data, type, row) {
+                            return `<div class="whitespace-normal">${data}</div>`;
+                        }
                     },
                     { // Action
                         "targets": [3],
@@ -127,8 +130,8 @@
 
         <div class="bg-white shadow m-8 rounded-xl">
             <div class="w-full flex flex-wrap justify-center md:justify-between items-center gap-2 p-4">
-                <div id="group-filter" class="flex flex-wrap justify-center md:justify-start items-center">
-                    <span class="font-semibold px-2">Filter Groups:</span>
+                <div id="group-filter" class="flex flex-wrap justify-center md:justify-start items-center gap-2">
+                    <span class="font-semibold">Filter Groups:</span>
                 </div>
                 <div class="flex gap-2">
                     <a href="{% url 'accounts:create_group' %}">
@@ -193,7 +196,7 @@
                             <th class="p-2"></th>
                             <th class="p-2">Group Name</th>
                             <th class="p-2">Valid for</th>
-                            <th class="p-2"></th>
+                            <th class="p-2">Action</th>
                         </tr>
                     </thead>
                     <!-- Table entries is handled by the DataTable -->

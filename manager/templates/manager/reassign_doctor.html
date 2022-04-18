@@ -44,6 +44,7 @@
                 {"data": "doc_id"},
                 {"data": "first_name"},
                 {"data": "last_name"},
+                {"data": "username"},
                 {"data": "distance"},
                 {"data": "patient_count"},
                 {defaultContent: ""},
@@ -58,8 +59,9 @@
                     "targets": [1],
                     "visible": true,
                     "searchable": true,
+                    "className": 'dt-body-center',
                     "render": function (data, type, row) {
-                        return row.first_name + ' ' + row.last_name;
+                        return `<div class="whitespace-normal">${row.first_name} ${row.last_name}</div>`;
                     }
                 },
                 { // last_name
@@ -67,23 +69,36 @@
                     "visible": false,
                     "searchable": true
                 },
-                { // distance
+                { // username
                     "targets": [3],
+                    "visible": true,
+                    "searchable": true,
+                    "className": 'dt-body-center',
+                    "render": function (data, type, row) {
+                        return `<div class="whitespace-normal">${data}</div>`;
+                    }
+                },
+                { // distance
+                    "targets": [4],
                     "visible": true,
                     "searchable": false,
                     "className": 'dt-body-center',
                     "render": function (data, type, row) {
-                        return (row.distance/1000).toFixed(1);
+                        let dist = (row.distance/1000).toFixed(1);
+                        return `<div class="whitespace-normal">${dist}</div>`;
                     }
                 },
                 { // patient_count
-                    "targets": [4],
+                    "targets": [5],
                     "visible": true,
                     "searchable": false,
-                    "className": 'dt-body-center'
+                    "className": 'dt-body-center',
+                    "render": function (data, type, row) {
+                        return `<div class="whitespace-normal">${data}</div>`;
+                    }
                 },
                 { // Action
-                    "targets": [5],
+                    "targets": [6],
                     "visible": true,
                     "searchable": false,
                     "sortable": false,
@@ -123,14 +138,14 @@
                             '<a href="{% url 'accounts:profile' 999999999  %}">'.replace(999999999, row.doc_id) +
                             '<button type="button" class="bg-cyan-500 justify-center hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">' +
                             '<span> <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round"stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>' +
-                            '<span>View Profile</span>' +
+                            '<span>Profile</span>' +
                             '</button></a>';
 
-                        return '<span class="flex justify-end gap-2">' + button_reassign + button_profile + '</span>';
+                        return '<span class="flex justify-center gap-2">' + button_reassign + button_profile + '</span>';
                     }
                 }
             ],
-            "order": [[3, "asc"], [2, "asc"], [1, "asc"]]
+            "order": [[4, "asc"], [5, "asc"], [2, "asc"], [1, "asc"]]
         });
     </script>
     <script>
@@ -217,9 +232,10 @@
                             <th class="p-2"></th>
                             <th class="p-2">Doctor Name</th>
                             <th class="p-2"></th>
+                            <th class="p-2">Username</th>
                             <th class="p-2">Approx. Distance (km)</th>
                             <th class="p-2">Number of Patients</th>
-                            <th class="p-2"></th>
+                            <th class="p-2">Action</th>
                         </tr>
                         </thead>
                         <!-- Table entries is handled by the DataTable -->

@@ -71,7 +71,11 @@
                         "targets": [0],
                         "visible": true,
                         "searchable": true,
-                        "className": 'dt-body-center'
+                        "className": 'dt-body-center',
+                        "render": function (data, type, row) {
+                            let text = data.replaceAll('_', '_<wbr/>');
+                            return `<div class="whitespace-normal">${text}</div>`;
+                        }
                     },
                     { // Action
                         "targets": [1],
@@ -279,7 +283,7 @@
                         <th class="p-2 text-center">
                             File Name
                         </th>
-                        <th></th>
+                        <th>Action</th>
                     </tr>
                     </thead>
                 </table>

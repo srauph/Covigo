@@ -49,6 +49,7 @@
                         "visible": true,
                         "searchable": true,
                         "className": 'dt-body-center',
+                        "data": "display",
                         "render": {
                             _: "display",
                             sort: "value",
@@ -60,7 +61,7 @@
                         "searchable": true,
                         "responsivePriority": 2,
                         "render": function (data, type, row) {
-                            return `${row.author_fname} ${row.author_lname}`;
+                            return `<div class="whitespace-normal">${row.author_fname} ${row.author_lname}</div>`;
                         }
                     },
                     { // author_last_name
@@ -74,7 +75,7 @@
                         "searchable": true,
                         "responsivePriority": 2,
                         "render": function (data, type, row) {
-                            return `${row.recipient_fname} ${row.recipient_lname}`;
+                            return `<div class="whitespace-normal">${row.recipient_fname} ${row.recipient_lname}</div>`;
                         }
                     },
                     { // recipient_last_name
@@ -88,18 +89,27 @@
                         "searchable": true,
                         "className": 'dt-body-center',
                         "responsivePriority": 1,
+                        "render": function (data, type, row) {
+                            return `<div class="whitespace-normal">${data}</div>`;
+                        }
                     },
                     { // date_created
                         "targets": [7],
                         "visible": true,
                         "searchable": false,
-                        "className": 'dt-body-center'
+                        "className": 'dt-body-center',
+                        "render": function (data, type, row) {
+                            return `<div class="whitespace-normal">${data}</div>`;
+                        }
                     },
                     { // date_updated
                         "targets": [8],
                         "visible": true,
                         "searchable": false,
-                        "className": 'dt-body-center'
+                        "className": 'dt-body-center',
+                        "render": function (data, type, row) {
+                            return `<div class="whitespace-normal">${data}</div>`;
+                        }
                     },
                     { // seen
                         "targets": [9],
@@ -275,7 +285,7 @@
                             <th class="p-2">Sent On</th>
                             <th class="p-2">Opened On</th>
                             <th class="p-2">Seen</th>
-                            <th class="p-2"></th>
+                            <th class="p-2">Action</th>
                         </tr>
                     </thead>
                     <!-- Table entries is handled by the DataTable -->

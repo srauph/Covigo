@@ -52,6 +52,7 @@
                 stripeClasses: [],
                 "orderClasses": false,
                 "columns": [
+                    {defaultContent: ""},
                     {"data": "flagged"},
                     {"data": "user__first_name"},
                     {"data": "user_id"},
@@ -59,17 +60,26 @@
                     {"data": "date_updated__date"},
                     {"data": "user__last_name"},
                     {
-                        defaultContent: '<span class="flex items-center justify-end">' +
+                        defaultContent: '<span class="flex items-center justify-center whitespace-nowrap">' +
                             '<button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1 report-modal-link">' +
                             '<span><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round"stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>' +
                             '<span>View Report</span></button></span>'
                     },
                 ],
                 "columnDefs": [
-                    { // flagged
+                    { // responsive (+) button
                         "targets": [0],
                         "visible": true,
                         "searchable": false,
+                        "sortable": false,
+                        "className": 'all w-0',
+                        "responsivePriority": 1,
+                    },
+                    { // flagged
+                        "targets": [1],
+                        "visible": {% if perms.accounts.flag_assigned or perms.accounts.flag_patients %} true {% else %} false {% endif %},
+                        "searchable": false,
+                        "className": 'w-0',
                         "render": function (data, type, row) {
                             let is_active = row.flagged;
                             if (typeof is_active != "boolean") {
@@ -85,41 +95,45 @@
                         }
                     },
                     { // user__first_name
-                        "targets": [1],
+                        "targets": [2],
                         "visible": true,
                         "searchable": true,
+                        "responsivePriority": 1,
                         "render": function (data, type, row) {
                             return row.user__first_name + ' ' + row.user__last_name;
                         }
                     },
                     { // user_id
-                        "targets": [2],
-                        "visible": false,
-                        "searchable": false
-                    },
-                    { // is_viewed
                         "targets": [3],
                         "visible": false,
                         "searchable": false
                     },
-                    { // date_updated__date
+                    { // is_viewed
                         "targets": [4],
-                        "visible": true,
-                        "searchable": true
-                    },
-                    { // user__last_name
-                        "targets": [5],
                         "visible": false,
                         "searchable": false
                     },
+                    { // date_updated__date
+                        "targets": [5],
+                        "visible": true,
+                        "searchable": true,
+                        "render": function (data, type, row) {
+                            return `<div class="whitespace-normal">${data}</div>`;
+                        }
+                    },
                     { // user__last_name
                         "targets": [6],
+                        "visible": false,
+                        "searchable": false
+                    },
+                    { // Action
+                        "targets": [7],
                         "visible": true,
                         "searchable": false,
                         "bSortable": false,
                     },
                 ],
-                "order": [[3, "desc"], [0, "desc"], [4, "desc"]]
+                "order": [[4, "desc"], [1, "desc"], [5, "desc"]]
             });
             $('#toggleRead').change(function () {
                 $.fn.dataTable.ext.search.pop();
@@ -230,9 +244,9 @@
                         <span class="font-semibold">Filters:</span>
                         <select name="" id="toggleRead"
                                 class="bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md cursor-pointer">
-                            <option value="showAll">Show All Patient Reports</option>
-                            <option value="false">Show Unread Patient Reports</option>
-                            <option value="true">Show Read Patient Reports</option>
+                            <option value="showAll">Show All Reports</option>
+                            <option value="false">Show Unread Reports</option>
+                            <option value="true">Show Read Reports</option>
                         </select>
                     </div>
                 </div>
@@ -242,13 +256,14 @@
                        id="patient_reports_table">
                     <thead>
                     <tr class="border-b">
-                        <th class="p-2 w-2">Flag</th>
+                        <th class="p-2 w-0"></th>
+                        <th class="p-2 w-0">Flag</th>
                         <th class="p-2">Patient Name</th>
                         <th class="p-2">user_id</th>
                         <th class="p-2">is_viewed</th>
                         <th class="p-2">Date</th>
                         <th class="p-2">user__last_name</th>
-                        <th class="p-2"></th>
+                        <th class="p-2">Action</th>
                     </tr>
                     </thead>
                     <!-- Table entries is handled by the DataTable -->

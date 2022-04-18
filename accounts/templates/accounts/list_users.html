@@ -45,7 +45,10 @@
                         "targets": [1],
                         "visible": true,
                         "searchable": true,
-                        "className": 'dt-body-center'
+                        "className": 'dt-body-center',
+                        "render": function (data, type, row) {
+                            return `<div class="whitespace-normal">${data}</div>`;
+                        }
                     },
                     { // first name
                         "targets": [2],
@@ -53,7 +56,7 @@
                         "searchable": true,
                         "responsivePriority": 1,
                         "render": function (data, type, row) {
-                            return row.fname + ' ' + row.lname;
+                            return `<div class="whitespace-normal">${row.fname} ${row.lname}</div>`;
                         }
                     },
                     { // last name
@@ -65,19 +68,28 @@
                         "targets": [4],
                         "visible": true,
                         "searchable": true,
-                        "className": 'dt-body-center'
+                        "className": 'dt-body-center',
+                        "render": function (data, type, row) {
+                            return `<div class="whitespace-normal">${data}</div>`;
+                        }
                     },
                     { // phone number
                         "targets": [5],
                         "visible": true,
                         "searchable": true,
-                        "className": 'dt-body-center'
+                        "className": 'dt-body-center',
+                        "render": function (data, type, row) {
+                            return `<div class="whitespace-normal">${data}</div>`;
+                        }
                     },
                     { // groups
                         "targets": [6],
                         "visible": true,
                         "searchable": true,
-                        "className": 'dt-body-center'
+                        "className": 'dt-body-center',
+                        "render": function (data, type, row) {
+                            return `<div class="whitespace-normal">${data}</div>`;
+                        }
                     },
                     { // Action
                         "targets": [7],
@@ -141,8 +153,8 @@
 
         <div class="bg-white shadow m-8 rounded-xl">
             <div class="w-full flex flex-wrap justify-center md:justify-between items-center gap-2 p-4">
-                <div id="group-filter" class="flex flex-wrap justify-center md:justify-start items-center">
-                    <span class="font-semibold px-2">Filter Groups:</span>
+                <div id="group-filter" class="flex flex-wrap justify-center md:justify-start items-center gap-2">
+                    <span class="font-semibold">Filter Groups:</span>
                 </div>
                 <div class="flex flex-wrap justify-center md:justify-start gap-2">
                     {% if perms.accounts.manage_groups %}
@@ -219,7 +231,7 @@
                             <th class="p-2">Email</th>
                             <th class="p-2">Phone Number</th>
                             <th class="p-2">Group</th>
-                            <th class="p-2"></th>
+                            <th class="p-2">Action</th>
                         </tr>
                     </thead>
 

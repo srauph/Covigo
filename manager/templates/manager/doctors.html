@@ -44,6 +44,7 @@
                 {"data": "id"},
                 {"data": "first_name"},
                 {"data": "last_name"},
+                {"data": "username"},
                 {"data": "patient_count"},
                 {defaultContent: ""},
             ],
@@ -57,8 +58,9 @@
                     "targets": [1],
                     "visible": true,
                     "searchable": true,
+                    "className": 'dt-body-center',
                     "render": function (data, type, row) {
-                        return row.first_name + ' ' + row.last_name;
+                        return `<div class="whitespace-normal">${row.first_name} ${row.last_name}</div>`;
                     }
                 },
                 { // last_name
@@ -66,20 +68,32 @@
                     "visible": false,
                     "searchable": true
                 },
-                { // patient_count
+                { // username
                     "targets": [3],
                     "visible": true,
+                    "searchable": true,
+                    "className": 'dt-body-center',
+                    "render": function (data, type, row) {
+                        return `<div class="whitespace-normal">${data}</div>`;
+                    }
+                },
+                { // patient_count
+                    "targets": [4],
+                    "visible": true,
                     "searchable": false,
-                    "className": 'dt-body-center'
+                    "className": 'dt-body-center',
+                    "render": function (data, type, row) {
+                        return `<div class="whitespace-normal">${data}</div>`;
+                    }
                 },
                 { // Action
-                    "targets": [4],
+                    "targets": [5],
                     "visible": true,
                     "searchable": false,
                     "sortable": false,
                     "className": 'dt-body-center',
                     "render": function (data, type, row) {
-                        return '<span class="flex justify-end">' +
+                        return '<span class="flex justify-center whitespace-nowrap">' +
                         '<a href="{% url 'accounts:profile' 999999999  %}">'.replace(999999999, row.id) +
                         '<button class="bg-cyan-500 justify-center hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">' +
                         '<span> <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round"stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' +
@@ -107,8 +121,9 @@
                             <th class="p-2"></th>
                             <th class="p-2">Doctor Name</th>
                             <th class="p-2"></th>
+                            <th class="p-2">Username</th>
                             <th class="p-2">Number of Patients</th>
-                            <th class="p-2"></th>
+                            <th class="p-2">Action</th>
                         </tr>
                     </thead>
                     <!-- Table entries is handled by the DataTable -->
