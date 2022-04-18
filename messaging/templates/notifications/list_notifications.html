@@ -156,12 +156,10 @@
 
         function processCheckboxChanged() {
             if ($("#message_list_table input:checkbox:checked").length >= 1) {
-                $(".mark_selected_notifications_read").removeClass('hidden');
-                $(".mark_selected_notifications_unread").removeClass('hidden');
+                $("#mark-read-buttons").removeClass('hidden');
             }
             else {
-                $(".mark_selected_notifications_read").addClass('hidden');
-                $(".mark_selected_notifications_unread").addClass('hidden');
+                $("#mark-read-buttons").addClass('hidden');
             }
         }
 
@@ -210,22 +208,24 @@
             <h1 class="text-2xl text-white font-semibold px-8 py-4">Notifications</h1>
         </div>
 
-        <div class="bg-white shadow m-8 rounded-xl">
-            <div class="w-full flex justify-between items-center p-4">
-                <div>
-                    <span class="font-semibold px-2">Filters:</span>
-                    <select name="" id="toggleRead"
-                            class="bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md">
-                        <option value="showAll">Show All Notifications</option>
-                        <option value="unread">Show Unread Notifications</option>
-                        <option value="read">Show Read Notifications</option>
-                    </select>
-                </div>
-            </div>
-        </div>
         <form method="post">
             {% csrf_token %}
-            <div class="p-8 pt-0">
+
+            <div class="p-8 flex flex-col justify-center gap-8">
+                <div class="bg-white shadow rounded-xl">
+                    <div class="w-full flex flex-wrap justify-center md:justify-between items-center gap-2 p-4">
+                        <div class="flex flex-wrap justify-center md:justify-start items-center gap-2">
+                            <span class="font-semibold">Filters:</span>
+                            <select name="" id="toggleRead"
+                                    class="bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md">
+                                <option value="showAll">Show All Notifications</option>
+                                <option value="unread">Show Unread Notifications</option>
+                                <option value="read">Show Read Notifications</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="p-4 bg-white shadow rounded-lg text-center">
                     <table class="w-full table-auto display responsive nowrap" style="width:100%" id="message_list_table">
                         <thead>
@@ -243,11 +243,12 @@
                         </thead>
                     </table>
                 </div>
-                <div class="w-full my-8">
+
+                <div class="w-full hidden" id="mark-read-buttons">
                     <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
                         {# Button to mark selected as read #}
                         <button type="submit" value="mark_selected_notifications_read"
-                                class="mark_selected_notifications_read hidden bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1"
+                                class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1"
                                 name="mark_selected_notifications_read">
                             <span>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
@@ -261,7 +262,7 @@
 
                         {# Button to mark selected as unread #}
                         <button type="submit" value="mark_selected_notifications_unread"
-                                class="mark_selected_notifications_unread hidden bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1"
+                                class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1"
                                 name="mark_selected_notifications_unread">
                             <span>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"

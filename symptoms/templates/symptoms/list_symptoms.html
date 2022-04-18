@@ -58,13 +58,19 @@
                         "targets": [1],
                         "visible": true,
                         "searchable": true,
-                        "className": 'dt-body-center'
+                        "className": 'dt-body-center',
+                        "render": function (data, type, row) {
+                            return `<div class="whitespace-normal">${data}</div>`;
+                        }
                     },
                     { // description
                         "targets": [2],
                         "visible": true,
                         "searchable": true,
-                        "className": 'dt-body-center'
+                        "className": 'dt-body-center',
+                        "render": function (data, type, row) {
+                            return `<div class="whitespace-normal">${data}</div>`;
+                        }
                     },
                     { // enabled
                         "targets": [3],
@@ -72,7 +78,8 @@
                         "searchable": true,
                         "className": 'dt-body-center',
                         "render": function (data, type, row) {
-                            return (row.enabled ? "Enabled" : "Disabled");
+                            let text = (row.enabled ? "Enabled" : "Disabled");
+                            return `<div class="whitespace-normal">${text}</div>`;
                         }
                     },
                     { // Action
@@ -104,9 +111,9 @@
                                 '</button></a>';
 
                             if (row.enabled) {
-                                return '<span class="flex justify-end gap-2">' + buttonDisable + buttonEdit + '</span>';
+                                return '<span class="flex justify-center gap-2">' + buttonDisable + buttonEdit + '</span>';
                             } else {
-                                return '<span class="flex justify-end gap-2">' + buttonEnable + buttonEdit + '</span>';
+                                return '<span class="flex justify-center gap-2">' + buttonEnable + buttonEdit + '</span>';
                             }
                         }
                     }
@@ -223,7 +230,7 @@
                             <th class="p-2">Name</th>
                             <th class="p-2">Description</th>
                             <th class="p-2">Status</th>
-                            <th class="p-2"></th>
+                            <th class="p-2">Action</th>
                         </tr>
                     </thead>
                     <!-- Table entries is handled by the DataTable -->

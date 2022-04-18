@@ -435,6 +435,7 @@ def reassign_doctor_list_table(request, user_id):
             "doc_id": i[0].id,
             "first_name": i[0].first_name,
             "last_name": i[0].last_name,
+            "username": i[0].username,
             "distance": i[1],
             "patient_count": i[2],
         })
@@ -463,6 +464,7 @@ def get_doctors_list():
         "id",
         "first_name",
         "last_name",
+        "username",
         "staff__id",
     ).annotate(patient_count=Count("staff__assigned_patients"))
 

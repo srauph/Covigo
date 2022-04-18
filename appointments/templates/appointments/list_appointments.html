@@ -84,7 +84,10 @@
                     "targets": [2],
                     "visible": true,
                     "searchable": true,
-                    "className": 'dt-body-center'
+                    "className": 'dt-body-center',
+                    "render": function (data, type, row) {
+                        return `<div class="whitespace-normal">${data}</div>`;
+                    }
                 },
                 { // date
                     "targets": [3],
@@ -92,6 +95,9 @@
                     "searchable": true,
                     "className": 'dt-body-center',
                     "responsivePriority": 1,
+                    "render": function (data, type, row) {
+                        return `<div class="whitespace-normal">${data}</div>`;
+                    }
                 },
                 { // start
                     "targets": [4],
@@ -99,18 +105,27 @@
                     "searchable": true,
                     "className": 'dt-body-center',
                     "responsivePriority": 2,
+                    "render": function (data, type, row) {
+                        return `<div class="whitespace-normal">${data}</div>`;
+                    }
                 },
                 { // end
                     "targets": [5],
                     "visible": true,
                     "searchable": true,
-                    "className": 'dt-body-center'
+                    "className": 'dt-body-center',
+                    "render": function (data, type, row) {
+                        return `<div class="whitespace-normal">${data}</div>`;
+                    }
                 },
                 { // with
                     "targets": [6],
                     "visible": true,
                     "searchable": true,
-                    "className": 'dt-body-center'
+                    "className": 'dt-body-center',
+                    "render": function (data, type, row) {
+                        return `<div class="whitespace-normal">${data}</div>`;
+                    }
                 },
                 { // Action
                     "targets": [7],
