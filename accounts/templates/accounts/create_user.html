@@ -1,5 +1,22 @@
 {% extends "Covigo/base.html" %}
 
+{% block script %}
+
+    <script>
+        let groups = $('#groups').find('input');
+
+        groups.click(function () {
+            groups.not(this).prop("checked", false);
+        });
+    </script>
+
+    <script>
+        Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
+            x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
+        }));
+    </script>
+{% endblock %}
+
 {% block content %}
     <form method="post" class="min-h-full bg-slate-100 flex flex-col">
         {% csrf_token %}
@@ -14,20 +31,12 @@
                     <hr>
 
                     {% if messages %}
-                        {% block script %}
-                            <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-                            <script>
-                                Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
-                                    x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
-                                }
-                                )
-                                );
 
-                                setTimeout(function() {
-                                    $('.message').fadeOut('fast');
-                                    }, 10000); // <-- time in milliseconds
-                            </script>
-                        {% endblock %}
+                        <script>
+                            setTimeout(function() {
+                                $('.message').fadeOut('fast');
+                                }, 10000); // <-- time in milliseconds
+                        </script>
                     {% endif %}
 
                     {% for message in messages %}
@@ -104,14 +113,14 @@
                     <div class="w-full max-w-2xl px-2">
                         <label>User Type:</label>
                         <div class="mt-1">
-                            {{ user_form.is_staff }}
+                            {{ user_form.user_type }}
                         </div>
                     </div>
                 {% endif %}
                 {% if perms.accounts.assign_group %}
                     <div class="w-full max-w-2xl px-2">
                         <label>Group:</label>
-                        <div class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400">
+                        <div id="groups" class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400">
                             {{ user_form.groups }}
                         </div>
                     </div>

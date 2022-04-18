@@ -13,6 +13,13 @@
 {#    {% else %}#}
     <script src="https://cdn.tailwindcss.com"></script>
 {#    {% endif %}#}
+
+    <style>
+        dropdown {
+
+        }
+    </style>
+
     {% block styles %}
         {{ styles }}
     {%  endblock %}
@@ -38,8 +45,11 @@
     {% include "Covigo/footer.html" %}
 </footer>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
 {% block script %}
     {{ script }}
-{%  endblock %}
+{% endblock %}
 </body>
 </html>

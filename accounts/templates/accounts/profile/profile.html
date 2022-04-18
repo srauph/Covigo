@@ -3,23 +3,10 @@
 {% load static %}
 
 {% block script %}
-    <script src="https://code.jquery.com/jquery-3.6.0.js"
-            integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
-    <script>
-        $("#reassign_doctor").click(function () {
-            $("#reassign_doctor_form").toggleClass('hidden')
-        })
-    </script>
-    <script src="{% static 'accounts/js/dual-listbox.js' %}"></script>
-    <script>
-        demo = new DualListbox('.multiselect');
-    </script>
     <script>
         Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function () {
                     x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
-                }
-            )
-        );
+        }));
     </script>
     <script>
         jQuery('#flag-button').on('click', function (e) {
@@ -57,8 +44,7 @@
         {% endif %}
 
         {% if messages %}
-            <script src="https://code.jquery.com/jquery-3.6.0.min.js"
-                    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
             <script>
                 setTimeout(function () {
                     $('.message').fadeOut('fast');

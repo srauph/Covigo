@@ -1,5 +1,22 @@
 {% extends 'Covigo/base.html' %}
 
+{% block script %}
+    <script>
+        let today = new Date()
+        let year = today.getFullYear().toString();
+        let month = (today.getMonth()+1).toString().padStart(2, '0');
+        let day = today.getDate().toString().padStart(2, '0');
+        let minDate = `${year}-${month}-${day}`;
+
+        $('#datepicker').attr('min', minDate).attr('value', minDate);
+    </script>
+    <script>
+        Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
+            x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
+        }));
+    </script>
+{% endblock %}
+
 {% block content %}
     <form method="POST" class="min-h-full bg-slate-100 flex flex-col">
         {% csrf_token %}
@@ -14,20 +31,11 @@
         </div>
 
         {% if messages %}
-            {% block script %}
-                <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-                <script>
-                    Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
-                        x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
-                    }
-                    )
-                    );
-
-                    setTimeout(function() {
-                        $('.message').fadeOut('fast');
-                        }, 10000); // <-- time in milliseconds
-                </script>
-            {% endblock %}
+            <script>
+                setTimeout(function() {
+                    $('.message').fadeOut('fast');
+                    }, 10000); // <-- time in milliseconds
+            </script>
         {% endif %}
 
         {% for message in messages %}
@@ -56,7 +64,7 @@
         {% endfor %}
 
         <div class="flex flex-col justify-between grow m-8 p-4 min-h-full bg-white shadow rounded-lg">
-            <div class="w-full flex flex-col gap-8 mb-8">
+            <div class="w-full max-w-2xl flex flex-col gap-8 mb-8">
                 <div class="w-full">
                     <h2 class="p-2 text-2xl font-bold">
                         {% if allow_editing %}
@@ -66,48 +74,53 @@
                         {% endif %}
                     <hr>
                 </div>
-                <div class="w-full px-2">
-                    {% if not allow_editing %}
-                        <div class="pb-4 flex">
-                            <label for="">Start reporting on: </label>
-                            <input type="date" name="starting_date" class="border rounded" required>
 
-                            <label for="">Days to report:</label>
-                            <input type="number" value="1" min="1" name="interval" class="border rounded" required>
-                        </div>
-                        <hr>
-                    {% endif %}
+                {% if not allow_editing %}
+                    <div class="w-full px-2">
+                        <label for="">Start reporting on: </label>
+                        <input type="date" name="starting_date" id="datepicker" required class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400 px-2 py-1" >
+                    </div>
+
+                    <div class="w-full px-2">
+                        <label for="">Days to report:</label>
+                        <input type="number" value="1" min="1" name="interval" class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400 px-2 py-1" required>
+                    </div>
+                {% endif %}
+
+                <div class="w-full px-2">
                     <label>Symptoms:</label>
-                    <div class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400">
-                        <table class="table-auto w-full text-center my-2">
+                    <div class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400 px-2 py-1">
+                        <table class="table-auto w-full">
                             <tbody>
                             {% for sym in symptoms %}
-                                <tr class="hover:bg-gray-200">
-                                    <td class="px-2 w-8"><input type="checkbox" name="symptom"
-                                                                value="{{ sym.id }}"
+                                {% if sym.is_active %}
+                                    <div class="flex gap-2 items-center">
+                                        <input type="checkbox" name="symptom" value="{{ sym.id }}"
                                             {% if sym in assigned_symptoms %}
-                                                                checked
-                                            {% endif %}>
-                                    </td>
-                                    <td class="text-left">{{ sym.name }}</td>
-                                </tr>
+                                                checked
+                                            {% endif %}
+                                        />
+                                        <label class="text-left">{{ sym.name }}</label>
+                                    </div>
+                                {% endif %}
                             {% endfor %}
                             </tbody>
                         </table>
                     </div>
+                </div>
+
+                <div class="w-full px-2">
                     {% if allow_editing %}
-                        <hr>
-                        <br>
                         <label>Extend Report:</label>   <br>
-                        <input type="number" name="extended_days" value="0" min="0" class="border rounded" required>
-                        <h6>Enter the number of days to extend the report.</h6>
-                    {% endif %}
-                    {% if not allow_editing %}
-                        <div class="w-full max-w-2xl px-2">
+                        <input type="number" name="extended_days" value="0" min="0" class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400 px-2 py-1" required>
+                        <p class="text-sm text-slate-600">Enter the number of days to extend the report.</p>
+                    {% else %}
+                        <label>Quarantine status:</label>
+                        <div class="flex gap-2 items-center w-full mt-1 bg-slate-100 rounded-md border border-slate-400 px-2 py-1">
                             <input type="checkbox" name="should_quarantine"
                                    value="quarantine" title="Recommend the patient to quarantine."
                                     {% if patient_is_quarantining %} checked{% endif %}>
-                            Patient should Quarantine
+                            <label>Patient should Quarantine</label>
                         </div>
                     {% endif %}
                 </div>
@@ -140,9 +153,9 @@
                         </span>
                         <span>
                             {% if not allow_editing %}
-                                Assign and Return
+                                Assign
                             {% else %}
-                                Update and Return
+                                Update
                             {% endif %}
                         </span>
                     </button>

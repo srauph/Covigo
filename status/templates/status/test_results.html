@@ -7,7 +7,6 @@
           href="https://cdn.datatables.net/rowreorder/1.2.8/css/rowReorder.dataTables.min.css">
     <link rel="stylesheet" type="text/css"
           href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.dataTables.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css"/>
     <style>
         table.display tbody tr:nth-child(odd):hover td,
         table.display tbody tr:nth-child(even):hover td {
@@ -27,7 +26,7 @@
 
 {% block script %}
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.js"></script>
-    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.js"></script>
+
     <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript"
             src="https://cdn.datatables.net/rowreorder/1.2.8/js/dataTables.rowReorder.min.js"></script>
@@ -94,12 +93,10 @@
             });
         });
     </script>
-        <script>
+    <script>
         Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
             x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
-        }
-        )
-        );
+        }));
     </script>
 {% endblock %}
 {% block content %}
@@ -107,10 +104,33 @@
         <div class="flex justify-between bg-slate-700">
             <h1 class="text-2xl text-white font-semibold px-8 py-4">Test Results</h1>
         </div>
-        <div class="m-4">
-            <div class="m-4 p-4 bg-white shadow rounded-lg text-center">
+        <div class="p-8 flex flex-col gap-8">
+            <div class="bg-white shadow rounded-xl">
+                <div class="w-full flex flex-wrap justify-center md:justify-between items-center gap-2 p-4">
+                    <div id="group-filter" class="flex flex-wrap justify-center md:justify-start items-center gap-1 text-sm">
+                        <span class="font-semibold">Note:</span>
+                        <span>PDF or image files are preferred.</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <a href= "{% url 'status:test_report' user_id %}">
+                            <button type="button"
+                                class="bg-green-600 hover:bg-green-800 text-sm font-semibold text-white pl-1 pr-2 py-1 rounded-md flex items-center gap-1">
+                                    <span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round"
+                                                  stroke-linejoin="round"
+                                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                    </span>
+                                <span>Submit New Test Result</span>
+                            </button>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 bg-white shadow rounded-lg text-center">
                 {% if messages %}
-                    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
                     <script>
                         setTimeout(function() {
                             $('.message').fadeOut('fast');
@@ -143,21 +163,6 @@
                     {% endif %}
                 {% endfor %}
 
-                <div class="flex gap-2 mb-4">
-                    <a href= "{% url 'status:test_report' user_id %}">
-                        <button type="button"
-                            class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white pl-1 pr-2 py-1 rounded-md flex items-center gap-1">
-                                <span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round"
-                                              stroke-linejoin="round"
-                                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
-                                </span>
-                            <span>Submit a test result</span>
-                        </button>
-                    </a>
-                </div>
                 <table class="w-full table-auto display responsive nowrap" style="width:100%"
                        id="test_results_table">
                     <thead>

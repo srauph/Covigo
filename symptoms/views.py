@@ -1,8 +1,11 @@
+import json
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.views.decorators.cache import never_cache
 
@@ -36,19 +39,27 @@ def list_symptoms(request):
     if not request.user.has_perm("accounts.manage_symptoms"):
         raise PermissionDenied
 
-    if 'Search by Symptom Name' in request.GET:
-        search_symptom_name_term = request.GET['Search by Symptom Name']
-        symptoms_search_result = Symptom.objects.all().filter(name__icontains=search_symptom_name_term)
+    return render(request, 'symptoms/list_symptoms.html')
 
-        return render(request, 'symptoms/list_symptoms.html', {
-            'symptoms_search_result': symptoms_search_result
+
+@login_required
+@never_cache
+def list_symptoms_table(request):
+    if not request.user.has_perm("accounts.manage_symptoms"):
+        raise PermissionDenied
+
+    symptoms_table = []
+    for symptom in Symptom.objects.all():
+        symptoms_table.append({
+            "id": symptom.id,
+            "name": symptom.name,
+            "description": symptom.description,
+            "enabled": symptom.is_active,
         })
 
-    symptoms = Symptom.objects.all()
+    serialized_symptoms = json.dumps({'data': symptoms_table}, indent=4)
 
-    return render(request, 'symptoms/list_symptoms.html', {
-        'symptoms': symptoms
-    })
+    return HttpResponse(serialized_symptoms, content_type='application/json')
 
 
 # this function allows form data from the "Create Symptom" page to be submitted and handled properly
@@ -64,7 +75,10 @@ def create_symptom(request):
 
         if create_symptom_form.is_valid():
             if not Symptom.objects.filter(name=create_symptom_form.data.get('name')).exists():
-                create_symptom_form.save()
+                symptom = create_symptom_form.save()
+
+                symptom.is_active = True
+                symptom.save()
 
                 if request.POST.get('Create and Return'):
                     messages.success(request, 'The symptom was created successfully.')

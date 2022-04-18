@@ -7,15 +7,69 @@
 
 {% block script %}
     <script src="{% static 'accounts/js/dual-listbox.js' %}"></script>
+
     <script>
-        demo = new DualListbox('.multiselect');
+        let multiselect = $('#id-multiselect');
+        let user_type = $('#id_user_type');
+
+        // Arrays to hold the patient or staff permissions
+        let any_permissions = []
+        let patient_permissions = [];
+        let staff_permissions = [];
+
+        {% for permission in profile_permissions %}
+            any_permissions.push('<option value="{{ permission.codename }}">{{ permission.content_type }}: {{ permission.name }}</option>');
+        {% endfor %}
+
+        {% for permission in patient_permissions %}
+            patient_permissions.push('<option value="{{ permission.codename }}">{{ permission.content_type }}: {{ permission.name }}</option>');
+        {% endfor %}
+
+        {% for permission in staff_permissions %}
+            staff_permissions.push('<option value="{{ permission.codename }}">{{ permission.content_type }}: {{ permission.name }}</option>');
+        {% endfor %}
+
+        // Initialize a dual listbox configured for any user group
+        user_type.val("Any");
+
+        for (i of any_permissions) {
+            multiselect.children().end().append(i);
+        }
+
+        new DualListbox('.multiselect');
+
+        // Update the listbox contents whenever the group changes
+        user_type.on('change', function () {
+            let value = $(this).val();
+
+            multiselect.children().remove();
+            $('.id-multiselect').remove();
+
+            if (value === "Any") {
+                for (i of any_permissions) {
+                    multiselect.children().end().append(i);
+                }
+            }
+
+            else if (value === "Patient") {
+                for (i of patient_permissions) {
+                    multiselect.children().end().append(i);
+                }
+            }
+
+            else if (value === "Staff") {
+                for (i of staff_permissions) {
+                    multiselect.children().end().append(i);
+                }
+            }
+
+            new DualListbox('.multiselect');
+        });
     </script>
     <script>
         Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
             x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
-        }
-        )
-        );
+        }));
     </script>
 {% endblock %}
 
@@ -28,18 +82,28 @@
         <form action="" method="post">
             {% csrf_token %}
             <div class="bg-white shadow m-8 rounded-xl">
-                <div class="w-full flex justify-between items-center p-4 {{ errors.has_errors|yesno:"pb-6," }}">
-                    <div class="flex">
-                        <label class="font-semibold px-2">Group Name:</label>
+                <div class="w-full flex flex-col justify-between items-start gap-4 p-4 {{ errors.has_errors|yesno:"pb-6," }}">
+                    <div class="flex grow items-center gap-2">
+                        <label class="font-semibold">Group Name:</label>
                         <div>
                             <input type="text" value="{{ new_name }}" class="h-8 px-2 bg-slate-100 rounded-md border border-slate-400" name="name">
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="font-semibold">Filter Permissions:</label>
+                        <div class="mt-1">
+                            <select class="grow w-full h-8 px-1 bg-slate-100 rounded-md border border-slate-400" id="id_user_type">
+                                <option value="Any">Valid for Any User</option>
+                                <option value="Patient">Valid for Patient Users</option>
+                                <option value="Staff">Valid for Staff/Doctor Users</option>
+                            </select>
                         </div>
                     </div>
                 </div>
             </div>
 
             {% if messages %}
-                <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
                 <script>
                     setTimeout(function() {
                         $('.message').fadeOut('fast');
@@ -98,10 +162,7 @@
                     <h2 class="p-2 font-bold">Select Permissions</h2>
                     <hr>
                     <div class="p-2 mt-4">
-                        <select class=" multiselect" multiple name="perms">
-                            {% for permission in permissions %}
-                                <option value="{{ permission.codename }}">{{ permission.content_type }}: {{ permission.name }}</option>
-                            {% endfor %}
+                        <select class=" multiselect" multiple name="perms" id="id-multiselect">
                         </select>
                     </div>
                     <div class="w-full p-2 mt-8 md:mt-0">

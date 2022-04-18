@@ -1,10 +1,25 @@
+{% load static %}
+
+{% block style %}
+    <style>
+    .notification-dropdown-width {
+        width: calc(100% - 4rem);
+    }
+    
+    @media (min-width: 640px) {
+        .notification-dropdown-width {
+            width: 32rem;
+        }
+    }
+    </style>
+{% endblock %}
+
 {% block script %}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"
             integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timeago/1.6.7/jquery.timeago.min.js"
-            integrity="sha512-RlGrSmkje9EE/FXpJKWf0fvOlg4UULy/blvNsviBX9LFwMj/uewXVoanRbxTIRDXy/0A3fBQppTmJ/qOboJzmA=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.2/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/timeago@1.6.7/jquery.timeago.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
     <script>
         //Timeago was not working without using jquery like this:
         var $j = jQuery.noConflict();
@@ -24,13 +39,20 @@
                     $j("#notification-list").empty();
 
                     for (let i = 0; i < allNotifications.length; i++) {
-                        let dateObj = new Date(allNotifications[i].date_created);
+                        let dateObj = moment(allNotifications[i].date_created).toDate();
+                        let timeAgo;
+                        try {
+                            timeAgo =
+                                $j.timeago(dateObj.toISOString());
+                        } catch {
+                            timeAgo = moment(allNotifications[i].date_created).format('MMMM Do YYYY, h:mm:ss a');
+                        }
 
-                        let li = "<li data-notif-id=" + allNotifications[i].id + " id='notification-item' class='notification-item h-min px-4 py-3 border-b text-gray-700 hover:bg-slate-100 text-left' " + " value=" + allNotifications[i].id + ">"
+                        let li = "<li data-notif-id=" + allNotifications[i].id + " class='notification-item h-min px-4 py-3 border-b text-gray-700 hover:bg-slate-100 text-left' " + " value=" + allNotifications[i].id + ">"
                             + "<div class='w-full font-bold  top-1.5'>" + allNotifications[i].title + "</div>"
                             + "<div class='w-full bottom-0.5 '>"
                             + "<svg xmlns='http://www.w3.org/2000/svg' class='pr-1 h-5 w-5 inline-block pb-0.5 ' viewBox='0 0 20 20'fill='currentColor'><path fill-rule='evenodd'd='M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z'clip-rule='evenodd'/> <title>Time</title> </svg>"
-                            + $j.timeago(dateObj.toISOString()) + "</div>"
+                            + timeAgo + "</div>"
                             + "</li>";
 
                         $j("#notification-list").append(li);
@@ -55,7 +77,7 @@
                     const lastRow = "<a href='{% url 'list_notifications' %}'><li class='block text-white text-center font-bold py-2 bg-blue-600 hover:bg-blue-800'>View all notifications</li></a>";
                     $j("#notification-list").append(lastRow);
 
-                    $j('#unread-notifications').html(allNotifications.length);
+                    $j('#unread-notifications').text(allNotifications.length);
 
                     if (allNotifications.length == 0) {
                         $j('#unread-notifications').addClass('hidden');
@@ -67,9 +89,6 @@
             });
         }
 
-        $j(document).ready(function () {
-            $j("time.timeago").timeago();
-        });
         $j(document).ready(function () {
             initialize();
 
@@ -111,8 +130,8 @@
         $j(document).on('click', '.notification-item', function () {
 
             //Get the notification id (message group object id)
-            var notif_id = $j(this).attr('data-notif-id');
-            var _this = $j(this)
+            let notif_id = $j(this).attr('data-notif-id');
+            let _this = $j(this)
 
             let url = "{% url 'read_notification' 999999999 %}";
             url = url.replace(999999999, notif_id);
@@ -127,53 +146,76 @@
                 }
             });
         });
-
-
-
     </script>
 {% endblock %}
 
 {% block header %}
-    <nav class="bg-slate-900 text-white flex items-center justify-between bg-teal p-3">
-        <div class="flex items-center flex-no-shrink px-4 py-2 mr-6">
-            <span class="cursor-pointer font-semibold text-3xl tracking-tight">
-                <a href="{% url 'dashboard:index' %}">
-                    Covigo
-                </a>
-            </span>
-        </div>
-        <div class="flex block text-right">
+    <nav class="bg-slate-900 text-white flex items-center justify-between px-4 py-2">
+        <div @click.away="open = false" class="w-full flex flex-col w-full items-end" x-data="{ open: false }">
+            <div class="w-full flex justify-between">
+                <div class="flex items-center flex-no-shrink px-4 py-2 mr-6">
+                    <span class="cursor-pointer font-semibold text-3xl tracking-tight">
+                        <a href="{% url 'dashboard:index' %}">
+                            Covigo
+                        </a>
+                    </span>
+                </div>
 
+                <div class="flex justify-center items-center gap-2 px-4 py-2">
+                    <div class="flex items-center">
+                        <button type="button" id="notification-icon" class="inline-block text-sm px-3 py-2 leading-none relative group">
+                            <svg class="h-8 w-8 text-white group-hover:fill-white" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                            </svg>
+                            <span id="unread-notifications"
+                                  class="absolute rounded-full bg-red-500 group-hover:bg-red-400 right-0 py-1 px-2 -top-px right-px hidden"></span>
+                        </button>
+                        <div id="notification-dropdown"
+                             class="absolute top-16 right-8 mt-2 notification-dropdown-width bg-white rounded-md shadow-lg overflow-hidden z-20 hidden">
+                            <ul id="notification-list">
 
-            <div class="relative">
-                <a id="notification-icon" href="#" class="inline-block text-sm px-3 py-2 leading-none relative">
-                    <svg class="h-8 w-8 text-white hover:fill-white" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
-                              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                    </svg>
-                    <span id="unread-notifications"
-                          class="absolute rounded-full bg-red-500 hover:bg-red-400 right-0 py-1 px-2 -top-px right-px"></span>
-                </a>
-                <div id="notification-dropdown"
-                     class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg overflow-hidden z-20 hidden">
-                    <ul id="notification-list">
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="inline-block md:hidden flex items-center">
+                        <button class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white"
+                                @click="open = !open">
+                                {{ user.get_username }}
+                        </button>
+                    </div>
+                    <div class="hidden md:inline-block text-sm leading-none">
+                        <a href="{% url 'accounts:profile' user.id %}"
+                           class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
+                            {{ user.get_username }}
+                        </a>
+                    </div>
 
-                    </ul>
+                    <div class="hidden md:inline-block text-sm leading-none">
+                        <a href="{% url 'accounts:logout' %}"
+                           class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
+                            Log out
+                        </a>
+                    </div>
                 </div>
             </div>
 
-            <div class="inline-block text-sm px-2 py-2 leading-none">
-                <a href="{% url 'accounts:profile' user.id %}"
-                   class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
-                    {{ user.get_username }}
-                </a>
-            </div>
-            <div class="inline-block text-sm mr-4 px-2 py-2 leading-none">
-                <a href="{% url 'accounts:logout' %}"
-                   class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
-                    Log out
-                </a>
-            </div>
+            <nav :class="{'block': open, 'hidden': !open}" class="hidden flex gap-2 px-4 py-2">
+
+                <div class="inline-block text-sm leading-none">
+                    <a href="{% url 'accounts:profile' user.id %}"
+                       class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
+                        Profile
+                    </a>
+                </div>
+
+                <div class="inline-block text-sm leading-none">
+                    <a href="{% url 'accounts:logout' %}"
+                       class="inline-block text-sm px-4 py-2 leading-none border rounded hover:border-transparent hover:text-slate-900 hover:bg-white">
+                        Log out
+                    </a>
+                </div>
+            </nav>
         </div>
     </nav>
 {% endblock %}

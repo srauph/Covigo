@@ -2,7 +2,38 @@
 
 {% load static %}
 
+{% block style %}
+    <style>
+        .file-upload-button {
+            color: white;
+            background-color: #2563EB;
+            border-radius: 0.375rem;
+            font-size: 0.875rem; /* 14px */
+            line-height: 1.25rem; /* 20px */
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    </style>
+{% endblock %}
+
 {% block script %}
+    <script>
+        let fileInput = $('#test-result-file-input input')
+        function updateFileName() {
+            let fileName = fileInput.val();
+            $('#file-input-display').text(fileName);
+        }
+
+        $('#file-upload-button').click(function () {
+            fileInput.click();
+        });
+
+        fileInput.change(updateFileName)
+
+    </script>
     <script>
         Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
             x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
@@ -28,7 +59,7 @@
                     </h2>
                     <hr>
                     {% if messages %}
-                        <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
                         <script>
                             setTimeout(function() {
                                 $('.message').fadeOut('fast');
@@ -69,7 +100,7 @@
                 </div>
                 <div class="w-full max-w-2xl px-2">
                     <label>Test Result:</label>
-                    <div class="mt-1">
+                    <div class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400">
                         {{ test_result_form.test_result }}
                     </div>
                 </div>
@@ -81,36 +112,45 @@
                 </div>
                 <div class="w-full max-w-2xl px-2">
                     <label>Proof of test result file:</label>
-                    <div class="mt-1">
+                    <div id="test-result-file-input" class="w-full mt-1 p-2 bg-slate-100 rounded-md border border-slate-400 flex flex-col md:flex-row flex-wrap gap-2 items-center">
                         {{ test_result_form.test_file }}
+                        <button type="button" id="file-upload-button" class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                            <span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M 12 10 v 6 m 0 -6 l -3 3 m 3 -3 l 3 3 m 2 8 H 7 a 2 2 0 0 1 -2 -2 V 5 a 2 2 0 0 1 2 -2 h 5.586 a 1 1 0 0 1 0.707 0.293 l 5.414 5.414 a 1 1 0 0 1 0.293 0.707 V 19 a 2 2 0 0 1 -2 2 z"></path>
+                                </svg>
+                            </span>
+                            <span>Upload File</span>
+                        </button>
+                        <span id="file-input-display" class="text-center">No file selected yet</span>
                     </div>
                 </div>
             </div>
-            <div class="w-full mt-8 md:mt-0">
+            <div class="w-full">
                 <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
                     <a href="{% url "status:test_results" user_id %}">
-                    <button type="button"
-                            class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
-                                    <span>
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                                             stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                  d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                    </span>
-                        <span>Cancel</span>
-                    </button>
-                </a>
+                        <button type="button"
+                                class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
+                            <span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                     stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </span>
+                            <span>Cancel</span>
+                        </button>
+                    </a>
                     <a href ="{% url "status:test_results" user_id %}">
                         <button type="submit" value="Submit and Return" name="Submit and Return"
                                 class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
-                                <span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                         viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                </span>
+                            <span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                     viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </span>
                             <span>Submit and Return</span>
                         </button>
                     </a>

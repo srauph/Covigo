@@ -1,5 +1,24 @@
 {% extends "Covigo/base.html" %}
 
+{% block styles %}
+    <style>
+        .loader {
+            -webkit-animation: spinner 1.5s linear infinite;
+            animation: spinner 1.5s linear infinite;
+        }
+
+        @-webkit-keyframes spinner {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
     <div class="min-h-full bg-slate-100 flex flex-col">
         <div class="bg-slate-700 border-b">
@@ -13,32 +32,38 @@
 
         <div class="flex flex-col justify-between grow gap-8 m-8">
             <div class="bg-white shadow rounded-xl">
-                <div class="w-full flex flex-wrap gap-2 justify-between items-center p-4">
-                    <div class="flex text-sm md:text-base">
-                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none border-r border-white bg-orange-500" value="Confirmed">
-                            Total Confirmed
+                <div class="w-full flex flex-wrap gap-2 justify-center sm:justify-between items-center p-4">
+                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-y-0.5 text-sm lg:text-base">
+                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none border-r border-white bg-orange-500" id="ds-Confirmed" value="Confirmed">
+                            <span class="hidden xl:inline">Total Confirmed</span>
+                            <span class="xl:hidden">Confirmed</span>
                         </button>
-                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Positive">
-                            Currently Positive
+                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" id="ds-Positive" value="Positive">
+                            <span class="hidden xl:inline">Currently Positive</span>
+                            <span class="xl:hidden">Positive</span>
                         </button>
-                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Recovered">
-                            Currently Recovered
+                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md sm:rounded-r-none rounded-l-none border-r border-white" id="ds-Recovered" value="Recovered">
+                            <span class="hidden xl:inline">Currently Recovered</span>
+                            <span class="xl:hidden">Recovered</span>
                         </button>
-                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Deaths">
-                            Deaths
+                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none sm:rounded-l-none border-r border-white" id="ds-Deaths" value="Deaths">
+                            <span class="hidden xl:inline">Total Deaths</span>
+                            <span class="xl:hidden">Deaths</span>
                         </button>
-                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" value="Administered Vaccines">
-                            Administered Vaccines
+                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none rounded-l-none border-r border-white" id="ds-Administered-Vaccines" value="Administered-Vaccines">
+                            <span class="hidden xl:inline">Administered Doses</span>
+                            <span class="xl:hidden">Doses</span>
                         </button>
-                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-l-none" value="Fully Vaccinated">
-                            Fully Vaccinated
+                        <button class="data-set bg-gray-600 text-white px-2 py-1 rounded-md rounded-l-none" id="ds-Fully-Vaccinated" value="Fully-Vaccinated">
+                            <span class="hidden xl:inline">Fully Vaccinated</span>
+                            <span class="xl:hidden">Vacccinated</span>
                         </button>
                     </div>
-                    <div class="flex text-sm md:text-base">
-                        <button class="data-type bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none border-r border-white bg-blue-600" value="Current">
+                    <div class="flex text-sm lg:text-base">
+                        <button class="data-type bg-gray-600 text-white px-2 py-1 rounded-md rounded-r-none border-r border-white bg-blue-600" id="dt-Current" value="Current">
                             Current
                         </button>
-                        <button class="data-type bg-gray-600 text-white px-2 py-1 rounded-md rounded-l-none" value="Daily">
+                        <button class="data-type bg-gray-600 text-white px-2 py-1 rounded-md rounded-l-none" id="dt-Daily" value="Daily">
                             Daily Change
                         </button>
                     </div>
@@ -47,7 +72,10 @@
 
             <div id="chartContainer" class="flex grow p-8 bg-white shadow rounded-lg">
                 <div class="grow relative">
-                    <canvas id="chart"></canvas>
+                    <canvas id="chart" style="min-height: 20rem;"></canvas>
+                    <div id="spinner" class="flex w-full h-full items-center justify-center">
+                        <span class="border-slate-200 border-t-blue-400 loader ease-linear rounded-full border-8 border-t-8 h-48 w-48"></span>
+                    </div>
                 </div>
             </div>
 
@@ -64,9 +92,15 @@
 
 
                 async function setUp() {
-                    const full_qc_data = await getData();
+                    let dataSet = $('.data-set');
+                    let dataType = $('.data-type');
+                    let spinner = $('#spinner');
+                    let canvas = $('#chart');
 
-                    console.log(full_qc_data);
+                    canvas.hide();
+
+
+                    const full_qc_data = await getData();
 
                     let dates = [];
                     let daily_cases = [];
@@ -108,21 +142,16 @@
                     $(document).ready(function () {
                         $("#footer").hide();
 
-                        $('.data-set').click(function () {
-                            let lastClass = $('.data-set').filter(function () {
-                                return this.value == selected_data_set
-                            }).attr('class').split(' ').pop();
-                            $('.data-set').filter(function () {
-                                return this.value == selected_data_set
-                            }).removeClass(lastClass);
+                        dataSet.click(function () {
+                            let selectedDataSetElement = $('#ds-' + selected_data_set);
+                            let lastClass = selectedDataSetElement.attr('class').split(' ').pop();
+                            selectedDataSetElement.removeClass(lastClass);
                             selected_data_set = $(this).val();
                             updateChartData(true);
                         })
 
-                        $('.data-type').click(function () {
-                            $('.data-type').filter(function () {
-                                return this.value == selected_data_type
-                            }).removeClass('bg-blue-600');
+                        dataType.click(function () {
+                            $('#dt-' + selected_data_type).removeClass('bg-blue-600');
                             $(this).addClass('bg-blue-600')
                             selected_data_type = $(this).val();
                             updateChartData();
@@ -134,9 +163,7 @@
                                     current_label = "Confirmed Cases";
                                     current_color = "rgb(251, 146, 60)";
                                     if (updateLabel)
-                                        $('.data-set').filter(function () {
-                                            return this.value == selected_data_set
-                                        }).addClass('bg-orange-500')
+                                        $('#ds-' + selected_data_set).addClass('bg-orange-500')
                                     if (selected_data_type === "Current") {
                                         current_data = cases;
                                     } else {
@@ -148,9 +175,7 @@
                                     current_label = "Positive Cases";
                                     current_color = "rgb(220, 38, 38)";
                                     if (updateLabel)
-                                        $('.data-set').filter(function () {
-                                            return this.value == selected_data_set
-                                        }).addClass('bg-red-600')
+                                        $('#ds-' + selected_data_set).addClass('bg-red-600')
                                     if (selected_data_type === "Current") {
                                         current_data = positive;
                                     } else {
@@ -162,9 +187,7 @@
                                     current_label = "Recovered Cases";
                                     current_color = "rgb(34, 197, 94)";
                                     if (updateLabel)
-                                        $('.data-set').filter(function () {
-                                            return this.value == selected_data_set
-                                        }).addClass('bg-green-600')
+                                        $('#ds-' + selected_data_set).addClass('bg-green-600')
                                     if (selected_data_type === "Current") {
                                         current_data = recoveries;
                                     } else {
@@ -176,9 +199,7 @@
                                     current_label = "Deaths";
                                     current_color = "rgb(250, 204, 21)";
                                     if (updateLabel)
-                                        $('.data-set').filter(function () {
-                                            return this.value == selected_data_set
-                                        }).addClass('bg-amber-400')
+                                        $('#ds-' + selected_data_set).addClass('bg-amber-400')
                                     if (selected_data_type === "Current") {
                                         current_data = deaths;
                                     } else {
@@ -186,13 +207,11 @@
                                     }
                                     break;
 
-                                case "Administered Vaccines":
-                                    current_label = "Administered Vaccines";
+                                case "Administered-Vaccines":
+                                    current_label = "Administered-Vaccines";
                                     current_color = "rgb(34, 211, 238)";
                                     if (updateLabel)
-                                        $('.data-set').filter(function () {
-                                            return this.value == selected_data_set
-                                        }).addClass('bg-cyan-500')
+                                        $('#ds-' + selected_data_set).addClass('bg-cyan-500')
                                     if (selected_data_type === "Current") {
                                         current_data = administered_vaccines;
                                     } else {
@@ -200,13 +219,11 @@
                                     }
                                     break;
 
-                                case "Fully Vaccinated":
-                                    current_label = "Fully Vaccinated";
+                                case "Fully-Vaccinated":
+                                    current_label = "Fully-Vaccinated";
                                     current_color = "rgb(59, 130, 246)";
                                     if (updateLabel)
-                                        $('.data-set').filter(function () {
-                                            return this.value == selected_data_set
-                                        }).addClass('bg-blue-600')
+                                        $('#ds-' + selected_data_set).addClass('bg-blue-600')
                                     if (selected_data_type === "Current") {
                                         current_data = fully_vaccinated;
                                     } else {
@@ -246,6 +263,9 @@
                         }
                     };
 
+                    canvas.show();
+                    spinner.hide();
+
                     let chart = new Chart(
                         document.getElementById('chart'),
                         chart_config
@@ -273,7 +293,6 @@
                     });
 
                     function resizeCanvas() {
-                        let canvas = $('#chart');
                         canvas.css("width", $(window).width() / 9999);
                         canvas.css("height", $(window).height() / 9999);
                     }

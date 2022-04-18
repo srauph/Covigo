@@ -2,21 +2,24 @@
 
 {% block styles %}
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 {% endblock %}
 
 {% block script %}
     {% load static %}
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://unpkg.com/flowbite@1.4.2/dist/flowbite.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="{% static 'js/availability.js' %}"></script>
     <script>
+        $(window).resize(function () {
+            $('#availability-select').select2();
+        })
+    </script>
+    <script>
         Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
             x.parentNode.parentElement.parentElement.parentElement.parentElement.classList.add('hidden')
-        }
-        )
-        );
+        }));
     </script>
 {% endblock %}
 
@@ -24,10 +27,10 @@
     <div class="bg-slate-700 border-b">
         <h1 class="text-2xl text-white font-semibold px-8 py-4">Add Availabilities</h1>
     </div>
-    <form method="post" class="min-h-full bg-slate-100 flex flex-col" id="availability-form">
+    <form method="post" class="bg-slate-100 flex flex-col" id="availability-form">
         {% csrf_token %}
         <div class="flex flex-col justify-between grow m-8 p-4 min-h-full bg-white shadow rounded-lg">
-            <div class="w-full flex flex-col gap-8 mb-8">
+            <div class="w-full flex flex-col">
                 <div class="w-full">
                     <h2 class="p-2 text-2xl font-bold">
                         Availability Details
@@ -35,7 +38,7 @@
                     <hr>
 
                     {% if messages or availability_form.availability_days.errors %}
-                        <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
                         <script>
                             setTimeout(function() {
                                 $('.message').fadeOut('fast');
@@ -125,90 +128,101 @@
                         </div>
                     {% endif %}
 
-                    <div class="flex w-1/2">
-                        <div class="w-full px-2 pt-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">Start date:</label>
-                            <div class="text-red-500 text-sm font-semibold hidden" id="date-error">
-                                Invalid start and end dates
+                    <div class="flex flex-col gap-8 mt-8 max-w-2xl">
+                        <div class="flex flex-wrap px-2 gap-4">
+                            <div class="w-full">
+                                <label>Start date:</label>
+                                <div class="text-red-500 text-sm font-semibold hidden" id="date-error">
+                                    Invalid start and end dates
+                                </div>
+                                <div>
+                                    {{ availability_form.start_date }}
+                                </div>
                             </div>
-                            <div class="inline mt-1 pr-5">
-                                {{ availability_form.start_date }}
+                            <div class="w-full">
+                                <label>End date:</label>
+                                <div>
+                                    {{ availability_form.end_date }}
+                                </div>
                             </div>
                         </div>
-                        <div class="w-full px-2 pt-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">End date:</label>
-                            <div class="inline mt-1 pr-5">
-                                {{ availability_form.end_date }}
+
+                        <div class="w-full px-2">
+                            <label>Select days to create availabilities
+                                for:</label>
+                            <div class="w-full flex flex-col mt-1 ">
+                                <div class="w-full flex flex-wrap gap-2">
+                                    <button type="button"
+                                            class="bg-blue-600 hover:bg-blue-800 px-2 py-1 text-white rounded-md text-sm select-multi-days selecta-all"
+                                            data-action="select_all_days">Select All
+                                    </button>
+                                    <button type="button"
+                                            class="bg-blue-600 hover:bg-blue-800 px-2 py-1 text-white rounded-md text-sm select-multi-days hidden deselect"
+                                            data-action="deselect_all_days">Deselect All
+                                    </button>
+                                    <button type="button"
+                                            class="bg-blue-600 hover:bg-blue-800 px-2 py-1 text-white rounded-md text-sm select-multi-days"
+                                            data-action="select_weekdays">Select Weekdays
+                                    </button>
+                                    <button type="button"
+                                            class="bg-blue-600 hover:bg-blue-800 px-2 py-1 text-white rounded-md text-sm select-multi-days"
+                                            data-action="select_weekends">Select Weekends
+                                    </button>
+                                </div>
+                                <div class="w-full mt-1 bg-slate-100 rounded-md border border-slate-400">
+                                    {{ availability_form.availability_days }}
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="flex flex-wrap gap-4">
+                            <div id="type-time-hint" role="tooltip" class="inline-block absolute invisible z-10 py-2 px-3 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 transition-opacity duration-300 tooltip dark:bg-gray-700">
+                                Tip: You can type the time, if you prefer!
+                                <div class="tooltip-arrow" data-popper-arrow></div>
+                            </div>
+                            <div class="w-full px-2">
+                                <label>Start time:</label>
+                                <div class="text-red-500 text-sm font-semibold inline hidden" id="time-error">Invalid time
+                                    range
+                                </div>
+                                <div>
+                                    <input id="start_time" class="timepicker_1 w-full bg-slate-100 rounded-md border border-slate-400 px-2 py-1"
+                                           name="start_time" required data-tooltip-target="type-time-hint" data-tooltip-trigger="click">
+                                </div>
+                            </div>
+                            <div class="w-full px-2">
+                                <label>End time:</label>
+                                <div>
+                                    <input id="end_time" class="timepicker_2 w-full bg-slate-100 rounded-md border border-slate-400 px-2 py-1"
+                                           name="end_time" required data-tooltip-target="type-time-hint" data-tooltip-trigger="click">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-full px-2">
+                            <label>Slot duration:</label>
+                            <div class="text-red-500 text-sm font-semibold hidden" id="slot-error"> </div>
+                            <div class="mt-1">
+                                {{ availability_form.slot_duration_hours }}
+                                hours
+                                {{ availability_form.slot_duration_minutes }}
+                                minutes
+                            </div>
+                        </div>
+                        <div class="w-full px-2">
+                            <label>Select availabilities:</label>
+                            <div class="text-red-500 text-sm font-semibold hidden" id="availability_error">
+                                Please select at least once availability
+                            </div>
+                            <div class="w-full max-w-full">
+                                <select class="availability-select2 w-full max-w-full" name="availability_select[]"
+                                        id="availability-select"
+                                        multiple="multiple">
+                                </select>
                             </div>
                         </div>
                     </div>
-                    <div class="w-full max-w-2xl px-2 py-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Select days to create availabilities
-                            for:</label>
-                        <button type="button"
-                                class="bg-blue-900 px-2 py-1 text-white rounded-md text-sm select-multi-days selecta-all"
-                                data-action="select_all_days">Select All
-                        </button>
-                        <button type="button"
-                                class="bg-blue-900 px-2 py-1 text-white rounded-md text-sm select-multi-days hidden deselect"
-                                data-action="deselect_all_days">Deselect All
-                        </button>
-                        <button type="button"
-                                class="bg-blue-900 px-2 py-1 text-white rounded-md text-sm select-multi-days"
-                                data-action="select_weekdays">Select Weekdays
-                        </button>
-                        <button type="button"
-                                class="bg-blue-900 px-2 py-1 text-white rounded-md text-sm select-multi-days"
-                                data-action="select_weekends">Select Weekends
-                        </button>
-                        <div class="mt-1">
-                            {{ availability_form.availability_days }}
-                        </div>
-                    </div>
-                    <div class="flex  w-1/2">
-                        <div class="w-full px-2 pt-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2 label-start">Start time:</label>
-                            <div class="text-red-500 text-sm font-semibold inline hidden" id="time-error">Invalid time
-                                range
-                            </div>
-                            <div class=" mt-1 pr-5">
-                                <input id="start_time" class="timepicker_1 border border-black px-1 rounded-md"
-                                       name="start_time" required>
-                            </div>
-                        </div>
-                        <div class="w-full px-2 pt-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">End time:</label>
-                            <div class="inline mt-1 pr-5">
-                                <input id="end_time" class="timepicker_2 border border-black px-1 rounded-md"
-                                       name="end_time" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="w-full px-2 py-2">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Slot duration:</label>
-                        <div class="text-red-500 text-sm font-semibold hidden" id="slot-error">
-                            Invalid slot duration
-                        </div>
-                        <div class="inline mt-1 pr-5">
-                            {{ availability_form.slot_duration_hours }}
-                            hours
-                            {{ availability_form.slot_duration_minutes }}
-                            minutes
-                        </div>
-                    </div>
-                    <div class="w-1/2 px-2 pt-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Select availabilities:</label>
-                        <div class="text-red-500 text-sm font-semibold hidden" id="availability_error">
-                            Please select at least once availability
-                        </div>
-                        <div class="inline mt-1 pr-5 flex ">
-                            <select class="availability-select2 inline mt-1 pr-5 w-full" name="availability_select[]"
-                                    id="availability-select"
-                                    multiple="multiple">
-                            </select>
-                        </div>
-                    </div>
-                    <div class="w-full mt-8 md:mt-0">
+
+                    <div class="w-full mt-8">
                         <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
                             <a href="{% url "appointments:index" %}">
                                 <button type="button"
@@ -224,31 +238,30 @@
                                     <span>Cancel</span>
                                 </button>
                             </a>
+
                             <button type="submit"
                                     class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1"
                                     name="Create">
-                        <span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                 viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </span>
+                                <span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                         viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </span>
                                 <span>Create</span>
                             </button>
 
                             <button type="submit" value="Create and Return" name="Create and Return"
                                     class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
-                        <span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                 viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </span>
                                 <span>
-                            Create and Return
-                        </span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                         viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </span>
+                                <span>Create and Return</span>
                             </button>
                         </div>
                     </div>

@@ -34,7 +34,7 @@
         </div>
     {% endif %}
 
-    <div class="w-full flex flex-wrap gap-2 justify-between items-center pt-4">
+    <div class="w-full flex flex-wrap gap-2 justify-center md:justify-between items-center pt-4">
         <div class="flex flex-col items-start">
             <span class="text-gray-900 font-bold text-xl">{{ assigned_staff.first_name }} {{ assigned_staff.last_name }}</span>
             {% if perms.accounts.view_assigned_patients %}
@@ -66,72 +66,19 @@
             {% endif %}
 
             {% if perms.accounts.edit_assigned_doctor %}
-                <button id="reassign_doctor"
-                        class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-                    <span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-                        </svg>
-                    </span>
-                    <span>{{ assigned_staff|yesno:"Reassign,Assign" }}</span>
-                </button>
+                <a href="{% url "manager:reassign_doctor" usr.id %}">
+                    <button type="button" class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                            </svg>
+                        </span>
+                        <span>{{ assigned_staff|yesno:"Reassign,Assign" }}</span>
+                    </button>
+                </a>
             {% endif %}
-        </div>
-
-    </div>
-
-    <div class="grid grid-cols-1">
-        <div class=" my-2">
-            <form class="bg-slate-200 text-gray-600 hover:text-gray-700 hover:shadow p-4 mt-4 divide-y rounded shadow-sm text-sm hidden"
-                  id="reassign_doctor_form" method="POST">
-                {% csrf_token %}
-                <label class="text-black">New Doctor:</label>
-                <div class="flex justify-between gap-2">
-                    <select name="doctor_id" id=""
-                            class="cursor-pointer grow bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md">
-                        {% for doc in all_doctors %}
-                            {% if doc.id != assigned_staff.id %}
-                                <option value="{{ doc.staff.id }}">
-                                    {{ doc.first_name }} {{ doc.last_name }}
-                                </option>
-                            {% endif %}
-                        {% endfor %}
-                    </select>
-                    {% if assigned_staff_patient_count == 0 %}
-                        <button type="submit" value="Assign" name="Assign"
-                                class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-                            <span>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6"
-                                     fill="none"
-                                     viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                          stroke-width="2"
-                                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z">
-                                    </path>
-                                </svg>
-                            </span>
-                            <span>Submit</span>
-                        </button>
-                    {% else %}
-                        <button type="submit" value="Reassign" name="Reassign"
-                                class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-                            <span>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6"
-                                     fill="none"
-                                     viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                          stroke-width="2"
-
-                                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                            </span>
-                            <span>Submit</span>
-                        </button>
-                    {% endif %}
-                </div>
-            </form>
         </div>
     </div>
 {% endblock %}

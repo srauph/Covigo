@@ -29,9 +29,9 @@ $(document).ready(function () {
 
     $('.timepicker_1').timepicker({
         timeFormat: 'h:mm p',
-        interval: 15,
-        defaultTime: '6:00',
-        startTime: '6:00',
+        interval: 30,
+        defaultTime: '9:00',
+        startTime: '00:00',
         dropdown: true,
         scrollbar: true,
         dynamic: false,
@@ -45,9 +45,9 @@ $(document).ready(function () {
 
     $('.timepicker_2').timepicker({
         timeFormat: 'h:mm p',
-        interval: 15,
-        defaultTime: '7:00',
-        startTime: '6:00',
+        interval: 30,
+        defaultTime: '17:00',
+        startTime: '00:00',
         dropdown: true,
         scrollbar: true,
         dynamic: false,
@@ -143,16 +143,33 @@ $(document).ready(function () {
         if (validateStartEndTime()){
             let startTimeDate = new Date(new Date().toDateString() + ' ' + convertTime12to24($('#start_time').val()));
             let endTimeDate = new Date(new Date().toDateString() + ' ' + convertTime12to24($('#end_time').val()));
+
+            let slotErrorElement = $('#slot-error');
+
+            let slotTooLongMessage = "Invalid slot duration: The slot duration cannot fit in your start/end interval";
+            let slotTooShortMessage = "Invalid slot duration: Cannot have a duration of 0 minutes";
+
             const diffTime = Math.abs(endTimeDate - startTimeDate)/MILLIS_PER_MINUTE;
 
-            let isValidSlot = (slotDurationMinutes <= diffTime) && (slotDurationMinutes !== 0);
-            if (!isValidSlot){
-                $('#slot-error').removeClass('hidden');
+            let isSlotTooLong = (slotDurationMinutes > diffTime);
+            let isSlotTooShort = (slotDurationMinutes === 0);
+            let isSlotInvalid = (isSlotTooLong || isSlotTooShort);
+
+            console.log(isSlotInvalid);
+
+            if (isSlotInvalid) {
+                slotErrorElement.removeClass('hidden');
+
+                if (isSlotTooLong) {
+                    slotErrorElement.text(slotTooLongMessage)
+                } else {
+                    slotErrorElement.text(slotTooShortMessage)
+                }
             }
             else{
-                $('#slot-error').addClass('hidden');
+                slotErrorElement.addClass('hidden');
             }
-            return isValidSlot;
+            return (!isSlotInvalid);
         }
         return false;
     }

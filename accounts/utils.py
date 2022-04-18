@@ -3,7 +3,7 @@ import random
 import shortuuid
 import smtplib
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission
 from django.core.management import call_command
 from django.db import IntegrityError, connection
 from django.db.models import Q
@@ -12,7 +12,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
 from Covigo.settings import HOST_NAME, PRODUCTION_MODE
-from accounts.models import Flag, Staff, Patient
+from accounts.models import Flag, Staff, Patient, Profile
 from accounts.preferences import SystemMessagesPreference
 
 from geopy import distance
@@ -378,9 +378,11 @@ def dictfetchall(cursor):
 
 def get_distance_of_all_doctors_to_postal_code(postal_code):
     doc_dict = []
+    # This wwon't work anymore (refactored to doctor permission en lieu of doctor group
     all_doctors = User.objects.raw(
-        "SELECT * FROM `auth_user` INNER JOIN `auth_user_groups` ON (`auth_user`.`id` = `auth_user_groups`.`user_id`) INNER JOIN `auth_group` ON (`auth_user_groups`.`group_id` = `auth_group`.`id`) LEFT OUTER JOIN `accounts_profile` ON (`auth_user`.`id` = `accounts_profile`.`user_id`) JOIN `postal_codes` ON (`accounts_profile`.`postal_code` = `postal_codes`.POSTAL_CODE) WHERE `auth_group`.`name` = %s",
-        ['doctor'])
+        "SELECT * FROM `auth_user` INNER JOIN `auth_user_user_permissions` ON (`auth_user`.`id` = `auth_user_user_permissions`.`user_id`) INNER JOIN `auth_permission` ON (`auth_user_user_permissions`.`permission_id` = `auth_permission`.`id`) LEFT OUTER JOIN `accounts_profile` ON (`auth_user`.`id` = `accounts_profile`.`user_id`) JOIN `postal_codes` ON (`accounts_profile`.`postal_code` = `postal_codes`.POSTAL_CODE) WHERE `auth_permission`.`codename` = %s",
+        ['is_doctor'])
+
     c = connection.cursor()
     c.execute('SELECT * FROM postal_codes WHERE POSTAL_CODE = %s', [postal_code])
     r = dictfetchall(c)
@@ -423,3 +425,44 @@ def hour_options_generator(number_of_hours, step=1):
             hours_list.append((i, f"{i} hours"))
 
     return tuple(hours_list)
+
+
+def get_staff_permission_codenames():
+    permissions = list(map(lambda x: x[0], Staff._meta.permissions))
+    permissions.remove("is_doctor")
+    return permissions
+
+
+def get_patient_permission_codenames():
+    return list(map(lambda x: x[0], Patient._meta.permissions))
+
+
+def get_profile_permission_codenames():
+    return list(map(lambda x: x[0], Profile._meta.permissions))
+
+
+def get_allowable_staff_permissions():
+    allowable_codenames = get_staff_permission_codenames() + get_profile_permission_codenames()
+    return Permission.objects.filter(codename__in=allowable_codenames)
+
+
+def get_allowable_patient_permissions():
+    allowable_codenames = get_patient_permission_codenames() + get_profile_permission_codenames()
+    return Permission.objects.filter(codename__in=allowable_codenames)
+
+
+def get_profile_permissions():
+    return Permission.objects.filter(codename__in=get_profile_permission_codenames())
+
+
+def get_group_type(group):
+    group_perms = group.permissions.values_list("codename", flat=True)
+
+    if any(item in group_perms for item in get_patient_permission_codenames()):
+        return "Patient"
+
+    elif any(item in group_perms for item in get_staff_permission_codenames()):
+        return "Staff"
+
+    else:
+        return "Any"

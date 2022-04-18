@@ -1,69 +1,12 @@
-from django.urls import reverse
+from django.contrib import messages
 
 from Covigo.messages import Messages
-from accounts.models import Staff
 from appointments.models import Appointment
-from accounts.utils import send_system_message_to_user, get_assigned_staff_id_by_patient_id
+from accounts.utils import send_system_message_to_user
 from messaging.utils import send_notification
 
 
-def cancel_appointments(appointment_id):
-    """
-    cancels the booked appointment with the corresponding appointment id:
-    this is done by setting the patient_id column of the specific booked appointment to "None"
-    @params: appointment_id: the appointment's id
-    @return: void
-    """
-
-    booked = Appointment.objects.get(id=appointment_id)
-    patient_user = booked.patient
-    doctor = patient_user.patient.get_assigned_staff_user()
-    template = Messages.APPOINTMENT_CANCELLED.value
-    booked.patient = None
-    booked.save()
-    c_doctor = {
-        "other_person": patient_user,
-        "is_doctor": True,
-        "date": str(booked.start_date.date()),
-        "time": str(booked.start_date.time())
-    }
-    c_patient = {
-        "other_person": doctor,
-        "is_doctor": False,
-        "date": str(booked.start_date.date()),
-        "time": str(booked.start_date.time())
-    }
-    send_system_message_to_user(patient_user, template=template, c=c_patient)
-    send_system_message_to_user(doctor, template=template, c=c_doctor)
-
-    # SEND NOTIFICATION TO DOCTOR AND PATIENT
-    staff_id = get_assigned_staff_id_by_patient_id(patient_user.id)
-    doctor_id = Staff.objects.filter(id=staff_id).first().user_id
-    # Create href for notification redirection
-    href = reverse('status:patient_reports')
-    app_name = 'appointments'
-    send_notification(patient_user.id, doctor_id,
-                      "The appointment on " + booked.start_date.strftime("%B %d, %Y, at %I:%M %p") + " has been cancelled",
-                      app_name=app_name)
-    send_notification(doctor_id, patient_user.id,
-                      "The appointment on " + booked.start_date.strftime("%B %d, %Y, at %I:%M %p") + " has been cancelled",
-                      app_name=app_name)
-
-
-def delete_availabilities(appointment_id):
-    """
-    deletes the entire appointment object row from the database in order to "delete" the availability
-    :param appointment_id: the specific appointment's appointment id
-    :return: None
-    """
-
-    unbooked = Appointment.objects.get(id=appointment_id)
-    if unbooked.patient:
-        cancel_appointments(appointment_id)
-    unbooked.delete()
-
-
-def book_appointments(appointment_id, user):
+def book_appointment(request, appointment_id, user, send_message=True):
     """
     books an appointment in the corresponding appointment availability by setting the patient column to the user
     @params: appointment_id: the  appointment's id
@@ -71,11 +14,21 @@ def book_appointments(appointment_id, user):
     @return: void
     """
 
-    appointment = Appointment.objects.get(id=appointment_id)
+    try:
+        appointment = Appointment.objects.get(id=appointment_id)
+    except Appointment.DoesNotExist:
+        if send_message:
+            messages.error(request, "Could not book appointment: The selected appointment could not be found; it may have been deleted.")
+        return False
+
     appointment.patient = user
     doctor = user.patient.get_assigned_staff_user()
     template = Messages.APPOINTMENT_BOOKED.value
     appointment.save()
+
+    if send_message:
+        messages.success(request, 'The selected appointment was booked successfully.')
+
     c_doctor = {
         "other_person": user,
         "is_doctor": True,
@@ -92,19 +45,99 @@ def book_appointments(appointment_id, user):
     send_system_message_to_user(doctor, template=template, c=c_doctor)
 
     # SEND NOTIFICATION TO DOCTOR
-    staff_id = get_assigned_staff_id_by_patient_id(user.id)
-    doctor_id = Staff.objects.filter(id=staff_id).first().user_id
-    # Create href for notification redirection
-    href = reverse('status:patient_reports')
     app_name = 'appointments'
-    send_notification(user.id, doctor_id,
+    send_notification(user.id, doctor.id,
                       user.first_name + " " + user.last_name + " has booked an appointment with you on " + appointment.start_date.strftime(
                           "%B %d, %Y, at %I:%M %p"),
                       app_name=app_name)
-    send_notification(doctor_id, user.id,
-                      f"You have successfully booked an appointment with your doctor {doctor.first_name} {doctor.last_name}on " + appointment.start_date.strftime(
+    send_notification(doctor.id, user.id,
+                      f"You have successfully booked an appointment with Dr. {doctor.last_name} on " + appointment.start_date.strftime(
                           "%B %d, %Y, at %I:%M %p"),
                       app_name=app_name)
+
+    return True
+
+
+def cancel_appointment(request, appointment_id, send_message=True):
+    """
+    cancels the booked appointment with the corresponding appointment id:
+    this is done by setting the patient_id column of the specific booked appointment to "None"
+    @params: appointment_id: the appointment's id
+    @return: void
+    """
+
+    try:
+        booked = Appointment.objects.get(id=appointment_id)
+    except Appointment.DoesNotExist:
+        if send_message:
+            messages.error(request, "Could not cancel appointment: The selected appointment could not be found; it may have been deleted.")
+        return False
+
+    patient_user = booked.patient
+
+    if patient_user is None:
+        if send_message:
+            messages.warning(request, "Could not cancel appointment: The selected appointment is unbooked; it may have already been cancelled.")
+        return None
+
+    doctor_user = booked.staff
+    template = Messages.APPOINTMENT_CANCELLED.value
+    booked.patient = None
+    booked.save()
+
+    if send_message:
+        messages.success(request, 'The appointment was canceled successfully.')
+
+    c_doctor = {
+        "other_person": patient_user,
+        "is_doctor": True,
+        "date": str(booked.start_date.date()),
+        "time": str(booked.start_date.time())
+    }
+    c_patient = {
+        "other_person": doctor_user,
+        "is_doctor": False,
+        "date": str(booked.start_date.date()),
+        "time": str(booked.start_date.time())
+    }
+    send_system_message_to_user(patient_user, template=template, c=c_patient)
+    send_system_message_to_user(doctor_user, template=template, c=c_doctor)
+
+    # SEND NOTIFICATION TO DOCTOR AND PATIENT
+    app_name = 'appointments'
+    send_notification(patient_user.id, doctor_user.id,
+                      f"The appointment on {booked.start_date.strftime('%B %d, %Y, at %I:%M %p')} with {patient_user.first_name} {patient_user.last_name} has been cancelled",
+                      app_name=app_name)
+    send_notification(doctor_user.id, patient_user.id,
+                      f"The appointment on {booked.start_date.strftime('%B %d, %Y, at %I:%M %p')} with Dr. {doctor_user.last_name} has been cancelled",
+                      app_name=app_name)
+
+    return True
+
+
+def delete_availability(request, appointment_id, send_message=True):
+    """
+    deletes the entire appointment object row from the database in order to "delete" the availability
+    :param appointment_id: the specific appointment's appointment id
+    :return: None
+    """
+
+    try:
+        unbooked = Appointment.objects.get(id=appointment_id)
+    except Appointment.DoesNotExist:
+        if send_message:
+            messages.error(request, "Could not delete availability: The selected availability could not be found; it may have already been deleted.")
+        return False
+
+    if unbooked.patient:
+        cancel_appointment(request, appointment_id, False)
+
+    unbooked.delete()
+
+    if send_message:
+        messages.success(request, 'The availability was deleted successfully.')
+
+    return True
 
 
 def rebook_appointment_with_new_doctor(new_doctor_id, old_doctor_id, patient):
@@ -177,3 +210,16 @@ def is_appointment_and_availability_same_datetime(appointment, availability):
     availability.end_date = availability.end_date.replace(microsecond=0, second=0)
 
     return appointment.start_date == availability.start_date and appointment.end_date == availability.end_date
+
+
+def format_appointments_start_end_times(appointments):
+    start_end_times = list(appointments.values_list("start_date", "start_date__time", "end_date__time"))
+
+    times = list(map(lambda x: {
+        "day": x[0].strftime('%A'),
+        "date": x[0].strftime("%Y-%m-%d"),
+        "start": x[1].strftime("%H:%M"),
+        "end": x[2].strftime("%H:%M")
+    }, start_end_times))
+
+    return times

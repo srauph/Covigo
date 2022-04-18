@@ -3,6 +3,8 @@ import datetime
 from django import forms
 from django.core.exceptions import ValidationError
 
+from Covigo.form_field_classes import *
+
 DAYS = (
     ('sunday', 'Sunday'),
     ('monday', 'Monday'),
@@ -14,14 +16,14 @@ DAYS = (
 )
 
 SLOT_HOURS = [tuple([x, x]) for x in range(0, 24)]
-SLOT_MINUTES = [tuple([x, x]) for x in range(0, 65, 5)]
+SLOT_MINUTES = [tuple([x, x]) for x in range(0, 60, 5)]
 
 
 class AvailabilityForm(forms.Form):
     availability_days = forms.MultipleChoiceField(
         choices=DAYS,
         widget=forms.CheckboxSelectMultiple(
-            attrs={'class': 'days_checkbox'}
+            attrs={'class': f'days_checkbox {CHECKBOX_CLASS}'}
         ),
         required=True,
     )
@@ -29,7 +31,7 @@ class AvailabilityForm(forms.Form):
     slot_duration_hours = forms.IntegerField(
         widget=forms.Select(
             choices=SLOT_HOURS,
-            attrs={'class': 'border border-black px-1 rounded-md'}
+            attrs={'class': SELECTION_CLASS_INLINE}
         ),
         initial='1',
         required=True
@@ -38,7 +40,7 @@ class AvailabilityForm(forms.Form):
     slot_duration_minutes = forms.IntegerField(
         widget=forms.Select(
             choices=SLOT_MINUTES,
-            attrs={'class': 'border border-black px-1 rounded-md'}
+            attrs={'class': SELECTION_CLASS_INLINE}
         ),
         required=True
     )
@@ -51,7 +53,7 @@ class AvailabilityForm(forms.Form):
         required=True,
         widget=forms.widgets.DateInput(
             attrs={
-                'class': 'border border-black px-1 rounded-md',
+                'class': DATEINPUT_CLASS,
                 'type': 'date',
                 'min': date_today.strftime("%Y-%m-%d"),
                 'max': date_one_year.strftime("%Y-%m-%d")
@@ -63,7 +65,7 @@ class AvailabilityForm(forms.Form):
         required=True,
         widget=forms.widgets.DateInput(
             attrs={
-                'class': 'border border-black px-1 rounded-md',
+                'class': DATEINPUT_CLASS,
                 'type': 'date',
                 'min': date_today.strftime("%Y-%m-%d"),
                 'max': date_one_year.strftime("%Y-%m-%d")

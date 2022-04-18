@@ -2,38 +2,23 @@
 {% block styles %}
     <style>
         .loader {
-            border: 16px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 16px solid blue;
-            border-bottom: 16px solid blue;
-            width: 120px;
-            height: 120px;
-            -webkit-animation: spin 2s linear infinite;
-            animation: spin 2s linear infinite;
+            -webkit-animation: spinner 1.5s linear infinite;
+            animation: spinner 1.5s linear infinite;
         }
 
-        @-webkit-keyframes spin {
-            0% {
-                -webkit-transform: rotate(0deg);
-            }
-            100% {
-                -webkit-transform: rotate(360deg);
-            }
+        @-webkit-keyframes spinner {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
         }
 
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 {% endblock %}
 {% block script %}
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
-            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
     <script>
         let x = document.getElementById("location-prompt");
 
@@ -48,15 +33,16 @@
 
         $(document).ready(function () {
             getLocation()
-
         })
 
         function showPosition(position) {
             get_distance(position)
         }
 
-        function showForm() {
+        function location_checking_complete() {
             $('#status-form').removeClass('hidden')
+            $('#use-location-msg').addClass('rounded-b-none')
+            $('.loader-container').addClass('hidden')
         }
 
         function get_distance(position) {
@@ -65,13 +51,11 @@
             url = url.replace(9999, position.coords.longitude);
             $.get(url, function (data, status) {
                 if (data < 1000) {
-                    showForm()
+                    location_checking_complete()
                     $('#compliance').removeClass('hidden')
-                    $('.loader-container').addClass('hidden')
                 } else {
-                    showForm()
+                    location_checking_complete()
                     $('#non-compliance').removeClass('hidden')
-                    $('.loader-container').addClass('hidden')
                 }
             })
         }
@@ -79,7 +63,7 @@
         function showError(error) {
             $('#error-geoloc').removeClass('hidden')
             $('.loader-container').addClass('hidden')
-            showForm()
+            location_checking_complete()
             switch (error.code) {
                 case error.PERMISSION_DENIED:
                     x.innerHTML = "Our system was unable to fetch your location. This may result in a quarantine non-compliance report. Please contact our system administrators to fix this issue."
@@ -108,132 +92,147 @@
         <div class="bg-slate-700 border-b">
             <h1 class="text-2xl text-white font-semibold px-8 py-4">Create Status Report</h1>
         </div>
-        <div class="flex flex-col justify-between grow m-8 p-4 min-h-full bg-white shadow rounded-lg">
-            <div class="flex justify-between mx-8 my-4 p-4 bg-white shadow rounded-lg ">
-                We use your location to ensure compliance with quarantine-related rules imposed by your local health
-                authority.
-                We will not store your current location information; we will only report compliance or non-compliance.
-            </div>
-            <div class="bg-red-100 rounded-lg mx-8 my-4 p-4 text-base text-red-700 inline-flex items-center hidden"
-                 role="alert" id="error-geoloc">
-                <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="times-circle"
-                     class="w-4 h-4 mr-2 fill-current" role="img" xmlns="http://www.w3.org/2000/svg"
-                     viewBox="0 0 512 512">
-                    <path fill="currentColor"
-                          d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm121.6 313.1c4.7 4.7 4.7 12.3 0 17L338 377.6c-4.7 4.7-12.3 4.7-17 0L256 312l-65.1 65.6c-4.7 4.7-12.3 4.7-17 0L134.4 338c-4.7-4.7-4.7-12.3 0-17l65.6-65-65.6-65.1c-4.7-4.7-4.7-12.3 0-17l39.6-39.6c4.7-4.7 12.3-4.7 17 0l65 65.7 65.1-65.6c4.7-4.7 12.3-4.7 17 0l39.6 39.6c4.7 4.7 4.7 12.3 0 17L312 256l65.6 65.1z"></path>
-                </svg>
-                <div id="location-prompt"></div>
+        <div class="flex flex-col justify-between gap-8 grow p-8">
+            <div>
+                <div class="w-full flex justify-between p-4 bg-white shadow rounded-lg text-center md:text-left" id="use-location-msg">
+                    We use your location to ensure compliance with quarantine-related rules imposed by your local health
+                    authority.
+                    We will not store your current location information; we will only report compliance or non-compliance.
+                </div>
+                <div class="w-full bg-red-100 shadow rounded-b-lg p-4 text-base text-red-700 flex gap-2 items-center hidden"
+                     role="alert" id="error-geoloc">
+                    <span class="w-6 h-6 sm:w-4 sm:h-4">
+                        <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="times-circle"
+                             class="w-6 h-6 sm:w-4 sm:h-4 fill-current" role="img" xmlns="http://www.w3.org/2000/svg"
+                             viewBox="0 0 512 512">
+                            <path fill="currentColor"
+                                  d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm121.6 313.1c4.7 4.7 4.7 12.3 0 17L338 377.6c-4.7 4.7-12.3 4.7-17 0L256 312l-65.1 65.6c-4.7 4.7-12.3 4.7-17 0L134.4 338c-4.7-4.7-4.7-12.3 0-17l65.6-65-65.6-65.1c-4.7-4.7-4.7-12.3 0-17l39.6-39.6c4.7-4.7 12.3-4.7 17 0l65 65.7 65.1-65.6c4.7-4.7 12.3-4.7 17 0l39.6 39.6c4.7 4.7 4.7 12.3 0 17L312 256l65.6 65.1z"></path>
+                        </svg>
+                    </span>
+                    <span id="location-prompt" class="grow"></span>
+                </div>
+
+                <div class="w-full bg-red-100 shadow rounded-b-lg p-4 text-base text-red-700 flex gap-2 items-center hidden"
+                     role="alert" id="non-compliance">
+                    <span class="w-6 h-6 sm:w-4 sm:h-4">
+                        <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="times-circle"
+                             class="w-6 h-6 sm:w-4 sm:h-4 fill-current" role="img" xmlns="http://www.w3.org/2000/svg"
+                             viewBox="0 0 512 512">
+                            <path fill="currentColor"
+                                  d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm121.6 313.1c4.7 4.7 4.7 12.3 0 17L338 377.6c-4.7 4.7-12.3 4.7-17 0L256 312l-65.1 65.6c-4.7 4.7-12.3 4.7-17 0L134.4 338c-4.7-4.7-4.7-12.3 0-17l65.6-65-65.6-65.1c-4.7-4.7-4.7-12.3 0-17l39.6-39.6c4.7-4.7 12.3-4.7 17 0l65 65.7 65.1-65.6c4.7-4.7 12.3-4.7 17 0l39.6 39.6c4.7 4.7 4.7 12.3 0 17L312 256l65.6 65.1z"></path>
+                        </svg>
+                    </span>
+                    <span>
+                        Our system detected that your location is not as declared.
+                        This may be an error; the health authorities will be able to further investigate this with you.
+                    </span>
+                </div>
+
+                <div class="w-full bg-green-100 shadow rounded-b-lg p-4 text-base text-green-700 flex gap-2 items-center hidden"
+                     role="alert" id="compliance">
+                    <span class="w-6 h-6 sm:w-4 sm:h-4">
+                        <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="check-circle"
+                             class="w-6 h-6 sm:w-4 sm:h-4 fill-current" role="img" xmlns="http://www.w3.org/2000/svg"
+                             viewBox="0 0 512 512">
+                            <path fill="currentColor"
+                                  d="M504 256c0 136.967-111.033 248-248 248S8 392.967 8 256 119.033 8 256 8s248 111.033 248 248zM227.314 387.314l184-184c6.248-6.248 6.248-16.379 0-22.627l-22.627-22.627c-6.248-6.249-16.379-6.249-22.628 0L216 308.118l-70.059-70.059c-6.248-6.248-16.379-6.248-22.628 0l-22.627 22.627c-6.248 6.248-6.248 16.379 0 22.627l104 104c6.249 6.249 16.379 6.249 22.628.001z"></path>
+                        </svg>
+                    </span>
+                    <span class="grow">Our system detected that you are complying with quarantine rules.</span>
+                </div>
             </div>
 
-            <div class="bg-red-100 rounded-lg mx-8 my-4 p-4 text-base text-red-700 inline-flex items-center hidden"
-                 role="alert" id="non-compliance">
-                <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="times-circle"
-                     class="w-4 h-4 mr-2 fill-current" role="img" xmlns="http://www.w3.org/2000/svg"
-                     viewBox="0 0 512 512">
-                    <path fill="currentColor"
-                          d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm121.6 313.1c4.7 4.7 4.7 12.3 0 17L338 377.6c-4.7 4.7-12.3 4.7-17 0L256 312l-65.1 65.6c-4.7 4.7-12.3 4.7-17 0L134.4 338c-4.7-4.7-4.7-12.3 0-17l65.6-65-65.6-65.1c-4.7-4.7-4.7-12.3 0-17l39.6-39.6c4.7-4.7 12.3-4.7 17 0l65 65.7 65.1-65.6c4.7-4.7 12.3-4.7 17 0l39.6 39.6c4.7 4.7 4.7 12.3 0 17L312 256l65.6 65.1z"></path>
-                </svg>
-                Our system detected that your location is not as declared.
-                This may be an error; the health authorities will be able to further investigate this with you.
+            <div class="grow loader-container flex items-center justify-center">
+                <div class="flex flex-col justify-center items-center gap-4">
+                    <div id="spinner" class="flex w-full h-full items-center justify-center">
+                        <span class="border-slate-200 border-t-blue-400 loader ease-linear rounded-full border-8 border-t-8 h-48 w-48"></span>
+                    </div>
+                    <div class="text-xl">Fetching your current location</div>
+                </div>
+
             </div>
 
-            <div class="bg-green-100 rounded-lg mx-8 my-4 p-4 text-base text-green-700 inline-flex items-center hidden"
-                 role="alert" id="compliance">
-                <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="check-circle"
-                     class="w-4 h-4 mr-2 fill-current" role="img" xmlns="http://www.w3.org/2000/svg"
-                     viewBox="0 0 512 512">
-                    <path fill="currentColor"
-                          d="M504 256c0 136.967-111.033 248-248 248S8 392.967 8 256 119.033 8 256 8s248 111.033 248 248zM227.314 387.314l184-184c6.248-6.248 6.248-16.379 0-22.627l-22.627-22.627c-6.248-6.249-16.379-6.249-22.628 0L216 308.118l-70.059-70.059c-6.248-6.248-16.379-6.248-22.628 0l-22.627 22.627c-6.248 6.248-6.248 16.379 0 22.627l104 104c6.249 6.249 16.379 6.249 22.628.001z"></path>
-                </svg>
-                Our system detected that you are complying with quarantine rules.
-            </div>
+            {% if messages %}
+                <script>
+                    setTimeout(function () {
+                        $('.message').fadeOut('fast');
+                    }, 10000); // <-- time in milliseconds
+                </script>
+            {% endif %}
 
-            <div class="mx-auto loader-container">
-                <div class="loader mx-auto"></div>
-                <div class="">Fetching your current location...</div>
-            </div>
-            <div class="flex flex-col justify-between grow mx-8 my-4 p-4 min-h-full bg-white shadow rounded-lg hidden"
+            {% for message in messages %}
+                {% if message.tags == 'error' %}
+                    <div role="alert"
+                         class="message p-5 rounded-lg border border-red-400 bg-red-300 text-red-900">
+                        <div class="divide-y-2 divide-solid divide-red-400">
+                            <h2 class="font-bold text-xl flex items-center pb-2">
+                            <span class="mr-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                     viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </span>
+                                Error!
+                                <div class="text-xl flex align-center w-full justify-end">
+                                    <strong class="alert-del cursor-pointer">
+                                        &times;
+                                    </strong>
+                                </div>
+                            </h2>
+                            <p class="pt-2">
+                                {{ message }}
+                            </p>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+            <div class="flex flex-col justify-between grow p-4 min-h-full bg-white shadow rounded-lg hidden"
                  id="status-form">
 
                 <div class="w-full flex flex-col gap-8 mb-8">
-                    <h2 class="p-2 text-2xl font-bold">Assigned Symptoms</h2>
-                    <hr>
-
-                    {% if messages %}
-                        <script src="https://code.jquery.com/jquery-3.6.0.min.js"
-                                integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
-                                crossorigin="anonymous"></script>
-                        <script>
-                            setTimeout(function () {
-                                $('.message').fadeOut('fast');
-                            }, 10000); // <-- time in milliseconds
-                        </script>
-                    {% endif %}
-
-                    {% for message in messages %}
-                        {% if message.tags == 'error' %}
-                            <div role="alert"
-                                 class="message p-5 rounded-lg border border-red-400 bg-red-300 text-red-900">
-                                <div class="divide-y-2 divide-solid divide-red-400">
-                                    <h2 class="font-bold text-xl flex items-center pb-2">
-                                    <span class="mr-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                             viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                    </span>
-                                        Error!
-                                        <div class="text-xl flex align-center w-full justify-end">
-                                            <strong class="alert-del cursor-pointer">
-                                                &times;
-                                            </strong>
-                                        </div>
-                                    </h2>
-                                    <p class="pt-2">
-                                        {{ message }}
-                                    </p>
-                                </div>
-                            </div>
-                        {% endif %}
-                    {% endfor %}
+                    <span>
+                        <h2 class="p-2 text-2xl font-bold">Assigned Symptoms</h2>
+                        <hr>
+                    </span>
 
                     {% for r in report %}
-                        <div class="mt-1">
+                        <div class="mx-2">
                             <label> {{ r.symptom.name }}:</label>
                             <input type="hidden" name="data[id][]" value="{{ r.id }}">
                             <br>
                             <input type=text name=data[data][]
                                    class="h-8 px-2 bg-slate-100 rounded-md border border-slate-400 border p-1">
                             <br>
-                            <label>Symptom Description: {{ r.symptom.description }}</label>
+                            <label class="text-sm">Symptom Description: {{ r.symptom.description }}</label>
                         </div>
                     {% endfor %}
                 </div>
-                <div class="w-full mt-8 md:mt-0">
+                <div class="w-full">
                     <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
                         <a href="{% url "status:index" %}">
                             <button type="button"
                                     class="bg-red-600 hover:bg-red-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
-                        <span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                                 stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </span>
+                                <span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                         stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </span>
                                 <span>Cancel</span>
                             </button>
                         </a>
                         <button type="submit"
                                 class="bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1">
-                        <span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                 viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </span>
+                            <span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                     viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </span>
                             <span>Submit</span>
                         </button>
                     </div>

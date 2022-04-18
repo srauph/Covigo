@@ -1,7 +1,9 @@
 import csv
 import io
+import json
 import os
 import threading
+import time
 
 from datetime import timedelta, date
 from os import listdir, path
@@ -10,10 +12,10 @@ from pathlib import Path
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import PermissionDenied
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import HttpResponse, Http404
 from django.shortcuts import render
 from django.urls import reverse
@@ -22,7 +24,9 @@ from django.views.decorators.cache import never_cache
 from Covigo.feature_toggles import FeatureToggles
 from Covigo.messages import Messages
 from accounts.models import Patient, Staff, Profile
-from accounts.utils import get_or_generate_patient_code, send_system_message_to_user
+from accounts.utils import get_or_generate_patient_code, send_system_message_to_user, \
+    get_distance_of_all_doctors_to_postal_code, get_assigned_staff_id_by_patient_id
+from appointments.utils import rebook_appointment_with_new_doctor
 from messaging.utils import send_notification
 
 CASE_DATA_PATH = "static/Covigo/data/case_data"
@@ -73,7 +77,6 @@ def index(request):
 def contact_tracing(request):
     if not request.user.is_staff or not request.user.has_perm("accounts.manage_contact_tracing"):
         raise PermissionDenied
-
     contact_tracing_path = Path(CONTACT_TRACING_PATH)
     ensure_path_exists(contact_tracing_path)
     failed_entries = []
@@ -112,23 +115,37 @@ def contact_tracing(request):
         else:
             messages.error(request, 'Invalid File Format: Please upload a csv file.')
 
-    data_files = [f for f in listdir(CONTACT_TRACING_PATH) if isfile(join(CONTACT_TRACING_PATH, f))]
-
-    if 'Search by File Name' in request.GET:
-        search_data_file_name_term = request.GET['Search by File Name']
-        if search_data_file_name_term == '':
-            data_files_search_result = [f for f in listdir(CONTACT_TRACING_PATH) if isfile(join(CONTACT_TRACING_PATH, f))]
-        else:
-            data_files_search_result = filter(lambda data_file: data_file == search_data_file_name_term, data_files)
-
-        return render(request, 'manager/contact_tracing.html', {
-            'data_files_search_result': data_files_search_result
-        })
-
     return render(request, 'manager/contact_tracing.html', {
-        "data_files": data_files,
         "failed_entries": failed_entries
     })
+
+
+@login_required
+@never_cache
+def contact_tracing_table(request):
+    if not request.user.is_staff or not request.user.has_perm("accounts.manage_contact_tracing"):
+        raise PermissionDenied
+
+    data_files = [f for f in listdir(CONTACT_TRACING_PATH) if isfile(join(CONTACT_TRACING_PATH, f))]
+
+    # Deprecated for now. May be re-instated later.
+    #
+    # if 'Search by File Name' in request.GET:
+    #     search_data_file_name_term = request.GET['Search by File Name']
+    #     if search_data_file_name_term == '':
+    #         data_files_search_result = [f for f in listdir(CONTACT_TRACING_PATH) if isfile(join(CONTACT_TRACING_PATH, f))]
+    #     else:
+    #         data_files_search_result = filter(lambda data_file: data_file == search_data_file_name_term, data_files)
+    #
+    #     return render(request, 'manager/contact_tracing.html', {
+    #         'data_files_search_result': data_files_search_result
+    #     })
+
+    files_table = list(map(lambda x: {"name": x}, data_files))
+
+    serialized_files = json.dumps({'data': files_table}, indent=4)
+
+    return HttpResponse(serialized_files, content_type='application/json')
 
 
 @login_required
@@ -282,7 +299,7 @@ def create_users_from_csv_date(request, data):
             p = Patient.objects.create(user=u)
             get_or_generate_patient_code(p, prefix="T")
 
-            if FeatureToggles.SEND_SYSTEM_MESSAGES_TO_NEW_TRACED_USERS:
+            if FeatureToggles.SEND_SYSTEM_MESSAGES_TO_NEW_TRACED_USERS.value:
                 template = Messages.REGISTER_USER.value
                 c = {
                     'token': default_token_generator.make_token(u),
@@ -308,8 +325,15 @@ def ensure_path_exists(path_to_check):
 
 
 def process_contact_tracing_csv(request, data, filename):
+    request.session["tracing_uploads_in_progress"] = True
+    request.session.modified = True
+    request.session.save()
+
+    # If the upload happens too quick the window won't refresh when the processing completes.
+    time.sleep(1.0)
 
     failed_entries = create_users_from_csv_date(request, data)
+
     if "tracing_uploads" not in request.session:
         request.session["tracing_uploads"] = {}
 
@@ -323,6 +347,7 @@ def process_contact_tracing_csv(request, data, filename):
     else:
         request.session["tracing_uploads"][filename] = "Success"
 
+    del request.session["tracing_uploads_in_progress"]
     request.session.modified = True
     request.session.save()
 
@@ -333,3 +358,112 @@ def process_contact_tracing_csv(request, data, filename):
         f"Your contact tracing file {filename} has finished importing",
         href=href
     )
+
+
+def check_tracing_uploads_in_progress(request):
+    locked = ("tracing_uploads_in_progress" in request.session
+            and request.session["tracing_uploads_in_progress"] == True)
+
+    return HttpResponse(locked)
+
+
+def doctor_patient_list(request):
+    if not request.user.has_perm("accounts.edit_assigned_doctor"):
+        raise PermissionDenied
+
+    return render(request, 'manager/doctors.html')
+
+
+def doctor_patient_list_table(request):
+    # TODO FILTER FOR DOCTORS ONLY (Currently anyone in accounts_staff is treated as a doctor for the query)
+    if not request.user.has_perm("accounts.edit_assigned_doctor"):
+        raise PermissionDenied
+
+    query = get_doctors_list()
+
+    # Serialize the JSON from the query
+    serialized_reports = json.dumps({'data': query}, indent=4)
+
+    return HttpResponse(serialized_reports, content_type='application/json')
+
+
+def reassign_doctor(request, user_id):
+    user = User.objects.get(id=user_id)
+
+    if user.is_staff:
+        raise Http404
+
+    if request.method == "POST":
+        doctor_user_id = request.POST.get('new_doctor_id')
+
+        if doctor_user_id == "-1":
+            user.patient.assigned_staff = None
+            messages.success(request, "This patient was unassigned from their doctor successfully.")
+        else:
+            # rebooks previously booked appointments with the old doctor with the new doctor if the new doctor has
+            # an availability at the same day and time as the previously booked appointment
+            rebook_appointment_with_new_doctor(doctor_user_id, user.patient.get_assigned_staff_user().id, user)
+            user.patient.assigned_staff_id = Staff.objects.get(user_id=doctor_user_id)
+            messages.success(request, "This patient was assigned to the new doctor successfully.")
+        user.patient.save()
+
+    assigned_staff = user.patient.get_assigned_staff_user()
+
+    return render(request, 'manager/reassign_doctor.html', {
+        "usr": user,
+        "assigned_staff": assigned_staff,
+    })
+
+
+def reassign_doctor_list_table(request, user_id):
+    if not request.user.has_perm("accounts.edit_assigned_doctor"):
+        raise PermissionDenied
+
+    user = User.objects.get(id=user_id)
+
+    if user.is_staff:
+        raise Http404
+
+    postal_code = user.profile.postal_code
+
+    docs_list = get_distance_of_all_doctors_to_postal_code(postal_code)
+
+    # Build JSON
+    docs_table = []
+    for i in docs_list:
+        docs_table.append({
+            "doc_id": i[0].id,
+            "first_name": i[0].first_name,
+            "last_name": i[0].last_name,
+            "distance": i[1],
+            "patient_count": i[2],
+        })
+
+    # Serialize the JSON from the query
+    serialized_docs = json.dumps({'data': docs_table}, indent=4)
+
+    return HttpResponse(serialized_docs, content_type='application/json')
+
+
+def get_doctors_list():
+    """
+    Raw query to get each doctor and their patient count
+    @return: Queryset of all doctors
+    """
+
+    # Old raw query. Didn't work properly (cont returns 1 instead of 0 when filtered to include 0s;
+    # or didn't return doctors with 0 assigned patients when filtered to exclude 0s)
+    #
+    # query = Staff.objects.raw(
+    #     "SELECT `auth_user`.`id`, `auth_user`.`first_name`, `auth_user`.`last_name`, `accounts_staff`.`user_id`, COUNT(*) AS patient_count FROM `accounts_staff` LEFT JOIN `accounts_patient` ON (`accounts_staff`.`id` = `accounts_patient`.`assigned_staff_id`) LEFT OUTER JOIN `auth_user` ON (`accounts_staff`.`user_id` = `auth_user`.`id`) GROUP BY `accounts_patient`.`assigned_staff_id` ORDER BY `auth_user`.`first_name` , `auth_user`.`last_name`"
+    # )
+
+    doctor_perm = Permission.objects.get(codename="is_doctor")
+    query = User.objects.filter(user_permissions=doctor_perm).values(
+        "id",
+        "first_name",
+        "last_name",
+        "staff__id",
+    ).annotate(patient_count=Count("staff__assigned_patients"))
+
+    return list(query)

@@ -19,13 +19,11 @@
 
                     {% if messages %}
                         {% block script %}
-                            <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
                             <script>
                                 Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function() {
                                     x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
-                                }
-                                )
-                                );
+                                }));
 
                                 setTimeout(function() {
                                     $('.message').fadeOut('fast');

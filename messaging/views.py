@@ -3,7 +3,7 @@ import re
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission
 from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Q
@@ -22,6 +22,7 @@ from messaging.utils import send_notification
 from messaging.utils import RSAEncryption
 from django.conf import settings
 
+
 @login_required
 @never_cache
 def index(request):
@@ -30,29 +31,74 @@ def index(request):
 
 @login_required
 @never_cache
-def list_messages(request, user_id=''):
-    # TODO: access control for messages
+def list_messages(request):
+    return render(request, 'messaging/list_messages.html')
+
+
+@login_required
+@never_cache
+def list_messages_table(request):
     current_user = request.user
 
+    filter1 = (Q(author_id=current_user.id) | Q(recipient_id=current_user.id))
+
+    my_patients = None
     try:
-        is_staff = request.user.staff
+        my_patients = request.user.staff.assigned_patients.all().values_list('user', flat=True)
+        doctor_permission = Permission.objects.get(codename="is_doctor")
+        filter1 |= (Q(author_id__in=my_patients) & Q(recipient__user_permissions=doctor_permission)) | (
+                Q(recipient_id__in=my_patients) & Q(author__user_permissions=doctor_permission))
     except:
-        is_staff = False
+        pass
+    filter2 = Q(type=0)
 
-    if user_id == '':
-        filter1 = (Q(author_id=current_user.id) | Q(recipient_id=current_user.id)) & Q(type=0)
+    message_group = MessageGroup.objects.filter(filter1 & filter2).all()
 
-        if is_staff:
-            my_patients = request.user.staff.assigned_patients.all().values('user')
-            filter1 |= (Q(author_id__in=my_patients) | Q(recipient_id__in=my_patients)) & Q(type=0)
-    else:
-        filter1 = (Q(author_id=user_id) | Q(recipient_id=user_id)) & Q(type=0)
+    message_groups = []
+    for mg in message_group:
+        if mg.author.id == current_user.id:
+            seen = mg.author_seen
+        elif mg.recipient.id == current_user.id:
+            seen = mg.recipient_seen
+        else:
+            try:
+                if mg.author.id in my_patients:
+                    seen = mg.recipient_seen
+                elif mg.recipient.id in my_patients:
+                    seen = mg.author_seen
+                else:
+                    # TODO: Proper exception handling
+                    raise Exception(
+                        "Logged in user isn't the author or recipient, nor is either of them an assigned patient of the logged in user.")
+            except Exception as e:
+                print(e)
 
-    message_group = MessageGroup.objects.filter(filter1).all()
+        if mg.priority == 0:
+            priority_display = "Low"
+        elif mg.priority == 1:
+            priority_display = "Medium"
+        elif mg.priority == 2:
+            priority_display = "High"
 
-    return render(request, 'messaging/list_messages.html', {
-        'message_group': message_group,
-    })
+        message_groups.append({
+            "id": mg.id,
+            "priority": {
+                "display": priority_display,
+                "value": mg.priority,
+            },
+            "author_fname": mg.author.first_name,
+            "author_lname": mg.author.last_name,
+            "recipient_fname": mg.recipient.first_name,
+            "recipient_lname": mg.recipient.last_name,
+            "title": mg.title,
+            "date_created": mg.date_created.strftime("%B %d, %Y, at %I:%M %p"),
+            "date_updated": mg.date_updated.strftime("%B %d, %Y, at %I:%M %p"),
+            "seen": seen,
+        })
+
+    serialized_message_groups = json.dumps({'data': message_groups}, indent=4)
+
+    return HttpResponse(serialized_message_groups, content_type='application/json')
 
 
 @login_required
@@ -62,13 +108,18 @@ def view_message(request, message_group_id):
     # Filters for the queries to check if user is authorized to view the messages with a specific message_group_id
     filter1 = Q(id=message_group_id)
     filter2 = Q(author_id=current_user.id) | Q(recipient_id=current_user.id)
+
+    my_patients = None
     try:
-        my_patients = request.user.staff.assigned_patients.values('user')
-        filter2 |= Q(author_id__in=my_patients) | Q(recipient_id__in=my_patients)
+        my_patients = request.user.staff.assigned_patients.values_list('user', flat=True)
+        doctor_permission = Permission.objects.get(codename="is_doctor")
+        filter2 |= (Q(author_id__in=my_patients) & Q(recipient__user_permissions=doctor_permission)) | (
+                Q(recipient_id__in=my_patients) & Q(author__user_permissions=doctor_permission))
     except:
         pass
-    
+
     filter3 = Q(type=0)
+
     if MessageGroup.objects.filter(filter1 & filter2 & filter3):
 
         message_group = MessageGroup.objects.get(filter1)
@@ -86,8 +137,16 @@ def view_message(request, message_group_id):
         elif message_group.recipient.id == current_user.id:
             message_group.recipient_seen = True
         else:
-            # TODO: Proper exception handling
-            raise Exception("Logged in user is neither author nor recipient")
+            try:
+                if message_group.author.id in my_patients:
+                    message_group.recipient_seen = True
+                elif message_group.recipient.id in my_patients:
+                    message_group.author_seen = True
+                else:
+                    # TODO: Proper exception handling
+                    raise Exception("Logged in user isn't the author or recipient, nor is either of them an assigned patient of the logged in user.")
+            except:
+                raise PermissionDenied
         message_group.save()
 
         # If user sent a reply
@@ -152,8 +211,17 @@ def view_message(request, message_group_id):
                 elif message_group.recipient.id == current_user.id:
                     message_group.author_seen = False
                 else:
-                    # TODO: Proper exception handling
-                    raise Exception("Logged in user is neither author nor recipient")
+                    try:
+                        if message_group.author.id in my_patients:
+                            message_group.author_seen = False
+                        elif message_group.recipient.id in my_patients:
+                            message_group.recipient_seen = False
+                        else:
+                            # TODO: Proper exception handling
+                            raise Exception(
+                                "Logged in user isn't the author or recipient, nor is either of them an assigned patient of the logged in user.")
+                    except:
+                        raise PermissionDenied
                 message_group.save()
 
                 return redirect("messaging:view_message", message_group_id)
@@ -167,8 +235,17 @@ def view_message(request, message_group_id):
         elif message_group.recipient.id == current_user.id:
             seen = message_group.author_seen
         else:
-            # TODO: Proper exception handling
-            raise Exception("Logged in user is neither author nor recipient")
+            try:
+                if message_group.author.id in my_patients:
+                    seen = message_group.author_seen
+                elif message_group.recipient.id in my_patients:
+                    seen = message_group.recipient_seen
+                else:
+                    # TODO: Proper exception handling
+                    raise Exception(
+                        "Logged in user isn't the author or recipient, nor is either of them an assigned patient of the logged in user.")
+            except:
+                raise PermissionDenied
 
         return render(request, 'messaging/view_message.html', {
             'message_group': message_group,
@@ -188,12 +265,14 @@ def compose_message(request, user_id):
     recipient_user = User.objects.get(id=user_id)
 
     can_compose_message = (
-        request.user.id != user_id and (
+            request.user.id != user_id and (
             request.user.has_perm("accounts.message_user")
             or request.user.has_perm("accounts.message_patient") and not recipient_user.is_staff
-            or request.user.has_perm("accounts.message_assigned") and recipient_user in request.user.staff.get_assigned_patient_users()
-            or request.user.has_perm("accounts.message_doctor") and recipient_user == request.user.patient.get_assigned_staff_user()
-        )
+            or request.user.has_perm(
+        "accounts.message_assigned") and recipient_user in request.user.staff.get_assigned_patient_users()
+            or request.user.has_perm(
+        "accounts.message_doctor") and recipient_user == request.user.patient.get_assigned_staff_user()
+    )
     )
     if can_compose_message:
         if recipient_user.first_name == "" and recipient_user.last_name == "":
@@ -212,10 +291,10 @@ def compose_message(request, user_id):
                 new_msg_group.author_seen = True
                 new_msg_group.type = 0
                 new_msg_group.save()
-                
+
                 encryption = RSAEncryption(settings.ENCRYPTION_KEY_DIRECTORY)
                 encryption.load_keys()
-                
+
                 if User.objects.get(id=new_msg_group.author.id).is_staff:
                     patient = new_msg_group.recipient
                     doctor = new_msg_group.author
@@ -249,7 +328,8 @@ def compose_message(request, user_id):
                     }
                     send_system_message_to_user(doctor, template=template, c=c_doctor)
 
-                messages.success(request, "The new message was successfully sent to " + recipient_user.first_name + " " + recipient_user.last_name + "!")
+                messages.success(request,
+                                 "The new message was successfully sent to " + recipient_user.first_name + " " + recipient_user.last_name + "!")
 
                 # Create href for notification
                 href = reverse('messaging:view_message', args=[new_msg_group.id])
@@ -258,7 +338,7 @@ def compose_message(request, user_id):
                                   "New message from " + new_msg_group.author.first_name + " " + new_msg_group.author.last_name,
                                   href=href)
 
-                return redirect("messaging:list_messages", request.user.id)
+                return redirect("messaging:list_messages")
 
         else:
             msg_group_form = CreateMessageGroupForm(recipient=recipient_name)
@@ -278,15 +358,29 @@ def toggle_read(request, message_group_id):
     current_user = request.user
     message_group = MessageGroup.objects.get(id=message_group_id)
 
+    my_patients = None
+    try:
+        my_patients = request.user.staff.assigned_patients.values_list('user', flat=True)
+    except:
+        pass
+
     # Check if we are author or recipient
     if message_group.author.id == current_user.id:
         message_group.author_seen = not message_group.author_seen
     elif message_group.recipient.id == current_user.id:
         message_group.recipient_seen = not message_group.recipient_seen
     else:
-        # TODO: Proper exception handling
-        raise Exception("Logged in user is neither author nor recipient")
-
+        try:
+            if message_group.author.id in my_patients:
+                message_group.recipient_seen = not message_group.recipient_seen
+            elif message_group.recipient.id in my_patients:
+                message_group.author_seen = not message_group.author_seen
+            else:
+                # TODO: Proper exception handling
+                raise Exception(
+                    "Logged in user isn't the author or recipient, nor is either of them an assigned patient of the logged in user.")
+        except:
+            raise PermissionDenied
     message_group.save()
 
     return redirect('messaging:list_messages')
@@ -298,6 +392,7 @@ def read_notification(request, message_group_id):
     """
     This function is called when a user clicks on a notification to make it seen before opening it
     """
+
     if request.method == "POST":
         message_group = MessageGroup.objects.get(id=message_group_id)
 
@@ -313,23 +408,6 @@ def read_notification(request, message_group_id):
 @login_required
 @never_cache
 def list_notifications(request):
-    current_user = request.user
-
-    # Fetch received notifications
-    filter1 = Q(recipient_id=current_user.id) & Q(type=1)
-
-    message_group = list(MessageGroup.objects.filter(filter1).all().values())
-
-    # Only for the notifications list, reformat the message groups titles to not include the hrefs
-    for i in message_group:
-        a = re.sub("<span class='notification-link cursor-pointer' data-href=", "", i['title'])
-        a = re.sub(">.*", "", a)
-
-        i['title'] = re.sub("<span class='notification-link cursor-pointer' data-href=[^>]*>", "", i['title'])
-        i['title'] = re.sub("</span>", "", i['title'])
-
-        # Create new "attribute" to hold the href for the notification
-        i['link'] = a
 
     if request.method == 'POST' and request.POST.get('mark_selected_notifications_read'):
         selected_notification_ids = request.POST.getlist('selected_notification_ids[]')
@@ -347,9 +425,39 @@ def list_notifications(request):
             notification.save()
         return redirect('/notifications')
 
-    return render(request, 'notifications/list_notifications.html', {
-        'message_group': message_group,
-    })
+    return render(request, 'notifications/list_notifications.html')
+
+
+@login_required
+@never_cache
+def list_notifications_table(request):
+    current_user = request.user
+
+    # Fetch received notifications
+    filter1 = Q(recipient_id=current_user.id) & Q(type=1)
+
+    message_group = list(MessageGroup.objects.filter(filter1).all().values())
+
+    # Only for the notifications list, reformat the message groups titles to not include the hrefs
+    notifications_table = []
+    for i in message_group:
+        a = re.sub("<span class='notification-link cursor-pointer' data-href=", "", i['title'])
+        a = re.sub(">.*", "", a)
+
+        i['title'] = re.sub("<span class='notification-link cursor-pointer' data-href=[^>]*>", "", i['title'])
+        i['title'] = re.sub("</span>", "", i['title'])
+
+        notifications_table.append({
+            "id": i["id"],
+            "title": i['title'],
+            "date_created": i["date_created"].strftime("%B %d, %Y, at %I:%M %p"),
+            "seen": i["recipient_seen"],
+            "link": a,
+        })
+
+    serialized_notifications = json.dumps({'data': notifications_table}, indent=4)
+
+    return HttpResponse(serialized_notifications, content_type='application/json')
 
 
 @login_required

@@ -1,4 +1,6 @@
 from django import forms
+
+from Covigo.form_field_classes import *
 from messaging.models import MessageContent, MessageGroup
 
 
@@ -16,7 +18,7 @@ class CreateMessageContentForm(forms.ModelForm):
                 'required': True,
                 'rows': 3,
                 'cols': 50,
-                'class': 'w-full bg-slate-100 text-base px-2 py-1 rounded border border-slate-400 align-middle'
+                'class': TEXTAREA_CLASS
             }
         )
     )
@@ -34,10 +36,10 @@ class CreateMessageGroupForm(forms.ModelForm):
     title = forms.CharField(
         widget=forms.TextInput(
             attrs={
-                'placeholder': "e.g. Concern with loss of smell and taste",
+                'placeholder': "e.g. Concern with loss of smell",
                 'required': True,
                 'size': 50,
-                'class': 'w-full h-8 px-2 bg-slate-100 rounded-md border border-slate-400'
+                'class': TEXTINPUT_CLASS
             }
         )
     )
@@ -61,7 +63,7 @@ class ReplyForm(forms.ModelForm):
         required=True,
         widget=forms.Textarea(
             attrs={
-                'class': "w-full bg-slate-100 text-base px-4 py-2 rounded border border-slate-400 align-middle",
+                'class': TEXTAREA_CLASS,
                 'rows': 3,
                 'cols': 50,
                 'placeholder': "Reply..."

@@ -1,27 +1,137 @@
 {% extends "Covigo/base.html" %}
 
 {% block styles %}
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.4/css/jquery.dataTables.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/rowreorder/1.2.8/css/rowReorder.dataTables.min.css">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.dataTables.min.css">
 {% endblock %}
 
 {% block script %}
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
-            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
     <script type="text/javascript" charset="utf8"
             src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/rowreorder/1.2.8/js/dataTables.rowReorder.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
     <script>
 
 
         $(document).ready(function () {
             let table = $('#message_list_table').DataTable({
-                "order": [1, "desc"],
+                "ajax": "{% url 'list_notifications_table' %}",
+                "type": "POST",
+                responsive: true,
+                "draggable ": false,
+                stripeClasses: [],
+                "orderClasses": false,
+                "columns": [
+                    {defaultContent: ""},
+                    {"data": "id"},
+                    {"data": "title"},
+                    {"data": "date_created"},
+                    {"data": "seen"},
+                    {"data": "link"},
+                    {defaultContent: ""},
+                ],
                 "columnDefs": [
-                    {
-                        "orderable": false,
+                    { // responsive (+) button
+                        "targets": [0],
+                        "visible": true,
+                        "searchable": false,
+                        "sortable": false,
+                        "className": 'all w-0',
+                        "responsivePriority": 1,
+                    },
+                    { // id
+                        "targets": [1],
+                        "visible": true,
+                        "searchable": false,
+                        "sortable": false,
+                        "className": 'all w-0',
+                        "responsivePriority": 1,
+                        "render": function (data, type, row) {
+                            return `<input type="checkbox" class="checkbox" name="selected_notification_ids[]" value="${row.id}">`;
+                        }
+                    },
+                    { // title
+                        "targets": [2],
+                        "visible": true,
+                        "searchable": true,
+                        "className": 'all dt-body-center',
+                        "responsivePriority": 1,
+                        "render": function (data, type, row) {
+                            return `<div class="whitespace-normal">${data}</div>`;
+                        }
+                    },
+                    { // date_created
+                        "targets": [3],
+                        "visible": true,
+                        "searchable": false,
+                        "className": 'dt-body-center',
+                        "render": function (data, type, row) {
+                            return `<div class="whitespace-normal">${data}</div>`;
+                        }
+                    },
+                    { // seen
+                        "targets": [4],
+                        "visible": true,
+                        "searchable": true,
+                        "render": function (data, type, row) {
+                            let text = row.seen ? "Read" : "Unread";
+                            return `<div class="whitespace-normal">${text}</div>`;
+                        }
+                    },
+                    { // link
+                        "targets": [5],
                         "visible": false,
-                        "searchable": true
+                        "searchable": false,
+                    },
+                    { // Action
+                        "targets": [6],
+                        "visible": true,
+                        "searchable": false,
+                        "sortable": false,
+                        "className": 'dt-body-center',
+                        "render": function (data, type, row) {
+                            let buttonView =
+                                `<a class="view-notification" data-notif-id="${row.id}" data-href="${row.link}">` +
+                                '<button type="button" class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">' +
+                                '<span><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+                                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>' +
+                                '<span>View</span>' +
+                                '</button></a>';
+
+                            let buttonMarkUnread =
+                                '<a href="{% url 'toggle_read_notification' 999999999 %}">'.replace(999999999, row.id) +
+                                '<button type="button" class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">' +
+                                '<span><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+                                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>' +
+                                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></span>' +
+                                '<span>Mark Unread</span>' +
+                                '</button></a>';
+
+                            let buttonMarkRead =
+                                '<a href="{% url 'toggle_read_notification' 999999999 %}">'.replace(999999999, row.id) +
+                                '<button type="button" class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">' +
+                                '<span><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+                                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg></span>' +
+                                '<span>Mark Read</span>' +
+                                '</button></a>';
+
+                            if (row.seen) {
+                                return '<span class="flex justify-center md:justify-end gap-2">' + buttonMarkUnread + buttonView + '</span>';
+                            } else {
+                                return '<span class="flex justify-center md:justify-end gap-2">' + buttonMarkRead + buttonView + '</span>';
+                            }
+                        }
                     }
                 ],
+
+                "order": [[4, "desc"], [3, "desc"]],
+
                 language: {
                     "zeroRecords": "No new notifications at this time"
                 }
@@ -44,15 +154,27 @@
             })
         });
 
+        function processCheckboxChanged() {
+            if ($("#message_list_table input:checkbox:checked").length >= 1) {
+                $(".mark_selected_notifications_read").removeClass('hidden');
+                $(".mark_selected_notifications_unread").removeClass('hidden');
+            }
+            else {
+                $(".mark_selected_notifications_read").addClass('hidden');
+                $(".mark_selected_notifications_unread").addClass('hidden');
+            }
+        }
+
         //Delay execution of opening the href link of the notification item to make it 'read' beforehand
         $(document).on('click', '.view-notification', function () {
+            console.log("hey");
 
             //Get the notification id (message group object id)
             let notif_id = $(this).attr('data-notif-id');
             let _this = $(this);
             let url = "{% url 'read_notification' 999999999 %}";
             url = url.replace(999999999, notif_id);
-            $j.ajax({
+            $.ajax({
                 method: 'POST',
                 url: url,
                 data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
@@ -64,30 +186,17 @@
             });
         });
 
-        $('#checkbox').on('click', function () {
+        $('#all-checkbox').on('click', function () {
             if ($(this).is(':checked', true)) {
                 $('.checkbox').prop('checked', true);
             } else {
                 $('.checkbox').prop('checked', false);
             }
+            processCheckboxChanged();
         });
 
         $(document).ready(function () {
-            $('.checkbox').change(function () {
-
-                if ($("input:checkbox:checked").length >= 1) {
-                    $(".mark_selected_notifications_read").removeClass('hidden');
-                    $(".mark_selected_notifications_unread").removeClass('hidden');
-
-
-                }
-                else
-                {
-                    $(".mark_selected_notifications_read").addClass('hidden');
-                    $(".mark_selected_notifications_unread").addClass('hidden');
-                }
-
-            })
+            $('#message_list_table tbody').on('change', 'input:checkbox', processCheckboxChanged)
         });
 
     </script>
@@ -116,125 +225,55 @@
         </div>
         <form method="post">
             {% csrf_token %}
-            <div class="m-4">
-                <div class="m-4 p-4 bg-white shadow rounded-lg">
-                    <table class="w-full table-auto text-center" id="message_list_table">
+            <div class="p-8 pt-0">
+                <div class="p-4 bg-white shadow rounded-lg text-center">
+                    <table class="w-full table-auto display responsive nowrap" style="width:100%" id="message_list_table">
                         <thead>
-                        <tr class="border-b">
-                            <th class="p-2" data-orderable="false">
-                                <input type="checkbox" id="checkbox" class="checkbox">
-                            </th>
-                            <th class="p-2">Description</th>
-                            <th class="p-2">Received On</th>
-                            <th class="p-2">Actions</th>
-                        </tr>
+                            <tr class="border-b">
+                                <th class="w-0"></th>
+                                <th class="p-2">
+                                    <input type="checkbox" id="all-checkbox">
+                                </th>
+                                <th class="p-2">Description</th>
+                                <th class="p-2">Received On</th>
+                                <th class="p-2">Seen</th>
+                                <th class="p-2"></th>
+                                <th class="p-2">Action</th>
+                            </tr>
                         </thead>
-
-                        <tbody>
-                        {% for msg in message_group %}
-                            {% if msg.recipient_seen == True %}
-                                <tr class="hover:bg-slate-200 border-b" data-read="read">
-                                    {% else %}
-                                <tr class="hover:bg-slate-200 font-semibold border-b" data-read="unread">
-                            {% endif %}
-                        <td class="text-center">
-                            <input type="checkbox" class="checkbox" name="selected_notification_ids[]" value="{{ msg.id }}">
-                        </td>
-                        <td class="p-2">{{ msg.title }}</td>
-                        <td class="p-2">{{ msg.date_created }}</td>
-                        <td class="p-2 flex flex-wrap justify-center gap-2">
-                            <a href="{% url 'toggle_read_notification' msg.id %}">
-                                <button type="button" class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-                                        <span>
-                                            {% if msg.recipient_seen == True %}
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                                     viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                          stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                          stroke-width="2"
-                                                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                                </svg>
-                                            {% else %}
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                                     viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                          stroke-width="2"
-                                                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
-                                                </svg>
-                                            {% endif %}
-                                        </span>
-                                    <span>
-                                            {% if msg.recipient_seen == True %}
-                                                Mark Unread
-                                            {% else %}
-                                                Mark Read
-                                            {% endif %}
-                                        </span>
-                                </button>
-                            </a>
-
-                            <a class="view-notification" data-notif-id="{{ msg.id }}" data-href="{{ msg.link }}">
-                                <button class="bg-cyan-500 hover:bg-cyan-700 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-                                        <span>
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                                 viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                      d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                            </svg>
-                                        </span>
-                                    <span>View</span>
-                                </button>
-                            </a>
-
-                        </td>
-                        </tr>
-                        {% endfor %}
-                        </tbody>
                     </table>
                 </div>
-                <div class="w-full mt-8 md:mt-0 md:-mx-4">
-                    <div class=" text-center items-center flex flex-wrap justify-center sm:justify-end gap-2">
+                <div class="w-full my-8">
+                    <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
                         {# Button to mark selected as read #}
                         <button type="submit" value="mark_selected_notifications_read"
                                 class="mark_selected_notifications_read hidden bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1"
                                 name="mark_selected_notifications_read">
-                                <span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                                     viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                          stroke-width="2"
-                                                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
-                                                </svg>
-                                </span>
                             <span>
-                                    Mark Selected as Read
-                                </span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                     stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                                </svg>
+                            </span>
+                            <span>Mark Selected as Read</span>
                         </button>
-
 
                         {# Button to mark selected as unread #}
                         <button type="submit" value="mark_selected_notifications_unread"
                                 class="mark_selected_notifications_unread hidden bg-blue-600 hover:bg-blue-800 text-md font-semibold text-white px-4 py-2 rounded-md flex items-center gap-1"
                                 name="mark_selected_notifications_unread">
-                                <span>
-                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                                     viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                          stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                          stroke-width="2"
-                                                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                                </svg>
-                                </span>
                             <span>
-                                    Mark Selected as Unread
-                                </span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                     stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                            </span>
+                            <span>Mark Selected as Unread</span>
                         </button>
-
-
-
-
                     </div>
                 </div>
             </div>

@@ -1,13 +1,99 @@
 {% extends 'Covigo/base.html' %}
 
+{% block styles %}
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/rowreorder/1.2.8/css/rowReorder.dataTables.min.css">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.dataTables.min.css">
+    <style>
+        table.display tbody tr:nth-child(odd):hover td,
+        table.display tbody tr:nth-child(even):hover td {
+            background-color: rgb(226 232 240) !important;
+        }
+
+        table.dataTable.dtr-inline.collapsed > tbody > tr > td.dtr-control:before,
+        table.dataTable.dtr-inline.collapsed > tbody > tr > th.dtr-control:before {
+            background-color: rgb(6 182 212) !important;
+        }
+
+        #patient_reports_modal_table.dataTable.nowrap th, table.dataTable.nowrap td {
+            white-space: normal !important;
+        }
+    </style>
+
+    <style>
+        .loader {
+            -webkit-animation: spinner 1.5s linear infinite;
+            animation: spinner 1.5s linear infinite;
+        }
+
+        @-webkit-keyframes spinner {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+{% endblock %}
+
 {% block script %}
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script type="text/javascript" charset="utf8"
+            src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/rowreorder/1.2.8/js/dataTables.rowReorder.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
     <script>
         Array.from(document.querySelectorAll(".alert-del")).map(x => x.addEventListener("click", function () {
                     x.parentNode.parentElement.parentElement.parentElement.classList.add('hidden')
-                }
-            )
-        );
+        }));
+    </script>
+    <script>
+        $(document).ready(function () {
+            let table = $('#files_list').DataTable({
+                "ajax": "{% url 'manager:contact_tracing_table' %}",
+                "type": "POST",
+                responsive: true,
+                "draggable ": false,
+                stripeClasses: [],
+                "orderClasses": false,
+                "columns": [
+                    {"data": "name"},
+                    {defaultContent: ""},
+                ],
+                "columnDefs": [
+                    { // name
+                        "targets": [0],
+                        "visible": true,
+                        "searchable": true,
+                        "className": 'dt-body-center'
+                    },
+                    { // Action
+                        "targets": [1],
+                        "visible": true,
+                        "searchable": false,
+                        "sortable": false,
+                        "className": 'dt-body-center',
+                        "render": function (data, type, row) {
+                            return '<span class="flex justify-center">' +
+                            '<a href="{% url 'accounts:edit_group' 999999999 %}">'.replace(999999999, row.id) +
+                            '<button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">' +
+                            '<span> <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path> </svg> </span>' +
+                            '<span>Edit</span>' +
+                            '</button></a>'
+                        }
+                    }
+                ],
+
+                "order": [[0, "asc"]],
+            });
+        });
+
     </script>
     <script>
         $('form .autosubmit').on('change', function() {
@@ -18,6 +104,42 @@
         $("input[placeholder]").each(function () {
             $(this).attr('size', $(this).attr('placeholder').length);
         });
+    </script>
+    <script>
+        let isProcessing;
+        async function checkIsProcessing() {
+            let result;
+            await $.ajax({
+                type: "GET",
+                url: "{% url "manager:tracing_uploads_in_progress" %}",
+                success: function(data) {
+                    result = (data == "True");
+                }
+            });
+            return result;
+        }
+
+        async function setUp() {
+            isProcessing = await checkIsProcessing();
+            let processingMessage = $('#processing-message');
+            let newUploadHint = $('#new-upload-hint');
+
+            if (isProcessing) {
+                processingMessage.removeClass("hidden");
+                newUploadHint.addClass("hidden");
+
+                window.setInterval(async function() {
+                    isProcessing = await checkIsProcessing();
+
+                    if (!isProcessing) {
+                        window.location = window.location.href;
+                    }
+                }, 1000);
+            } else {
+                newUploadHint.removeClass("hidden");
+            }
+        }
+        setUp();
     </script>
 {% endblock %}
 
@@ -30,7 +152,7 @@
         </div>
 
         {% if messages %}
-            <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
         {% endif %}
 
         {% for message in messages %}
@@ -115,24 +237,17 @@
         {% endfor %}
 
         <div class="bg-white shadow m-8 rounded-xl">
-            <div class="w-full flex flex-wrap justify-end p-4 gap-2">
-                <div>
-                    <form method="GET" class="flex justify-between items-center gap-2">
-                        <input type="search" name="Search by File Name" class="bg-slate-100 border border-slate-400 h-8 text-sm text-black px-2 rounded-md"
-                               placeholder="Search by File Name...">
-                        <button type="submit" class="bg-green-600 hover:bg-green-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-                            <span>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                            </span>
-                            <span>
-                                Search
-                            </span>
-                        </button>
-                    </form>
+            <div class="w-full flex flex-wrap justify-center md:justify-between items-center gap-2 p-4">
+                <div class="text-center md:text-left text-sm">
+                    <span id="new-upload-hint"><span class="font-semibold">Note:</span> Only .csv files with header "First Name,Last Name,Email,Phone Number" will work properly.</span>
+                    <span class="flex items-center gap-2 hidden" id="processing-message">
+                        Your uploaded csv file is still being processed...
+                        <div class="flex justify-center items-center">
+                            <span class="border-slate-200 border-t-blue-400 loader ease-linear rounded-full border-4 border-t-4 h-6 w-6"></span>
+                        </div>
+                    </span>
                 </div>
-                <div class="flex flex-auto justify-end gap-2">
+                <div class="flex justify-end gap-2">
 
                     {# clicking on this button uploads a contact tracing file to be processed by the system #}
                     <form method="post" enctype="multipart/form-data">
@@ -156,69 +271,17 @@
             </div>
         </div>
 
-        <div class="m-4 mt-8 justify-evenly gap-4">
-            <div class="m-4 p-4 bg-white shadow rounded-lg">
-                <table class="w-full table-auto" id="user_list_table">
+        <div class="p-8 pt-0">
+            <div class="p-4 bg-white shadow rounded-lg text-center">
+                <table class="w-full table-auto display responsive nowrap" style="width:100%" id="files_list">
                     <thead>
                     <tr class="border-b">
-                        <th class="p-2 text-left">
+                        <th class="p-2 text-center">
                             File Name
                         </th>
-                        <th class=></th>
+                        <th></th>
                     </tr>
                     </thead>
-                    <tbody>
-
-                    {% if data_files_search_result %}
-                        {# this for loop will check for a data file with the specific name searched in the search bar and display/return it in table/row form on the view #}
-                        {% for result in data_files_search_result %}
-                            <tr class="hover:bg-gray-200">
-                                <td name="File Name" class="p-2">
-                                    {{ result }}
-                                </td>
-                                <td class="p-2 text-center flex flex-wrap justify-center sm:justify-end gap-2">
-                                    <a href="{% url 'manager:download_contact_tracing_file' result %}">
-                                        <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-                                            <span>
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                                </svg>
-                                            </span>
-                                            Download
-                                        </button>
-                                    </a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    {% endif %}
-
-                    {% if data_files %}
-                        {# this for loop will check for every data file present and display/return all of them in table/row form to generate the list of data files on the view #}
-                        {% for f in data_files %}
-                            <tr class="hover:bg-gray-200">
-                                <td name="File Name" class="p-2">
-                                    {{ f }}
-                                </td>
-                                <td class="p-2 text-center flex flex-wrap justify-center sm:justify-end gap-2">
-                                    <a href="{% url 'manager:download_contact_tracing_file' f %}">
-                                        <button class="bg-blue-600 hover:bg-blue-800 text-sm font-semibold text-white px-2 py-1 rounded-md flex items-center gap-1">
-                                            <span>
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                                </svg>
-                                            </span>
-                                            Download
-                                        </button>
-                                    </a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    {% endif %}
-                    </tbody>
                 </table>
             </div>
         </div>

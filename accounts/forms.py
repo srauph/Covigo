@@ -7,15 +7,17 @@ from django.forms import ModelForm, TextInput, CheckboxSelectMultiple, Select, C
 from django.db import connection
 from django.contrib.auth.models import User
 
+from Covigo.form_field_classes import *
 from accounts.models import Profile
 
 from re import match, sub
 
-from accounts.utils import hour_options_generator
+from accounts.utils import hour_options_generator, get_staff_permission_codenames, get_patient_permission_codenames
 
 STAFF_PATIENT_CHOICES = (
-    (True, 'Staff User'),
-    (False, 'Patient User')
+    ("Patient", 'Patient User'),
+    ("Doctor", 'Doctor User'),
+    ("Staff", 'Staff User'),
 )
 
 IS_CONFIRMED_CHOICES = (
@@ -40,59 +42,34 @@ SYSTEM_MESSAGE_CHOICES = (
 
 REMINDER_INTERVAL_CHOICES = hour_options_generator(6)
 
-GUEST_CHARFIELD_CLASS = \
-    'appearance-none ' \
-    'rounded-none ' \
-    'relative ' \
-    'block ' \
-    'w-full ' \
-    'px-3 ' \
-    'py-2 ' \
-    'border ' \
-    'border-gray-300 ' \
-    'placeholder-gray-500 ' \
-    'text-gray-900 ' \
-    'focus:outline-none ' \
-    'focus:ring-indigo-500 ' \
-    'focus:border-indigo-500 ' \
-    'focus:z-10 ' \
-    'sm:text-sm'
-
-GUEST_CHARFIELD_CLASS_TOP = GUEST_CHARFIELD_CLASS + ' rounded-t-md'
-GUEST_CHARFIELD_CLASS_MIDDLE = GUEST_CHARFIELD_CLASS
-GUEST_CHARFIELD_CLASS_BOTTOM = GUEST_CHARFIELD_CLASS + ' rounded-b-md'
-GUEST_CHARFIELD_CLASS_STANDALONE = GUEST_CHARFIELD_CLASS + ' rounded-md'
-
-CHARFIELD_CLASS = "w-full h-8 px-2 bg-slate-100 rounded-md border border-slate-400"
-SELECTION_CLASS = "w-full h-8 px-1 bg-slate-100 rounded-md border border-slate-400"
-CHECKBOX_CLASS = "p-2"
-
 
 class CreateUserForm(ModelForm):
+    user_type = ChoiceField(
+        choices=STAFF_PATIENT_CHOICES,
+        widget=Select(
+            attrs={
+                "class": SELECTION_CLASS
+            }
+        )
+    )
+
     class Meta:
         model = User
         fields = [
             "email",
             "groups",
-            "is_staff"
         ]
         widgets = {
             "email": TextInput(
                 attrs={
-                    "class": CHARFIELD_CLASS
+                    "class": TEXTINPUT_CLASS
                 }
             ),
             "groups": CheckboxSelectMultiple(
                 attrs={
                     "class": CHECKBOX_CLASS
                 }
-            ),
-            "is_staff": Select(
-                choices=STAFF_PATIENT_CHOICES,
-                attrs={
-                    "class": SELECTION_CLASS
-                }
-            ),
+            )
         }
 
     def clean_email(self):
@@ -105,10 +82,18 @@ class CreateUserForm(ModelForm):
 
     def clean_groups(self):
         cleaned_groups = self.cleaned_data.get("groups")
-        # TODO: Discuss the possibility of having no groups and fix error and if: != 1 if we enforce having at least one
+        user_type = self.data.get("user_type")
         if len(cleaned_groups) > 1:
             raise ValidationError(
                 "Cannot select more than one group."
+            )
+        if user_type == "Patient" and any(item in cleaned_groups.values_list("permissions__codename", flat=True) for item in get_staff_permission_codenames()):
+            raise ValidationError(
+                "Cannot assign a Staff group to a Patient user."
+            )
+        elif user_type != "Patient" and any(item in cleaned_groups.values_list("permissions__codename", flat=True) for item in get_patient_permission_codenames()):
+            raise ValidationError(
+                "Cannot assign a Patient group to a Staff/Doctor user."
             )
         return cleaned_groups
 
@@ -122,7 +107,7 @@ class CreateProfileForm(ModelForm):
         widgets = {
             "phone_number": TextInput(
                 attrs={
-                    "class": CHARFIELD_CLASS
+                    "class": TEXTINPUT_CLASS
                 }
             )
         }
@@ -306,7 +291,7 @@ class RegisterProfileForm(ModelForm):
 
 class EditUserForm(ModelForm):
     def __init__(self, *args, **kwargs):
-        self.user_id = kwargs.pop('user_id')
+        self.user = User.objects.get(id=kwargs.pop('user_id'))
         super(EditUserForm, self).__init__(*args, **kwargs)
 
     class Meta:
@@ -321,23 +306,23 @@ class EditUserForm(ModelForm):
         widgets = {
             "username": TextInput(
                 attrs={
-                    "class": CHARFIELD_CLASS
+                    "class": TEXTINPUT_CLASS
                 }
             ),
             "email": TextInput(
                 attrs={
-                    "class": CHARFIELD_CLASS
+                    "class": TEXTINPUT_CLASS
                 }
             ),
 
             "first_name": TextInput(
                 attrs={
-                    "class": CHARFIELD_CLASS
+                    "class": TEXTINPUT_CLASS
                 }
             ),
             "last_name": TextInput(
                 attrs={
-                    "class": CHARFIELD_CLASS
+                    "class": TEXTINPUT_CLASS
                 }
             ),
             "groups": CheckboxSelectMultiple(
@@ -349,12 +334,12 @@ class EditUserForm(ModelForm):
 
     def clean_username(self):
         cleaned_username = self.cleaned_data.get("username")
-        old_username = User.objects.get(id=self.user_id).username
+        old_username = self.user.username
         if cleaned_username == "":
             raise ValidationError(
                 "Please provide a username."
             )
-        if cleaned_username != "" and User.objects.filter(email=cleaned_username).exclude(id=self.user_id).exists():
+        if cleaned_username != "" and User.objects.filter(email=cleaned_username).exclude(id=self.user.id).exists():
             raise ValidationError(
                 "Username already in use by another user."
             )
@@ -366,7 +351,7 @@ class EditUserForm(ModelForm):
 
     def clean_email(self):
         cleaned_email = self.cleaned_data.get("email")
-        if cleaned_email != "" and User.objects.filter(email=cleaned_email).exclude(id=self.user_id).exists():
+        if cleaned_email != "" and User.objects.filter(email=cleaned_email).exclude(id=self.user.id).exists():
             raise ValidationError(
                 "Email already in use by another user."
             )
@@ -374,11 +359,23 @@ class EditUserForm(ModelForm):
 
     def clean_groups(self):
         cleaned_groups = self.cleaned_data.get("groups")
-        # TODO: Discuss the possibility of having no groups and fix error and if: != 1 if we enforce having at least one
+        permissions = cleaned_groups.values_list("permissions__codename", flat=True)
+
         if len(cleaned_groups) > 1:
             raise ValidationError(
                 "Cannot select more than one group."
             )
+
+        if not self.user.is_staff and any(item in permissions for item in get_staff_permission_codenames()):
+            raise ValidationError(
+                "Cannot assign a Staff group to a Patient user."
+            )
+
+        elif self.user.is_staff and any(item in permissions for item in get_patient_permission_codenames()):
+            raise ValidationError(
+                "Cannot assign a Patient group to a Staff/Doctor user."
+            )
+
         return cleaned_groups
 
 
@@ -397,17 +394,17 @@ class EditProfileForm(ModelForm):
         widgets = {
             "phone_number": TextInput(
                 attrs={
-                    "class": CHARFIELD_CLASS
+                    "class": TEXTINPUT_CLASS
                 }
             ),
             "address": TextInput(
                 attrs={
-                    "class": CHARFIELD_CLASS
+                    "class": TEXTINPUT_CLASS
                 }
             ),
             "postal_code": TextInput(
                 attrs={
-                    "class": CHARFIELD_CLASS
+                    "class": TEXTINPUT_CLASS
                 }
             )
         }

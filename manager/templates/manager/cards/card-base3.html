@@ -2,16 +2,24 @@
     .min-h-96 {
         min-height: 24rem;
     }
+
+    .img {
+        box-sizing: border-box;
+    }
+
+    .quote {
+        font-family: Proxima Nova;
+    }
 </style>
 
 <div class="w-full flex flex-wrap xl:flex-nowrap min-h-96 gap-4">
-    <div class="p-4 h-full h-96 flex justify-center items-center group rounded-lg bg-white shadow">
+    <div class="p-4 w-96 max-h-96 flex justify-center items-center group rounded-lg bg-white shadow">
         {% block portrait %}
             {{ content }}
         {% endblock %}
     </div>
 
-    <div class="grow w-full h-full xl:h-96 flex flex-col p-4 group rounded-lg bg-white shadow">
+    <div class="grow h-full xl:h-96 flex flex-col p-4 group rounded-lg bg-white shadow">
         {% block profile %}
             {{ content }}
         {% endblock %}

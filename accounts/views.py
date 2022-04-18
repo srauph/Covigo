@@ -10,7 +10,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView, PasswordChangeView, LoginView
 from django.core.exceptions import MultipleObjectsReturned, PermissionDenied
 from django.db.models import Q
-from django.http import JsonResponse, HttpResponse, HttpResponseRedirect, Http404
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy, reverse
 from django.utils.decorators import method_decorator
@@ -18,7 +18,6 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 
-from Covigo.default_permissions import DEFAULT_PERMISSIONS
 from Covigo.messages import Messages
 from Covigo.settings import HOST_NAME
 from accounts.forms import *
@@ -27,15 +26,16 @@ from accounts.preferences import SystemMessagesPreference, StatusReminderPrefere
 from accounts.utils import (
     convert_dict_of_bools_to_list,
     dictfetchall,
-    get_assigned_staff_id_by_patient_id,
+    get_allowable_patient_permissions,
+    get_allowable_staff_permissions,
     get_flag,
     get_or_generate_patient_profile_qr,
+    get_profile_permissions,
     get_user_from_uidb64,
     return_closest_with_least_patients_doctor,
-    send_system_message_to_user,
+    send_system_message_to_user, get_group_type,
 )
 from appointments.models import Appointment
-from appointments.utils import rebook_appointment_with_new_doctor
 from geopy import distance
 from symptoms.utils import is_symptom_editing_allowed
 
@@ -56,7 +56,6 @@ def unauthorized(request):
 def process_register_or_edit_user_form(request, user_form, profile_form, mode=None):
     user_email = user_form.data.get("email")
     user_phone = profile_form.data.get("phone_number")
-    user_groups = user_form.data.get("groups")
     has_email = user_email != ""
     has_phone = user_phone != ""
 
@@ -67,10 +66,6 @@ def process_register_or_edit_user_form(request, user_form, profile_form, mode=No
             return False
 
         edited_user = user_form.save(commit=False)
-
-        # TODO: Discuss possibility of having no groups and adjust `if` to enforce at least one when editing
-        if user_groups:
-            edited_user.groups.set(user_groups)
 
         edited_user.save()
         profile_form.save()
@@ -348,44 +343,19 @@ def profile(request, user_id):
     )
 
     perms_view_appointments = (
-        not user.is_superuser and (
             user == request.user
             or request.user.has_perm("accounts.view_user_appointment")
             or request.user.has_perm("accounts.view_patient_appointment") and not user.is_staff
             or request.user.has_perm("accounts.is_doctor") and user in request.user.staff.get_assigned_patient_users()
-        )
     )
 
     # If profile belongs to a patient
     if not user.is_staff:
-        if request.method == "POST":
-            doctor_staff_id = request.POST.get('doctor_id')
-
-            if doctor_staff_id == "-1":
-                user.patient.assigned_staff = None
-            else:
-                # rebooks previously booked appointments with the old doctor with the new doctor if the new doctor has
-                # an availability at the same day and time as the previously booked appointment
-                rebook_appointment_with_new_doctor(doctor_staff_id, get_assigned_staff_id_by_patient_id(user_id), user)
-                user.patient.assigned_staff_id = doctor_staff_id
-            user.patient.save()
-
         qr = get_or_generate_patient_profile_qr(user_id)
         assigned_staff = user.patient.get_assigned_staff_user()
 
-        if request.POST.get('Reassign'):
-            messages.success(request, "This patient was reassigned to the new doctor successfully.")
-
-        if request.POST.get('Assign'):
-            messages.success(request, "This patient was assigned a new doctor successfully.")
-
         appointments = Appointment.objects.filter(patient=user).filter(all_filter).order_by("start_date")
         appointments_truncated = appointments[:4]
-        # Hotfix for accessing the doctor's first and last name in template
-        for appt in appointments_truncated:
-            doctor_user_id = Staff.objects.filter(id=appt.staff_id).first().user_id
-            doctor_user = User.objects.filter(id=doctor_user_id).first()
-            appt.staff = doctor_user
         try:
             assigned_staff_patient_count = user.patient.assigned_staff.get_assigned_patient_users().count()
         except AttributeError:
@@ -411,57 +381,57 @@ def profile(request, user_id):
         )
 
         perms_code = (
-            user == request.user and request.user.has_perm("accounts.view_own_code")
-            or request.user.has_perm("accounts.view_patient_code")
-            or (
-                request.user.has_perm("accounts.view_assigned_code")
-                and user in request.user.staff.get_assigned_patient_users()
-            )
+                user == request.user and request.user.has_perm("accounts.view_own_code")
+                or request.user.has_perm("accounts.view_patient_code")
+                or (
+                        request.user.has_perm("accounts.view_assigned_code")
+                        and user in request.user.staff.get_assigned_patient_users()
+                )
         )
 
         perms_test_report = (
-            user == request.user
-            or request.user.has_perm("accounts.view_patient_test_report")
-            or (
-                request.user.has_perm("accounts.view_assigned_test_report")
-                and user in request.user.staff.get_assigned_patient_users()
-            )
+                user == request.user
+                or request.user.has_perm("accounts.view_patient_test_report")
+                or (
+                        request.user.has_perm("accounts.view_assigned_test_report")
+                        and user in request.user.staff.get_assigned_patient_users()
+                )
         )
 
         perms_assigned_doctor = (
-            user == request.user
-            or request.user.has_perm("accounts.view_assigned_doctor")
-            or user in request.user.staff.get_assigned_patient_users()
+                user == request.user
+                or request.user.has_perm("accounts.view_assigned_doctor")
+                or user in request.user.staff.get_assigned_patient_users()
         )
 
         perms_message_doctor = (
-            not user.is_staff and request.user != user.patient.get_assigned_staff_user() and (
+                not user.is_staff and request.user != user.patient.get_assigned_staff_user() and (
                 request.user.has_perm("accounts.message_doctor")
                 or request.user.has_perm("accounts.message_user")
-            )
+        )
         )
 
         perms_assign_symptoms = (
-            not user.is_staff and (
+                not user.is_staff and (
                 request.user.has_perm("accounts.assign_symptom_patient")
                 or request.user.has_perm(
-                "accounts.assign_symptom_assigned") and user in request.user.staff.get_assigned_patient_users()
-            )
+            "accounts.assign_symptom_assigned") and user in request.user.staff.get_assigned_patient_users()
+        )
         )
 
         perms_edit_case = (
-            not user.is_staff and (
+                not user.is_staff and (
                 request.user.has_perm("accounts.set_patient_case")
                 or request.user.has_perm("accounts.set_patient_quarantine")
                 or (
-                    request.user.has_perm("accounts.is_doctor")
-                    and user in request.user.staff.get_assigned_patient_users()
-                    and (
-                        request.user.has_perm("accounts.set_assigned_case")
-                        or request.user.has_perm("accounts.set_assigned_quarantine")
-                    )
+                        request.user.has_perm("accounts.is_doctor")
+                        and user in request.user.staff.get_assigned_patient_users()
+                        and (
+                                request.user.has_perm("accounts.set_assigned_case")
+                                or request.user.has_perm("accounts.set_assigned_quarantine")
+                        )
                 )
-            )
+        )
         )
 
         return render(request, 'accounts/profile/profile.html', {
@@ -493,8 +463,7 @@ def profile(request, user_id):
     # If profile belongs to a staff member
     else:
         if not user.is_superuser:
-            doctor_id = Staff.objects.filter(user_id=user.id).first().id
-            appointments = Appointment.objects.filter(staff_id=doctor_id).filter(all_filter).order_by("start_date")
+            appointments = Appointment.objects.filter(staff=user).filter(all_filter).order_by("start_date")
             appointments_truncated = appointments[:4]
         else:
             appointments = []
@@ -508,8 +477,8 @@ def profile(request, user_id):
         )
 
         show_left_side = (
-            usr_is_doctor and perms_assigned_patients
-            or not user.is_staff
+                usr_is_doctor and perms_assigned_patients
+                or not user.is_staff
         )
 
         return render(request, 'accounts/profile/profile.html', {
@@ -539,6 +508,20 @@ def profile_from_code(request, code):
 @login_required
 @never_cache
 def list_users(request):
+    user = request.user
+
+    if not (user.has_perm("accounts.view_user_list")
+            or user.has_perm("accounts.view_patient_list")
+            or user.has_perm("accounts.view_assigned_list")
+            or user.has_perm("accounts.view_flagged_user_list")):
+        raise PermissionDenied
+
+    return render(request, 'accounts/list_users.html', )
+
+
+@login_required
+@never_cache
+def list_users_table(request):
     if request.user.has_perm("accounts.view_flagged_user_list"):
         flagged_filter = Q(id__in=request.user.staffs_created_flags.exclude(is_active=False).values("patient_id"))
     else:
@@ -556,17 +539,31 @@ def list_users(request):
     else:
         raise PermissionDenied
 
-    return render(request, 'accounts/list_users.html', {
-        'users': users
-    })
+    users_table = []
+    for usr in users:
+        group = usr.groups.first()
+        group = str(group) if group else ""
+        users_table.append({
+            "id": usr.id,
+            "username": usr.username,
+            "fname": usr.first_name,
+            "lname": usr.last_name,
+            "email": usr.email,
+            "phone_number": usr.profile.phone_number,
+            "groups": group
+        })
+
+    serialized_users = json.dumps({'data': users_table}, indent=4)
+
+    return HttpResponse(serialized_users, content_type='application/json')
 
 
 @login_required
 @never_cache
 def create_user(request):
     can_view_page = (
-        request.user.has_perm("accounts.create_user")
-        or request.user.has_perm("accounts.create_patient")
+            request.user.has_perm("accounts.create_user")
+            or request.user.has_perm("accounts.create_patient")
     )
 
     if not can_view_page:
@@ -580,6 +577,7 @@ def create_user(request):
         user_email = user_form.data.get("email")
         user_phone = profile_form.data.get("phone_number")
         user_groups = user_form.data.get("groups")
+        user_type = user_form.data.get("user_type")
         has_email = user_email != ""
         has_phone = user_phone != ""
 
@@ -596,17 +594,23 @@ def create_user(request):
 
             new_user.save()
             new_user.profile.phone_number = user_phone
-            # TODO: Discuss the possibility of having no groups and remove `if` if we enforce having at least one
+
+            if user_type in ("Staff", "Doctor"):
+                new_user.is_staff = True
+                Staff.objects.create(user=new_user)
+
+                if user_type == "Doctor":
+                    doctor_permission = Permission.objects.get(codename="is_doctor")
+                    new_user.user_permissions.add(doctor_permission)
+
+            else:
+                new_user.is_staff = False
+                Patient.objects.create(user=new_user)
+
             if user_groups:
                 new_user.groups.set(user_groups)
-            new_user.save()
 
-            if new_user.is_staff:
-                Staff.objects.create(user=new_user)
-            elif not new_user.is_staff:
-                # TODO: Figure out if the next todo has been addressed already or not.
-                # TODO: discuss if we should keep this behaviour for now or make Patient.staff nullable instead.
-                Patient.objects.create(user=new_user)
+            new_user.save()
 
             template = Messages.REGISTER_USER.value
             c = {
@@ -642,12 +646,12 @@ def create_user(request):
 
     # Create forms
     else:
-        user_form = CreateUserForm()
+        user_form = CreateUserForm(initial={"user_type": "Patient"})
         profile_form = CreateProfileForm()
 
     return render(request, "accounts/create_user.html", {
         "user_form": user_form,
-        "profile_form": profile_form
+        "profile_form": profile_form,
     })
 
 
@@ -675,12 +679,12 @@ def edit_user(request, user_id):
         "edit_phone": False if user == request.user and not request.user.has_perm("accounts.edit_phone") else True,
         "edit_address": False if user == request.user and not request.user.has_perm("accounts.edit_address") else True,
         "edit_preferences": (
-            user != request.user and request.user.has_perm("accounts.edit_preference_user")
-            or user == request.user and (
-                    request.user.has_perm("accounts.system_message_preference")
-                    or request.user.has_perm("accounts.status_deadline_reminder_preference")
-                    or request.user.has_perm("accounts.appointment_reminder_preference")
-            )
+                user != request.user and request.user.has_perm("accounts.edit_preference_user")
+                or user == request.user and (
+                        request.user.has_perm("accounts.system_message_preference")
+                        or request.user.has_perm("accounts.status_deadline_reminder_preference")
+                        or request.user.has_perm("accounts.appointment_reminder_preference")
+                )
         ),
     }
 
@@ -690,6 +694,14 @@ def edit_user(request, user_id):
         profile_form = EditProfileForm(request.POST, instance=user.profile, user_id=user_id)
 
         if process_register_or_edit_user_form(request, user_form, profile_form, mode="Edit"):
+            user_groups = user_form.data.get("groups")
+            if user_groups:
+                user.groups.set(user_groups)
+            else:
+                user.groups.clear()
+
+            user.save()
+
             messages.success(request, 'The account was edited successfully.')
             return redirect('accounts:profile', user_id)
 
@@ -711,12 +723,12 @@ def edit_user(request, user_id):
 def edit_preferences(request, user_id):
     user = User.objects.get(id=user_id)
     can_view_page = (
-        user != request.user and request.user.has_perm("accounts.edit_preference_user")
-        or user == request.user and (
-                request.user.has_perm("accounts.system_message_preference")
-                or request.user.has_perm("accounts.status_deadline_reminder_preference")
-                or request.user.has_perm("accounts.appointment_reminder_preference")
-        )
+            user != request.user and request.user.has_perm("accounts.edit_preference_user")
+            or user == request.user and (
+                    request.user.has_perm("accounts.system_message_preference")
+                    or request.user.has_perm("accounts.status_deadline_reminder_preference")
+                    or request.user.has_perm("accounts.appointment_reminder_preference")
+            )
     )
 
     if not can_view_page:
@@ -807,15 +819,37 @@ def list_groups(request):
 
 @login_required
 @never_cache
+def list_groups_table(request):
+    if not request.user.has_perm("accounts.manage_groups"):
+        raise PermissionDenied
+
+    groups_table = []
+    for grp in Group.objects.all():
+        groups_table.append({
+            "id": grp.id,
+            "name": grp.name,
+            "type": get_group_type(grp)
+        })
+
+    serialized_groups = json.dumps({'data': groups_table}, indent=4)
+
+    return HttpResponse(serialized_groups, content_type='application/json')
+
+
+@login_required
+@never_cache
 def create_group(request):
     if not request.user.has_perm("accounts.manage_groups"):
         raise PermissionDenied
 
-    non_default_permissions = Permission.objects.all().exclude(codename__in=DEFAULT_PERMISSIONS)
+    staff_permissions = get_allowable_staff_permissions()
+    patient_permissions = get_allowable_patient_permissions()
+    profile_permissions = get_profile_permissions()
     new_name = ''
 
     if request.method == 'POST':
         new_name = request.POST['name']
+        permission_array = convert_permission_name_to_id(request)
 
         if not new_name:
             messages.error(request, 'Please enter a group/role name.')
@@ -823,17 +857,21 @@ def create_group(request):
         elif Group.objects.filter(name=new_name).exists():
             messages.error(request, 'Another group/role with the same name exists.')
 
+        elif len(permission_array) == 0:
+            messages.error(request, 'Please select at least one permission.')
+
         else:
             group = Group(name=new_name)
             group.save()
 
-            permission_array = convert_permission_name_to_id(request)
             group.permissions.set(permission_array)
 
             if request.POST.get('Create'):
                 messages.success(request, 'The group/role was created successfully.')
                 return render(request, 'accounts/access_control/groups/create_group.html', {
-                    'permissions': non_default_permissions,
+                    'staff_permissions': staff_permissions,
+                    'patient_permissions': patient_permissions,
+                    'profile_permissions': profile_permissions,
                     'new_name': new_name
                 })
 
@@ -842,7 +880,9 @@ def create_group(request):
                 return redirect('accounts:list_groups')
 
     return render(request, 'accounts/access_control/groups/create_group.html', {
-        'permissions': non_default_permissions,
+        'staff_permissions': staff_permissions,
+        'patient_permissions': patient_permissions,
+        'profile_permissions': profile_permissions,
         'new_name': new_name
     })
 
@@ -853,13 +893,19 @@ def edit_group(request, group_id):
     if not request.user.has_perm("accounts.manage_groups"):
         raise PermissionDenied
 
-    non_default_permissions = Permission.objects.all().exclude(codename__in=DEFAULT_PERMISSIONS)
+    staff_permissions = get_allowable_staff_permissions()
+    patient_permissions = get_allowable_patient_permissions()
+    profile_permissions = get_profile_permissions()
+
     group = Group.objects.get(id=group_id)
     old_name = group.name
     new_name = old_name
 
+    group_type = get_group_type(group)
+
     if request.method == 'POST':
         new_name = request.POST['name']
+        permission_array = convert_permission_name_to_id(request)
 
         if not new_name:
             messages.error(request, 'Please enter a group/role name.')
@@ -867,18 +913,22 @@ def edit_group(request, group_id):
         elif Group.objects.exclude(name=old_name).filter(name=new_name).exists():
             messages.error(request, 'Another group/role with the same name exists.')
 
-        else:
-            permission_array = convert_permission_name_to_id(request)
+        elif len(permission_array) == 0:
+            messages.error(request, 'Please select at least one permission.')
 
+        else:
             if set(group.permissions.values_list("id", flat=True)) == set(permission_array) and new_name == old_name:
                 messages.error(
                     request,
                     f"The group/role name was not edited successfully: No edits made on this group/role. If you wish to make no changes, please click the \"Cancel\" button to go back to the list of groups/roles."
                 )
                 return render(request, 'accounts/access_control/groups/edit_group.html', {
-                    'permissions': non_default_permissions,
+                    'staff_permissions': staff_permissions,
+                    'patient_permissions': patient_permissions,
+                    'profile_permissions': profile_permissions,
                     'new_name': new_name,
-                    'group': group
+                    'group': group,
+                    'group_type': group_type,
                 })
 
             group.name = new_name
@@ -891,9 +941,12 @@ def edit_group(request, group_id):
             return redirect('accounts:list_groups')
 
     return render(request, 'accounts/access_control/groups/edit_group.html', {
-        'permissions': non_default_permissions,
+        'staff_permissions': staff_permissions,
+        'patient_permissions': patient_permissions,
+        'profile_permissions': profile_permissions,
         'new_name': new_name,
-        'group': group
+        'group': group,
+        'group_type': group_type,
     })
 
 
@@ -937,7 +990,8 @@ def unflag_user(request, user_id):
 
     can_edit_flag = (
             user_staff.has_perm("accounts.flag_patients") and not user_patient.is_staff
-            or user_staff.has_perm("accounts.flag_assigned") and user_patient in user_staff.staff.get_assigned_patient_users()
+            or user_staff.has_perm(
+        "accounts.flag_assigned") and user_patient in user_staff.staff.get_assigned_patient_users()
     )
 
     if not can_edit_flag:
@@ -971,7 +1025,8 @@ def edit_case(request, user_id):
         if case_form.is_valid():
             is_confirmed_not_changed = patient.is_confirmed == (case_form.cleaned_data['is_confirmed'] == 'True')
             is_negative_not_changed = patient.is_negative == (case_form.cleaned_data['is_negative'] == 'True')
-            is_quarantining_not_changed = patient.is_quarantining == (case_form.cleaned_data['is_quarantining'] == 'True')
+            is_quarantining_not_changed = patient.is_quarantining == (
+                        case_form.cleaned_data['is_quarantining'] == 'True')
             if is_confirmed_not_changed and is_negative_not_changed and is_quarantining_not_changed:
                 messages.error(
                     request,
@@ -1016,36 +1071,7 @@ def edit_case(request, user_id):
     })
 
 
-def doctor_patient_list(request):
-    if not request.user.has_perm("accounts.edit_assigned_doctor"):
-        raise PermissionDenied
-
-    return render(request, 'accounts/doctors.html')
-
-
-def doctor_patient_list_table(request):
-    # TODO FILTER FOR DOCTORS ONLY (Currently anyone in accounts_staff is treated as a doctor for the query)
-    if not request.user.has_perm("accounts.edit_assigned_doctor"):
-        raise PermissionDenied
-
-    # Raw query to get each doctor and their patient count
-    query = Staff.objects.raw(
-        "SELECT `auth_user`.`id`, `auth_user`.`first_name`, `auth_user`.`last_name`, `accounts_staff`.`user_id`, COUNT(*) AS patient_count FROM `accounts_staff` JOIN `accounts_patient` ON (`accounts_staff`.`id` = `accounts_patient`.`assigned_staff_id`) LEFT OUTER JOIN `auth_user` ON (`accounts_staff`.`user_id` = `auth_user`.`id`) GROUP BY `accounts_patient`.`assigned_staff_id` ORDER BY `auth_user`.`first_name` , `auth_user`.`last_name`")
-
-    # Build the JSON from the raw query
-    table_info = []
-    for i in query:
-        record = {"user_id": i.user_id, "first_name": i.first_name, "last_name": i.last_name,
-                  "patient_count": i.patient_count}
-        table_info.append(record)
-
-    # Serialize it
-    serialized_reports = json.dumps({'data': table_info}, indent=4)
-
-    return HttpResponse(serialized_reports, content_type='application/json')
-
-
-def get_distance_from_postal_code_to_current_location(request, postal_code, current_lat, current_long):
+def verify_quarantine_compliance(request, postal_code, current_lat, current_long):
     """
     Computes and returns the distance between a specified postal code and a user's specified location.
     The postal code must be a valid Canadian postal code, and the specified location is in latitude and longitude.

@@ -134,12 +134,12 @@ class MessagingListTests(TestCase):
 
     def test_open_messages_list(self):
         """
-        Check if currently logged-in user can access their message list with id
+        Check if currently logged-in user can access their message list
         @return:
         """
 
         # Arrange & Act
-        response = self.client.get('/messaging/list/1/')
+        response = self.client.get('/messaging/list/')
 
         # Assert
         self.assertTemplateUsed(response, 'messaging/list_messages.html')
@@ -221,4 +221,4 @@ class MessagingComposeTest(TestCase):
         self.assertEqual(msg_group.title, 'Question about fever')
 
         # Check redirect
-        self.assertRedirects(response, '/messaging/list/1/')
+        self.assertRedirects(response, '/messaging/list/')
