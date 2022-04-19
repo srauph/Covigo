@@ -205,7 +205,9 @@
                             {% else %}
                                 Your request to book or cancel appointments is still being processed...
                             {% endif %}
-                            <span class="border-slate-200 border-t-blue-400 loader ease-linear rounded-full border-4 border-t-4 h-6 w-6"></span>
+                            <div class="flex justify-center items-center">
+                                <span class="border-slate-200 border-t-blue-400 loader ease-linear rounded-full border-4 border-t-4 h-6 w-6"></span>
+                            </div>
                         </span>
                         {# only display the "Book an appointment" and "Cancel an appointment" buttons to patient as staff can't book appointments #}
                         {% if not is_staff %}
