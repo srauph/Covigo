@@ -139,6 +139,34 @@
 
                 language: {
                     "zeroRecords": "No new notifications at this time"
+                },
+
+                rowCallback: function(row, data){
+                    if(!data.seen) {
+                        $(row).addClass("font-semibold");
+                    }
+                },
+
+                initComplete: function () {
+                    this.api().columns(4).every(function () {
+                        let column = this;
+                        let select = $('<select class="cursor-pointer bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md"><option value="">Show All Notifications</option></select>')
+                            .appendTo($('#seen-filter'))
+                            .on('change', function () {
+                                let val = $.fn.dataTable.util.escapeRegex(
+                                    $(this).val()
+                                );
+
+                                column
+                                    .search(val ? '^' + val + '$' : '', true, false)
+                                    .draw();
+                            });
+
+                        column.data().unique().sort().each(function (d, j) {
+                            let status = (d ? "Read" : "Unread");
+                            select.append(`<option value="${status}">${status} Notifications</option>`);
+                        });
+                    });
                 }
             });
 
@@ -151,7 +179,7 @@
                 } else {
                     $.fn.dataTable.ext.search.push(
                         function (settings, data, dataIndex) {
-                            return $(table.row(dataIndex).node()).attr('data-read') == value;
+                            return $(table.row(dataIndex).node()).attr('data-seen').toLowerCase() == value;
                         }
                     );
                     table.draw();
@@ -219,14 +247,8 @@
             <div class="p-8 flex flex-col justify-center gap-8">
                 <div class="bg-white shadow rounded-xl">
                     <div class="w-full flex flex-wrap justify-center md:justify-between items-center gap-2 p-4">
-                        <div class="flex flex-wrap justify-center md:justify-start items-center gap-2">
-                            <span class="font-semibold">Filters:</span>
-                            <select name="" id="toggleRead"
-                                    class="bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md">
-                                <option value="showAll">Show All Notifications</option>
-                                <option value="unread">Show Unread Notifications</option>
-                                <option value="read">Show Read Notifications</option>
-                            </select>
+                        <div id="seen-filter" class="flex flex-col justify-center items-center md:flex-row">
+                            <span class="font-semibold px-2">Filter by Seen:</span>
                         </div>
                     </div>
                 </div>
