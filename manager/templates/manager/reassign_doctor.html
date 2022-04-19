@@ -84,6 +84,9 @@
                     "searchable": false,
                     "className": 'dt-body-center',
                     "render": function (data, type, row) {
+                        if (row.distance === null) {
+                            return `<div class="whitespace-normal">N/A</div>`;
+                        }
                         let dist = (row.distance/1000).toFixed(1);
                         return `<div class="whitespace-normal">${dist}</div>`;
                     }

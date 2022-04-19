@@ -426,21 +426,38 @@ def reassign_doctor_list_table(request, user_id):
     if user.is_staff:
         raise Http404
 
-    postal_code = user.profile.postal_code
+    if user.profile.postal_code:
+        postal_code = user.profile.postal_code
+        docs_list = get_distance_of_all_doctors_to_postal_code(postal_code)
 
-    docs_list = get_distance_of_all_doctors_to_postal_code(postal_code)
+        # Build JSON
+        docs_table = []
+        for i in docs_list:
+            docs_table.append({
+                "doc_id": i[0].id,
+                "first_name": i[0].first_name,
+                "last_name": i[0].last_name,
+                "username": i[0].username,
+                "distance": i[1],
+                "patient_count": i[2],
+            })
+    else:
+        docs_list = get_doctors_list()
 
-    # Build JSON
-    docs_table = []
-    for i in docs_list:
-        docs_table.append({
-            "doc_id": i[0].id,
-            "first_name": i[0].first_name,
-            "last_name": i[0].last_name,
-            "username": i[0].username,
-            "distance": i[1],
-            "patient_count": i[2],
-        })
+        # Build JSON
+        docs_table = []
+        for i in docs_list:
+            docs_table.append({
+                "doc_id": i['id'],
+                "first_name": i['first_name'],
+                "last_name": i['last_name'],
+                "username": i['username'],
+                "distance": None,
+                "patient_count": i['patient_count'],
+            })
+    print(docs_list)
+
+
 
     # Serialize the JSON from the query
     serialized_docs = json.dumps({'data': docs_table}, indent=4)
