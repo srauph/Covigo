@@ -129,6 +129,8 @@
                     "searchable": true,
                     "className": 'dt-body-center',
                     "render": function (data, type, row) {
+                        if (data === null)
+                            return `<div class="whitespace-normal">N/A</div>`;
                         return `<div class="whitespace-normal">${data}</div>`;
                     }
                 },

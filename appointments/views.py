@@ -400,7 +400,10 @@ def current_appointments_table(request, mode=None, user_id=None):
             other_person = apt.patient if user.is_staff else apt.staff
 
         if other_person:
-            with_name = f"{other_person.first_name} {other_person.last_name}"
+            if other_person.is_staff:
+                with_name = f"Dr. {other_person.last_name}"
+            else:
+                with_name = f"{other_person.first_name} {other_person.last_name}"
         else:
             with_name = None
 
