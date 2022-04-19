@@ -333,7 +333,11 @@
 {% block content %}
     <div class="min-h-full bg-slate-100">
         <div class="flex justify-center md:justify-between gap-2 bg-slate-700">
-            <h1 class="text-2xl text-white font-semibold px-8 py-4">Available Appointments with {{ name }}</h1>
+            {% if name == '' %}
+                <h1 class="text-2xl text-white font-semibold px-8 py-4">All Appointments and Availabilities</h1>
+            {% else %}
+                <h1 class="text-2xl text-white font-semibold px-8 py-4">Available Appointments with {{ name }}</h1>
+            {% endif %}
         </div>
         <div class="bg-white shadow m-8 rounded-xl">
             <div class="w-full flex flex-wrap justify-center md:justify-between gap-y-4 items-center p-4">

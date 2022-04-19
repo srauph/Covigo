@@ -21,6 +21,11 @@
             white-space: normal !important;
         }
     </style>
+    <style>
+        .dataTables_empty {
+            white-space: normal !important;
+        }
+    </style>
 {% endblock %}
 
 {% block script %}
@@ -36,6 +41,9 @@
         let table = $('#doctor_patient_list').DataTable({
             "ajax": "{% url 'manager:doctors_table' %}",
             "type": "POST",
+            language: {
+                        "zeroRecords": "No existing doctors to show"
+                    },
             responsive: true,
             "draggable ": false,
             stripeClasses: [],

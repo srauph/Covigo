@@ -22,6 +22,11 @@
             white-space: normal !important;
         }
     </style>
+    <style>
+        .dataTables_empty {
+            white-space: normal !important;
+        }
+    </style>
 {% endblock %}
 
 {% block script %}
@@ -41,7 +46,7 @@
                     $(row).addClass('border-b')
                 },
                 language : {
-                    "zeroResults": "No patient test results at this time"
+                    "zeroRecords": "No submitted test results at this time"
                 },
                 responsive: true,
                 "draggable ": false,

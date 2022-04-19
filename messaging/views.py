@@ -6,7 +6,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User, Permission
 from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -264,16 +263,7 @@ def compose_message(request, user_id):
     # To prevent users from being able to send messages to themselves
     recipient_user = User.objects.get(id=user_id)
 
-    can_compose_message = (
-            request.user.id != user_id and (
-            request.user.has_perm("accounts.message_user")
-            or request.user.has_perm("accounts.message_patient") and not recipient_user.is_staff
-            or request.user.has_perm(
-        "accounts.message_assigned") and recipient_user in request.user.staff.get_assigned_patient_users()
-            or request.user.has_perm(
-        "accounts.message_doctor") and recipient_user == request.user.patient.get_assigned_staff_user()
-    )
-    )
+    can_compose_message = (request.user.id != user_id and (request.user.has_perm("accounts.message_user") or request.user.has_perm("accounts.message_patient") and not recipient_user.is_staff or request.user.has_perm("accounts.message_assigned") and recipient_user in request.user.staff.get_assigned_patient_users() or request.user.has_perm("accounts.message_doctor") and recipient_user == request.user.patient.get_assigned_staff_user()))
     if can_compose_message:
         if recipient_user.first_name == "" and recipient_user.last_name == "":
             recipient_name = recipient_user

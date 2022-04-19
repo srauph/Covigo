@@ -10,9 +10,7 @@ from accounts.tests.test_views import create_test_client
 from appointments.models import Appointment
 from appointments.utils import (
     book_appointment,
-    cancel_appointment,
-    delete_availability,
-    rebook_appointment_with_new_doctor,
+    rebook_appointment_with_new_doctor
 )
 
 
