@@ -409,7 +409,7 @@ def reassign_doctor(request, user_id):
             messages.success(request, "This patient was assigned to the new doctor successfully.")
         user.patient.save()
 
-    assigned_staff = user.patient.get_assigned_staff_user()
+    assigned_staff = user.patient.get_assigned_staff_user().id
 
     return render(request, 'manager/reassign_doctor.html', {
         "usr": user,
