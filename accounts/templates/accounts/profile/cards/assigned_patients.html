@@ -21,7 +21,7 @@
     </div>
     <ul class="list-inside  divide-y pt-4">
         {% for patient_user in assigned_patients %}
-            <li class="p-2 flex flex-col md:flex-row gap-2 items-center justify-between hover:bg-slate-200">
+            <li class="p-2 flex flex-col md:flex-row xl:flex-col gap-2 items-center justify-between hover:bg-slate-200">
                 <span>{{ patient_user.first_name }} {{ patient_user.last_name }}</span>
                 <span class="flex gap-2">
                     {% if perms.accounts.edit_assigned_doctor %}
