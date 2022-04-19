@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth.models import User, Group, Permission
 from django.test import TestCase, TransactionTestCase, RequestFactory, Client
 from django.urls import reverse
@@ -907,29 +909,30 @@ class AccountsTestCase(TransactionTestCase):
         # were changed, rather than the changes showing up
         # as new users/accounts in the database entirely
         self.assertTrue(User.objects.all().count() == 4)
-        self.response = self.client.get(reverse('accounts:list_users'))
+        self.response = self.client.get(reverse('accounts:list_users_table'))
+        loaded_response = json.loads(self.response.content)['data']
+
+        usernames_list = set(map(lambda x: (x['username']), loaded_response))
+        emails_list = set(map(lambda x: (x['email']), loaded_response))
+        phone_numbers_list = set(map(lambda x: (x['phone_number']), loaded_response))
+        groups_list = set(map(lambda x: (x['groups']), loaded_response))
+
         self.assertEqual(self.response.status_code, 200)
 
         # the following assertions below check that the list of users/accounts page actually shows
         # the three posted users/accounts with changes in its context
-        self.assertEqual(
-            list(self.response.context['users'].values("username")),
-            list(User.objects.values("username"))
-        )
-        self.assertEqual(
-            list(self.response.context['users'].values("email")),
-            list(User.objects.values("email"))
-        )
-        self.assertEqual(self.response.context['users'][1].profile.phone_number,
-                         User.objects.get(id=2).profile.phone_number)
-        self.assertEqual(self.response.context['users'][2].profile.phone_number,
-                         User.objects.get(id=3).profile.phone_number)
-        self.assertEqual(self.response.context['users'][3].profile.phone_number,
-                         User.objects.get(id=4).profile.phone_number)
-        self.assertEqual(
-            list(self.response.context['users'].values("groups")),
-            list(User.objects.values("groups"))
-        )
+        self.assertEqual(usernames_list, set(User.objects.values_list("username", flat=True)))
+        self.assertEqual(emails_list, set(User.objects.values_list("email", flat=True)))
+        self.assertEqual(phone_numbers_list, set(User.objects.values_list("profile__phone_number", flat=True)))
+
+        groups_from_db = set(User.objects.values_list("groups__name", flat=True))
+        try:
+            groups_from_db.remove(None)
+            groups_from_db.add('')
+        except KeyError:
+            pass
+
+        self.assertEqual(groups_list, groups_from_db)
 
 
 class ListGroupTests(TestCase):
