@@ -912,7 +912,6 @@ class AccountsTestCase(TransactionTestCase):
 
         # the following assertions below check that the list of users/accounts page actually shows
         # the three posted users/accounts with changes in its context
-        self.assertEqual(set(self.response.context['users']), set(User.objects.all()))
         self.assertEqual(
             list(self.response.context['users'].values("username")),
             list(User.objects.values("username"))
