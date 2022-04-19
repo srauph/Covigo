@@ -402,7 +402,9 @@ def reassign_doctor(request, user_id):
         else:
             # rebooks previously booked appointments with the old doctor with the new doctor if the new doctor has
             # an availability at the same day and time as the previously booked appointment
-            rebook_appointment_with_new_doctor(doctor_user_id, user.patient.get_assigned_staff_user().id, user)
+            if user.patient.get_assigned_staff_user() is not None:
+                rebook_appointment_with_new_doctor(doctor_user_id, user.patient.get_assigned_staff_user().id, user)
+
             user.patient.assigned_staff_id = Staff.objects.get(user_id=doctor_user_id)
             messages.success(request, "This patient was assigned to the new doctor successfully.")
         user.patient.save()
