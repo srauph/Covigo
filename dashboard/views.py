@@ -7,7 +7,6 @@ from django.db.models import Q
 from django.shortcuts import render
 from django.views.decorators.cache import never_cache
 
-from accounts.models import Staff
 from appointments.models import Appointment
 from dashboard.utils import fetch_data_from_file, extract_daily_data
 from manager.views import CASE_DATA_PATH

@@ -6,10 +6,14 @@
           href="https://cdn.datatables.net/rowreorder/1.2.8/css/rowReorder.dataTables.min.css">
     <link rel="stylesheet" type="text/css"
           href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.dataTables.min.css">
+    <style>
+        .dataTables_empty {
+            white-space: normal !important;
+        }
+    </style>
 {% endblock %}
 
 {% block script %}
-
     <script type="text/javascript" charset="utf8"
             src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
     <script type="text/javascript"
@@ -21,6 +25,9 @@
             $('#user_list_table').DataTable({
                 "ajax": "{% url 'accounts:list_users_table' %}",
                 "type": "POST",
+                language: {
+                        "zeroRecords": "No existing accounts to view"
+                    },
                 responsive: true,
                 "draggable ": false,
                 stripeClasses: [],

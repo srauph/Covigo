@@ -1,10 +1,21 @@
 {% load static %}
 
+{% block styles %}
+    <style>
+        .dataTables_empty {
+            white-space: normal !important;
+        }
+    </style>
+{% endblock %}
+
 {% block script %}
     <script>
         $(document).ready(function () {
             $('#patient_reports_modal_table').DataTable({
                 "ajax": "{% url 'status:patient_report_modal_table' user_id date %}",
+                language: {
+                    "zeroRecords": "No "
+                },
                 "searching": false,
                 responsive: true,
                 "draggable ": false,

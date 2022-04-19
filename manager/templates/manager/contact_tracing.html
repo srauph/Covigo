@@ -38,6 +38,11 @@
             100% { transform: rotate(360deg); }
         }
     </style>
+    <style>
+        .dataTables_empty {
+            white-space: normal !important;
+        }
+    </style>
 {% endblock %}
 
 {% block script %}
@@ -58,6 +63,9 @@
             let table = $('#files_list').DataTable({
                 "ajax": "{% url 'manager:contact_tracing_table' %}",
                 "type": "POST",
+                language: {
+                        "zeroRecords": "No submitted files to edit"
+                    },
                 responsive: true,
                 "draggable ": false,
                 stripeClasses: [],

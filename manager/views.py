@@ -1,7 +1,5 @@
 import csv
-import io
 import json
-import os
 import threading
 import time
 
@@ -24,8 +22,7 @@ from django.views.decorators.cache import never_cache
 from Covigo.feature_toggles import FeatureToggles
 from Covigo.messages import Messages
 from accounts.models import Patient, Staff, Profile
-from accounts.utils import get_or_generate_patient_code, send_system_message_to_user, \
-    get_distance_of_all_doctors_to_postal_code, get_assigned_staff_id_by_patient_id
+from accounts.utils import get_or_generate_patient_code, send_system_message_to_user, get_distance_of_all_doctors_to_postal_code
 from appointments.utils import rebook_appointment_with_new_doctor
 from messaging.utils import send_notification
 
@@ -361,8 +358,7 @@ def process_contact_tracing_csv(request, data, filename):
 
 
 def check_tracing_uploads_in_progress(request):
-    locked = ("tracing_uploads_in_progress" in request.session
-            and request.session["tracing_uploads_in_progress"] == True)
+    locked = ("tracing_uploads_in_progress" in request.session and request.session["tracing_uploads_in_progress"] == True)
 
     return HttpResponse(locked)
 
@@ -456,8 +452,6 @@ def reassign_doctor_list_table(request, user_id):
                 "patient_count": i['patient_count'],
             })
     print(docs_list)
-
-
 
     # Serialize the JSON from the query
     serialized_docs = json.dumps({'data': docs_table}, indent=4)

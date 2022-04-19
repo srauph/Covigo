@@ -7,7 +7,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db import connection
 from django.db.models import Q
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
@@ -15,8 +14,8 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
 
-from accounts.models import Flag, Staff, Patient
-from accounts.utils import get_assigned_staff_id_by_patient_id, get_flag, dictfetchall
+from accounts.models import Staff, Patient
+from accounts.utils import get_assigned_staff_id_by_patient_id, get_flag
 from messaging.utils import send_notification
 from status.forms import TestResultForm
 from status.utils import (

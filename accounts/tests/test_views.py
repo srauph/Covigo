@@ -6,7 +6,6 @@ from django.urls import reverse
 from unittest import mock
 from django.db import connection
 
-from Covigo import settings
 from Covigo.messages import Messages
 from accounts.utils import get_flag, dictfetchall
 from accounts.views import flag_user, unflag_user, profile_from_code, convert_permission_name_to_id
