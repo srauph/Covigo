@@ -1,5 +1,19 @@
 {% load static %}
 
+{% block style %}
+    <style>
+    .notification-dropdown-width {
+        width: calc(100% - 4rem);
+    }
+    
+    @media (min-width: 640px) {
+        .notification-dropdown-width {
+            width: 32rem;
+        }
+    }
+    </style>
+{% endblock %}
+
 {% block script %}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"
             integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
@@ -158,7 +172,7 @@
                                   class="absolute rounded-full bg-red-500 group-hover:bg-red-400 right-0 py-1 px-2 -top-px right-px hidden"></span>
                         </button>
                         <div id="notification-dropdown"
-                             class="absolute top-16 right-8 mt-2 w-80 bg-white rounded-md shadow-lg overflow-hidden z-20 hidden">
+                             class="absolute top-16 right-8 mt-2 notification-dropdown-width bg-white rounded-md shadow-lg overflow-hidden z-20 hidden">
                             <ul id="notification-list">
 
                             </ul>

@@ -99,7 +99,7 @@
                     authority.
                     We will not store your current location information; we will only report compliance or non-compliance.
                 </div>
-                <div class="w-full bg-red-100 shadow rounded-b-lg p-4 text-base text-red-700 inline-flex items-center hidden"
+                <div class="w-full bg-red-100 shadow rounded-b-lg p-4 text-base text-red-700 flex gap-2 items-center hidden"
                      role="alert" id="error-geoloc">
                     <span class="w-6 h-6 sm:w-4 sm:h-4">
                         <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="times-circle"
@@ -112,7 +112,7 @@
                     <span id="location-prompt" class="grow"></span>
                 </div>
 
-                <div class="w-full bg-red-100 shadow rounded-b-lg p-4 text-base text-red-700 inline-flex items-center hidden"
+                <div class="w-full bg-red-100 shadow rounded-b-lg p-4 text-base text-red-700 flex gap-2 items-center hidden"
                      role="alert" id="non-compliance">
                     <span class="w-6 h-6 sm:w-4 sm:h-4">
                         <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="times-circle"
@@ -198,7 +198,7 @@
                     </span>
 
                     {% for r in report %}
-                        <div class="mt-1 mx-2">
+                        <div class="mx-2">
                             <label> {{ r.symptom.name }}:</label>
                             <input type="hidden" name="data[id][]" value="{{ r.id }}">
                             <br>
@@ -209,7 +209,7 @@
                         </div>
                     {% endfor %}
                 </div>
-                <div class="w-full mt-8 md:mt-0">
+                <div class="w-full">
                     <div class="text-center flex flex-wrap justify-center sm:justify-end gap-2">
                         <a href="{% url "status:index" %}">
                             <button type="button"

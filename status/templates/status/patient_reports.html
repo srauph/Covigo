@@ -187,12 +187,12 @@
         <div class="flex justify-between bg-slate-700">
             <h1 class="text-2xl text-white font-semibold px-8 py-4">Patient Reports</h1>
         </div>
-        {% if messages %}
 
+        {% if messages %}
             <script>
                 setTimeout(function() {
                     $('.message').fadeOut('fast');
-                    }, 10000); // <-- time in milliseconds
+                }, 10000); // <-- time in milliseconds
             </script>
         {% endif %}
 
@@ -223,22 +223,21 @@
             {% endif %}
         {% endfor %}
 
-        <div class="bg-white shadow m-8 rounded-xl">
-            <div class="w-full flex justify-between items-center p-4">
-                <div>
-                    <span class="font-semibold px-2">Filters:</span>
-                    <select name="" id="toggleRead"
-                            class="bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md cursor-pointer">
-                        <option value="showAll">Show All Patient Reports</option>
-                        <option value="false">Show Unread Patient Reports</option>
-                        <option value="true">Show Read Patient Reports</option>
-                    </select>
+        <div class="flex flex-col gap-8 p-8">
+            <div class="bg-white shadow rounded-xl">
+                <div class="w-full flex flex-wrap justify-center md:justify-between items-center gap-2 p-4">
+                    <div class="flex flex-wrap justify-center items-center gap-2">
+                        <span class="font-semibold">Filters:</span>
+                        <select name="" id="toggleRead"
+                                class="bg-slate-300 border border-slate-300 py-1 text-sm text-black px-2 rounded-md cursor-pointer">
+                            <option value="showAll">Show All Patient Reports</option>
+                            <option value="false">Show Unread Patient Reports</option>
+                            <option value="true">Show Read Patient Reports</option>
+                        </select>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <div class="m-4">
-            <div class="m-4 p-4 bg-white shadow rounded-lg text-center">
+            <div class="p-4 bg-white shadow rounded-lg text-center">
                 <table class="w-full table-auto display responsive nowrap" style="width:100%"
                        id="patient_reports_table">
                     <thead>
@@ -256,7 +255,7 @@
                 </table>
             </div>
         </div>
-        <div id="modal-div" class="modal" style="max-width:1000px;padding: 0 0">
-        </div>
+
+        <div id="modal-div" class="modal" style="max-width:1000px;padding: 0 0"></div>
     </div>
 {% endblock %}
