@@ -157,12 +157,7 @@
         </div>
 
         {% if messages %}
-
             <script>
-                $("input[placeholder]").each(function () {
-                    $(this).attr('size', $(this).attr('placeholder').length);
-                });
-
                 setTimeout(function() {
                     $('.message').fadeOut('fast');
                     }, 10000); // <-- time in milliseconds

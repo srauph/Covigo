@@ -113,11 +113,6 @@
         });
     </script>
     <script>
-        $("input[placeholder]").each(function () {
-            $(this).attr('size', $(this).attr('placeholder').length);
-        });
-    </script>
-    <script>
         let isProcessing;
         async function checkIsProcessing() {
             let result;
@@ -162,10 +157,6 @@
                 Contact Tracing
             </h1>
         </div>
-
-        {% if messages %}
-
-        {% endif %}
 
         {% for message in messages %}
             {% if message.tags == 'success' %}
